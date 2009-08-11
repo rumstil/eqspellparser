@@ -6,24 +6,35 @@ using System.Diagnostics;
 
 namespace parser
 {
-    [FlagsAttribute]
-    public enum SpellClasses
-    {
-        BER = 32768, BRD = 128, BST = 16384, CLR = 2, DRU = 32, ENC = 8192, MAG = 4096, MNK = 64,
-        NEC = 1024, PAL = 4, RNG = 8, ROG = 256, SHD = 16, SHM = 512, WAR = 1, WIZ = 2048
-    };
+    //[FlagsAttribute]
+    //public enum SpellClasses
+    //{
+    //    BER = 32768, BRD = 128, BST = 16384, CLR = 2, DRU = 32, ENC = 8192, MAG = 4096, MNK = 64,
+    //    NEC = 1024, PAL = 4, RNG = 8, ROG = 256, SHD = 16, SHM = 512, WAR = 1, WIZ = 2048
+    //};
+
+    //public enum SpellEffect
+    //{
+    //    Current_HP = 0,
+    //    AC = 1
+    //    ATK = 2;
+    //}
 
     class Spell
     {
-        // this shorthand may not compile in vs2005?
-        public int ID { get; set; }  
-        public string Name { get; set; }
-        public string[] Slots { get; set; }
-        public SpellClasses Classes { get; set; }
+        public int ID; 
+        public string Name; 
+        public string Duration; 
+        public string[] Slots;
+        public int[] Levels;
+        
+
+        public string DebugEffectList;
 
         public Spell()
         {
             Slots = new string[12];
+            Levels = new int[16];
         }
 
         public override string ToString()
@@ -50,6 +61,8 @@ namespace parser
                     //list.Add(spell);
                 }
         }
+
+        
     }
 
     //delegate string SpellSlotParser(int type);
@@ -64,6 +77,14 @@ namespace parser
             spell.ID = Convert.ToInt32(fields[0]);
             spell.Name = fields[1];
 
+            int dur = ParseInt(fields[17]);
+            int durcalc = ParseInt(fields[16]);
+            if (dur > 0 || durcalc > 0)
+                spell.Duration = dur.ToString();
+
+            for (int i = 0; i < spell.Levels.Length; i++)
+                spell.Levels[i] = ParseInt(fields[104 + i]);
+
             // each spell has 12 effect slots:
             // 86..97 - slot 1..12 type
             // 20..31 - slot 1..12 base effect
@@ -72,27 +93,48 @@ namespace parser
             // 70..81 - slot 1..12 calc forumla data
             for (int i = 0; i < spell.Slots.Length; i++)
             {
-                int type;
-                Int32.TryParse(fields[86 + i], out type);
-                int value;
-                Int32.TryParse(fields[20 + i], out value);
-                int value2;
-                Int32.TryParse(fields[32 + i], out value2);
-                int max;
-                Int32.TryParse(fields[44 + i], out max);
-                int calc;
-                Int32.TryParse(fields[70 + i], out calc);
-                //spell.Slots[i] = ParseSlot(Convert.ToInt32(fields[86 + i]), Convert.ToInt32(fields[20 + i]), Convert.ToInt32(fields[32 + i]), Convert.ToInt32(fields[44 + i]), Convert.ToInt32(fields[70 + i]));
-                spell.Slots[i] = ParseSlot(type, value, value2, max, calc);                
+                spell.Slots[i] = ParseSlot(spell,
+                    ParseInt(fields[86 + i]), 
+                    ParseInt(fields[20 + i]), 
+                    ParseInt(fields[32 + i]), 
+                    ParseInt(fields[44 + i]), 
+                    ParseInt(fields[70 + i]));
+
+                spell.DebugEffectList += ";" + fields[86 + i].ToString();
             }
+            spell.DebugEffectList += ";";
 
             return spell;
         }
 
-        static string ParseSlot(int type, int value, int value2, int max, int calc)
+        static int ParseInt(string s)
+        {
+            if (String.IsNullOrEmpty(s))
+                return 0;
+            return (int)Single.Parse(s);
+        }
+
+        /// <summary>
+        /// Parses a spell effect slot. Each slot has a series of attributes associated with it.
+        /// </summary>
+        /// <returns>A description of the slot effect</returns>
+        static string ParseSlot(Spell spell, int type, int value, int value2, int max, int calc)
         {
             int level = MaxLevel;
+            int minlevel = 255;
+            string repeating = !String.IsNullOrEmpty(spell.Duration) ? " per tick" : null;
 
+            for (int i = 0; i < spell.Levels.Length; i++)
+                if (spell.Levels[i] > 0 && spell.Levels[i] < minlevel)
+                    minlevel = spell.Levels[i];
+            if (minlevel > MaxLevel)
+                minlevel = 0;
+            //if (minlevel == 0)
+            //    minlevel = 1;
+
+            // negate level for calculations
+            if (value < 0)
+                level = -level;
 
             // the default calculation (100) leaves the base value as is.
             // all other calculations alter the base value
@@ -129,22 +171,54 @@ namespace parser
                     value += level / 5;
                     break;
                 case 111:
-                    value += level / 6;
+                    value += (level - minlevel) * 6; 
                     break;
+                case 112:
+                    value += (level - minlevel) * 8;
+                    break;
+                case 113:
+                    value += (level - minlevel) * 10; 
+                    break;
+                case 114:
+                    value += (level - minlevel) * 15;
+                    break;
+                case 115:
+                    value += (level - minlevel) * 6;
+                    break;
+                case 116:
+                    value += (level - minlevel) * 8;
+                    break;
+                case 117:
+                    value += (level - minlevel) * 12;
+                    break;
+                case 118:
+                    value += (level - minlevel) * 20;
+                    break;
+
+
                 default:
-                    if (calc < 100)
-                        value = level * calc;                    
+                    if (calc > 0 && calc < 100)
+                        value = level * calc;
                     break;
             }
-            if (max > 0 && value > max) 
+
+            //if (calc == 115) Console.WriteLine("------  " + spell + " " + String.Format("Eff={0} Val={1} Val2={2} Max={3} Calc={4}", type, value, value2, max, calc));
+
+
+            if (max > 0 && value > max)
                 value = max;
+            if (max > 0 && value < -max)
+                value = -max;
+
+
 
             switch (type)
-            {
-                case 0: 
-                    return FormatCount("HP", value);
+            {                
+                case 0:
+                    // delta hp for heal/nuke, repeating if with duration
+                    return FormatCount("Current HP", value) + repeating;
                 case 1:
-                    return FormatCount("AC", (int)Math.Floor(value / (10f / 3f))); 
+                    return FormatCount("AC", (int)(value / (10f / 3f))); 
                 case 2: 
                     return FormatCount("ATK", value);
                 case 3:
@@ -167,12 +241,31 @@ namespace parser
                         return FormatCount("CHA", value);                    
                     return null; 
                 case 11:
-                    // haste is given as a percentage of 100. so 85 = 15% slow, 130 = 30% haste 
+                    // haste is given as a factor of 100. so 85 = 15% slow, 130 = 30% haste 
                     if (value < 100)
                         value = 100 - value;
                     else
                         value = value - 100;
                     return FormatPercent("Melee Haste", value);
+                case 12:
+                    return "Invisibility (Unstable)";
+                case 13:
+                    if (value > 1)
+                        return "See Invisible (Enhanced)";
+                    return "See Invisible";
+                case 14:
+                    return "Enduring Breath";
+                case 15:
+                    return FormatCount("Current Mana", value) + repeating;
+                case 18:
+                    return "Pacify";
+                case 30:
+                    return String.Format("Decrease Aggro Radius up to level {0}", max);
+
+                case 35:
+                    return FormatCount("Disease Counter", value);
+                case 36:
+                    return FormatCount("Poison Counter", value);
 
                 case 46:
                     return FormatCount("Fire Resist", value);
@@ -185,22 +278,42 @@ namespace parser
                 case 50:
                     return FormatCount("Magic Resist", value);
 
+                case 55:
+                    return FormatCount("Rune", value);
+
+                    
+                case 64:
+                    return "SpinStun";
+                case 65:
+                    return "Infravision";
+                case 66:
+                    return "Ultravision";
+                case 67:
+                    return "Eye of Zomm";
                 case 69:
                     // max hp
                     return FormatCount("HP", value);
                 case 79:
-                    // current hp for heal/nuke, non-repeating if with duration
+                    // delta hp for heal/nuke, non repeating
                     return FormatCount("Current HP", value);
+
+                case 86:
+                    return String.Format("Decrease Assist Radius up to level {0}", max);
+
+                case 91:
+                    return String.Format("Summon corpse up to level {0}", value);
 
 
                 case 148:
-                    return String.Format("Block new spell if slot {0} is {1} and < {2}", calc % 100, ParseSlotType(value), max);
+                    return String.Format("Block new spell if slot {0} is '{1}' and < {2}", calc % 100, ParseSlotType(value), max);
                 case 149:
-                    return String.Format("Overwrite existing spell if slot {0} is {1} and < {2}", calc % 100, ParseSlotType(value), max);
+                    return String.Format("Overwrite existing spell if slot {0} is '{1}' and < {2}", calc % 100, ParseSlotType(value), max);
 
                 case 254:
                     // 254 is used for unused slots
                     return null;
+                case 314:
+                    return "Invisibility (Permanent)";
             }
 
             return String.Format("Unknown Effect: {0} Val={1} Val2={2} Max={3} Calc={4}", type, value, value2, max, calc);
