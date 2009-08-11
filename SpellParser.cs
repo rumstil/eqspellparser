@@ -13,12 +13,94 @@ namespace parser
     //    NEC = 1024, PAL = 4, RNG = 8, ROG = 256, SHD = 16, SHM = 512, WAR = 1, WIZ = 2048
     //};
 
-    //public enum SpellEffect
-    //{
-    //    Current_HP = 0,
-    //    AC = 1
-    //    ATK = 2;
-    //}
+    public enum SpellEffect
+    {
+        Current_HP = 0,
+        AC = 1,
+        ATK = 2,
+        Movement_Speed = 3,
+        STR = 4,
+        DEX = 5,
+        AGI = 6,
+        STA = 7,
+        WIS = 8,
+        INT = 9,
+        CHA = 10,
+        HP = 69
+    }
+
+    public enum SpellSkillCap
+    {
+        STR = 0, 
+        STA = 1,
+        AGI = 2,
+        DEX = 3,
+        WIS = 4,
+        INT = 5,
+        CHA = 6,
+        Magic_Resist = 7,
+        Fire_Resist = 8,
+        Cold_Resist = 9,
+        Poison_Resist = 10,
+        Disease_Resist = 11
+    }
+
+    public enum SpellSkill
+    {
+        _1H_Blunt = 0,
+        _1H_Slash = 1,
+        _2H_Blunt = 2,
+        _2H_Slash = 3,
+        Abjuration = 4,
+        Alteration = 5,
+        Apply_Poison = 6,
+        Archery = 7,
+        Backstab = 8,
+        Bind_Wound = 9,
+        Bash = 10,
+        Block = 11,
+        Brass_Instruments = 12,
+        Channeling = 13,
+        Conjuration = 14,
+        Defense = 15,
+        Disarm = 16,
+        Disarm_Traps = 17,
+        Divination = 18,
+        Dodge = 19,
+        Double_Attack = 20,
+        Dragon_Punch = 21,
+        Dual_Wield = 22,
+        Eagle_Strike = 23,
+        Evocation = 24,
+        Feign_Death = 25,
+        Flying_Kick = 26,
+        Forage = 27,
+        Hand_to_Hand = 28,
+        Hide = 29,
+        Kick = 30,
+        Meditate = 31,
+        Mend = 32,
+        Offense = 33,
+        Parry = 34,
+        Pick_Lock = 35,
+        Piercing = 36,
+        Riposte = 37,
+        Round_Kick = 38,
+        Safe_Fall = 39,
+        Sense_Heading = 40,
+        Singing = 41,
+        Sneak = 42,
+        Stringed_Instruments = 49,
+        Throwing = 51,
+        Tiger_Claw = 52,
+        Tracking = 53,
+        Wind_Instruments = 54,
+        Alcohol_Tolerance = 66,
+        Percusion_Instruments = 70,
+        Berserking = 72,
+        Taunt = 73,
+        Frenzy = 74
+    }
 
     class Spell
     {
@@ -27,6 +109,7 @@ namespace parser
         public string Duration; 
         public string[] Slots;
         public int[] Levels;
+        public string Skill;
         
 
         public string DebugEffectList;
@@ -76,6 +159,7 @@ namespace parser
             Spell spell = new Spell();
             spell.ID = Convert.ToInt32(fields[0]);
             spell.Name = fields[1];
+            spell.Skill = ((SpellSkill)ParseInt(fields[100])).ToString().Replace("_", " ").Trim();
 
             int dur = ParseInt(fields[17]);
             int durcalc = ParseInt(fields[16]);
@@ -238,7 +322,7 @@ namespace parser
                 case 10:
                     // 10 is also used as a magic value for unused slots
                     if (value > 0)
-                        return FormatCount("CHA", value);                    
+                        return FormatCount("CHA", value); 
                     return null; 
                 case 11:
                     // haste is given as a factor of 100. so 85 = 15% slow, 130 = 30% haste 
@@ -259,6 +343,19 @@ namespace parser
                     return FormatCount("Current Mana", value) + repeating;
                 case 18:
                     return "Pacify";
+                case 19:
+                    return FormatCount("Faction", value);  
+                case 20:
+                    return "Blind";
+
+                case 25:
+                    return "Bind Affinity";
+                case 26:
+                    return "Gate";
+                case 27:
+                    return String.Format("Cancel Magic ({0})", value);
+
+
                 case 30:
                     return String.Format("Decrease Aggro Radius up to level {0}", max);
 
@@ -301,34 +398,29 @@ namespace parser
                     return String.Format("Decrease Assist Radius up to level {0}", max);
 
                 case 91:
-                    return String.Format("Summon corpse up to level {0}", value);
+                    return String.Format("Summon Corpse up to level {0}", value);
 
 
                 case 148:
-                    return String.Format("Block new spell if slot {0} is '{1}' and < {2}", calc % 100, ParseSlotType(value), max);
-                case 149:
-                    return String.Format("Overwrite existing spell if slot {0} is '{1}' and < {2}", calc % 100, ParseSlotType(value), max);
+                    return String.Format("Block new spell if slot {0} is '{1}' and < {2}", calc % 100, (SpellEffect)value, max);
+                case 149:                    
+                    return String.Format("Overwrite existing spell if slot {0} is '{1}' and < {2}", calc % 100, (SpellEffect)value, max);
+
+                case 185:
+                    return FormatPercent(((SpellSkill)value2).ToString().Replace("_", " ").Trim() + " Damage Modifier", value);
 
                 case 254:
                     // 254 is used for unused slots
-                    return null;
+                    return null;                    
+
+                case 262:
+                    return FormatCount((SpellSkillCap)value2 + " Cap", value);                
+
                 case 314:
                     return "Invisibility (Permanent)";
             }
 
             return String.Format("Unknown Effect: {0} Val={1} Val2={2} Max={3} Calc={4}", type, value, value2, max, calc);
-        }
-
-        static string ParseSlotType(int type)
-        {
-            switch (type)
-            {
-                case 1: return "AC";
-                case 2: return "ATK";
-                case 69: return "HP"; // max hp              
-            }
-
-            return String.Format("Unknown Effect: {0}", type);
         }
 
         static string FormatCount(string name, int count)
