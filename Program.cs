@@ -16,23 +16,17 @@ namespace parser
             cache.LoadFromFile("spells_us.txt");
 
 
-            
-            
+
+            Console.WriteLine("============================================================================");
             foreach(Spell spell in cache.List.Values)
             {   
-                //if (spell.Name.Contains("Swift"))
-                //if (String.Join(";", spell.Slots).Contains("Unknown Effect"))
-                if (spell.ID < 100) 
-                {
-                    Console.WriteLine();
-                    Console.WriteLine("[{0}] {1}", spell.ID, spell.Name);
-                    for (int j = 0; j < spell.Slots.Length; j++)
-                        if (!String.IsNullOrEmpty(spell.Slots[j]))
-                            Console.WriteLine("{0}: {1}", j + 1, spell.Slots[j]);
-                }
+                if (args.Length == 0
+                    || (args.Length == 1 && spell.DebugEffectList.Contains(";" + args[0] + ";"))      
+                    || (args.Length == 2 && args[0] == "id" && spell.ID.ToString() == args[1])
+                    || (args.Length == 2 && args[0] == "name" && spell.Name.ToLower().Contains(args[1].ToLower())))
 
+                    Console.WriteLine("\n[{0}] {1}\n{2}", spell.ID, spell.Name, String.Join("\n", spell.Details().ToArray()));
             }
-
 
         }
     }
