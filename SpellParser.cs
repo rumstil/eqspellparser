@@ -47,6 +47,7 @@ namespace parser
 
     public enum SpellSkill
     {
+        All_Skills = -1,
         _1H_Blunt = 0,
         _1H_Slash = 1,
         _2H_Blunt = 2,
@@ -100,6 +101,30 @@ namespace parser
         Berserking = 72,
         Taunt = 73,
         Frenzy = 74
+    }
+
+    public enum SpellIllusion
+    {
+        Humanoid = 1,
+        Barbarian = 2,
+        Erudite = 3,
+        Wood_Elf = 4,
+        High_Elf = 5,
+        Dark_Elf = 6,
+        Half_Elf = 7,
+        Dwarf = 8,
+        Troll = 9,
+        Ogre = 10,
+        Halfling = 11,
+        Gnome = 12,
+        Werewolf = 14,
+        Froglock = 27,
+        Wolf = 42,
+        Bear = 43,
+        Imp = 46,        
+        Elemental = 75,
+        Skeleton = 85,
+        Zombie = 471
     }
 
     class Spell
@@ -222,6 +247,8 @@ namespace parser
 
             // the default calculation (100) leaves the base value as is.
             // all other calculations alter the base value
+            // for spell type 32, 109 (summon item) the calc field is abused as a count value
+            if (type != 32 && type != 109) 
             switch (calc)
             {
                 case 101:
@@ -286,13 +313,16 @@ namespace parser
                     break;
             }
 
-            //if (calc == 115) Console.WriteLine("------  " + spell + " " + String.Format("Eff={0} Val={1} Val2={2} Max={3} Calc={4}", type, value, value2, max, calc));
+            //if (calc == 115) 
+            //Console.WriteLine("------  " + spell + " " + String.Format("Eff={0} Val={1} Val2={2} Max={3} Calc={4}", type, value, value2, max, calc));
 
-
-            if (max > 0 && value > max)
-                value = max;
-            if (max > 0 && value < -max)
-                value = -max;
+            if (calc != 100)
+            {
+                if (max > 0 && value > max)
+                    value = max;
+                if (max > 0 && value < -max)
+                    value = -max;
+            }
 
 
 
@@ -347,7 +377,14 @@ namespace parser
                     return FormatCount("Faction", value);  
                 case 20:
                     return "Blind";
-
+                case 21:
+                    if (max == 0)
+                        max = 55;
+                    return String.Format("Stun for {0}s up to level {1}", value / 1000f, max);
+                case 22:
+                    return String.Format("Charm up to level {0}", max);
+                case 23:
+                    return String.Format("Fear up to level {0}", max);
                 case 25:
                     return "Bind Affinity";
                 case 26:
@@ -358,6 +395,11 @@ namespace parser
 
                 case 30:
                     return String.Format("Decrease Aggro Radius up to level {0}", max);
+                case 31:
+                    return String.Format("Mesmerize up to level {0}", max);
+                case 32:
+                    // item references are made with angle brackets
+                    return String.Format("Summon Item: <{0}>", value);
 
                 case 35:
                     return FormatCount("Disease Counter", value);
@@ -377,6 +419,10 @@ namespace parser
 
                 case 55:
                     return FormatCount("Rune", value);
+
+                case 58:
+                    return String.Format("Illusion: {0}", ((SpellIllusion)value).ToString().Replace("_", " ").Trim());
+
 
                     
                 case 64:
@@ -399,7 +445,13 @@ namespace parser
 
                 case 91:
                     return String.Format("Summon Corpse up to level {0}", value);
+                case 96:
+                    return "Silence";
 
+
+                case 109:
+                    // item references are made with angle brackets
+                    return String.Format("Summon Item: <{0}>", value); 
 
                 case 148:
                     return String.Format("Block new spell if slot {0} is '{1}' and < {2}", calc % 100, (SpellEffect)value, max);
@@ -408,6 +460,10 @@ namespace parser
 
                 case 185:
                     return FormatPercent(((SpellSkill)value2).ToString().Replace("_", " ").Trim() + " Damage Modifier", value);
+
+                case 193:
+                    return String.Format("{0} Attack for {1}", spell.Skill, value);
+
 
                 case 254:
                     // 254 is used for unused slots
@@ -418,6 +474,10 @@ namespace parser
 
                 case 314:
                     return "Invisibility (Permanent)";
+
+                case 374:
+                    // spell references are made with square brackets
+                    return String.Format("Added Effect: [{0}]", value2); 
             }
 
             return String.Format("Unknown Effect: {0} Val={1} Val2={2} Max={3} Calc={4}", type, value, value2, max, calc);
