@@ -26,6 +26,9 @@ namespace parser
         WIS = 8,
         INT = 9,
         CHA = 10,
+        Lycanthropy = 44,
+        Rune = 55,
+        Damage_Shield = 59,
         HP = 69
     }
 
@@ -103,9 +106,23 @@ namespace parser
         Frenzy = 74
     }
 
+    public enum SpellResist
+    {
+        Unresistable = 0, // only for detrimental spells
+        Magic = 1,
+        Fire = 2,
+        Cold = 3,
+        Poison = 4,
+        Disease = 5,
+        Lowest = 6, // Chromatic/lowest
+        Average = 7, // Prismatic/average
+        Physical = 8,
+        Corruption = 9
+    }
+
     public enum SpellIllusion
     {
-        Humanoid = 1,
+        Human = 1,
         Barbarian = 2,
         Erudite = 3,
         Wood_Elf = 4,
@@ -117,8 +134,14 @@ namespace parser
         Ogre = 10,
         Halfling = 11,
         Gnome = 12,
+        Aviak = 13,
         Werewolf = 14,
-        Froglock = 27,
+        Brownie = 15,
+        Centaur = 16,
+        Golem = 17,
+        Froglok = 26,
+        Froglok_Ghoul = 27,
+        Gargoyle = 29,
         Wolf = 42,
         Bear = 43,
         Imp = 46,        
@@ -135,6 +158,8 @@ namespace parser
         public string[] Slots;
         public int[] Levels;
         public string Skill;
+        public string ResistType;
+        public int ResistValue;
         
 
         public string DebugEffectList;
@@ -184,7 +209,9 @@ namespace parser
             Spell spell = new Spell();
             spell.ID = Convert.ToInt32(fields[0]);
             spell.Name = fields[1];
-            spell.Skill = ((SpellSkill)ParseInt(fields[100])).ToString().Replace("_", " ").Trim();
+            spell.Skill = TrimEnum((SpellSkill)ParseInt(fields[100]));
+            spell.ResistType = TrimEnum((SpellResist)ParseInt(fields[85]));
+            spell.ResistValue = ParseInt(fields[147]);
 
             int dur = ParseInt(fields[17]);
             int durcalc = ParseInt(fields[16]);
@@ -223,12 +250,23 @@ namespace parser
             return (int)Single.Parse(s);
         }
 
+        static string TrimEnum(object o)
+        {            
+            return o.ToString().Replace("_", " ").Trim();
+        }
+
         /// <summary>
         /// Parses a spell effect slot. Each slot has a series of attributes associated with it.
+        /// EQEmu has already parsed almost all of these
+        /// http://code.google.com/p/projecteqemu/source/browse/trunk/EQEmuServer/zone/spdat.h
         /// </summary>
         /// <returns>A description of the slot effect</returns>
         static string ParseSlot(Spell spell, int type, int value, int value2, int max, int calc)
         {
+            // type 10 is sometimes used in empty slots
+            if (type == 10 && (value == 0 || value > 255))
+                return null;
+
             int level = MaxLevel;
             int minlevel = 255;
             string repeating = !String.IsNullOrEmpty(spell.Duration) ? " per tick" : null;
@@ -238,10 +276,8 @@ namespace parser
                     minlevel = spell.Levels[i];
             if (minlevel > MaxLevel)
                 minlevel = 0;
-            //if (minlevel == 0)
-            //    minlevel = 1;
 
-            // negate level for calculations
+            // negate calculations if spell effect is negative
             if (value < 0)
                 level = -level;
 
@@ -325,6 +361,9 @@ namespace parser
             }
 
 
+            // TODO: Protection of the Paw Rk. III - i don't think the block value2 calc is correct
+            // TODO: Reprehend - some of the damage is based on target type
+            // TODO: Lycanthropy spells - what is the base value for
 
             switch (type)
             {                
@@ -350,10 +389,7 @@ namespace parser
                 case 9:
                     return FormatCount("WIS", value);
                 case 10:
-                    // 10 is also used as a magic value for unused slots
-                    if (value > 0)
-                        return FormatCount("CHA", value); 
-                    return null; 
+                    return FormatCount("CHA", value); 
                 case 11:
                     // haste is given as a factor of 100. so 85 = 15% slow, 130 = 30% haste 
                     if (value < 100)
@@ -362,7 +398,7 @@ namespace parser
                         value = value - 100;
                     return FormatPercent("Melee Haste", value);
                 case 12:
-                    return "Invisibility (Unstable)";
+                    return "Invisible (Unstable)";
                 case 13:
                     if (value > 1)
                         return "See Invisible (Enhanced)";
@@ -390,22 +426,28 @@ namespace parser
                 case 26:
                     return "Gate";
                 case 27:
-                    return String.Format("Cancel Magic ({0})", value);
-
-
+                    return String.Format("Dispell ({0})", value);
+                case 28:
+                    return "Invisible to Undead (Unstable)";
+                case 29:
+                    return "Invisible to Animals (Unstable)";
                 case 30:
                     return String.Format("Decrease Aggro Radius up to level {0}", max);
                 case 31:
                     return String.Format("Mesmerize up to level {0}", max);
                 case 32:
-                    // item references are made with angle brackets
-                    return String.Format("Summon Item: <{0}>", value);
-
+                    return String.Format("Summon: [Item {0}]", value);
                 case 35:
                     return FormatCount("Disease Counter", value);
                 case 36:
                     return FormatCount("Poison Counter", value);
-
+                case 40:
+                    return "Invulnerability";
+                case 42:
+                    return "Shadowstep";
+                case 44:
+                    return "Lycanthropy";
+                    //return String.Format("Lycanthropy Effect: [{0}]", value);
                 case 46:
                     return FormatCount("Fire Resist", value);
                 case 47:
@@ -416,15 +458,16 @@ namespace parser
                     return FormatCount("Disease Resist", value);
                 case 50:
                     return FormatCount("Magic Resist", value);
-
                 case 55:
-                    return FormatCount("Rune", value);
-
+                    return FormatCount("Mitigate Damage", value);
                 case 58:
-                    return String.Format("Illusion: {0}", ((SpellIllusion)value).ToString().Replace("_", " ").Trim());
-
-
-                    
+                    return String.Format("Illusion: {0}", TrimEnum((SpellIllusion)value));
+                case 59:
+                    return FormatCount("Damage Shield", value);
+                case 61:
+                    return "Identify Item";
+                case 63:
+                    return String.Format("Memory Blur ({0})", value);               
                 case 64:
                     return "SpinStun";
                 case 65:
@@ -436,48 +479,141 @@ namespace parser
                 case 69:
                     // max hp
                     return FormatCount("HP", value);
+                case 74:
+                    return "Feign Death";
                 case 79:
                     // delta hp for heal/nuke, non repeating
                     return FormatCount("Current HP", value);
-
+                case 81:
+                    return String.Format("Resurrection: {0}%", value); 
+                case 82:
+                    return "Call of Hero";
+                case 85:
+                    return String.Format("Add Proc: [{0}] RateMod: {1}%", value, value2);
                 case 86:
                     return String.Format("Decrease Assist Radius up to level {0}", max);
-
+                case 87:
+                    return FormatPercent("Magnification", value);
+                case 89:
+                    return FormatPercent("Player Size", value - 100);
                 case 91:
                     return String.Format("Summon Corpse up to level {0}", value);
+                case 92:
+                    return FormatCount("Hate", value);
                 case 96:
                     return "Silence";
-
-
-                case 109:
-                    // item references are made with angle brackets
-                    return String.Format("Summon Item: <{0}>", value); 
-
+                case 98:
+                    // yet another super turbo haste. only on 3 bard songs
+                    return FormatPercent("Melee Haste v2", value - 100);
+                case 100:
+                    // heal over time
+                   return FormatCount("Current HP", value) + repeating;
+                case 109:                    
+                    return String.Format("Summon: [Item {0}]", value);
+                case 114:
+                    return FormatPercent("Aggro Multiplier", value);
+                case 115:
+                    return "Feed Hunger";
+                case 116:
+                    return FormatCount("Curse Counter", value);
+                case 119:
+                    return FormatPercent("Melee Haste v3", value);
+                case 121:
+                    return FormatCount("Reverse Damage Shield", value);
+                case 123:
+                    return "Screech";
                 case 148:
                     return String.Format("Block new spell if slot {0} is '{1}' and < {2}", calc % 100, (SpellEffect)value, max);
                 case 149:                    
                     return String.Format("Overwrite existing spell if slot {0} is '{1}' and < {2}", calc % 100, (SpellEffect)value, max);
-
+                case 153:
+                    return String.Format("Balance Group HP ({0}% penalty)", value);                       
+                case 154:
+                    return String.Format("Remove Detrimental ({0})", value);
+                case 161:
+                    return String.Format("Mitigate Spell Damage by {0}% for {1}", value, max);
+                case 162:
+                    return String.Format("Mitigate Melee Damage by {0}% for {1}", value, max);
+                case 169:
+                    return FormatPercent("Chance to Critical Hit with " + TrimEnum((SpellSkill)value2), value);
+                case 172:
+                    return FormatPercent("Chance to Avoid Melee", value);
+                case 173:
+                    return FormatPercent("Chance to Riposte", value);
+                case 174:
+                    return FormatPercent("Chance to Dodge", value);
+                case 175:
+                    return FormatPercent("Chance to Parry", value);
+                case 176:
+                    return FormatPercent("Chance to Dual Wield", value);
+                case 177:
+                    return FormatPercent("Chance to Double Attack", value);
+                case 182:
+                    return FormatPercent("Weapon Delay", value);
+                case 183:
+                    return FormatPercent("Skill Check for " + TrimEnum((SpellSkill)value2), value);
+                case 184:
+                    return FormatPercent("Chance to Hit with " + TrimEnum((SpellSkill)value2), value);
                 case 185:
-                    return FormatPercent(((SpellSkill)value2).ToString().Replace("_", " ").Trim() + " Damage Modifier", value);
-
+                    return FormatPercent("Damage Modifier for " + TrimEnum((SpellSkill)value2), value);
+                case 186:
+                    return FormatPercent("Min Damage Modifier for " + TrimEnum((SpellSkill)value2), value);
+                case 188:
+                    return FormatPercent("Chance to Block", value);
+                case 189:
+                    return FormatCount("Current Endurance", value);
                 case 193:
                     return String.Format("{0} Attack for {1}", spell.Skill, value);
-
+                case 200:
+                    return FormatPercent("Proc Rate", value);
+                case 206:
+                    return "AE Taunt";
+                case 209:
+                    return String.Format("Dispell Beneficial ({0})", value);
+                case 216:
+                    return FormatPercent("Accuracy", value);
 
                 case 254:
                     // 254 is used for unused slots
                     return null;                    
 
                 case 262:
-                    return FormatCount((SpellSkillCap)value2 + " Cap", value);                
+                    return FormatCount((SpellSkillCap)value2 + " Cap", value);
+                case 273:
+                    return FormatPercent("Chance to Critical DoT", value);
+                case 274:
+                    return FormatPercent("Chance to Critical Heal", value);
+                case 289: 
+                    // how is this different than 373?
+                    return String.Format("Cast on Fade: [{0}]", value);
+                case 294:
+                    return FormatPercent("Chance to Critical Nuke", value);
+              
 
                 case 314:
-                    return "Invisibility (Permanent)";
+                    return "Invisible (Permanent)";
+                case 315:
+                    return "Invisible to Undead (Permanent)";
+                case 323:
+                    return String.Format("Add Defensive Proc: [{0}] RateMod: {1}%", value, value2);
+                case 340:
+                    return String.Format("Cast: [{0}] Chance: {1}%", value2, value); 
+                case 351:
+                    return String.Format("Aura Effect: [{0}]", spell.ID + value);
+                case 360:
+                    return String.Format("Cast on Killshot: [{0}] Chance: {1}%", value2, value); 
+                case 369:
+                    return FormatCount("Corruption Counter", value);
+                case 370:
+                    return FormatCount("Corruption Resist", value);
+                case 373:
+                    return String.Format("Cast on Fade: [{0}]", value);
+                case 374:                    
+                    return String.Format("Cast: [{0}]", value2); 
 
-                case 374:
-                    // spell references are made with square brackets
-                    return String.Format("Added Effect: [{0}]", value2); 
+                case 385:
+                    return String.Format("Limit: [Group {0}]", value); 
+
             }
 
             return String.Format("Unknown Effect: {0} Val={1} Val2={2} Max={3} Calc={4}", type, value, value2, max, calc);
