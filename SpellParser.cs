@@ -24,19 +24,24 @@ namespace parser
         WIS = 8,
         INT = 9,
         CHA = 10,
+        Current_Mana = 15,
+        Fear = 23,
         Summon_Item = 32,
         Invulnerability = 40,
         Lycanthropy = 44,
         Rune = 55,
         Damage_Shield = 59,
         Assist_Radius = 86,
-        HP = 69,
-        Percent_Heal = 147
+        Max_HP = 69,
+        Max_Mana = 97,
+        Percent_Heal = 147,
+        Corruption_Counter = 369,
+        Corruption_Resist = 370
     }
 
     public enum SpellSkill
     {
-        All_Skills = -1,
+        Melee = -1,
         _1H_Blunt = 0,
         _1H_Slash = 1,
         _2H_Blunt = 2,
@@ -123,9 +128,10 @@ namespace parser
     }
 
     public enum SpellTarget
-    {        
+    {     
+        AEPC = 2,
         Group = 3,
-        Self_AE = 4,
+        PBAE = 4,
         Single = 5,
         Self = 6,
         Targeted_AE = 8,
@@ -191,10 +197,10 @@ namespace parser
         public List<string> Details()
         {
             List<string> result = new List<string>();
-
      
-            if (!String.IsNullOrEmpty(Skill))
-                result.Add("Skill: " + Skill);
+            //if (!String.IsNullOrEmpty(Skill))
+            //    result.Add("Skill: " + Skill);
+
             if (!String.IsNullOrEmpty(Duration))
                 result.Add("Duration: " + Duration);
 
@@ -404,6 +410,7 @@ namespace parser
                 case 0:
                     // delta hp for heal/nuke, repeating if with duration
                     return FormatCount("Current HP", value) + repeating;
+                    //return String.Format("{0} for {1}", value >= 0 ? "Heal" : "Damage", value) + repeating;
                 case 1:
                     return FormatCount("AC", (int)(value / (10f / 3f))); 
                 case 2: 
@@ -460,7 +467,7 @@ namespace parser
                 case 25:
                     return "Bind";
                 case 26:
-                    return "Gate";
+                    return "Gate to Bind";
                 case 27:
                     return String.Format("Dispell ({0})", value);
                 case 28:
@@ -498,8 +505,16 @@ namespace parser
                     return FormatCount("Disease Resist", value);
                 case 50:
                     return FormatCount("Magic Resist", value);
+                case 52:
+                    return "Sense Undead";
+                case 53:
+                    return "Sense Summoned";
+                case 54:
+                    return "Sense Animal";
                 case 55:
-                    return FormatCount("Mitigate Damage", value);
+                    return String.Format("Absorb Damage: 100% Total: {0}", value);
+                case 56:
+                    return "True North";
                 case 57:
                     return "Levitate";
                 case 58:
@@ -522,22 +537,31 @@ namespace parser
                     return "Reclaim Pet";
                 case 69:
                     // max hp
-                    return FormatCount("HP", value);
+                    return FormatCount("Max HP", value);
                 case 73:
                     return "Bind Sight";
                 case 74:
                     return "Feign Death";
                 case 75:
                     return "Voice Graft";
+                case 76:
+                    return "Sentinel";
+                case 77:
+                    return "Locate Corpse";
+                case 78:
+                    // absorbs raw value rather than %. see also 296
+                    return FormatCount("Spell Damage Taken", -value);                    
                 case 79:
                     // delta hp for heal/nuke, non repeating
-                    return FormatCount("Current HP", value);
+                    return FormatCount("Current HP", value);                    
                 case 81:
                     return String.Format("Resurrection: {0}%", value); 
                 case 82:
                     return "Call of Hero";
                 case 83:
                     return String.Format("Teleport to {0}", spell.Extra);
+                case 84:
+                    return "Gravity Flux";
                 case 85:
                     return String.Format("Add Proc: [{0}] RateMod: {1}%", value, value2);
                 case 86:
@@ -552,13 +576,21 @@ namespace parser
                     return String.Format("Summon Corpse up to level {0}", value);
                 case 92:
                     return FormatCount("Hate", value);
+                case 93:
+                    return "Stop Rain";
+                case 94:
+                    return "Fade If Combat Initiated";
+                case 95:
+                    return "Sacrifice";
                 case 96:
-                    return "Silence";
+                    return "Prevent Casting";
                 case 97:
-                    return FormatCount("Mana", value);
+                    return FormatCount("Max Mana", value);
                 case 98:
                     // yet another super turbo haste. only on 3 bard songs
                     return FormatPercent("Melee Haste v2", value - 100);
+                case 99:
+                    return "Root";
                 case 100:
                     // heal over time
                    return FormatCount("Current HP", value) + repeating;
@@ -567,12 +599,18 @@ namespace parser
                     return "Donal's Heal"; 
                 case 104:
                     return String.Format("Translocate to {0}", spell.Extra);
+                case 105:
+                    return "Prevent Gate";
                 case 106:
                     return String.Format("Summon Warder: {0}", spell.Extra);
+                case 108:
+                    return String.Format("Summon Familiar: {0}", spell.Extra);
                 case 109:                    
                     return String.Format("Summon: [Item {0}]", value);
                 case 111:
                     return FormatCount("All Resists", value);
+                case 112:
+                    return FormatCount("Effective Casting Level", value);
                 case 113:
                     return String.Format("Summon Mount: {0}", spell.Extra);
                 case 114:
@@ -626,6 +664,10 @@ namespace parser
                     return String.Format("Limit: Min Level: {0}", value);
                 case 143:
                     return String.Format("Limit: Min Casting Time: {0}s", value / 1000f);
+                case 144:
+                    return String.Format("Limit: Max Casting Time: {0}s", value / 1000f);
+                case 145:
+                    return String.Format("Teleport to {0}", spell.Extra);
                 case 147:
                     return String.Format("Increase Current HP by {1} Max: {0}% ", value, max);
                 case 148:
@@ -645,9 +687,9 @@ namespace parser
                 case 157:
                     return FormatCount("Spell Damage Shield", -value);
                 case 161:
-                    return String.Format("Mitigate Spell Damage by {0}% for {1}", value, max);
+                    return String.Format("Absorb Spell Damage: {0}% Total: {1}", value, max);
                 case 162:
-                    return String.Format("Mitigate Melee Damage by {0}% for {1}", value, max);
+                    return String.Format("Absorb Melee Damage: {0}% Total: {1}", value, max);
                 case 163:
                     return "Pet Invulnerability";
                 case 169:
@@ -679,17 +721,27 @@ namespace parser
                 case 189:
                     return FormatCount("Current Endurance", value);
                 case 190:
-                    return FormatCount("Endurance", value);
+                    return FormatCount("Max Endurance", value);
+                case 191:
+                    return "Prevent Combat";
                 case 193:
-                    return String.Format("{0} Attack for {1}", spell.Skill, value);
+                    return String.Format("{0} Damage Attack for {1}", spell.Skill, value);
+                case 197:
+                    return FormatPercent(TrimEnum((SpellSkill)value2) + " Damage Taken", value);
                 case 200:
                     return FormatPercent("Proc Rate", value);
+                case 201:
+                    return String.Format("Add Range Proc: [{0}] RateMod: {1}%", value, value2);
                 case 206:
                     return "AE Taunt";
                 case 209:
                     return String.Format("Dispell Beneficial ({0})", value);
                 case 216:
                     return FormatPercent("Accuracy", value);
+                case 220:                    
+                    return FormatCount(TrimEnum((SpellSkill)value2) + " Damage", value);
+                case 227:
+                    return String.Format("Reduce {0} Timer by {1}s", TrimEnum((SpellSkill)value2), value);
 
                 case 254:
                     // 254 is used for unused slots
@@ -697,25 +749,56 @@ namespace parser
 
                 case 262:
                     return FormatCount((SpellSkillCap)value2 + " Cap", value);
+                case 272:
+                    return FormatPercent("Spell Casting Skill", value);
                 case 273:
                     return FormatPercent("Chance to Critical DoT", value);
                 case 274:
                     return FormatPercent("Chance to Critical Heal", value);
+                case 286:
+                    return FormatCount("Spell Damage", value);
                 case 289: 
                     // how is this different than 373?
                     return String.Format("Cast on Fade: [{0}]", value);
+                case 291:
+                    return String.Format("Purify ({0})", value);
                 case 294:
-                    return FormatPercent("Chance to Critical Nuke", value);
+                    if (value > 0 && value2 > 0)
+                        return FormatPercent("Chance to Critical Nuke", value) + " and " + FormatPercent("Critical Nuke Damage", value2 - 100);
+                    else if (value > 0)
+                        return FormatPercent("Chance to Critical Nuke", value);
+                    else                    
+                        return FormatPercent("Critical Nuke Damage", value2 - 100);
+                case 296:
+                    return FormatPercent("Spell Damage Taken", value);
+                case 300:
+                    return "Doppelganger";
+                case 310:
+                    return String.Format("Reduce Timer by {0}s", value / 1000);
                 case 311:
                     return "Limit: Exclude Combat Skills";
                 case 314:
                     return "Invisible (Permanent)";
                 case 315:
                     return "Invisible to Undead (Permanent)";
+                case 319:
+                    return FormatPercent("Chance to Critical HoT", value);
+                case 322:
+                    return "Gate to Origin";
                 case 323:
                     return String.Format("Add Defensive Proc: [{0}] RateMod: {1}%", value, value2);
+                case 329:
+                    return String.Format("Absorb Damage Using Mana: {0}%", value);
+                case 330:
+                    return FormatPercent("Critical Damage Modifier for " + TrimEnum((SpellSkill)value2), value);
+                case 335:
+                    return "Prevent Spell Matching Limits from Landing";
+                case 337:
+                    return FormatPercent("Experience Gain", value);
                 case 340:
                     return String.Format("Cast: [{0}] Chance: {1}%", value2, value); 
+                case 348:
+                    return String.Format("Limit: Mana Cost > {0}", value); 
                 case 351:
                     return String.Format("Aura Effect: [{0}]", spell.ID + value);
                 case 360:
