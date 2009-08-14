@@ -623,6 +623,9 @@ namespace parser
                     return FormatPercent("Melee Haste v3", value);
                 case 121:
                     return FormatCount("Reverse Damage Shield", -value);
+                case 120:
+                    // works like healing focus. no idea why it is a separate effect
+                    return FormatPercent("Healing Effectiveness", value);
                 case 123:
                     return "Screech";
                 case 124:
@@ -692,6 +695,17 @@ namespace parser
                     return String.Format("Absorb Melee Damage: {0}% Total: {1}", value, max);
                 case 163:
                     return "Pet Invulnerability";
+                case 164:
+                    return "Appraise Chest";
+                case 165:
+                    return "Disarm Chest";
+                case 166:
+                    return "Unlock Chest";
+                case 167:
+                    return String.Format("Pet Power ({0})", value);
+                case 168:
+                    // how is this different than an endless rune?
+                    return FormatPercent("Melee Mitigation", value);
                 case 169:
                     return FormatPercent("Chance to Critical Hit with " + TrimEnum((SpellSkill)value2), value);
                 case 172:
@@ -706,6 +720,8 @@ namespace parser
                     return FormatPercent("Chance to Dual Wield", value);
                 case 177:
                     return FormatPercent("Chance to Double Attack", value);
+                case 178:
+                    return String.Format("Lifetap from Weapon Damage: {0}%", value);
                 case 182:
                     return FormatPercent("Weapon Delay", value);
                 case 183:
@@ -736,6 +752,8 @@ namespace parser
                     return "AE Taunt";
                 case 209:
                     return String.Format("Dispell Beneficial ({0})", value);
+                case 214:
+                    return FormatPercent("Max HP", value);
                 case 216:
                     return FormatPercent("Accuracy", value);
                 case 220:                    
@@ -747,6 +765,8 @@ namespace parser
                     // 254 is used for unused slots
                     return null;                    
 
+                case 258:
+                    return String.Format("Triple Backstab ({0})", value);
                 case 262:
                     return FormatCount((SpellSkillCap)value2 + " Cap", value);
                 case 272:
@@ -756,6 +776,7 @@ namespace parser
                 case 274:
                     return FormatPercent("Chance to Critical Heal", value);
                 case 286:
+                    // similar to damage focus, but adds a raw amount
                     return FormatCount("Spell Damage", value);
                 case 289: 
                     // how is this different than 373?
@@ -809,10 +830,18 @@ namespace parser
                     return FormatCount("Corruption Resist", value);
                 case 373:
                     return String.Format("Cast on Fade: [{0}]", value);
-                case 374:                    
+                case 374:       
+                    // i think this is used when several effects need to be placed in a slot. 
+                    // i.e. multiple spells are needed but a single cast is required                    
                     return String.Format("Cast: [{0}]", value2); 
                 case 385:
                     return String.Format("Limit: Include Spells: [Group {0}]", value); 
+                case 392:
+                    // similar to heal focus, but adds a raw amount
+                    return FormatCount("Healing", value);
+                case 406:
+                    return String.Format("Cast if Attacked: [{0}]", value); 
+
 
             }
 
