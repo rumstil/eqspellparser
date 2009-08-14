@@ -548,7 +548,9 @@ namespace parser
                 case 63:
                     return String.Format("Memory Blur ({0})", value);               
                 case 64:
-                    return "SpinStun";
+                    if (max == 0)
+                        max = 55;
+                    return String.Format("SpinStun for {0}s up to level {1}", value / 1000f, max);
                 case 65:
                     return "Infravision";
                 case 66:
@@ -834,10 +836,14 @@ namespace parser
                     return String.Format("Absorb Damage Using Mana: {0}%", value);
                 case 330:
                     return FormatPercent("Critical Damage Modifier for " + TrimEnum((SpellSkill)value2), value);
+                case 333:
+                    return String.Format("Cast on Fade/Cancel: [{0}]", value);
                 case 335:
                     return "Prevent Spell Matching Limits from Landing";
                 case 337:
                     return FormatPercent("Experience Gain", value);
+                case 339:
+                    return String.Format("Add Spell Proc: [{0}] Chance: {1}%", value2, value);
                 case 340:
                     return String.Format("Cast: [{0}] Chance: {1}%", value2, value); 
                 case 348:
@@ -845,7 +851,7 @@ namespace parser
                 case 351:
                     return String.Format("Aura Effect: [{0}]", spell.ID + value);
                 case 360:
-                    return String.Format("Cast on Killshot: [{0}] Chance: {1}%", value2, value); 
+                    return String.Format("Add Killshot Proc: [{0}] Chance: {1}%", value2, value); 
                 case 369:
                     return FormatCount("Corruption Counter", value);
                 case 370:
