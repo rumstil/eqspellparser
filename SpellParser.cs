@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+using System.Data;
 
 namespace parser
 {
@@ -230,44 +231,65 @@ namespace parser
         const int MaxLevel = 85;
 
         /// <summary>
-        /// Parses a single spell as defined in the spells_us.txt file. 
+        /// Load spell list from the spells_us.txt file. 
         /// http://patch.station.sony.com:7000/patch/everquest/en/patch1/main/spells_us.txt.gz
         /// </summary>        
-        public static Spell Parse(string[] fields)
+        public static List<Spell> LoadFromFile(string path)
         {
-            Spell spell = new Spell();
-            spell.ID = Convert.ToInt32(fields[0]);
-            spell.Name = fields[1];
-            spell.Skill = TrimEnum((SpellSkill)ParseInt(fields[100]));
-            spell.ResistType = TrimEnum((SpellResist)ParseInt(fields[85]));
-            spell.ResistValue = ParseInt(fields[147]);
-            spell.Duration = ParseDuration(ParseInt(fields[17]), ParseInt(fields[16]));
-            spell.Extra = fields[3];
+            List<Spell> list = new List<Spell>();
 
-            // each class can have a different level to cast the spell at
-            for (int i = 0; i < spell.Levels.Length; i++)
-                spell.Levels[i] = ParseInt(fields[104 + i]);
+            using (StreamReader f = File.OpenText(path))
+                while (!f.EndOfStream)
+                {
+                    string line = f.ReadLine();
+                    string[] fields = line.Split('^');   
 
-            // each spell has 12 effect slots:
-            // 86..97 - slot 1..12 type
-            // 20..31 - slot 1..12 base effect
-            // 32..43 - slot 1..12 base_2 effect
-            // 44..55 - slot 1..12 max effect
-            // 70..81 - slot 1..12 calc forumla data
-            for (int i = 0; i < spell.Slots.Length; i++)
+                    Spell spell = new Spell();
+                    spell.ID = Convert.ToInt32(fields[0]);
+                    spell.Name = fields[1];
+                    spell.Skill = TrimEnum((SpellSkill)ParseInt(fields[100]));
+                    spell.ResistType = TrimEnum((SpellResist)ParseInt(fields[85]));
+                    spell.ResistValue = ParseInt(fields[147]);
+                    spell.Duration = ParseDuration(ParseInt(fields[17]), ParseInt(fields[16]));
+                    spell.Extra = fields[3];
+
+                    // each class can have a different level to cast the spell at
+                    for (int i = 0; i < spell.Levels.Length; i++)
+                        spell.Levels[i] = ParseInt(fields[104 + i]);
+
+                    // each spell has 12 effect slots:
+                    // 86..97 - slot 1..12 type
+                    // 20..31 - slot 1..12 base effect
+                    // 32..43 - slot 1..12 base_2 effect
+                    // 44..55 - slot 1..12 max effect
+                    // 70..81 - slot 1..12 calc forumla data
+                    for (int i = 0; i < spell.Slots.Length; i++)
+                    {
+                        spell.Slots[i] = ParseSlot(spell,
+                            ParseInt(fields[86 + i]), 
+                            ParseInt(fields[20 + i]), 
+                            ParseInt(fields[32 + i]), 
+                            ParseInt(fields[44 + i]), 
+                            ParseInt(fields[70 + i]));
+
+                        spell.DebugEffectList += ";" + fields[86 + i].ToString();
+                    }
+                    spell.DebugEffectList += ";";
+
+                    list.Add(spell);
+                }
+
+            return list;
+        }
+
+        /// <summary>
+        /// TODO: Load spell list from a dataset. Column names must match lucy.
+        /// </summary>
+        public static void LoadFromData(IDataReader data)
+        {
+            while (data.Read())
             {
-                spell.Slots[i] = ParseSlot(spell,
-                    ParseInt(fields[86 + i]), 
-                    ParseInt(fields[20 + i]), 
-                    ParseInt(fields[32 + i]), 
-                    ParseInt(fields[44 + i]), 
-                    ParseInt(fields[70 + i]));
-
-                spell.DebugEffectList += ";" + fields[86 + i].ToString();
             }
-            spell.DebugEffectList += ";";
-
-            return spell;
         }
 
         /// <summary>
@@ -877,24 +899,5 @@ namespace parser
 
     }
 
-    class SpellCache
-    {
-        Dictionary<int, Spell> list = new Dictionary<int, Spell>(25000);
 
-        public Dictionary<int, Spell> List { get { return list; } }
-
-
-        public void LoadFromFile(string path)
-        {
-            using (StreamReader f = File.OpenText(path))
-                while (!f.EndOfStream)
-                {
-                    string line = f.ReadLine();
-                    Spell spell = SpellParser.Parse(line.Split('^'));
-                    list[spell.ID] = spell;
-                    //list.Add(spell);
-                }
-        }
-
-    }
 }
