@@ -9,8 +9,7 @@ namespace parser
     {
         static void Main(string[] args)
         {
-            // the spells file can be downloaded from:
-            // http://patch.station.sony.com:7000/patch/everquest/en/patch1/main/spells_us.txt.gz            
+            //SpellParser.DownloadFile("spells_us.txt");
             List<Spell> list = SpellParser.LoadFromFile("spells_us.txt");
 
             
