@@ -9,8 +9,11 @@ namespace parser
     {
         static void Main(string[] args)
         {
-            //SpellParser.DownloadFile("spells_us.txt");
-            List<Spell> list = SpellParser.LoadFromFile("spells_us.txt");
+            const string path = "spells_us.txt";
+
+            if (!File.Exists(path))
+                SpellParser.DownloadFile(path);
+            List<Spell> list = SpellParser.LoadFromFile(path);
 
             
             Console.WriteLine("============================================================================");
@@ -25,5 +28,6 @@ namespace parser
             }
 
         }
+
     }
 }
