@@ -7,6 +7,13 @@ using System.Diagnostics;
 using System.Data;
 using System.Net;
 
+/*
+ * EQEmu has parsed a lot of the spell effects and calculations
+ * http://code.google.com/p/projecteqemu/source/browse/trunk/EQEmuServer/zone/spdat.h
+ *
+ */
+
+
 
 namespace parser
 {
@@ -241,7 +248,7 @@ namespace parser
         public static void DownloadFile(string path)
         {
             using (WebClient web = new WebClient())
-            {                
+            {
                 byte[] data = web.DownloadData("http://patch.station.sony.com:7000/patch/everquest/en/patch1/main/spells_us.txt.gz");
             
                 Stream input = new MemoryStream(data);
@@ -322,12 +329,20 @@ namespace parser
             // 70..81 - slot 1..12 calc forumla data
             for (int i = 0; i < spell.Slots.Length; i++)
             {
+                int calc = ParseInt(fields[70 + i]);
+
                 spell.Slots[i] = ParseSlot(spell,
                     ParseInt(fields[86 + i]),
                     ParseInt(fields[20 + i]),
                     ParseInt(fields[32 + i]),
                     ParseInt(fields[44 + i]),
-                    ParseInt(fields[70 + i]));
+                    calc);
+
+                // it's a bit of a hack to put this here
+                if (calc == 123)
+                    spell.Slots[i] += " (average)";
+                if (calc == 107 || calc == 108 || calc == 120 || calc == 122)
+                    spell.Slots[i] += " (decaying)";
 
                 spell.DebugEffectList += ";" + fields[86 + i].ToString();
             }
@@ -346,6 +361,7 @@ namespace parser
             // i'm going to ignore those and only show the upper bound
             if (calc == 50)
                 duration = 72000;
+
             if (calc == 3600 && duration == 0)
                 duration = 3600;
           
@@ -356,9 +372,161 @@ namespace parser
         }
 
         /// <summary>
+        /// Parse a spell slot value by applying the specified calculation (at max level).
+        /// </summary>
+        static int ParseSlotValue(int value, int max, int calc)
+        {
+            // the default calculation (100) leaves the base value as is
+            if (calc == 0 || calc == 100)
+                return value;
+
+            // the parser only shows the spell effect based on the max level            
+            int level = MaxLevel;
+
+            // the parser only shows decaying spells at their initial strength
+            // i.e. have decayed for 0 ticks
+            int decay = 0;
+
+            int change = 0;
+
+            switch (calc)
+            {
+                case 101:
+                    change = level / 2;
+                    break;
+                case 102:
+                    change = level;
+                    break;
+                case 103:
+                    change = level * 2;
+                    break;
+                case 104:
+                    change = level * 3;
+                    break;
+                case 105:
+                    change = level * 4;
+                    break;
+                case 107:
+                    change = -1 * decay;
+                    break;
+                case 108:
+                    change = -2 * decay;
+                    break;
+                case 109:
+                    change = level / 4;
+                    break;
+                case 110:
+                    change = level / 6;
+                    break;
+                case 111:
+                    if (level > 16) change = (level - 16) * 6;
+                    break;
+                case 112:
+                    if (level > 24) change = (level - 24) * 8;
+                    break;
+                case 113:
+                    if (level > 34) change = (level - 34) * 10;
+                    break;
+                case 114:
+                    if (level > 44) change = (level - 44) * 15;
+                    break;
+                case 115:
+                    if (level > 15) change = (level - 15) * 7;
+                    break;
+                case 116:
+                    if (level > 24) change = (level - 24) * 10;
+                    break;
+                case 117:
+                    if (level > 34) change = (level - 34) * 13;
+                    break;
+                case 118:
+                    if (level > 44) change = (level - 44) * 20;
+                    break;
+                case 119:
+                    change = level / 8;
+                    break;
+                case 120:
+                    change = -5 * decay;
+                    break;
+                case 121:
+                    change = level / 3;
+                    break;
+                case 122:
+                    change = -12 * decay;
+                    break;
+                case 123:
+                    // should be random, but i will show average
+                    change = (max - Math.Abs(value)) / 2;
+                    break;
+                case 124:
+                    if (level > 50) change = (level - 50);
+                    break;
+                case 125:
+                    if (level > 50) change = (level - 50) * 2;
+                    break;
+                case 126:
+                    if (level > 50) change = (level - 50) * 3;
+                    break;
+                case 127:
+                    if (level > 50) change = (level - 50) * 4;
+                    break;
+                case 128:
+                    if (level > 50) change = (level - 50) * 5;
+                    break;
+                case 129:
+                    if (level > 50) change = (level - 50) * 10;
+                    break;
+                case 130:
+                    if (level > 50) change = (level - 50) * 15;
+                    break;
+                case 131:
+                    if (level > 50) change = (level - 50) * 20;
+                    break;
+                case 132:
+                    if (level > 50) change = (level - 50) * 25;
+                    break;
+                case 139:
+                    if (level > 30) change = (level - 30) / 2;
+                    break;
+                case 140:
+                    if (level > 30) change = (level - 30);
+                    break;
+                case 141:
+                    if (level > 30) change = 3 * (level - 30) / 2;
+                    break;                
+
+                case 201:
+                case 202:
+                case 203:
+                    // used in the 'block new spell' type
+                    break;
+
+                default:
+                    if (calc > 0 && calc < 100)
+                        change = level * calc;
+                    // TODO: some warning should be emitted when a calc is not accounted for
+                    //else Console.WriteLine("------  " + String.Format("Unhandled Calc={0}, {1}", calc, calc & 255));
+                    break;
+            }
+
+            // if the base value was negative then the change should be subtracted rather then added
+            if (value < 0)
+                change = -change;            
+            value += change;            
+
+            // the max is sometimes given as a positive number even though the value is negative
+            if (max < 0)
+                max = -max;
+            if (max > 0 && value > max)
+                value = max;
+            if (max > 0 && value < -max)
+                value = -max;
+
+            return value;
+        }
+
+        /// <summary>
         /// Parses a spell effect slot. Each slot has a series of attributes associated with it.
-        /// EQEmu has already parsed almost all of these
-        /// http://code.google.com/p/projecteqemu/source/browse/trunk/EQEmuServer/zone/spdat.h
         /// 
         /// Effects can reference other spells or items via square bracket notation. e.g.
         /// [123]          is a reference to spell 123
@@ -368,109 +536,28 @@ namespace parser
         /// <returns>A description of the slot effect or a null if the slot has no effect.</returns>
         static string ParseSlot(Spell spell, int type, int value, int value2, int max, int calc)
         {
-            // type 10 is sometimes used in empty slots
-            if (type == 10 && (value == 0 || value > 255))
+            // type 254 is used for empty slots
+            // type 10 is sometimes used for empty slots
+            if (type == 254 || (type == 10 && (value == 0 || value > 255)))
                 return null;
+
+            // type 32 and 109 (summon item) misuse the calc field as a count value
+            if (type != 32 && type != 109)
+                value = ParseSlotValue(value, max, calc);
+
+            // some debug stuff
+            //if (calc == 110 && max == 0) 
+            //if (calc == 123)
+            //    Console.WriteLine("---  " + spell + " " + String.Format("Eff={0} Val={1} Val2={2} Max={3} Calc={4}, {5}", type, value, value2, max, calc, calc & 255));
                       
+            // some types are repeating if they have a duration. in these cases there is one type that doesn't
+            // repeat (hp 79) and one type that does repeat (hp 0). but the repeating types are sometimes used as
+            // an instant boost on spells without a duration so we still have to check for the duration.            
             string repeating = !String.IsNullOrEmpty(spell.Duration) ? " per tick" : null;
-
-            // for some calculations the base value is set at the min level the spell can be cast at
-            int minlevel = 255;
-            for (int i = 0; i < spell.Levels.Length; i++)
-                if (spell.Levels[i] > 0 && spell.Levels[i] < minlevel)
-                    minlevel = spell.Levels[i];
-            if (minlevel > MaxLevel)
-                minlevel = 0;
-
-            // negate calculations if spell effect is negative
-            int level = MaxLevel;  
-            if (value < 0)
-                level = -level;
-
-            // the default calculation (100) leaves the base value as is.
-            // all other calculations alter the base value
-            // for spell type 32, 109 (summon item) the calc field is abused as a count value
-            if (type != 32 && type != 109) 
-            switch (calc)
-            {
-                case 101:
-                    value += level / 2;
-                    break;
-                case 102:
-                    value += level;
-                    break;
-                case 103:
-                    value += level * 2;
-                    break;
-                case 104:
-                    value += level * 3;
-                    break;
-                case 105:
-                    value += level * 4;
-                    break;
-                case 106:
-                    value += level * 5;
-                    break;
-                case 107:
-                    value += level / 2;
-                    break;
-                case 108:
-                    value += level / 3;
-                    break;
-                case 109:
-                    value += level / 4;
-                    break;
-                case 110:
-                    value += level / 5;
-                    break;
-                case 111:
-                    value += (level - minlevel) * 6; 
-                    break;
-                case 112:
-                    value += (level - minlevel) * 8;
-                    break;
-                case 113:
-                    value += (level - minlevel) * 10; 
-                    break;
-                case 114:
-                    value += (level - minlevel) * 15;
-                    break;
-                case 115:
-                    value += (level - minlevel) * 6;
-                    break;
-                case 116:
-                    value += (level - minlevel) * 8;
-                    break;
-                case 117:
-                    value += (level - minlevel) * 12;
-                    break;
-                case 118:
-                    value += (level - minlevel) * 20;
-                    break;
-
-
-                default:
-                    if (calc > 0 && calc < 100)
-                        value = level * calc;
-                    break;
-            }
-
-            //if (calc == 115) 
-            //Console.WriteLine("------  " + spell + " " + String.Format("Eff={0} Val={1} Val2={2} Max={3} Calc={4}", type, value, value2, max, calc));
-
-            if (calc != 100)
-            {
-                if (max > 0 && value > max)
-                    value = max;
-                if (max > 0 && value < -max)
-                    value = -max;
-            }
-
 
             // TODO: Protection of the Paw Rk. III - i don't think the block value2 calc is correct
             // TODO: Reprehend - some of the damage is based on target type
             // TODO: Lycanthropy spells - what is the base value for
-
             switch (type)
             {                
                 case 0:
@@ -757,6 +844,8 @@ namespace parser
                     return String.Format("Remove Detrimental ({0})", value);
                 case 157:
                     return FormatCount("Spell Damage Shield", -value);
+                case 159:
+                    return FormatCount("Stats", value);
                 case 161:
                     return String.Format("Absorb Spell Damage: {0}% Total: {1}", value, max);
                 case 162:
@@ -803,11 +892,13 @@ namespace parser
                 case 188:
                     return FormatPercent("Chance to Block", value);
                 case 189:
-                    return FormatCount("Current Endurance", value);
+                    return FormatCount("Current Endurance", value) + repeating;
                 case 190:
                     return FormatCount("Max Endurance", value);
                 case 191:
                     return "Prevent Combat";
+                case 192:
+                    return FormatCount("Hate", value) + repeating;
                 case 193:
                     return String.Format("{0} Damage Attack for {1}", spell.Skill, value);
                 case 197:
@@ -828,10 +919,6 @@ namespace parser
                     return FormatCount(TrimEnum((SpellSkill)value2) + " Damage", value);
                 case 227:
                     return String.Format("Reduce {0} Timer by {1}s", TrimEnum((SpellSkill)value2), value);
-
-                case 254:
-                    // 254 is used for unused slots
-                    return null;                    
 
                 case 258:
                     return String.Format("Triple Backstab ({0})", value);
