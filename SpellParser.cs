@@ -10,6 +10,7 @@ using System.Net;
 /*
  * EQEmu has parsed a lot of the spell effects and calculations
  * http://code.google.com/p/projecteqemu/source/browse/trunk/EQEmuServer/zone/spdat.h
+ * http://sourceforge.net/projects/eqemulator/files/OpenZone/OpenSpell_2.0/OpenSpell_2.0.zip/download
  *
  */
 
@@ -547,7 +548,7 @@ namespace parser
 
             // some debug stuff
             //if (calc == 110 && max == 0) 
-            //if (calc == 123)
+            //if (calc > 2000)
             //    Console.WriteLine("---  " + spell + " " + String.Format("Eff={0} Val={1} Val2={2} Max={3} Calc={4}, {5}", type, value, value2, max, calc, calc & 255));
                       
             // some types are repeating if they have a duration. in these cases there is one type that doesn't
@@ -693,6 +694,8 @@ namespace parser
                 case 69:
                     // max hp
                     return FormatCount("Max HP", value);
+                case 71:
+                    return String.Format("Summon Pet: {0}", spell.Extra);
                 case 73:
                     return "Bind Sight";
                 case 74:
@@ -776,11 +779,11 @@ namespace parser
                     return FormatCount("Curse Counter", value);
                 case 119:
                     return FormatPercent("Melee Haste v3", value);
-                case 121:
-                    return FormatCount("Reverse Damage Shield", -value);
                 case 120:
                     // works like healing focus. no idea why it is a separate effect
                     return FormatPercent("Healing Effectiveness", value);
+                case 121:
+                    return FormatCount("Reverse Damage Shield", -value);
                 case 123:
                     return "Screech";
                 case 124:
@@ -846,6 +849,8 @@ namespace parser
                     return FormatCount("Spell Damage Shield", -value);
                 case 159:
                     return FormatCount("Stats", value);
+                case 160:
+                    return String.Format("Intoxicate if Tolerance < {0}", value);
                 case 161:
                     return String.Format("Absorb Spell Damage: {0}% Total: {1}", value, max);
                 case 162:
@@ -865,6 +870,8 @@ namespace parser
                     return FormatPercent("Melee Mitigation", value);
                 case 169:
                     return FormatPercent("Chance to Critical Hit with " + TrimEnum((SpellSkill)value2), value);
+                case 171:
+                    return FormatPercent("Chance to Crippling Blow", value);
                 case 172:
                     return FormatPercent("Chance to Avoid Melee", value);
                 case 173:
