@@ -912,7 +912,7 @@ namespace parser
                 case 209:
                     return String.Format("Dispell Beneficial ({0})", value);
                 case 214:
-                    return FormatPercent("Max HP", value);
+                    return FormatPercent("Max HP", value / 100);
                 case 216:
                     return FormatPercent("Accuracy", value);
                 case 220:                    
@@ -980,7 +980,9 @@ namespace parser
                 case 348:
                     return String.Format("Limit: Mana Cost > {0}", value); 
                 case 351:
-                    return String.Format("Aura Effect: [{0}]", spell.ID + value);
+                    // the +3 is just a guess that's correct most of the time since spells have 3 ranks
+                    // and the effects are placed after the spells
+                    return String.Format("Aura Effect: [{0}]", spell.ID + 3);
                 case 360:
                     return String.Format("Add Killshot Proc: [{0}] Chance: {1}%", value2, value); 
                 case 369:
