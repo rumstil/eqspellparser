@@ -552,6 +552,8 @@ namespace parser
             // some debug stuff
             //if (calc == 110 && max == 0) 
             //if (calc > 2000)
+            //if (type == 0 && value2 > 0)
+            //if (value2 == 603)
             //    Console.WriteLine("---  " + spell + " " + String.Format("Eff={0} Val={1} Val2={2} Max={3} Calc={4}, {5}", type, value, value2, max, calc, calc & 255));
                       
             // some types are repeating if they have a duration. in these cases there is one type that doesn't
@@ -559,14 +561,18 @@ namespace parser
             // an instant boost on spells without a duration so we still have to check for the duration.            
             string repeating = !String.IsNullOrEmpty(spell.Duration) ? " per tick" : null;
 
-            // TODO: Protection of the Paw Rk. III - i don't think the block value2 calc is correct
-            // TODO: Reprehend - some of the damage is based on target type
             // TODO: Lycanthropy spells - what is the base value for
             switch (type)
             {                
                 case 0:
                     // delta hp for heal/nuke, repeating if with duration
-                    return FormatCount("Current HP", value) + repeating;
+                    string target = null;
+                    switch (value2)
+                    {
+                        case 603: target = " (If Undead) "; break;
+                        case 624: target = " (If Summoned) "; break;
+                    }
+                    return FormatCount("Current HP", value) + target + repeating;
                     //return String.Format("{0} for {1}", value >= 0 ? "Heal" : "Damage", value) + repeating;
                 case 1:
                     return FormatCount("AC", (int)(value / (10f / 3f))); 
@@ -835,9 +841,11 @@ namespace parser
                 case 147:
                     return String.Format("Increase Current HP by {1} Max: {0}% ", value, max);
                 case 148:
-                    return String.Format("Stacking: Block new if slot {0} is '{1}' and < {2}", calc % 100, TrimEnum((SpellEffect)value), max);
-                case 149:                    
-                    return String.Format("Stacking: Overwrite existing if slot {0} is '{1}' and < {2}", calc % 100, TrimEnum((SpellEffect)value), max);
+                    //if (max > 1000) max -= 1000;
+                    return String.Format("Stacking: Block new spell if slot {0} is '{1}' and < {2}", calc % 100, TrimEnum((SpellEffect)value), max);
+                case 149:
+                    //if (max > 1000) max -= 1000;
+                    return String.Format("Stacking: Overwrite existing spell if slot {0} is '{1}' and < {2}", calc % 100, TrimEnum((SpellEffect)value), max);
                 case 150:
                     return "Divine Intervention";
                 case 151:
@@ -918,7 +926,7 @@ namespace parser
                 case 192:
                     return FormatCount("Hate", value) + repeating;
                 case 193:
-                    return String.Format("{0} Damage Attack for {1}", spell.Skill, value);
+                    return String.Format("{0} Damage Attack for {1} with {2}% Accuracy Modifier", spell.Skill, value, value2);
                 case 194:
                     return "Fade";
                 case 195:
