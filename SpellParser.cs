@@ -551,7 +551,6 @@ namespace parser
 
             // some debug stuff
             //if (calc == 110 && max == 0) 
-            //if (calc > 2000)
             //if (type == 0 && value2 > 0)
             //if (value2 == 603)
             //    Console.WriteLine("---  " + spell + " " + String.Format("Eff={0} Val={1} Val2={2} Max={3} Calc={4}, {5}", type, value, value2, max, calc, calc & 255));
@@ -561,7 +560,6 @@ namespace parser
             // an instant boost on spells without a duration so we still have to check for the duration.            
             string repeating = !String.IsNullOrEmpty(spell.Duration) ? " per tick" : null;
 
-            // TODO: Lycanthropy spells - what is the base value for
             switch (type)
             {                
                 case 0:
@@ -1021,7 +1019,10 @@ namespace parser
                 case 339:
                     return String.Format("Add Spell Proc: [{0}] Chance: {1}%", value2, value);
                 case 340:
-                    return String.Format("Cast: [{0}] Chance: {1}%", value2, value); 
+                    return String.Format("Cast: [{0}] Chance: {1}%", value2, value);
+                case 343:
+                    // is this persistent or instant?
+                    return String.Format("Interrupt Spell Chance: {0}%", value); 
                 case 348:
                     return String.Format("Limit: Mana Cost > {0}", value); 
                 case 351:
@@ -1042,7 +1043,10 @@ namespace parser
                 case 374:       
                     // i think this is used when several effects need to be placed in a slot. 
                     // i.e. multiple spells are needed but a single cast is required                    
-                    return String.Format("Cast: [{0}]", value2); 
+                    return String.Format("Cast: [{0}]", value2);
+                case 377:
+                    // how is this diff than 373?
+                    return String.Format("Cast on Fade: [{0}]", value);
                 case 385:
                     return String.Format("Limit: Include Spells: [Group {0}]", value); 
                 case 392:
