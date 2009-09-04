@@ -597,7 +597,7 @@ namespace parser
                 case 11:
                     // haste is given as a factor of 100. so 85 = 15% slow, 130 = 30% haste 
                     if (value < 100)
-                        value = 100 - value;
+                        value = -100 + value;
                     else
                         value = value - 100;
                     return FormatPercent("Melee Haste", value);
