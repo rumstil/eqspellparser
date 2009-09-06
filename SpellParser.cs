@@ -186,7 +186,8 @@ namespace parser
     {
         public int ID; 
         public string Name; 
-        public string Duration; 
+        public string Duration;
+        public int Ticks;
         public string[] Slots;
         public int[] Levels;
         public string Skill;
@@ -318,6 +319,7 @@ namespace parser
             spell.Skill = TrimEnum((SpellSkill)ParseInt(fields[100]));
             spell.ResistType = TrimEnum((SpellResist)ParseInt(fields[85]));
             spell.ResistValue = ParseInt(fields[147]);
+            spell.Ticks = ParseInt(fields[17]);
             spell.Duration = ParseDuration(ParseInt(fields[17]), ParseInt(fields[16]));
             spell.Extra = fields[3];
 
@@ -334,19 +336,20 @@ namespace parser
             for (int i = 0; i < spell.Slots.Length; i++)
             {
                 int calc = ParseInt(fields[70 + i]);
+                int max = ParseInt(fields[44 + i]);
 
                 spell.Slots[i] = ParseSlot(spell,
                     ParseInt(fields[86 + i]),
                     ParseInt(fields[20 + i]),
                     ParseInt(fields[32 + i]),
-                    ParseInt(fields[44 + i]),
+                    max,
                     calc);
 
                 // it's a bit of a hack to put this here
                 if (calc == 123)
-                    spell.Slots[i] += " (average)";
+                    spell.Slots[i] += " (avg/random)";
                 if (calc == 107 || calc == 108 || calc == 120 || calc == 122)
-                    spell.Slots[i] += " (decaying)";
+                    spell.Slots[i] += " (avg/growing)";
 
                 spell.DebugEffectList += ";" + fields[86 + i].ToString();
             }
@@ -359,18 +362,18 @@ namespace parser
         /// Parse a spell duration.
         /// </summary>
         /// <returns>A timespan string if the spell has a duration or a null if the spell is instant</returns>
-        static string ParseDuration(int duration, int calc)
+        static string ParseDuration(int value, int calc)
         {
             // most of the formulas are used to define a lower bound when scaling by level
             // i'm going to ignore those and only show the upper bound
             if (calc == 50)
-                duration = 72000;
+                value = 72000;
 
-            if (calc == 3600 && duration == 0)
-                duration = 3600;
+            if (calc == 3600 && value == 0)
+                value = 3600;
           
-            if (duration > 0 || calc > 0)
-                return new TimeSpan(0, 0, duration * 6).ToString();
+            if (value > 0 || calc > 0)
+                return new TimeSpan(0, 0, value * 6).ToString();
 
             return null;
         }
@@ -378,18 +381,17 @@ namespace parser
         /// <summary>
         /// Parse a spell slot value by applying the specified calculation (at max level).
         /// </summary>
-        static int ParseSlotValue(int value, int max, int calc)
+        static int ParseSlotValue(int value, int max, int calc, int duration)
         {
             // the default calculation (100) leaves the base value as is
             if (calc == 0 || calc == 100)
                 return value;
 
-            // the parser only shows the spell effect based on the max level            
+            // show scaled spells at the max level strength
             int level = MaxLevel;
 
-            // the parser only shows decaying spells at their initial strength
-            // i.e. have decayed for 0 ticks
-            int decay = 0;
+            // show decaying/growing spells at their avg strength
+            int ticks = duration / 2;
 
             int change = 0;
 
@@ -411,10 +413,10 @@ namespace parser
                     change = level * 4;
                     break;
                 case 107:
-                    change = -1 * decay;
+                    change = -1 * ticks;
                     break;
                 case 108:
-                    change = -2 * decay;
+                    change = -2 * ticks;
                     break;
                 case 109:
                     change = level / 4;
@@ -450,13 +452,13 @@ namespace parser
                     change = level / 8;
                     break;
                 case 120:
-                    change = -5 * decay;
+                    change = -5 * ticks;
                     break;
                 case 121:
                     change = level / 3;
                     break;
                 case 122:
-                    change = -12 * decay;
+                    change = -12 * ticks;
                     break;
                 case 123:
                     // should be random, but i will show average
@@ -547,7 +549,7 @@ namespace parser
 
             // type 32 and 109 (summon item) misuse the calc field as a count value
             if (type != 32 && type != 109)
-                value = ParseSlotValue(value, max, calc);
+                value = ParseSlotValue(value, max, calc, spell.Ticks);
 
             // some debug stuff
             //if (calc == 110 && max == 0) 
