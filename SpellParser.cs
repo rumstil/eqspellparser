@@ -184,18 +184,27 @@ namespace parser
 
     public class Spell
     {
-        public int ID; 
-        public string Name; 
-        public string Duration;
+        public int ID;
+        public string Name;
+        public int Icon;
+        public int Mana;
+        public int Endurance;
         public int Ticks;
         public string[] Slots;
         public int[] Levels;
+        public string Classes;
         public string Skill;
-        public string ResistType;
-        public int ResistValue;
+        public SpellResist ResistType;
+        public int ResistMod;
         public string Extra;
-        public string Focus;
-        
+        public int Hate;
+        public int Range;
+        public int AERange;
+        public float CastingTime;
+        public float QuietTime;
+        public float RecastTime;
+
+        //public string Focus;        
 
         public string DebugEffectList;
 
@@ -215,17 +224,21 @@ namespace parser
             //if (!String.IsNullOrEmpty(Skill))
             //    result.Add("Skill: " + Skill);
 
-            if (!String.IsNullOrEmpty(Duration))
-                result.Add("Duration: " + Duration);
+            if (!String.IsNullOrEmpty(Classes))
+                result.Add("Classes: " + Classes);
 
-            result.Add("Resist: " + ResistType.ToString() + " " + ResistValue);
+            if (Mana > 0)
+                result.Add("Mana: " + Mana);
 
-            string classes = null;
-            for (int i = 0; i < Levels.Length; i++)
-                if (Levels[i] != 0 && Levels[i] != 255)
-                    classes += " " + (SpellClasses)(i + 1) + "/" + Levels[i];
-            if (!String.IsNullOrEmpty(classes))
-                result.Add("Classes: " + classes.Trim());
+            if (Endurance > 0)
+                result.Add("Endurance: " + Endurance);
+
+            if (ResistType != SpellResist.Unresistable)
+                result.Add("Resist: " + ResistType.ToString() + " " + ResistMod);
+
+            if (Ticks > 0)
+                result.Add("Duration: " + new TimeSpan(0, 0, Ticks * 6).ToString() + " (" + Ticks + " ticks)");
+
 
             for (int i = 0; i < Slots.Length; i++)
                 if (!String.IsNullOrEmpty(Slots[i]))
@@ -314,18 +327,33 @@ namespace parser
         static Spell ParseFields(string[] fields)
         {
             Spell spell = new Spell();
+
             spell.ID = Convert.ToInt32(fields[0]);
             spell.Name = fields[1];
+            spell.Icon = ParseInt(fields[144]);
+            spell.Mana = ParseInt(fields[19]);
             spell.Skill = TrimEnum((SpellSkill)ParseInt(fields[100]));
-            spell.ResistType = TrimEnum((SpellResist)ParseInt(fields[85]));
-            spell.ResistValue = ParseInt(fields[147]);
-            spell.Ticks = ParseInt(fields[17]);
-            spell.Duration = ParseDuration(ParseInt(fields[17]), ParseInt(fields[16]));
+            spell.ResistType = (SpellResist)ParseInt(fields[85]);
+            spell.ResistMod = ParseInt(fields[147]);            
+            spell.Ticks = ParseDuration(ParseInt(fields[17]), ParseInt(fields[16]));
             spell.Extra = fields[3];
+            spell.Hate = ParseInt(fields[173]);
+            spell.Endurance = ParseInt(fields[166]);
+            spell.Range = ParseInt(fields[9]);
+            spell.AERange = ParseInt(fields[10]);
+            spell.CastingTime = ParseFloat(fields[13]) / 1000f;
+            spell.QuietTime = ParseFloat(fields[14]) / 1000f;
+            spell.RecastTime = ParseFloat(fields[15]) / 1000f;
 
             // each class can have a different level to cast the spell at
             for (int i = 0; i < spell.Levels.Length; i++)
+            {
                 spell.Levels[i] = ParseInt(fields[104 + i]);
+                if (spell.Levels[i] != 0 && spell.Levels[i] != 255)
+                    spell.Classes += " " + (SpellClasses)(i + 1) + "/" + spell.Levels[i];
+            }
+            if (spell.Classes != null)
+                spell.Classes = spell.Classes.TrimStart();
 
             // each spell has 12 effect slots:
             // 86..97 - slot 1..12 type
@@ -362,7 +390,7 @@ namespace parser
         /// Parse a spell duration.
         /// </summary>
         /// <returns>A timespan string if the spell has a duration or a null if the spell is instant</returns>
-        static string ParseDuration(int value, int calc)
+        static int ParseDuration(int value, int calc)
         {
             // most of the formulas are used to define a lower bound when scaling by level
             // i'm going to ignore those and only show the upper bound
@@ -372,10 +400,7 @@ namespace parser
             if (calc == 3600 && value == 0)
                 value = 3600;
           
-            if (value > 0 || calc > 0)
-                return new TimeSpan(0, 0, value * 6).ToString();
-
-            return null;
+            return value;
         }
 
         /// <summary>
@@ -560,7 +585,7 @@ namespace parser
             // some types are repeating if they have a duration. in these cases there is one type that doesn't
             // repeat (hp 79) and one type that does repeat (hp 0). but the repeating types are sometimes used as
             // an instant boost on spells without a duration so we still have to check for the duration.            
-            string repeating = !String.IsNullOrEmpty(spell.Duration) ? " per tick" : null;
+            string repeating = spell.Ticks > 0 ? " per tick" : null;
 
             switch (type)
             {                
@@ -1061,6 +1086,13 @@ namespace parser
             }
 
             return String.Format("Unknown Effect: {0} Val={1} Val2={2} Max={3} Calc={4}", type, value, value2, max, calc);
+        }
+
+        static float ParseFloat(string s)
+        {
+            if (String.IsNullOrEmpty(s))
+                return 0f;
+            return Single.Parse(s);
         }
 
         static int ParseInt(string s)
