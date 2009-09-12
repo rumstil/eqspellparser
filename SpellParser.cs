@@ -203,6 +203,7 @@ namespace parser
         public float CastingTime;
         public float QuietTime;
         public float RecastTime;
+        public float PushBack;
 
         //public string Focus;        
 
@@ -238,6 +239,12 @@ namespace parser
 
             if (Ticks > 0)
                 result.Add("Duration: " + new TimeSpan(0, 0, Ticks * 6).ToString() + " (" + Ticks + " ticks)");
+
+            if (PushBack > 0)
+                result.Add("PushBack: " + PushBack);
+
+            if (Hate > 0)
+                result.Add("Hate: " + Hate);
 
 
             for (int i = 0; i < Slots.Length; i++)
@@ -344,16 +351,17 @@ namespace parser
             spell.CastingTime = ParseFloat(fields[13]) / 1000f;
             spell.QuietTime = ParseFloat(fields[14]) / 1000f;
             spell.RecastTime = ParseFloat(fields[15]) / 1000f;
+            spell.PushBack = ParseFloat(fields[11]);
 
             // each class can have a different level to cast the spell at
+            spell.Classes = String.Empty;
             for (int i = 0; i < spell.Levels.Length; i++)
             {
                 spell.Levels[i] = ParseInt(fields[104 + i]);
                 if (spell.Levels[i] != 0 && spell.Levels[i] != 255)
                     spell.Classes += " " + (SpellClasses)(i + 1) + "/" + spell.Levels[i];
-            }
-            if (spell.Classes != null)
-                spell.Classes = spell.Classes.TrimStart();
+            }           
+            spell.Classes = spell.Classes.TrimStart();
 
             // each spell has 12 effect slots:
             // 86..97 - slot 1..12 type
