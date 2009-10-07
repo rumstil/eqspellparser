@@ -185,6 +185,7 @@ namespace parser
     public class Spell
     {
         public int ID;
+        public int GroupID;
         public string Name;
         public int Icon;
         public int Mana;
@@ -256,12 +257,12 @@ namespace parser
 
         public override string ToString()
         {
-            return String.Format("[{0}] {1}", ID, Name);
+            return String.Format("[{0}] {1}", ID, Name);            
         }
     }
 
 
-    static class SpellParser
+    public static class SpellParser
     {
         const int MaxLevel = 85;
 
@@ -276,14 +277,14 @@ namespace parser
             {
                 byte[] data = web.DownloadData("http://patch.station.sony.com:7000/patch/everquest/en/patch1/main/spells_us.txt.gz");
             
-                Stream input = new MemoryStream(data);
-                GZipStream gzip = new GZipStream(input, CompressionMode.Decompress);
+                Stream datastream = new MemoryStream(data);
+                GZipStream input = new GZipStream(datastream, CompressionMode.Decompress);
                 using (FileStream output = new FileStream(path, FileMode.Create))
                 {
                     byte[] buffer = new byte[32768];
                     while (true)
                     {
-                        int read = gzip.Read(buffer, 0, buffer.Length);
+                        int read = input.Read(buffer, 0, buffer.Length);
                         if (read <= 0)
                             return;
                         output.Write(buffer, 0, read);
@@ -321,8 +322,9 @@ namespace parser
             {
                 string[] fields = new string[data.FieldCount];
                 for (int i = 0; i < fields.Length; i++)
-                    fields[i] = data.GetValue(i).ToString();                
-                list.Add(ParseFields(fields));
+                    fields[i] = data.GetValue(i).ToString();
+                Spell spell = ParseFields(fields);
+                list.Add(spell);
             }
 
             return list;
@@ -336,6 +338,7 @@ namespace parser
             Spell spell = new Spell();
 
             spell.ID = Convert.ToInt32(fields[0]);
+            spell.GroupID = ParseInt(fields[207]);
             spell.Name = fields[1];
             spell.Icon = ParseInt(fields[144]);
             spell.Mana = ParseInt(fields[19]);
@@ -390,6 +393,10 @@ namespace parser
                 spell.DebugEffectList += ";" + fields[86 + i].ToString();
             }
             spell.DebugEffectList += ";";
+
+            //if (spell.ID == 19173)
+            //    for (int i = 0; i < fields.Length; i++)
+            //        Console.WriteLine("{0}: {1}", i, fields[i]);
 
             return spell;
         }
@@ -763,7 +770,7 @@ namespace parser
                 case 84:
                     return "Gravity Flux";
                 case 85:
-                    return String.Format("Add Proc: [{0}] RateMod: {1}%", value, value2);
+                    return String.Format("Add Proc: [Spell {0}] RateMod: {1}%", value, value2);
                 case 86:
                     return String.Format("Decrease Assist Radius up to level {0}", max);
                 case 87:
@@ -858,7 +865,7 @@ namespace parser
                 case 138:
                     return String.Format("Limit: Include Type: {0}", value == 0 ? "Detrimental" : "Beneficial");
                 case 139:
-                    return String.Format("Limit: {1} Spell: [{0}]", Math.Abs(value), value >= 0 ? "Include" : "Exclude");
+                    return String.Format("Limit: {1} Spell: [Spell {0}]", Math.Abs(value), value >= 0 ? "Include" : "Exclude");
                 case 140:
                     return String.Format("Limit: Min Duration: {0}s", value * 6);
                 case 141:
@@ -976,7 +983,7 @@ namespace parser
                 case 200:
                     return FormatPercent("Proc Rate", value);
                 case 201:
-                    return String.Format("Add Range Proc: [{0}] RateMod: {1}%", value, value2);
+                    return String.Format("Add Range Proc: [Spell {0}] RateMod: {1}%", value, value2);
                 case 202:
                     return "Project Illusion";
                 case 203:
@@ -1011,7 +1018,7 @@ namespace parser
                     return FormatCount("Spell Damage", value);
                 case 289: 
                     // how is this different than 373?
-                    return String.Format("Cast on Fade: [{0}]", value);
+                    return String.Format("Cast on Fade: [Spell {0}]", value);
                 case 291:
                     return String.Format("Purify ({0})", value);
                 case 294:
@@ -1040,21 +1047,21 @@ namespace parser
                 case 322:
                     return "Gate to Origin";
                 case 323:
-                    return String.Format("Add Defensive Proc: [{0}] RateMod: {1}%", value, value2);
+                    return String.Format("Add Defensive Proc: [Spell {0}] RateMod: {1}%", value, value2);
                 case 329:
                     return String.Format("Absorb Damage Using Mana: {0}%", value);
                 case 330:
                     return FormatPercent("Critical Damage Modifier for " + TrimEnum((SpellSkill)value2), value);
                 case 333:
-                    return String.Format("Cast on Fade/Cancel: [{0}]", value);
+                    return String.Format("Cast on Fade/Cancel: [Spell {0}]", value);
                 case 335:
                     return "Prevent Spell Matching Limits from Landing";
                 case 337:
                     return FormatPercent("Experience Gain", value);
                 case 339:
-                    return String.Format("Add Spell Proc: [{0}] Chance: {1}%", value2, value);
+                    return String.Format("Add Spell Proc: [Spell {0}] Chance: {1}%", value2, value);
                 case 340:
-                    return String.Format("Cast: [{0}] Chance: {1}%", value2, value);
+                    return String.Format("Cast: [Spell {0}] Chance: {1}%", value2, value);
                 case 343:
                     // is this persistent or instant?
                     return String.Format("Interrupt Spell Chance: {0}%", value); 
@@ -1063,9 +1070,9 @@ namespace parser
                 case 351:
                     // the +3 is just a guess that's correct most of the time since spells have 3 ranks
                     // and the effects are placed after the spells
-                    return String.Format("Aura Effect: [{0}]", spell.ID + 3);
+                    return String.Format("Aura Effect: [Spell {0}]", spell.ID + 3);
                 case 360:
-                    return String.Format("Add Killshot Proc: [{0}] Chance: {1}%", value2, value); 
+                    return String.Format("Add Killshot Proc: [Spell {0}] Chance: {1}%", value2, value); 
                 case 369:
                     return FormatCount("Corruption Counter", value);
                 case 370:
@@ -1074,21 +1081,21 @@ namespace parser
                     // taken from lucy. this needs a better description
                     return String.Format("Inhibit Melee Attacks by {0}%", value);
                 case 373:
-                    return String.Format("Cast on Fade: [{0}]", value);
+                    return String.Format("Cast on Fade: [Spell {0}]", value);
                 case 374:       
                     // i think this is used when several effects need to be placed in a slot. 
                     // i.e. multiple spells are needed but a single cast is required                    
-                    return String.Format("Cast: [{0}]", value2);
+                    return String.Format("Cast: [Spell {0}]", value2);
                 case 377:
                     // how is this diff than 373?
-                    return String.Format("Cast on Fade: [{0}]", value);
+                    return String.Format("Cast on Fade: [Spell {0}]", value);
                 case 385:
                     return String.Format("Limit: Include Spells: [Group {0}]", value); 
                 case 392:
                     // similar to heal focus, but adds a raw amount
                     return FormatCount("Healing", value);
                 case 406:
-                    return String.Format("Cast if Attacked: [{0}]", value); 
+                    return String.Format("Cast if Attacked: [Spell {0}]", value); 
 
 
             }
