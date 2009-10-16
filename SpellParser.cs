@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
-using System.IO.Compression;
 using System.Diagnostics;
 using System.Data;
-using System.Net;
 
 /*
  * EQEmu has parsed a lot of the spell effects and calculations
@@ -192,6 +190,7 @@ namespace parser
         public int Endurance;
         public int Ticks;
         public string[] Slots;
+        public int MinLevel, MaxLevel;
         public int[] Levels;
         public string Classes;
         public string Skill;
@@ -257,7 +256,9 @@ namespace parser
 
         public override string ToString()
         {
-            return String.Format("[{0}] {1}", ID, Name);            
+            if (GroupID == 0)
+                return String.Format("[{0}] {1}", ID, Name);
+            return String.Format("[{0}/{2}] {1}", ID, Name, GroupID);
         }
     }
 
@@ -267,36 +268,9 @@ namespace parser
         const int MaxLevel = 85;
 
         /// <summary>
-        /// Download the official spell_us.txt file from the EQ patch server.
-        /// http://patch.station.sony.com:7000/patch/everquest/en/patch1/main/spells_us.txt.gz
-        /// </summary>
-        /// <param name="path"></param>
-        public static void DownloadFile(string path)
-        {
-            using (WebClient web = new WebClient())
-            {
-                byte[] data = web.DownloadData("http://patch.station.sony.com:7000/patch/everquest/en/patch1/main/spells_us.txt.gz");
-            
-                Stream datastream = new MemoryStream(data);
-                GZipStream input = new GZipStream(datastream, CompressionMode.Decompress);
-                using (FileStream output = new FileStream(path, FileMode.Create))
-                {
-                    byte[] buffer = new byte[32768];
-                    while (true)
-                    {
-                        int read = input.Read(buffer, 0, buffer.Length);
-                        if (read <= 0)
-                            return;
-                        output.Write(buffer, 0, read);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
         /// Load spell list from a stream in spell_us.txt format.
         /// </summary>
-        public static List<Spell> LoadFromFile(string path)
+        public static IEnumerable<Spell> LoadFromFile(string path)
         {
             List<Spell> list = new List<Spell>();
 
@@ -314,7 +288,7 @@ namespace parser
         /// <summary>
         /// Load spell list from a dataset. Column order must match the official spell file.
         /// </summary>
-        public static List<Spell> LoadFromData(IDataReader data)
+        public static IEnumerable<Spell> LoadFromData(IDataReader data)
         {
             List<Spell> list = new List<Spell>();
 
@@ -361,6 +335,10 @@ namespace parser
             for (int i = 0; i < spell.Levels.Length; i++)
             {
                 spell.Levels[i] = ParseInt(fields[104 + i]);
+                //if (spell.Levels[i] > 0 && spell.Levels[i] < spell.MinLevel)
+                //    spell.MinLevel = spell.Levels[i];
+                //if (spell.Levels[i] > spell.MaxLevel)
+                //    spell.MaxLevel = spell.Levels[i];                
                 if (spell.Levels[i] != 0 && spell.Levels[i] != 255)
                     spell.Classes += " " + (SpellClasses)(i + 1) + "/" + spell.Levels[i];
             }           
@@ -1090,7 +1068,7 @@ namespace parser
                     // how is this diff than 373?
                     return String.Format("Cast on Fade: [Spell {0}]", value);
                 case 385:
-                    return String.Format("Limit: Include Spells: [Group {0}]", value); 
+                    return String.Format("Limit: {1} Spells: [Group {0}]", Math.Abs(value), value >= 0 ? "Include" : "Exclude");
                 case 392:
                     // similar to heal focus, but adds a raw amount
                     return FormatCount("Healing", value);
