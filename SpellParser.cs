@@ -1012,7 +1012,7 @@ namespace parser
                 case 291:
                     return String.Format("Purify ({0})", value);
                 case 294:
-                    if (value > 0 && value2 > 0)
+                    if (value > 0 && value2 > 100)
                         return FormatPercent("Chance to Critical Nuke", value) + " and " + FormatPercent("Critical Nuke Damage", value2 - 100);
                     else if (value > 0)
                         return FormatPercent("Chance to Critical Nuke", value);
