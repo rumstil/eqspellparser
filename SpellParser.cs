@@ -177,6 +177,8 @@ namespace parser
         Imp = 46,        
         Elemental = 75,
         Skeleton = 85,
+        Iksar = 128,
+        Iksar_Skeleton = 161,
         Zombie = 471
     }
 
@@ -218,7 +220,7 @@ namespace parser
         /// <summary>
         /// Get a full description of the spell. This is mostly useful as a debug dump.
         /// </summary>        
-        public List<string> Details()
+        public string[] Details()
         {
             List<string> result = new List<string>();
      
@@ -251,14 +253,15 @@ namespace parser
                 if (!String.IsNullOrEmpty(Slots[i]))
                     result.Add(String.Format("{0}: {1}", i + 1, Slots[i]));
 
-            return result;
+            return result.ToArray();
         }
 
         public override string ToString()
         {
             if (GroupID == 0)
                 return String.Format("[{0}] {1}", ID, Name);
-            return String.Format("[{0}/{2}] {1}", ID, Name, GroupID);
+            else
+                return String.Format("[{0}/{2}] {1}", ID, Name, GroupID);
         }
     }
 
@@ -319,7 +322,7 @@ namespace parser
             spell.Skill = TrimEnum((SpellSkill)ParseInt(fields[100]));
             spell.ResistType = (SpellResist)ParseInt(fields[85]);
             spell.ResistMod = ParseInt(fields[147]);            
-            spell.Ticks = ParseDuration(ParseInt(fields[17]), ParseInt(fields[16]));
+            spell.Ticks = ParseDurationForumula(ParseInt(fields[17]), ParseInt(fields[16]));
             spell.Extra = fields[3];
             spell.Hate = ParseInt(fields[173]);
             spell.Endurance = ParseInt(fields[166]);
@@ -382,8 +385,7 @@ namespace parser
         /// <summary>
         /// Parse a spell duration.
         /// </summary>
-        /// <returns>A timespan string if the spell has a duration or a null if the spell is instant</returns>
-        static int ParseDuration(int value, int calc)
+        static int ParseDurationForumula(int value, int calc)
         {
             // most of the formulas are used to define a lower bound when scaling by level
             // i'm going to ignore those and only show the upper bound
@@ -399,9 +401,9 @@ namespace parser
         /// <summary>
         /// Parse a spell slot value by applying the specified calculation (at max level).
         /// </summary>
-        static int ParseSlotValue(int value, int max, int calc, int duration)
+        static int ParseValueFormula(int value, int max, int calc, int duration)
         {
-            // the default calculation (100) leaves the base value as is
+            // the default calculation (100) leaves the base value as is            
             if (calc == 0 || calc == 100)
                 return value;
 
@@ -567,12 +569,11 @@ namespace parser
 
             // type 32 and 109 (summon item) misuse the calc field as a count value
             if (type != 32 && type != 109)
-                value = ParseSlotValue(value, max, calc, spell.Ticks);
+                value = ParseValueFormula(value, max, calc, spell.Ticks);
 
             // some debug stuff
             //if (calc == 110 && max == 0) 
-            //if (type == 0 && value2 > 0)
-            //if (value2 == 603)
+            //if (calc == 100 && max < value && max > 0)
             //    Console.WriteLine("---  " + spell + " " + String.Format("Eff={0} Val={1} Val2={2} Max={3} Calc={4}, {5}", type, value, value2, max, calc, calc & 255));
                       
             // some types are repeating if they have a duration. in these cases there is one type that doesn't
@@ -589,6 +590,7 @@ namespace parser
                     {
                         case 603: target = " (If Undead) "; break;
                         case 624: target = " (If Summoned) "; break;
+                        default: if (value2 > 0) target = " (If Type " + value2 + ")"; break;
                     }
                     return FormatCount("Current HP", value) + target + repeating;
                     //return String.Format("{0} for {1}", value >= 0 ? "Heal" : "Damage", value) + repeating;
@@ -648,7 +650,7 @@ namespace parser
                 case 25:
                     return "Bind";
                 case 26:
-                    return "Gate to Bind";
+                    return "Gate";
                 case 27:
                     return String.Format("Dispell ({0})", value);
                 case 28:
@@ -783,6 +785,10 @@ namespace parser
                 case 101:
                     // only castable via Donal's BP. creates a buf that blocks recasting
                     return "Donal's Heal"; 
+                case 102:
+                    return "Fear Immunity";
+                case 103:
+                    return "Summon Pet";
                 case 104:
                     return String.Format("Translocate to {0}", spell.Extra);
                 case 105:
@@ -874,8 +880,14 @@ namespace parser
                     return String.Format("Balance Group HP ({0}% penalty)", value);                       
                 case 154:
                     return String.Format("Remove Detrimental ({0})", value);
+                case 156:
+                    return "Illusion: Target";
                 case 157:
                     return FormatCount("Spell Damage Shield", -value);
+                case 158:
+                    if (max < value)
+                        value = max;
+                    return FormatPercent("Chance to Reflect Spell", value);
                 case 159:
                     return FormatCount("Stats", value);
                 case 160:
@@ -930,9 +942,9 @@ namespace parser
                 case 184:
                     return FormatPercent("Chance to Hit with " + TrimEnum((SpellSkill)value2), value);
                 case 185:
-                    return FormatPercent("Damage Modifier for " + TrimEnum((SpellSkill)value2), value);
+                    return FormatPercent("Damage for " + TrimEnum((SpellSkill)value2), value);
                 case 186:
-                    return FormatPercent("Min Damage Modifier for " + TrimEnum((SpellSkill)value2), value);
+                    return FormatPercent("Min Damage for " + TrimEnum((SpellSkill)value2), value);
                 case 188:
                     return FormatPercent("Chance to Block", value);
                 case 189:
@@ -944,7 +956,7 @@ namespace parser
                 case 192:
                     return FormatCount("Hate", value) + repeating;
                 case 193:
-                    return String.Format("{0} Damage Attack for {1} with {2}% Accuracy Modifier", spell.Skill, value, value2);
+                    return String.Format("{0} Damage Attack for {1} with {2}% Accuracy", spell.Skill, value, value2);
                 case 194:
                     return "Fade";
                 case 195:
@@ -1008,6 +1020,10 @@ namespace parser
                         return FormatPercent("Critical Nuke Damage", value2 - 100);
                 case 296:
                     return FormatPercent("Spell Damage Taken", value);
+                case 298:
+                    return FormatPercent("Pet Size", value - 100);
+                case 299:
+                    return String.Format("Wake the Dead ({0})", max);
                 case 300:
                     return "Doppelganger";
                 case 303:
@@ -1022,14 +1038,16 @@ namespace parser
                     return "Invisible to Undead (Permanent)";
                 case 319:
                     return FormatPercent("Chance to Critical HoT", value);
+                case 320:                   
+                    return String.Format("Shield Block ({0})", value);
                 case 322:
-                    return "Gate to Origin";
+                    return "Gate to Starting City";
                 case 323:
                     return String.Format("Add Defensive Proc: [Spell {0}] RateMod: {1}%", value, value2);
                 case 329:
                     return String.Format("Absorb Damage Using Mana: {0}%", value);
                 case 330:
-                    return FormatPercent("Critical Damage Modifier for " + TrimEnum((SpellSkill)value2), value);
+                    return FormatPercent("Critical Damage for " + TrimEnum((SpellSkill)value2), value);
                 case 333:
                     return String.Format("Cast on Fade/Cancel: [Spell {0}]", value);
                 case 335:
@@ -1051,6 +1069,8 @@ namespace parser
                     return String.Format("Aura Effect: [Spell {0}]", spell.ID + 3);
                 case 360:
                     return String.Format("Add Killshot Proc: [Spell {0}] Chance: {1}%", value2, value); 
+                case 368:
+                    return String.Format("Faction {0} Modifier: {1}", value, value2);
                 case 369:
                     return FormatCount("Corruption Counter", value);
                 case 370:
@@ -1064,6 +1084,8 @@ namespace parser
                     // i think this is used when several effects need to be placed in a slot. 
                     // i.e. multiple spells are needed but a single cast is required                    
                     return String.Format("Cast: [Spell {0}]", value2);
+                case 375:
+                    return FormatPercent("Critical DoT Damage", value - 100);
                 case 377:
                     // how is this diff than 373?
                     return String.Format("Cast on Fade: [Spell {0}]", value);
@@ -1073,7 +1095,11 @@ namespace parser
                     // similar to heal focus, but adds a raw amount
                     return FormatCount("Healing", value);
                 case 406:
-                    return String.Format("Cast if Attacked: [Spell {0}]", value); 
+                    return String.Format("Cast if Attacked: [Spell {0}]", value);
+                case 419:
+                    // this is used for potions. how is it different than 85?
+                    // value2 looks like a calc value
+                    return String.Format("Add Proc: [Spell {0}]", value);
 
 
             }

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.IO.Compression;
+using System.Text.RegularExpressions;
 
 namespace parser
 {
@@ -48,10 +49,34 @@ namespace parser
                 results = list.Where(x => x.Levels[i] > 0 && x.Levels[i] < 255).OrderBy(x => x.Levels[i]).ThenBy(x => x.ID);
             }
 
+
+            /*
+            // add referenced spells
+            //Regex linkex = new Regex(@"\[Group\s\d+\]");
+            Regex linkex = new Regex(@"\[Spell\s(\d+)\]");
+            List<Spell> related = new List<Spell>();
+            foreach (Spell spell in results)
+            {
+                foreach (string s in spell.Slots)
+                    if (s != null)
+                    {
+                        Match link = linkex.Match(s);
+                        if (link.Success)
+                        {
+                            int id = Int32.Parse(link.Groups[1].Value);
+                            //if (!results.Exists(x => x.ID == id)) 
+                            related.Add(list.First(x => x.ID == id));
+                        }
+                    }
+            }
+            foreach (Spell spell in related)
+                if (!results.Contains(spell))
+                    results.Add(spell);
+            */
+
             // show results
-            if (results != null)
-                foreach(Spell spell in results)
-                    Console.WriteLine("\r\n{0}\r\n{1}", spell, String.Join("\r\n", spell.Details().ToArray()));
+            foreach (Spell spell in results)
+                Console.WriteLine("\r\n{0}\r\n{1}", spell, String.Join("\r\n", spell.Details()));
 
         }
 
