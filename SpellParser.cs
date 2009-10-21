@@ -206,6 +206,8 @@ namespace parser
         public float QuietTime;
         public float RecastTime;
         public float PushBack;
+        public int DescID;
+        public string Desc;
 
         //public string Focus;        
 
@@ -248,10 +250,12 @@ namespace parser
             if (Hate > 0)
                 result.Add("Hate: " + Hate);
 
-
             for (int i = 0; i < Slots.Length; i++)
                 if (!String.IsNullOrEmpty(Slots[i]))
                     result.Add(String.Format("{0}: {1}", i + 1, Slots[i]));
+
+            if (!String.IsNullOrEmpty(Desc))
+                result.Add(Desc);
 
             return result.ToArray();
         }
@@ -273,17 +277,34 @@ namespace parser
         /// <summary>
         /// Load spell list from a stream in spell_us.txt format.
         /// </summary>
-        public static IEnumerable<Spell> LoadFromFile(string path)
+        public static List<Spell> LoadFromFile(string spellPath, string descPath)
         {
-            List<Spell> list = new List<Spell>();
+            // load description text file
+            Dictionary<int, string> desc = new Dictionary<int, string>();
+            if (File.Exists(descPath))
+                using (StreamReader text = File.OpenText(descPath))
+                    while (!text.EndOfStream)
+                    {
+                        string line = text.ReadLine();
+                        string[] fields = line.Split('^');
+                        // type 6 is used for spell descriptions
+                        if (fields[1] == "6")
+                            desc[Int32.Parse(fields[0])] = fields[2];
+                    }
+            
 
-            using (StreamReader text = File.OpenText(path))
-                while (!text.EndOfStream)
-                {
-                    string line = text.ReadLine();
-                    string[] fields = line.Split('^');
-                    list.Add(ParseFields(fields));
-                }
+            // load spell definition file
+            List<Spell> list = new List<Spell>();
+            if (File.Exists(spellPath))
+                using (StreamReader text = File.OpenText(spellPath))
+                    while (!text.EndOfStream)
+                    {
+                        string line = text.ReadLine();
+                        string[] fields = line.Split('^');
+                        Spell spell = ParseFields(fields);
+                        desc.TryGetValue(spell.DescID, out spell.Desc);
+                        list.Add(spell);
+                    }
 
             return list;
         }
@@ -291,7 +312,7 @@ namespace parser
         /// <summary>
         /// Load spell list from a dataset. Column order must match the official spell file.
         /// </summary>
-        public static IEnumerable<Spell> LoadFromData(IDataReader data)
+        public static List<Spell> LoadFromData(IDataReader data)
         {
             List<Spell> list = new List<Spell>();
 
@@ -332,6 +353,7 @@ namespace parser
             spell.QuietTime = ParseFloat(fields[14]) / 1000f;
             spell.RecastTime = ParseFloat(fields[15]) / 1000f;
             spell.PushBack = ParseFloat(fields[11]);
+            spell.DescID = ParseInt(fields[155]);
 
             // each class can have a different level to cast the spell at
             spell.Classes = String.Empty;
@@ -375,7 +397,7 @@ namespace parser
             }
             spell.DebugEffectList += ";";
 
-            //if (spell.ID == 19173)
+            //if (spell.ID == 13)
             //    for (int i = 0; i < fields.Length; i++)
             //        Console.WriteLine("{0}: {1}", i, fields[i]);
 
