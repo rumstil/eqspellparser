@@ -13,16 +13,16 @@ namespace parser
     {
         static void Main(string[] args)
         {
-            const string path = "spells_us.txt";
+            const string spellFile = "spells_us.txt";
+            const string descFile = "dbstr_us.txt";
 
-            // http://eqitems.13th-floor.org/phpBB2/viewtopic.php?t=316
-            // Newest Patcher path: http://patch.everquest.com:7000/patch/lp2/eq/en/patch1/en-main/
-            // Older Patcher path: http://patch.everquest.com:7000/patch/everquest/en/patch1/main/
-            // Looking at the patcher logs it seems they are switching back and forth between patch0 and patch1. 
-            if (!File.Exists(path))
-                DownloadFile("http://patch.station.sony.com:7000/patch/everquest/en/patch1/main/spells_us.txt.gz", path);
+            if (!File.Exists(spellFile))
+                DownloadPatchFile(spellFile);
 
-            IEnumerable<Spell> list = SpellParser.LoadFromFile(path);
+            if (!File.Exists(descFile))
+                DownloadPatchFile(descFile);
+
+            List<Spell> list = SpellParser.LoadFromFile(spellFile, null);
             IEnumerable<Spell> results = null;
             
             Console.WriteLine("============================================================================");
@@ -81,7 +81,7 @@ namespace parser
         }
 
         /// <summary>
-        /// Download and decompress a file.
+        /// Download a file.
         /// </summary>
         static void DownloadFile(string url, string path)
         {
@@ -103,6 +103,20 @@ namespace parser
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Download a file from the patch server.
+        /// </summary>
+        static void DownloadPatchFile(string filename)
+        {
+            Console.Error.WriteLine("Downloading " + filename);
+
+            // http://eqitems.13th-floor.org/phpBB2/viewtopic.php?t=316
+            // Newest Patcher path: http://patch.everquest.com:7000/patch/lp2/eq/en/patch1/en-main/
+            // Older Patcher path: http://patch.everquest.com:7000/patch/everquest/en/patch1/main/
+            // Looking at the patcher logs it seems they are switching back and forth between patch0 and patch1. 
+            DownloadFile("http://patch.station.sony.com:7000/patch/everquest/en/patch1/main/" + filename + ".gz", filename);
         }
 
     }
