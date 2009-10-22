@@ -39,6 +39,11 @@ namespace parser
         Summon_Item = 32,
         Invulnerability = 40,
         Lycanthropy = 44,
+        Fire_Resist = 46,
+        Cold_Resist = 47,
+        Poison_Resist = 48,
+        Disease_Resist = 49,
+        Magic_Resist = 50,
         Rune = 55,
         Damage_Shield = 59,
         Assist_Radius = 86,
@@ -196,6 +201,7 @@ namespace parser
         public int[] Levels;
         public string Classes;
         public string Skill;
+        public bool Beneficial;
         public SpellResist ResistType;
         public int ResistMod;
         public string Extra;
@@ -208,6 +214,7 @@ namespace parser
         public float PushBack;
         public int DescID;
         public string Desc;
+        public int MaxHits;
 
         //public string Focus;        
 
@@ -245,10 +252,13 @@ namespace parser
                 result.Add("Duration: " + new TimeSpan(0, 0, Ticks * 6).ToString() + " (" + Ticks + " ticks)");
 
             if (PushBack > 0)
-                result.Add("PushBack: " + PushBack);
+                result.Add("Push: " + PushBack);
 
             if (Hate > 0)
                 result.Add("Hate: " + Hate);
+
+            if (MaxHits > 0)
+                result.Add("Max Hits: " + MaxHits);
 
             for (int i = 0; i < Slots.Length; i++)
                 if (!String.IsNullOrEmpty(Slots[i]))
@@ -342,7 +352,10 @@ namespace parser
             spell.Mana = ParseInt(fields[19]);
             spell.Skill = TrimEnum((SpellSkill)ParseInt(fields[100]));
             spell.ResistType = (SpellResist)ParseInt(fields[85]);
-            spell.ResistMod = ParseInt(fields[147]);            
+            spell.ResistMod = ParseInt(fields[147]);
+            spell.Beneficial = ParseInt(fields[83]) != 0;
+            if (spell.Beneficial)
+                spell.ResistType = SpellResist.Unresistable;
             spell.Ticks = ParseDurationForumula(ParseInt(fields[17]), ParseInt(fields[16]));
             spell.Extra = fields[3];
             spell.Hate = ParseInt(fields[173]);
@@ -354,6 +367,7 @@ namespace parser
             spell.RecastTime = ParseFloat(fields[15]) / 1000f;
             spell.PushBack = ParseFloat(fields[11]);
             spell.DescID = ParseInt(fields[155]);
+            spell.MaxHits = ParseInt(fields[176]);
 
             // each class can have a different level to cast the spell at
             spell.Classes = String.Empty;
@@ -397,7 +411,7 @@ namespace parser
             }
             spell.DebugEffectList += ";";
 
-            //if (spell.ID == 13)
+            //if (spell.ID == 19135)
             //    for (int i = 0; i < fields.Length; i++)
             //        Console.WriteLine("{0}: {1}", i, fields[i]);
 
@@ -1017,7 +1031,7 @@ namespace parser
                 case 258:
                     return String.Format("Triple Backstab ({0})", value);
                 case 262:
-                    return FormatCount((SpellSkillCap)value2 + " Cap", value);
+                    return FormatCount(TrimEnum((SpellSkillCap)value2) + " Cap", value);
                 case 272:
                     return FormatPercent("Spell Casting Skill", value);
                 case 273:
@@ -1116,6 +1130,8 @@ namespace parser
                 case 392:
                     // similar to heal focus, but adds a raw amount
                     return FormatCount("Healing", value);
+                case 399:
+                    return FormatPercent("Chance to Twincast", value);
                 case 406:
                     return String.Format("Cast if Attacked: [Spell {0}]", value);
                 case 419:
