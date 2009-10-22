@@ -215,6 +215,7 @@ namespace parser
         public int DescID;
         public string Desc;
         public int MaxHits;
+        public int RecourseID;
 
         //public string Focus;        
 
@@ -260,6 +261,9 @@ namespace parser
             if (MaxHits > 0)
                 result.Add("Max Hits: " + MaxHits);
 
+            if (RecourseID > 0)
+                result.Add("Recourse: [Spell " + RecourseID + "]");
+
             for (int i = 0; i < Slots.Length; i++)
                 if (!String.IsNullOrEmpty(Slots[i]))
                     result.Add(String.Format("{0}: {1}", i + 1, Slots[i]));
@@ -272,7 +276,7 @@ namespace parser
 
         public override string ToString()
         {
-            if (GroupID == 0)
+            if (GroupID <= 0)
                 return String.Format("[{0}] {1}", ID, Name);
             else
                 return String.Format("[{0}/{2}] {1}", ID, Name, GroupID);
@@ -368,6 +372,7 @@ namespace parser
             spell.PushBack = ParseFloat(fields[11]);
             spell.DescID = ParseInt(fields[155]);
             spell.MaxHits = ParseInt(fields[176]);
+            spell.RecourseID = ParseInt(fields[150]);
 
             // each class can have a different level to cast the spell at
             spell.Classes = String.Empty;
@@ -411,7 +416,8 @@ namespace parser
             }
             spell.DebugEffectList += ";";
 
-            //if (spell.ID == 19135)
+            // some debug stuff
+            //if (spell.ID == 19665)
             //    for (int i = 0; i < fields.Length; i++)
             //        Console.WriteLine("{0}: {1}", i, fields[i]);
 
