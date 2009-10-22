@@ -145,14 +145,14 @@ namespace parser
 
     public enum SpellTarget
     {     
-        AEPC = 2,
+        Caster_AE = 2,
         Group = 3,
-        PBAE = 4,
+        Caster_PB = 4,
         Single = 5,
         Self = 6,
-        Targeted_AE = 8,
-        Velious_Giants = 17,
-        Velious_Dragons = 18
+        Target_AE = 8,
+        Old_Giants = 17,
+        Old_Dragons = 18
     }
 
     public enum SpellIllusion
@@ -215,7 +215,7 @@ namespace parser
         public int DescID;
         public string Desc;
         public int MaxHits;
-        public int RecourseID;
+        public int RecourseID; // not affected by focus items
 
         //public string Focus;        
 
@@ -881,27 +881,27 @@ namespace parser
                 case 132:
                     return FormatPercent("Spell Mana Cost", -value2);
                 case 134:
-                    return String.Format("Limit: Max Level: {0} (lose {1}% per level)", value, value2);
+                    return String.Format("Limit Max Level: {0} (lose {1}% per level)", value, value2);
                 case 135:
-                    return String.Format("Limit: Include Resist: {0}", (SpellResist)value);
+                    return String.Format("Limit Resist: Include {0}", (SpellResist)value);
                 case 136:
-                    return String.Format("Limit: {1} Target: {0}", (SpellTarget)Math.Abs(value), value >= 0 ? "Include" : "Exclude");
+                    return String.Format("Limit Target: {1} {0}", TrimEnum((SpellTarget)Math.Abs(value)), value >= 0 ? "Include" : "Exclude");
                 case 137:
-                    return String.Format("Limit: {1} Effect: {0}", TrimEnum((SpellEffect)Math.Abs(value)), value >= 0 ? "Include" : "Exclude");
+                    return String.Format("Limit Effect: {1} {0}", TrimEnum((SpellEffect)Math.Abs(value)), value >= 0 ? "Include" : "Exclude");
                 case 138:
-                    return String.Format("Limit: Include Type: {0}", value == 0 ? "Detrimental" : "Beneficial");
+                    return String.Format("Limit Type: Include {0}", value == 0 ? "Detrimental" : "Beneficial");
                 case 139:
-                    return String.Format("Limit: {1} Spell: [Spell {0}]", Math.Abs(value), value >= 0 ? "Include" : "Exclude");
+                    return String.Format("Limit Spell: {1} [Spell {0}]", Math.Abs(value), value >= 0 ? "Include" : "Exclude");
                 case 140:
-                    return String.Format("Limit: Min Duration: {0}s", value * 6);
+                    return String.Format("Limit Min Duration: {0}s", value * 6);
                 case 141:
-                    return "Limit: Instant Spells";
+                    return String.Format("Limit Max Duration: {0}s", 0); 
                 case 142:
-                    return String.Format("Limit: Min Level: {0}", value);
+                    return String.Format("Limit Min Level: {0}", value);
                 case 143:
-                    return String.Format("Limit: Min Casting Time: {0}s", value / 1000f);
+                    return String.Format("Limit Min Casting Time: {0}s", value / 1000f);
                 case 144:
-                    return String.Format("Limit: Max Casting Time: {0}s", value / 1000f);
+                    return String.Format("Limit Max Casting Time: {0}s", value / 1000f);
                 case 145:
                     return String.Format("Teleport to {0}", spell.Extra);
                 case 147:
@@ -1073,7 +1073,8 @@ namespace parser
                 case 310:
                     return String.Format("Reduce Timer by {0}s", value / 1000);
                 case 311:
-                    return "Limit: Exclude Combat Skills";
+                    // does this affect procs that the caster has as spells?
+                    return "Limit Type: Exclude Procs";
                 case 314:
                     return "Invisible (Permanent)";
                 case 315:
@@ -1104,7 +1105,7 @@ namespace parser
                     // is this persistent or instant?
                     return String.Format("Interrupt Spell Chance: {0}%", value); 
                 case 348:
-                    return String.Format("Limit: Mana Cost > {0}", value); 
+                    return String.Format("Limit Min Mana Cost: {0}", value); 
                 case 351:
                     // the +3 is just a guess that's correct most of the time since spells have 3 ranks
                     // and the effects are placed after the spells
@@ -1132,7 +1133,7 @@ namespace parser
                     // how is this diff than 373?
                     return String.Format("Cast on Fade: [Spell {0}]", value);
                 case 385:
-                    return String.Format("Limit: {1} Spells: [Group {0}]", Math.Abs(value), value >= 0 ? "Include" : "Exclude");
+                    return String.Format("Limit Spells: {1} [Group {0}]", Math.Abs(value), value >= 0 ? "Include" : "Exclude");
                 case 392:
                     // similar to heal focus, but adds a raw amount
                     return FormatCount("Healing", value);
