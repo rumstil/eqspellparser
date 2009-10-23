@@ -152,6 +152,7 @@ namespace parser
         Single = 5,
         Self = 6,
         Target_AE = 8,
+        Lifetap = 13,
         Old_Giants = 17,
         Old_Dragons = 18
     }
@@ -217,6 +218,7 @@ namespace parser
         public string Desc;
         public int MaxHits;
         public int RecourseID; // not affected by focus items
+        public int TimerID;
 
         //public string Focus;        
 
@@ -264,6 +266,14 @@ namespace parser
 
             if (RecourseID > 0)
                 result.Add("Recourse: [Spell " + RecourseID + "]");
+
+            if (CastingTime > 0)
+                result.Add("Casting: " + CastingTime.ToString() + "s");
+
+            if (TimerID > 0)
+                result.Add("Recast: " + new TimeSpan(0, 0, (int)RecastTime).ToString() + " Timer: " + TimerID);
+            else if (RecastTime > 0)
+                result.Add("Recast: " + new TimeSpan(0, 0, (int)RecastTime).ToString());
 
             for (int i = 0; i < Slots.Length; i++)
                 if (!String.IsNullOrEmpty(Slots[i]))
@@ -374,6 +384,7 @@ namespace parser
             spell.DescID = ParseInt(fields[155]);
             spell.MaxHits = ParseInt(fields[176]);
             spell.RecourseID = ParseInt(fields[150]);
+            spell.TimerID = ParseInt(fields[167]);
 
             // each class can have a different level to cast the spell at
             spell.Classes = String.Empty;
@@ -418,7 +429,7 @@ namespace parser
             spell.DebugEffectList += ";";
 
             // some debug stuff
-            //if (spell.ID == 19665)
+            //if (spell.ID == 130)
             //    for (int i = 0; i < fields.Length; i++)
             //        Console.WriteLine("{0}: {1}", i, fields[i]);
 
@@ -890,7 +901,7 @@ namespace parser
                 case 135:
                     return String.Format("Limit Resist: Include {0}", (SpellResist)value);
                 case 136:
-                    return String.Format("Limit Target: {1} {0}", TrimEnum((SpellTarget)Math.Abs(value)), value >= 0 ? "Include" : "Exclude");
+                    return String.Format("Limit Type: {1} {0}", TrimEnum((SpellTarget)Math.Abs(value)), value >= 0 ? "Include" : "Exclude");
                 case 137:
                     return String.Format("Limit Effect: {1} {0}", TrimEnum((SpellEffect)Math.Abs(value)), value >= 0 ? "Include" : "Exclude");
                 case 138:
@@ -940,9 +951,15 @@ namespace parser
                 case 160:
                     return String.Format("Intoxicate if Tolerance < {0}", value);
                 case 161:
-                    return String.Format("Absorb Spell Damage: {0}% Total: {1}", value, max);
+                    if (max > 0)
+                        return String.Format("Absorb Spell Damage: {0}% Total: {1}", value, max);
+                    else
+                        return String.Format("Absorb Spell Damage: {0}%", value);
                 case 162:
-                    return String.Format("Absorb Melee Damage: {0}% Total: {1}", value, max);
+                    if (max > 0)
+                        return String.Format("Absorb Melee Damage: {0}% Total: {1}", value, max);
+                    else
+                        return String.Format("Absorb Melee Damage: {0}%", value);
                 case 163:
                     return String.Format("Immunity for {0} Hits/Spells", value);
                 case 164:
@@ -955,7 +972,7 @@ namespace parser
                     return String.Format("Pet Power ({0})", value);
                 case 168:
                     // how is this different than an endless rune?
-                    return FormatPercent("Melee Mitigation", value);
+                    return FormatPercent("Melee Mitigation", -value);
                 case 169:
                     return FormatPercent("Chance to Critical Hit with " + TrimEnum((SpellSkill)value2), value);
                 case 170:
@@ -1049,6 +1066,8 @@ namespace parser
                     return FormatPercent("Chance to Critical DoT", value);
                 case 274:
                     return FormatPercent("Chance to Critical Heal", value);
+                case 279:
+                    return FormatPercent("Chance to Flurry", value);
                 case 286:
                     // similar to damage focus, but adds a raw amount
                     // how is this different than 303?
