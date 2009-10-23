@@ -51,6 +51,7 @@ namespace parser
         Max_Mana = 97,
         Add_Spell_Proc = 100,
         Percent_Heal = 147,
+        Mana_Burn = 350,
         Corruption_Counter = 369,
         Corruption_Resist = 370
     }
@@ -611,7 +612,11 @@ namespace parser
 
             // type 32 and 109 (summon item) misuse the calc field as a count value
             if (type != 32 && type != 109)
+            {
                 value = ParseValueFormula(value, max, calc, spell.Ticks);
+                if (calc > 1000)
+                    return String.Format("Unknown Calc: {0} Val={1} Val2={2} Max={3} Calc={4}", type, value, value2, max, calc);
+            }
 
             // some debug stuff
             //if (calc == 110 && max == 0) 
@@ -1062,6 +1067,8 @@ namespace parser
                         return FormatPercent("Critical Nuke Damage", value2 - 100);
                 case 296:
                     return FormatPercent("Spell Damage Taken", value);
+                case 297:
+                    return FormatCount("Spell Damage Taken", value);
                 case 298:
                     return FormatPercent("Pet Size", value - 100);
                 case 299:
@@ -1106,6 +1113,8 @@ namespace parser
                     return String.Format("Interrupt Spell Chance: {0}%", value); 
                 case 348:
                     return String.Format("Limit Min Mana Cost: {0}", value); 
+                case 350:
+                    return String.Format("Mana Burn: {0}", value); 
                 case 351:
                     // the +3 is just a guess that's correct most of the time since spells have 3 ranks
                     // and the effects are placed after the spells
