@@ -36,7 +36,10 @@ namespace parser
         CHA = 10,
         Current_Mana = 15,
         Fear = 23,
+        Mesmerize = 31,
         Summon_Item = 32,
+        Disease_Counter = 35,
+        Poison_Counter = 36,
         Invulnerability = 40,
         Lycanthropy = 44,
         Fire_Resist = 46,
@@ -45,11 +48,12 @@ namespace parser
         Disease_Resist = 49,
         Magic_Resist = 50,
         Rune = 55,
+        Levitate = 57,
         Damage_Shield = 59,
         Assist_Radius = 86,
         Max_HP = 69,
         Max_Mana = 97,
-        Add_Spell_Proc = 100,
+        Current_HP_Repeating = 100,
         Current_HP_Percent = 147,
         Mana_Burn = 350,
         Corruption_Counter = 369,
@@ -146,7 +150,7 @@ namespace parser
 
     public enum SpellTarget
     {     
-        Directional = 1,
+        Line_of_Sight = 1,
         Caster_AE = 2,
         Caster_Group = 3,
         Caster_PB = 4,
@@ -165,6 +169,7 @@ namespace parser
         Hatelist = 33,
         Chest = 34,
         Target_Group = 41,
+        Directional = 42
     }
 
     public enum SpellIllusion
@@ -185,20 +190,39 @@ namespace parser
         Werewolf = 14,
         Brownie = 15,
         Centaur = 16,
-        Golem = 17,
         Froglok = 26,
         Froglok_Ghoul = 27,
         Gargoyle = 29,
         Wolf = 42,
         Bear = 43,
         Imp = 46,        
-        Elemental = 75,
-        Skeleton = 85,
+        Elemental = 75, // has subtypes
+        Scarecrow = 82,
+        //Skeleton = 85,
         Iksar = 128,
-        Iksar_Skeleton = 161,        
+        Kunark_Goblin = 137,
+        Tree = 143,        
+        Iksar_Skeleton = 161,
+        Guktan = 330,
+        Scaled_Wolf = 356,
+        Skeleton = 367,
+        Golem = 374, // has subtypes
+        Pyrilen = 411,
+        Goblin = 433, // has subtypes
+        Basilisk = 436,  
+        Gnomework = 457,
         Orc = 458,
+        Stone_Gargoyle = 464,
+        Evil_Eye = 469,
+        Minotaur = 470,
         Zombie = 471,
-        Drakkin = 522
+        Fairy = 473,
+        Spectre = 485,
+        Banshee = 487,
+        Scrykin = 495, // has subtypes
+        Bixie = 520,
+        Drakkin = 522,
+        Hideous_Harpy = 527
     }
 
     public class Spell
@@ -447,6 +471,7 @@ namespace parser
                 // it's a bit of a hack to put this here
                 if (calc == 123)
                     spell.Slots[i] += " (avg/random)";
+
                 if (calc == 107 || calc == 108 || calc == 120 || calc == 122)
                     spell.Slots[i] += " (avg/growing)";
 
@@ -787,7 +812,7 @@ namespace parser
                 case 57:
                     return "Levitate";
                 case 58:
-                    return String.Format("Illusion: {0}", TrimEnum((SpellIllusion)value));
+                    return String.Format("Illusion: {0} ({1})", TrimEnum((SpellIllusion)value), value2);
                 case 59:
                     return FormatCount("Damage Shield", -value);
                 case 61:
@@ -857,7 +882,7 @@ namespace parser
                     return "Sacrifice";
                 case 96:
                     // silence, but named this way to match melee version
-                    return "Prevent Casting"; 
+                    return "Prevent Spell Casting"; 
                 case 97:
                     return FormatCount("Max Mana", value);
                 case 98:
@@ -1082,6 +1107,8 @@ namespace parser
                     return FormatCount(TrimEnum((SpellSkill)value2) + " Damage Bonus", value);
                 case 227:
                     return String.Format("Reduce {0} Timer by {1}s", TrimEnum((SpellSkill)value2), value);
+                case 232:
+                    return String.Format("Divine Save: [Spell {0}] Chance: {1}%", value2, value);                    
                 case 258:
                     return String.Format("Triple Backstab ({0})", value);
                 case 262:
@@ -1150,7 +1177,8 @@ namespace parser
                 case 333:
                     return String.Format("Cast on Fade/Cancel: [Spell {0}]", value);
                 case 335:
-                    return "Prevent Spell Matching Limits from Landing";
+                    // prevent spells that match limit rules from landing
+                    return "Prevent Spell Landing On Match";
                 case 337:
                     return FormatPercent("Experience Gain", value);
                 case 339:
@@ -1172,6 +1200,8 @@ namespace parser
                     return String.Format("Aura Effect: [Spell {0}]", spell.ID + 3);
                 case 360:
                     return String.Format("Add Killshot Proc: [Spell {0}] Chance: {1}%", value2, value); 
+                case 367:
+                    return String.Format("Transform Body Type ({0})", value);
                 case 368:
                     return String.Format("Faction {0} Modifier: {1}", value, value2);
                 case 369:
@@ -1194,6 +1224,10 @@ namespace parser
                     return String.Format("Cast on Fade: [Spell {0}]", value);
                 case 381:
                     return "Call of Hero";
+                case 382:
+                    return String.Format("Inhibit Buff Effect: {0}", TrimEnum((SpellEffect)Math.Abs(value2)));
+                case 383:
+                    return String.Format("Cast on Match: [Spell {0}] Chance: {1}%", value2, value);
                 case 385:
                     return String.Format("Limit Spells: {1}[Group {0}]", Math.Abs(value), value >= 0 ? "" : "Exclude ");
                 case 392:
