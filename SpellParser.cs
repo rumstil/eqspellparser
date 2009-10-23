@@ -50,7 +50,7 @@ namespace parser
         Max_HP = 69,
         Max_Mana = 97,
         Add_Spell_Proc = 100,
-        Percent_Heal = 147,
+        Current_HP_Percent = 147,
         Mana_Burn = 350,
         Corruption_Counter = 369,
         Corruption_Resist = 370
@@ -146,15 +146,25 @@ namespace parser
 
     public enum SpellTarget
     {     
+        Directional = 1,
         Caster_AE = 2,
-        Group = 3,
+        Caster_Group = 3,
         Caster_PB = 4,
         Single = 5,
         Self = 6,
         Target_AE = 8,
+        Animal = 9,
+        Undead = 10,
+        Summoned = 11,
         Lifetap = 13,
+        Pet = 14,
+        Corpse = 15,
+        Plant = 16,
         Old_Giants = 17,
-        Old_Dragons = 18
+        Old_Dragons = 18,
+        Hatelist = 33,
+        Chest = 34,
+        Target_Group = 41,
     }
 
     public enum SpellIllusion
@@ -185,8 +195,10 @@ namespace parser
         Elemental = 75,
         Skeleton = 85,
         Iksar = 128,
-        Iksar_Skeleton = 161,
-        Zombie = 471
+        Iksar_Skeleton = 161,        
+        Orc = 458,
+        Zombie = 471,
+        Drakkin = 522
     }
 
     public class Spell
@@ -202,8 +214,9 @@ namespace parser
         public int MinLevel, MaxLevel;
         public int[] Levels;
         public string Classes;
-        public string Skill;
+        public SpellSkill Skill;
         public bool Beneficial;
+        public SpellTarget Target;
         public SpellResist ResistType;
         public int ResistMod;
         public string Extra;
@@ -237,9 +250,6 @@ namespace parser
         {
             List<string> result = new List<string>();
      
-            //if (!String.IsNullOrEmpty(Skill))
-            //    result.Add("Skill: " + Skill);
-
             if (!String.IsNullOrEmpty(Classes))
                 result.Add("Classes: " + Classes);
 
@@ -249,11 +259,27 @@ namespace parser
             if (Endurance > 0)
                 result.Add("Endurance: " + Endurance);
 
-            if (ResistType != SpellResist.Unresistable)
-                result.Add("Resist: " + ResistType.ToString() + " " + ResistMod);
+            //result.Add("Skill: " + Skill);
+
+            if (Range > 0 && Target != SpellTarget.Self)
+                result.Add("Target: " + Target + ", Range: " + Range);
+            else
+                result.Add("Target: " + Target);
+
+            if (ResistType != SpellResist.Unresistable && ResistMod != 0)
+                result.Add("Resist: " + ResistType + " " + ResistMod);
+            else if (ResistType != SpellResist.Unresistable)
+                result.Add("Resist: " + ResistType);
+
+            if (TimerID > 0)
+                result.Add("Casting: " + CastingTime.ToString() + "s, Recast: " + FormatTime(RecastTime) + ", Timer: " + TimerID);
+            else if (RecastTime > 0)
+                result.Add("Casting: " + CastingTime.ToString() + "s, Recast: " + FormatTime(RecastTime));
+            else
+                result.Add("Casting: " + CastingTime.ToString() + "s");
 
             if (Ticks > 0)
-                result.Add("Duration: " + new TimeSpan(0, 0, Ticks * 6).ToString() + " (" + Ticks + " ticks)");
+                result.Add("Duration: " + FormatTime(Ticks * 6) + " (" + Ticks + " ticks)");
 
             if (PushBack > 0)
                 result.Add("Push: " + PushBack);
@@ -267,13 +293,6 @@ namespace parser
             if (RecourseID > 0)
                 result.Add("Recourse: [Spell " + RecourseID + "]");
 
-            if (CastingTime > 0)
-                result.Add("Casting: " + CastingTime.ToString() + "s");
-
-            if (TimerID > 0)
-                result.Add("Recast: " + new TimeSpan(0, 0, (int)RecastTime).ToString() + " Timer: " + TimerID);
-            else if (RecastTime > 0)
-                result.Add("Recast: " + new TimeSpan(0, 0, (int)RecastTime).ToString());
 
             for (int i = 0; i < Slots.Length; i++)
                 if (!String.IsNullOrEmpty(Slots[i]))
@@ -289,8 +308,14 @@ namespace parser
         {
             if (GroupID <= 0)
                 return String.Format("[{0}] {1}", ID, Name);
-            else
-                return String.Format("[{0}/{2}] {1}", ID, Name, GroupID);
+            return String.Format("[{0}/{2}] {1}", ID, Name, GroupID);
+        }
+
+        static string FormatTime(float seconds)
+        {
+            if (seconds <= 30)
+                return seconds.ToString() + "s";
+            return new TimeSpan(0, 0, (int)seconds).ToString();
         }
     }
 
@@ -365,7 +390,8 @@ namespace parser
             spell.Name = fields[1];
             spell.Icon = ParseInt(fields[144]);
             spell.Mana = ParseInt(fields[19]);
-            spell.Skill = TrimEnum((SpellSkill)ParseInt(fields[100]));
+            spell.Skill = (SpellSkill)ParseInt(fields[100]);
+            spell.Target = (SpellTarget)ParseInt(fields[98]);
             spell.ResistType = (SpellResist)ParseInt(fields[85]);
             spell.ResistMod = ParseInt(fields[147]);
             spell.Beneficial = ParseInt(fields[83]) != 0;
@@ -708,6 +734,8 @@ namespace parser
                 case 25:
                     return "Bind";
                 case 26:
+                    if (value2 > 1)
+                        return "Gate to Secondary Bind";
                     return "Gate";
                 case 27:
                     return String.Format("Dispell ({0})", value);
@@ -899,15 +927,15 @@ namespace parser
                 case 134:
                     return String.Format("Limit Max Level: {0} (lose {1}% per level)", value, value2);
                 case 135:
-                    return String.Format("Limit Resist: Include {0}", (SpellResist)value);
+                    return String.Format("Limit Resist: {0}", (SpellResist)value);
                 case 136:
-                    return String.Format("Limit Type: {1} {0}", TrimEnum((SpellTarget)Math.Abs(value)), value >= 0 ? "Include" : "Exclude");
+                    return String.Format("Limit Target: {1}{0}", TrimEnum((SpellTarget)Math.Abs(value)), value >= 0 ? "" : "Exclude ");
                 case 137:
-                    return String.Format("Limit Effect: {1} {0}", TrimEnum((SpellEffect)Math.Abs(value)), value >= 0 ? "Include" : "Exclude");
+                    return String.Format("Limit Effect: {1}{0}", TrimEnum((SpellEffect)Math.Abs(value)), value >= 0 ? "" : "Exclude ");
                 case 138:
-                    return String.Format("Limit Type: Include {0}", value == 0 ? "Detrimental" : "Beneficial");
+                    return String.Format("Limit Type: {0}", value == 0 ? "Detrimental" : "Beneficial");
                 case 139:
-                    return String.Format("Limit Spell: {1} [Spell {0}]", Math.Abs(value), value >= 0 ? "Include" : "Exclude");
+                    return String.Format("Limit Spell: {1}[Spell {0}]", Math.Abs(value), value >= 0 ? "" : "Exclude ");
                 case 140:
                     return String.Format("Limit Min Duration: {0}s", value * 6);
                 case 141:
@@ -935,7 +963,7 @@ namespace parser
                 case 152:
                     return String.Format("Summon Pet: {0} x {1} for {2}s", spell.Extra, value, max);
                 case 153:
-                    return String.Format("Balance Group HP ({0}% penalty)", value);                       
+                    return String.Format("Balance Group HP with {0}% Penalty", value);                       
                 case 154:
                     return String.Format("Remove Detrimental ({0})", value);
                 case 156:
@@ -953,13 +981,11 @@ namespace parser
                 case 161:
                     if (max > 0)
                         return String.Format("Absorb Spell Damage: {0}% Total: {1}", value, max);
-                    else
-                        return String.Format("Absorb Spell Damage: {0}%", value);
+                    return String.Format("Absorb Spell Damage: {0}%", value);
                 case 162:
                     if (max > 0)
                         return String.Format("Absorb Melee Damage: {0}% Total: {1}", value, max);
-                    else
-                        return String.Format("Absorb Melee Damage: {0}%", value);
+                    return String.Format("Absorb Melee Damage: {0}%", value);
                 case 163:
                     return String.Format("Immunity for {0} Hits/Spells", value);
                 case 164:
@@ -1006,9 +1032,9 @@ namespace parser
                 case 184:
                     return FormatPercent("Chance to Hit with " + TrimEnum((SpellSkill)value2), value);
                 case 185:
-                    return FormatPercent("Damage for " + TrimEnum((SpellSkill)value2), value);
+                    return FormatPercent(TrimEnum((SpellSkill)value2) + " Damage", value);
                 case 186:
-                    return FormatPercent("Min Damage for " + TrimEnum((SpellSkill)value2), value);
+                    return FormatPercent(TrimEnum((SpellSkill)value2) + " Min Damage", value);
                 case 188:
                     return FormatPercent("Chance to Block", value);
                 case 189:
@@ -1053,7 +1079,7 @@ namespace parser
                 case 216:
                     return FormatPercent("Accuracy", value);
                 case 220:                    
-                    return FormatCount(TrimEnum((SpellSkill)value2) + " Damage", value);
+                    return FormatCount(TrimEnum((SpellSkill)value2) + " Damage Bonus", value);
                 case 227:
                     return String.Format("Reduce {0} Timer by {1}s", TrimEnum((SpellSkill)value2), value);
                 case 258:
@@ -1072,6 +1098,8 @@ namespace parser
                     // similar to damage focus, but adds a raw amount
                     // how is this different than 303?
                     return FormatCount("Spell Damage", value);
+                case 287:
+                    return String.Format("Increase Duration by {0}s", value * 6);
                 case 289: 
                     // how is this different than 373?
                     return String.Format("Cast on Fade: [Spell {0}]", value);
@@ -1096,11 +1124,13 @@ namespace parser
                     return "Doppelganger";
                 case 303:
                     return FormatCount("Spell Damage", value);
+                case 305:
+                    return FormatCount("Damage Shield Taken", -Math.Abs(value));
                 case 310:
                     return String.Format("Reduce Timer by {0}s", value / 1000);
                 case 311:
                     // does this affect procs that the caster has as spells?
-                    return "Limit Type: Exclude Procs";
+                    return "Limit Invocation: Exclude Procs";
                 case 314:
                     return "Invisible (Permanent)";
                 case 315:
@@ -1127,6 +1157,8 @@ namespace parser
                     return String.Format("Add Spell Proc: [Spell {0}] Chance: {1}%", value2, value);
                 case 340:
                     return String.Format("Cast: [Spell {0}] Chance: {1}%", value2, value);
+                case 342:
+                    return "Prevent Fleeing";
                 case 343:
                     // is this persistent or instant?
                     return String.Format("Interrupt Spell Chance: {0}%", value); 
@@ -1160,8 +1192,10 @@ namespace parser
                 case 377:
                     // how is this diff than 373?
                     return String.Format("Cast on Fade: [Spell {0}]", value);
+                case 381:
+                    return "Call of Hero";
                 case 385:
-                    return String.Format("Limit Spells: {1} [Group {0}]", Math.Abs(value), value >= 0 ? "Include" : "Exclude");
+                    return String.Format("Limit Spells: {1}[Group {0}]", Math.Abs(value), value >= 0 ? "" : "Exclude ");
                 case 392:
                     // similar to heal focus, but adds a raw amount
                     return FormatCount("Healing", value);
