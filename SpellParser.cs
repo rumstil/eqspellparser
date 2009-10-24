@@ -34,14 +34,17 @@ namespace parser
         WIS = 8,
         INT = 9,
         CHA = 10,
+        Melee_Haste = 11,
         Current_Mana = 15,
+        Charm = 22,
         Fear = 23,
         Mesmerize = 31,
         Summon_Item = 32,
+        Summon_Pet = 33,
         Disease_Counter = 35,
         Poison_Counter = 36,
         Invulnerability = 40,
-        Lycanthropy = 44,
+        Promised_Heal_Marker = 44,
         Fire_Resist = 46,
         Cold_Resist = 47,
         Poison_Resist = 48,
@@ -50,11 +53,16 @@ namespace parser
         Rune = 55,
         Levitate = 57,
         Damage_Shield = 59,
+        Summon_Skeleton_Pet = 71,
         Assist_Radius = 86,
         Max_HP = 69,
+        Hate = 92,
         Max_Mana = 97,
         Current_HP_Repeating = 100,
+        Current_HP_Donals = 101,
+        All_Resists = 111,
         Current_HP_Percent = 147,
+        XP_Gain = 337,
         Mana_Burn = 350,
         Corruption_Counter = 369,
         Corruption_Resist = 370
@@ -289,7 +297,7 @@ namespace parser
                 result.Add("Target: " + Target + ", Range: " + Range);
             else
                 result.Add("Target: " + Target);
-
+                        
             if (ResistType != SpellResist.Unresistable && ResistMod != 0)
                 result.Add("Resist: " + ResistType + " " + ResistMod);
             else if (ResistType != SpellResist.Unresistable)
@@ -337,12 +345,11 @@ namespace parser
 
         static string FormatTime(float seconds)
         {
-            if (seconds <= 30)
+            if (seconds <= 60)
                 return seconds.ToString() + "s";
             return new TimeSpan(0, 0, (int)seconds).ToString();
         }
     }
-
 
     public static class SpellParser
     {
@@ -660,7 +667,7 @@ namespace parser
         /// Parses a spell effect slot. Each slot has a series of attributes associated with it.
         /// 
         /// Effects can reference other spells or items via square bracket notation. e.g.
-        /// [123]          is a reference to spell 123
+        /// [Spell 123]    is a reference to spell 123
         /// [Group 123]    is a reference to spell group 123
         /// [Item 123]     is a reference to item 123
         /// </summary>
@@ -787,8 +794,7 @@ namespace parser
                 case 42:
                     return "Shadowstep";                
                 case 44:
-                    return "Lycanthropy";
-                    //return String.Format("Lycanthropy Effect: [{0}]", value);
+                    return String.Format("Stacking: Promised Heal Marker ({0})", value);
                 case 46:
                     return FormatCount("Fire Resist", value);
                 case 47:
@@ -1225,7 +1231,7 @@ namespace parser
                 case 381:
                     return "Call of Hero";
                 case 382:
-                    return String.Format("Inhibit Buff Effect: {0}", TrimEnum((SpellEffect)Math.Abs(value2)));
+                    return String.Format("Inhibit Buff Effect: {0}", TrimEnum((SpellEffect)value2));
                 case 383:
                     return String.Format("Cast on Match: [Spell {0}] Chance: {1}%", value2, value);
                 case 385:
