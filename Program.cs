@@ -22,18 +22,53 @@ namespace parser
             if (!File.Exists(descFile))
                 DownloadPatchFile(descFile);
 
-            List<Spell> list = SpellParser.LoadFromFile(spellFile, null);
-            IEnumerable<Spell> results = null;
-            
-            Console.WriteLine("============================================================================");
+            List<Spell> list = SpellParser.LoadFromFile(spellFile, descFile);
 
-            if (args.Length == 0)
+            if (args.Length > 0)
+            {
+                Search(list, args);
+            }
+            else
+            {
+                while (true)
+                {
+                    Console.Error.WriteLine();
+                    Console.Error.Write("parser>");
+                    string cmd = Console.ReadLine().Trim().ToLower();
+                    if (cmd == "help" || cmd == "")
+                        Help();
+                    if (cmd == "quit")                    
+                        break;
+                    //if (String.IsNullOrEmpty(cmd))
+                    Search(list, cmd.Split());
+                };
+            }
+        }
+
+        static void Help()
+        {
+            Console.Error.WriteLine("USAGE EXAMPLES:");
+            Console.Error.WriteLine("parser all");
+            Console.Error.WriteLine("parser name \"complete heal\" ");
+            Console.Error.WriteLine("parser id 13");
+            Console.Error.WriteLine("parser type 3");
+            Console.Error.WriteLine("parser class clr");
+        }
+
+        /// <summary>
+        /// Search the spell list for matching spells
+        /// </summary>
+        static void Search(List<Spell> list, string[] args)
+        {
+            IEnumerable<Spell> results = null;
+
+            if (args.Length == 1 && args[0] == "all")
                 results = list;
 
             // search by effect type
-            if (args.Length == 1)
-                results = list.Where(x => x.DebugEffectList.Contains(";" + args[0] + ";"));
-            
+            if (args.Length == 2 && args[0] == "type")
+                results = list.Where(x => x.DebugEffectList.Contains(";" + args[1] + ";"));
+
             // search by id
             if (args.Length == 2 && args[0] == "id")
                 results = list.Where(x => x.ID.ToString() == args[1]);
@@ -45,39 +80,16 @@ namespace parser
             // search by class
             if (args.Length == 2 && args[0] == "class")
             {
-                int i = (int)Enum.Parse(typeof(SpellClasses), args[1].ToUpper()) - 1;                
+                int i = (int)Enum.Parse(typeof(SpellClasses), args[1].ToUpper()) - 1;
                 results = list.Where(x => x.Levels[i] > 0 && x.Levels[i] < 255).OrderBy(x => x.Levels[i]).ThenBy(x => x.ID);
             }
 
-
-            /*
-            // add referenced spells
-            //Regex linkex = new Regex(@"\[Group\s\d+\]");
-            Regex linkex = new Regex(@"\[Spell\s(\d+)\]");
-            List<Spell> related = new List<Spell>();
-            foreach (Spell spell in results)
-            {
-                foreach (string s in spell.Slots)
-                    if (s != null)
-                    {
-                        Match link = linkex.Match(s);
-                        if (link.Success)
-                        {
-                            int id = Int32.Parse(link.Groups[1].Value);
-                            //if (!results.Exists(x => x.ID == id)) 
-                            related.Add(list.First(x => x.ID == id));
-                        }
-                    }
-            }
-            foreach (Spell spell in related)
-                if (!results.Contains(spell))
-                    results.Add(spell);
-            */
-
             // show results
-            foreach (Spell spell in results)
-                Console.WriteLine("\r\n{0}\r\n{1}", spell, String.Join("\r\n", spell.Details()));
+            if (results != null)
+                foreach (Spell spell in results)
+                    Console.WriteLine("\r\n{0}\r\n{1}", spell, String.Join("\r\n", spell.Details()));
 
+            //Console.WriteLine("============================================================================");
         }
 
         /// <summary>
