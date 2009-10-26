@@ -35,7 +35,7 @@ namespace parser
         INT = 9,
         CHA = 10,
         Melee_Haste = 11,
-        Current_Mana = 15,
+        Current_Mana_Repeating = 15,
         Charm = 22,
         Fear = 23,
         Mesmerize = 31,
@@ -64,6 +64,7 @@ namespace parser
         Current_HP_Percent = 147,
         XP_Gain = 337,
         Mana_Burn = 350,
+        Current_Mana = 358,
         Corruption_Counter = 369,
         Corruption_Resist = 370
     }
@@ -1204,6 +1205,8 @@ namespace parser
                     // the +3 is just a guess that's correct most of the time since spells have 3 ranks
                     // and the effects are placed after the spells
                     return String.Format("Aura Effect: [Spell {0}]", spell.ID + 3);
+                case 358:
+                    return FormatCount("Current Mana", value);
                 case 360:
                     return String.Format("Add Killshot Proc: [Spell {0}] Chance: {1}%", value2, value); 
                 case 367:
@@ -1228,6 +1231,8 @@ namespace parser
                 case 377:
                     // how is this diff than 373?
                     return String.Format("Cast on Fade: [Spell {0}]", value);
+                case 380:
+                    return String.Format("Knockback for {0} and up for {1}", value, value2);
                 case 381:
                     return "Call of Hero";
                 case 382:
@@ -1241,12 +1246,17 @@ namespace parser
                     return FormatCount("Healing", value);
                 case 399:
                     return FormatPercent("Chance to Twincast", value);
+                case 401:
+                    // e.g. Drains up to 401 mana from your target. For each point of mana drained, the target will take damage.
+                    return String.Format("Inflict Damage from Mana Tap ({0})", value);
                 case 406:
                     return String.Format("Cast if Attacked: [Spell {0}]", value);
                 case 419:
                     // this is used for potions. how is it different than 85?
                     // value2 looks like a calc value
                     return String.Format("Add Proc: [Spell {0}]", value);
+                case 424:
+                    return "Gravity Flux";
 
 
             }
