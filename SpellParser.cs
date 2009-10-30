@@ -265,6 +265,7 @@ namespace parser
         public int MaxHits;
         public int RecourseID; // not affected by focus items
         public int TimerID;
+        public int Viral; // is this a range?
 
         //public string Focus;        
 
@@ -298,6 +299,9 @@ namespace parser
                 result.Add("Target: " + Target + ", Range: " + Range);
             else
                 result.Add("Target: " + Target);
+
+            if (Viral > 0)
+                result.Add("Viral: " + Viral);
                         
             if (ResistType != SpellResist.Unresistable && ResistMod != 0)
                 result.Add("Resist: " + ResistType + " " + ResistMod);
@@ -443,6 +447,7 @@ namespace parser
             spell.MaxHits = ParseInt(fields[176]);
             spell.RecourseID = ParseInt(fields[150]);
             spell.TimerID = ParseInt(fields[167]);
+            spell.Viral = ParseInt(fields[192]);
 
             // each class can have a different level to cast the spell at
             spell.Classes = String.Empty;
@@ -1078,7 +1083,7 @@ namespace parser
                 case 192:
                     return FormatCount("Hate", value) + repeating;
                 case 193:
-                    return String.Format("{0} Damage Attack for {1} with {2}% Accuracy", spell.Skill, value, value2);
+                    return String.Format("{0} Attack for {1} with {2}% Accuracy", spell.Skill, value, value2);
                 case 194:
                     return "Fade";
                 case 195:
@@ -1229,8 +1234,7 @@ namespace parser
                 case 375:
                     return FormatPercent("Critical DoT Damage", value - 100);
                 case 377:
-                    // how is this diff than 373?
-                    return String.Format("Cast on Fade: [Spell {0}]", value);
+                    return String.Format("Cast on Uncured Fade: [Spell {0}]", value);
                 case 380:
                     return String.Format("Knockback for {0} and up for {1}", value, value2);
                 case 381:
