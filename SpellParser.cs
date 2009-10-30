@@ -265,7 +265,9 @@ namespace parser
         public int MaxHits;
         public int RecourseID; // not affected by focus items
         public int TimerID;
-        public int Viral; // is this a range?
+        public int Viral1;
+        public int Viral2;
+        public int ViralRange;
 
         //public string Focus;        
 
@@ -300,8 +302,8 @@ namespace parser
             else
                 result.Add("Target: " + Target);
 
-            if (Viral > 0)
-                result.Add("Viral: " + Viral);
+            if (ViralRange > 0)
+                result.Add("Viral Range: " + ViralRange + " (" + Viral1 + "/" + Viral2 + ")");
                         
             if (ResistType != SpellResist.Unresistable && ResistMod != 0)
                 result.Add("Resist: " + ResistType + " " + ResistMod);
@@ -447,7 +449,9 @@ namespace parser
             spell.MaxHits = ParseInt(fields[176]);
             spell.RecourseID = ParseInt(fields[150]);
             spell.TimerID = ParseInt(fields[167]);
-            spell.Viral = ParseInt(fields[192]);
+            spell.Viral1 = ParseInt(fields[191]);
+            spell.Viral2 = ParseInt(fields[192]);
+            spell.ViralRange = ParseInt(fields[201]);
 
             // each class can have a different level to cast the spell at
             spell.Classes = String.Empty;
