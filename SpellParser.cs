@@ -234,6 +234,21 @@ namespace parser
         Hideous_Harpy = 527
     }
 
+    public class SpellSlot
+    {
+        public int Effect;
+        public int Value;
+        public int Value2;
+        public int Calc;
+        public int Max;
+        public string Desc;
+
+        public override string ToString()
+        {
+            return Desc;
+        }
+    }
+
     public class Spell
     {
         public int ID;
@@ -244,6 +259,8 @@ namespace parser
         public int Endurance;
         public int Ticks;
         public string[] Slots;
+        public int[] SlotEffects;
+        
         public int MinLevel, MaxLevel;
         public int[] Levels;
         public string Classes;
@@ -271,11 +288,11 @@ namespace parser
 
         //public string Focus;        
 
-        public string DebugEffectList;
 
         public Spell()
         {
             Slots = new string[12];
+            SlotEffects = new int[12];
             Levels = new int[16];
         }
 
@@ -334,7 +351,7 @@ namespace parser
 
 
             for (int i = 0; i < Slots.Length; i++)
-                if (!String.IsNullOrEmpty(Slots[i]))
+                if (Slots[i] != null)
                     result.Add(String.Format("{0}: {1}", i + 1, Slots[i]));
 
             if (!String.IsNullOrEmpty(Desc))
@@ -458,10 +475,6 @@ namespace parser
             for (int i = 0; i < spell.Levels.Length; i++)
             {
                 spell.Levels[i] = ParseInt(fields[104 + i]);
-                //if (spell.Levels[i] > 0 && spell.Levels[i] < spell.MinLevel)
-                //    spell.MinLevel = spell.Levels[i];
-                //if (spell.Levels[i] > spell.MaxLevel)
-                //    spell.MaxLevel = spell.Levels[i];                
                 if (spell.Levels[i] != 0 && spell.Levels[i] != 255)
                     spell.Classes += " " + (SpellClasses)(i + 1) + "/" + spell.Levels[i];
             }           
@@ -475,15 +488,14 @@ namespace parser
             // 70..81 - slot 1..12 calc forumla data
             for (int i = 0; i < spell.Slots.Length; i++)
             {
+                int type = ParseInt(fields[86 + i]);
                 int calc = ParseInt(fields[70 + i]);
                 int max = ParseInt(fields[44 + i]);
+                int value = ParseInt(fields[20 + i]);
+                int value2 = ParseInt(fields[32 + i]);
 
-                spell.Slots[i] = ParseSlot(spell,
-                    ParseInt(fields[86 + i]),
-                    ParseInt(fields[20 + i]),
-                    ParseInt(fields[32 + i]),
-                    max,
-                    calc);
+                spell.SlotEffects[i] = type;
+                spell.Slots[i] = ParseSlot(spell, type, value, value2, max, calc);
 
                 // it's a bit of a hack to put this here
                 if (calc == 123)
@@ -491,10 +503,7 @@ namespace parser
 
                 if (calc == 107 || calc == 108 || calc == 120 || calc == 122)
                     spell.Slots[i] += " (avg/growing)";
-
-                spell.DebugEffectList += ";" + fields[86 + i].ToString();
             }
-            spell.DebugEffectList += ";";
 
             // some debug stuff
             //if (spell.ID == 130)
@@ -675,7 +684,6 @@ namespace parser
 
         /// <summary>
         /// Parses a spell effect slot. Each slot has a series of attributes associated with it.
-        /// 
         /// Effects can reference other spells or items via square bracket notation. e.g.
         /// [Spell 123]    is a reference to spell 123
         /// [Group 123]    is a reference to spell group 123
@@ -1089,7 +1097,7 @@ namespace parser
                 case 193:
                     return String.Format("{0} Attack for {1} with {2}% Accuracy", spell.Skill, value, value2);
                 case 194:
-                    return "Fade";
+                    return "Remove All Aggro";
                 case 195:
                     // 100 is full resist. not sure why some spells have more
                     return String.Format("Stun Resist ({0})", value);
