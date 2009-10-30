@@ -67,7 +67,7 @@ namespace parser
 
             // search by effect type
             if (args.Length == 2 && args[0] == "type")
-                results = list.Where(x => x.DebugEffectList.Contains(";" + args[1] + ";"));
+                results = list.Where(x => x.SlotEffects.Contains(Int32.Parse(args[1])));
 
             // search by id
             if (args.Length == 2 && args[0] == "id")
@@ -83,6 +83,10 @@ namespace parser
                 int i = (int)Enum.Parse(typeof(SpellClasses), args[1].ToUpper()) - 1;
                 results = list.Where(x => x.Levels[i] > 0 && x.Levels[i] < 255).OrderBy(x => x.Levels[i]).ThenBy(x => x.ID);
             }
+
+            // search by target
+            if (args.Length == 2 && args[0] == "target")
+                results = list.Where(x => x.Target.ToString().ToLower() == args[1].ToLower());
 
             // show results
             if (results != null)
