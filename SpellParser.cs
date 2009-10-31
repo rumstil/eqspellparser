@@ -178,7 +178,8 @@ namespace parser
         Hatelist = 33,
         Chest = 34,
         Target_Group = 41,
-        Directional = 42
+        Directional = 42,
+        Targets_Target = 46
     }
 
     public enum SpellIllusion
@@ -280,9 +281,10 @@ namespace parser
         public int DescID;
         public string Desc;
         public int MaxHits;
+        public int MaxTargets;
         public int RecourseID; // not affected by focus items
         public int TimerID;
-        public int Viral1;
+        public int ViralPulse;
         public int Viral2;
         public int ViralRange;
 
@@ -320,7 +322,7 @@ namespace parser
                 result.Add("Target: " + Target);
 
             if (ViralRange > 0)
-                result.Add("Viral Range: " + ViralRange + " (" + Viral1 + "/" + Viral2 + ")");
+                result.Add("Viral Range: " + ViralRange + " every " + ViralPulse + "s");
                         
             if (ResistType != SpellResist.Unresistable && ResistMod != 0)
                 result.Add("Resist: " + ResistType + " " + ResistMod);
@@ -345,6 +347,9 @@ namespace parser
 
             if (MaxHits > 0)
                 result.Add("Max Hits: " + MaxHits);
+
+            if (MaxTargets > 0)
+                result.Add("Max Targets: " + MaxTargets);
 
             if (RecourseID > 0)
                 result.Add("Recourse: [Spell " + RecourseID + "]");
@@ -466,9 +471,11 @@ namespace parser
             spell.MaxHits = ParseInt(fields[176]);
             spell.RecourseID = ParseInt(fields[150]);
             spell.TimerID = ParseInt(fields[167]);
-            spell.Viral1 = ParseInt(fields[191]);
+            spell.ViralPulse = ParseInt(fields[191]);
             spell.Viral2 = ParseInt(fields[192]);
             spell.ViralRange = ParseInt(fields[201]);
+            spell.MaxTargets = ParseInt(fields[218]);
+
 
             // each class can have a different level to cast the spell at
             spell.Classes = String.Empty;
@@ -498,11 +505,14 @@ namespace parser
                 spell.Slots[i] = ParseSlot(spell, type, value, value2, max, calc);
 
                 // it's a bit of a hack to put this here
-                if (calc == 123)
-                    spell.Slots[i] += " (avg/random)";
+                if (spell.Slots[i] != null)
+                {
+                    if (calc == 123)
+                        spell.Slots[i] += " (avg/random)";
 
-                if (calc == 107 || calc == 108 || calc == 120 || calc == 122)
-                    spell.Slots[i] += " (avg/growing)";
+                    if (calc == 107 || calc == 108 || calc == 120 || calc == 122)
+                        spell.Slots[i] += " (avg/growing)";
+                }
             }
 
             // some debug stuff
@@ -694,7 +704,7 @@ namespace parser
         {
             // type 254 is used for empty slots
             // type 10 is sometimes used for empty slots
-            if (type == 254 || (type == 10 && (value == 0 || value > 255)))
+            if (type == 254 || (type == 10 && (value == 0 || value > 255)))                
                 return null;
 
             // type 32 and 109 (summon item) misuse the calc field as a count value
@@ -702,7 +712,7 @@ namespace parser
             {
                 value = ParseValueFormula(value, max, calc, spell.Ticks);
                 if (calc > 1000)
-                    return String.Format("Unknown Calc: {0} Val={1} Val2={2} Max={3} Calc={4}", type, value, value2, max, calc);
+                    return String.Format("Unknown Calc: Effect={0} Val={1} Val2={2} Max={3} Calc={4}", type, value, value2, max, calc);
             }
 
             // some debug stuff
