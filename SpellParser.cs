@@ -322,7 +322,7 @@ namespace parser
                 result.Add("Target: " + Target);
 
             if (ViralRange > 0)
-                result.Add("Viral Range: " + ViralRange + " every " + ViralPulse + "s");
+                result.Add("Viral Range: " + ViralRange + ", Recast: " + ViralPulse + "s");
                         
             if (ResistType != SpellResist.Unresistable && ResistMod != 0)
                 result.Add("Resist: " + ResistType + " " + ResistMod);
@@ -348,7 +348,7 @@ namespace parser
             if (MaxHits > 0)
                 result.Add("Max Hits: " + MaxHits);
 
-            if (MaxTargets > 0)
+            if (MaxTargets > 0 && Target != SpellTarget.Single)
                 result.Add("Max Targets: " + MaxTargets);
 
             if (RecourseID > 0)
@@ -723,7 +723,7 @@ namespace parser
             // some types are repeating if they have a duration. in these cases there is one type that doesn't
             // repeat (hp 79) and one type that does repeat (hp 0). but the repeating types are sometimes used as
             // an instant boost on spells without a duration so we still have to check for the duration.            
-            string repeating = spell.Ticks > 0 ? " per tick" : null;
+            string repeating = spell.Ticks > 0 ? " per Tick" : null;
 
             switch (type)
             {                
@@ -895,7 +895,7 @@ namespace parser
                 case 84:
                     return "Gravity Flux";
                 case 85:
-                    return String.Format("Add Proc: [Spell {0}] RateMod: {1}%", value, value2);
+                    return String.Format("Add Proc: [Spell {0}] with {1}% Rate Mod", value, value2);
                 case 86:
                     return String.Format("Decrease Assist Radius up to level {0}", max);
                 case 87:
@@ -962,6 +962,7 @@ namespace parser
                     // works like healing focus. no idea why it is a separate effect
                     return FormatPercent("Healing Effectiveness", value);
                 case 121:
+                    // damages the target whenever it hits something
                     return FormatCount("Reverse Damage Shield", -value);
                 case 123:
                     return "Screech";
@@ -1105,7 +1106,7 @@ namespace parser
                 case 192:
                     return FormatCount("Hate", value) + repeating;
                 case 193:
-                    return String.Format("{0} Attack for {1} with {2}% Accuracy", spell.Skill, value, value2);
+                    return String.Format("{0} Attack for {1} with {2}% Accuracy Mod", spell.Skill, value, value2);
                 case 194:
                     return "Remove All Aggro";
                 case 195:
