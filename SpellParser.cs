@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
-using System.Data;
+
 
 /*
  * EQEmu has parsed a lot of the spell effects and calculations
@@ -182,6 +182,45 @@ namespace parser
         Targets_Target = 46
     }
 
+    public enum SpellTargetRestrict
+    {
+        Animal_Humanoid = 100,
+        Dragon = 101,
+        Animal_Insect = 102,
+        Animal = 104,
+        Plant = 105,
+        Giant = 106,
+        Bixie = 109,
+        Harpy = 110,
+        Sporali = 112,
+        Kobald = 113,
+        Shade = 114,
+        Drakkin = 115,
+        Animal_Plant = 117,
+        Summoned = 118,
+        Fire_Pet = 119,
+        Undead = 120,
+        Living = 121,
+        Fairy = 122,
+        Humanoid = 123,
+        HP_Below_10_Percent = 124,
+        Clockwork = 125,
+        Wisp = 126,
+        HP_Above_75_Percent = 201,
+        HP_Below_20_Percent = 203,
+        Not_In_Combat = 216,
+        HP_Below_35_Percent = 250,
+        Chain_Plate_Classes = 304,
+        HP_Between_55_65_Percent = 404,
+        HP_Between_45_55_Percent = 403,
+        HP_Between_35_45_Percent = 402,
+        HP_Between_25_35_Percent = 401,
+        HP_Between_1_25_Percent = 400,
+        HP_Between_1_35_Percent = 507, // between or below?
+        Undead2 = 603,
+        Summoned2 = 624
+    }
+
     public enum SpellIllusion
     {
         Human = 1,
@@ -285,11 +324,14 @@ namespace parser
         public int RecourseID; // not affected by focus items
         public int TimerID;
         public int ViralPulse;
-        public int Viral2;
         public int ViralRange;
+        public SpellTargetRestrict TargetRestrict;
+        public int Reg1ID;
+        public int Reg1Count;
+
+        public int Unknown;
 
         //public string Focus;        
-
 
         public Spell()
         {
@@ -314,12 +356,18 @@ namespace parser
             if (Endurance > 0)
                 result.Add("Endurance: " + Endurance);
 
+            if (Reg1ID > 0)
+                result.Add("Regeant: [Item " + Reg1ID + "] x " + Reg1Count);
+
             //result.Add("Skill: " + Skill);
 
-            if (Range > 0)
-                result.Add("Target: " + Target + ", Range: " + Range);
+            if (TargetRestrict > 0)
+                result.Add("Target: " + Target + " (" + TargetRestrict + ")");
             else
                 result.Add("Target: " + Target);
+
+            if (Range > 0)
+                result.Add("Range: " + Range);
 
             if (ViralRange > 0)
                 result.Add("Viral Range: " + ViralRange + ", Recast: " + ViralPulse + "s");
@@ -353,6 +401,9 @@ namespace parser
 
             if (RecourseID > 0)
                 result.Add("Recourse: [Spell " + RecourseID + "]");
+
+            if (Unknown > 0)
+                result.Add("Unknown: " + Unknown);
 
 
             for (int i = 0; i < Slots.Length; i++)
@@ -420,25 +471,6 @@ namespace parser
         }
 
         /// <summary>
-        /// Load spell list from a dataset. Column order must match the official spell file.
-        /// </summary>
-        public static List<Spell> LoadFromData(IDataReader data)
-        {
-            List<Spell> list = new List<Spell>();
-
-            while (data.Read())
-            {
-                string[] fields = new string[data.FieldCount];
-                for (int i = 0; i < fields.Length; i++)
-                    fields[i] = data.GetValue(i).ToString();
-                Spell spell = ParseFields(fields);
-                list.Add(spell);
-            }
-
-            return list;
-        }
-
-        /// <summary>
         /// Parse a spell from a set of spell fields. 
         /// </summary>        
         static Spell ParseFields(string[] fields)
@@ -472,9 +504,15 @@ namespace parser
             spell.RecourseID = ParseInt(fields[150]);
             spell.TimerID = ParseInt(fields[167]);
             spell.ViralPulse = ParseInt(fields[191]);
-            spell.Viral2 = ParseInt(fields[192]);
+            //spell.Viral2 = ParseInt(fields[192]);
             spell.ViralRange = ParseInt(fields[201]);
             spell.MaxTargets = ParseInt(fields[218]);
+            spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[211]);
+            spell.Reg1ID = ParseInt(fields[58]);
+            spell.Reg1Count = ParseInt(fields[62]);
+
+            
+            //spell.Unknown = ParseInt(fields[222]);
 
             // fix up data fields the ignored for self targeted spells
             if (spell.Target == SpellTarget.Self)
@@ -507,6 +545,12 @@ namespace parser
                 int value = ParseInt(fields[20 + i]);
                 int value2 = ParseInt(fields[32 + i]);
 
+                // some debug stuff
+                //if (calc == 110 && max == 0) 
+                //if (calc == 100 && max < value && max > 0)
+                //    Console.WriteLine("---  " + spell + " " + String.Format("Eff={0} Val={1} Val2={2} Max={3} Calc={4}, {5}", type, value, value2, max, calc, calc & 255));
+                      
+
                 spell.SlotEffects[i] = type;
                 spell.Slots[i] = ParseSlot(spell, type, value, value2, max, calc);
 
@@ -522,7 +566,7 @@ namespace parser
             }
 
             // some debug stuff
-            //if (spell.ID == 130)
+            //if (spell.ID == 15044)
             //    for (int i = 0; i < fields.Length; i++)
             //        Console.WriteLine("{0}: {1}", i, fields[i]);
 
@@ -721,11 +765,6 @@ namespace parser
                     return String.Format("Unknown Calc: Effect={0} Val={1} Val2={2} Max={3} Calc={4}", type, value, value2, max, calc);
             }
 
-            // some debug stuff
-            //if (calc == 110 && max == 0) 
-            //if (calc == 100 && max < value && max > 0)
-            //    Console.WriteLine("---  " + spell + " " + String.Format("Eff={0} Val={1} Val2={2} Max={3} Calc={4}, {5}", type, value, value2, max, calc, calc & 255));
-                      
             // some types are repeating if they have a duration. in these cases there is one type that doesn't
             // repeat (hp 79) and one type that does repeat (hp 0). but the repeating types are sometimes used as
             // an instant boost on spells without a duration so we still have to check for the duration.            
@@ -735,15 +774,9 @@ namespace parser
             {                
                 case 0:
                     // delta hp for heal/nuke, repeating if with duration
-                    string target = null;
-                    switch (value2)
-                    {
-                        case 603: target = " (If Undead) "; break;
-                        case 624: target = " (If Summoned) "; break;
-                        default: if (value2 > 0) target = " (If Type " + value2 + ")"; break;
-                    }
-                    return FormatCount("Current HP", value) + target + repeating;
-                    //return String.Format("{0} for {1}", value >= 0 ? "Heal" : "Damage", value) + repeating;
+                    if (value2 > 0)
+                        return FormatCount("Current HP", value) + repeating + " (If " + (SpellTargetRestrict)value2 + ")";
+                    return FormatCount("Current HP", value) + repeating;
                 case 1:
                     return FormatCount("AC", (int)(value / (10f / 3f))); 
                 case 2: 
@@ -890,6 +923,8 @@ namespace parser
                     return FormatCount("Spell Damage Taken", -value);                    
                 case 79:
                     // delta hp for heal/nuke, non repeating
+                    if (value2 > 0)
+                        return FormatCount("Current HP", value) + " (If " + (SpellTargetRestrict)value2 + ")";
                     return FormatCount("Current HP", value);                    
                 case 81:
                     return String.Format("Resurrection: {0}%", value); 
@@ -931,6 +966,8 @@ namespace parser
                     return "Root";
                 case 100:
                     // heal over time
+                    if (value2 > 0)
+                        return FormatCount("Current HP", value) + repeating + " (If " + (SpellTargetRestrict)value2 + ")";
                    return FormatCount("Current HP", value) + repeating;
                 case 101:
                     // only castable via Donal's BP. creates a buf that blocks recasting
@@ -1111,7 +1148,7 @@ namespace parser
                 case 192:
                     return FormatCount("Hate", value) + repeating;
                 case 193:
-                    return String.Format("{0} Attack for {1} with {2}% Accuracy Mod", spell.Skill, value, value2);
+                    return String.Format("{0} Attack for {1} with {2}% Accuracy Mod", TrimEnum(spell.Skill), value, value2);
                 case 194:
                     return "Remove All Aggro";
                 case 195:
@@ -1148,7 +1185,11 @@ namespace parser
                 case 227:
                     return String.Format("Reduce {0} Timer by {1}s", TrimEnum((SpellSkill)value2), value);
                 case 232:
-                    return String.Format("Divine Save: [Spell {0}] Chance: {1}%", value2, value);                    
+                    return String.Format("Divine Save: [Spell {0}] Chance: {1}%", value2, value);
+                case 233:
+                    return FormatPercent("Food Consumption", -value);
+                case 243:
+                    return FormatPercent("Chance of Charm Breaking", -value);
                 case 258:
                     return String.Format("Triple Backstab ({0})", value);
                 case 262:
@@ -1210,6 +1251,11 @@ namespace parser
                     return "Gate to Starting City";
                 case 323:
                     return String.Format("Add Defensive Proc: [Spell {0}] RateMod: {1}%", value, value2);
+                case 324:
+                    // blood magic
+                    return String.Format("Cast from HP with {0}% penalty", value);
+                case 328:
+                    return FormatCount("Max Negative HP", value);
                 case 329:
                     return String.Format("Absorb Damage Using Mana: {0}%", value);
                 case 330:
@@ -1238,10 +1284,16 @@ namespace parser
                     // the +3 is just a guess that's correct most of the time since spells have 3 ranks
                     // and the effects are placed after the spells
                     return String.Format("Aura Effect: [Spell {0}]", spell.ID + 3);
+                case 353:
+                    return FormatCount("Max Aura Effects", value);
                 case 358:
                     return FormatCount("Current Mana", value);
                 case 360:
-                    return String.Format("Add Killshot Proc: [Spell {0}] Chance: {1}%", value2, value); 
+                    return String.Format("Add Killshot Proc: [Spell {0}] Chance: {1}%", value2, value);
+                case 361:
+                    return String.Format("Cast on Death: [Spell {0}] Chance: {1}%", value2, value);
+                case 365:
+                    return String.Format("Cast on Killshot: [Spell {0}] Chance: {1}%", value2, value);
                 case 367:
                     return String.Format("Transform Body Type ({0})", value);
                 case 368:
