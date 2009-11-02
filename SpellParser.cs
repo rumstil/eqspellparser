@@ -316,7 +316,7 @@ namespace parser
 
             //result.Add("Skill: " + Skill);
 
-            if (Range > 0 && Target != SpellTarget.Self)
+            if (Range > 0)
                 result.Add("Target: " + Target + ", Range: " + Range);
             else
                 result.Add("Target: " + Target);
@@ -348,7 +348,7 @@ namespace parser
             if (MaxHits > 0)
                 result.Add("Max Hits: " + MaxHits);
 
-            if (MaxTargets > 0 && Target != SpellTarget.Single)
+            if (MaxTargets > 0)
                 result.Add("Max Targets: " + MaxTargets);
 
             if (RecourseID > 0)
@@ -476,6 +476,12 @@ namespace parser
             spell.ViralRange = ParseInt(fields[201]);
             spell.MaxTargets = ParseInt(fields[218]);
 
+            // fix up data fields the ignored for self targeted spells
+            if (spell.Target == SpellTarget.Self)
+            {
+                spell.Range = 0;
+                spell.MaxTargets = 0;
+            }
 
             // each class can have a different level to cast the spell at
             spell.Classes = String.Empty;
@@ -723,7 +729,7 @@ namespace parser
             // some types are repeating if they have a duration. in these cases there is one type that doesn't
             // repeat (hp 79) and one type that does repeat (hp 0). but the repeating types are sometimes used as
             // an instant boost on spells without a duration so we still have to check for the duration.            
-            string repeating = spell.Ticks > 0 ? " per Tick" : null;
+            string repeating = spell.Ticks > 0 ? " per tick" : null;
 
             switch (type)
             {                
@@ -865,8 +871,7 @@ namespace parser
                     return "Eye of Zomm";
                 case 68:
                     return "Reclaim Pet";
-                case 69:
-                    // max hp
+                case 69:                    
                     return FormatCount("Max HP", value);
                 case 71:
                     return String.Format("Summon Pet: {0}", spell.Extra);
@@ -967,7 +972,7 @@ namespace parser
                 case 123:
                     return "Screech";
                 case 124:
-                    return String.Format("{0} Spell Damage by {1}% to {2}%", value >= 0 ? "Increase" : "Decrease", value, value2);                    
+                    return String.Format("{0} Spell Damage by {1}% to {2}%", value >= 0 ? "Increase" : "Decrease", value, value2);
                 case 125:                    
                     return String.Format("{0} Healing by {1}% to {2}%", value >= 0 ? "Increase" : "Decrease", value, value2);
                 case 126:
@@ -983,7 +988,7 @@ namespace parser
                 case 131:
                     return FormatPercent("Chance of Using Reagent", -value);
                 case 132:
-                    return FormatPercent("Spell Mana Cost", -value2);
+                    return String.Format("{0} Spell Mana Cost {1}% to {2}%", value < 0 ? "Increase" : "Decrease", Math.Abs(value), Math.Abs(value2));
                 case 134:
                     return String.Format("Limit Max Level: {0} (lose {1}% per level)", value, value2);
                 case 135:
@@ -1191,8 +1196,8 @@ namespace parser
                 case 310:
                     return String.Format("Reduce Timer by {0}s", value / 1000);
                 case 311:
-                    // does this affect procs that the caster has as spells?
-                    return "Limit Invocation: Exclude Procs";
+                    // does this affect procs that the caster can also cast as spells?
+                    return "Limit Type: Exclude Procs";
                 case 314:
                     return "Invisible (Permanent)";
                 case 315:
@@ -1245,9 +1250,10 @@ namespace parser
                     return FormatCount("Corruption Counter", value);
                 case 370:
                     return FormatCount("Corruption Resist", value);
-                case 371:
-                    // taken from lucy. this needs a better description
-                    return String.Format("Inhibit Melee Attacks by {0}%", value);
+                case 371:                    
+                    // this may be used to prevent overwritting melee haste
+                    // no idea if this is also mitigated
+                    return FormatPercent("Melee Delay", Math.Abs(value));
                 case 373:
                     return String.Format("Cast on Fade: [Spell {0}]", value);
                 case 374:       
@@ -1257,7 +1263,7 @@ namespace parser
                 case 375:
                     return FormatPercent("Critical DoT Damage", value - 100);
                 case 377:
-                    return String.Format("Cast on Uncured Fade: [Spell {0}]", value);
+                    return String.Format("Cast if Not Cured: [Spell {0}]", value);
                 case 380:
                     return String.Format("Knockback for {0} and up for {1}", value, value2);
                 case 381:
@@ -1268,6 +1274,10 @@ namespace parser
                     return String.Format("Cast on Match: [Spell {0}] Chance: {1}%", value2, value);
                 case 385:
                     return String.Format("Limit Spells: {1}[Group {0}]", Math.Abs(value), value >= 0 ? "" : "Exclude ");
+                case 386:
+                    return String.Format("Cast on Curer: [Spell {0}]", value);
+                case 387:
+                    return String.Format("Cast if Cured: [Spell {0}]", value);
                 case 392:
                     // similar to heal focus, but adds a raw amount
                     return FormatCount("Healing", value);
@@ -1278,6 +1288,9 @@ namespace parser
                     return String.Format("Inflict Damage from Mana Tap ({0})", value);
                 case 406:
                     return String.Format("Cast if Attacked: [Spell {0}]", value);
+                case 408:
+                    // how is this different than 214?
+                    return FormatPercent("Max HP", -value);
                 case 419:
                     // this is used for potions. how is it different than 85?
                     // value2 looks like a calc value
