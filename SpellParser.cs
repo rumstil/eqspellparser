@@ -175,6 +175,7 @@ namespace parser
         Plant = 16,
         Old_Giants = 17,
         Old_Dragons = 18,
+        Undead_AE = 24,
         Hatelist = 33,
         Chest = 34,
         Target_Group = 41,
@@ -369,6 +370,9 @@ namespace parser
             if (Range > 0)
                 result.Add("Range: " + Range);
 
+            //if (AERange > 0)
+            //    result.Add("AE Range: " + AERange);
+
             if (ViralRange > 0)
                 result.Add("Viral Range: " + ViralRange + ", Recast: " + ViralPulse + "s");
                         
@@ -553,16 +557,6 @@ namespace parser
 
                 spell.SlotEffects[i] = type;
                 spell.Slots[i] = ParseSlot(spell, type, value, value2, max, calc);
-
-                // it's a bit of a hack to put this here
-                if (spell.Slots[i] != null)
-                {
-                    if (calc == 123)
-                        spell.Slots[i] += " (avg/random)";
-
-                    if (calc == 107 || calc == 108 || calc == 120 || calc == 122)
-                        spell.Slots[i] += " (avg/growing)";
-                }
             }
 
             // some debug stuff
@@ -672,7 +666,7 @@ namespace parser
                     change = -12 * ticks;
                     break;
                 case 123:
-                    // should be random, but i will show average
+                    // random in range
                     change = (max - Math.Abs(value)) / 2;
                     break;
                 case 124:
@@ -712,17 +706,21 @@ namespace parser
                     if (level > 30) change = 3 * (level - 30) / 2;
                     break;                
 
-                case 201:
-                case 202:
-                case 203:
-                    // used in the 'block new spell' type
-                    break;
-
                 default:
-                    if (calc > 0 && calc < 100)
+                    // TODO: future calcs may be added in the < 1000 range.
+                    if (calc > 0 && calc < 1000)
                         change = level * calc;
-                    // TODO: some warning should be emitted when a calc is not accounted for
-                    //else Console.WriteLine("------  " + String.Format("Unhandled Calc={0}, {1}", calc, calc & 255));
+
+                    // variable over duration
+                    // splort (growing): Current_HP Unknown Calc: Val=1 Val2=0 Max=0 Calc=1035
+                    // 34 - 69 - 104 - 139 - 174 - 209 - 244 - 279 - 314 - 349 - 384 - 419 - 454 - 489 - 524 - 559 - 594 - 629 - 664 - 699 - 699 
+                    // venonscale (decaying): Current_HP Unknown Calc: Val=-822 Val2=0 Max=822 Calc=1018
+                    if (calc >= 1000 && calc < 2000)
+                        change = ticks * (calc - 1000) * -1;
+
+                    // more level based calcs
+                    if (calc >= 2000)
+                        change = level * (calc - 2000);
                     break;
             }
 
@@ -758,25 +756,37 @@ namespace parser
                 return null;
 
             // type 32 and 109 (summon item) misuse the calc field as a count value
+            string variable = "";
             if (type != 32 && type != 109)
             {
                 value = ParseValueFormula(value, max, calc, spell.Ticks);
-                if (calc > 1000)
-                    return String.Format("Unknown Calc: Effect={0} Val={1} Val2={2} Max={3} Calc={4}", type, value, value2, max, calc);
+
+                if (calc == 123)
+                    variable = " (random/avg)";
+
+                if (calc == 107 || calc == 108 || calc == 120 || calc == 122)
+                    variable = " (growing/avg)";
+
+                if (calc > 1000 && calc < 2000)
+                    variable = " (variable/avg)";
+
+                //if (calc > 141 && calc < 200)
+                //if (calc > 212 && calc < 1000)
+                //    return String.Format("{0} Unknown Calc: Val={1} Val2={2} Max={3} Calc={4}", (SpellEffect)type, value, value2, max, calc);
             }
 
             // some types are repeating if they have a duration. in these cases there is one type that doesn't
             // repeat (hp 79) and one type that does repeat (hp 0). but the repeating types are sometimes used as
             // an instant boost on spells without a duration so we still have to check for the duration.            
-            string repeating = spell.Ticks > 0 ? " per tick" : null;
+            string repeating = (spell.Ticks > 0) ? " per tick" : null;
 
             switch (type)
             {                
                 case 0:
                     // delta hp for heal/nuke, repeating if with duration
                     if (value2 > 0)
-                        return FormatCount("Current HP", value) + repeating + " (If " + (SpellTargetRestrict)value2 + ")";
-                    return FormatCount("Current HP", value) + repeating;
+                        return FormatCount("Current HP", value) + repeating + variable + " (If " + (SpellTargetRestrict)value2 + ")";
+                    return FormatCount("Current HP", value) + repeating + variable;
                 case 1:
                     return FormatCount("AC", (int)(value / (10f / 3f))); 
                 case 2: 
