@@ -5,6 +5,7 @@ using System.IO;
 using System.Diagnostics;
 
 
+
 /*
  * EQEmu has parsed a lot of the spell effects and calculations
  * http://code.google.com/p/projecteqemu/source/browse/trunk/EQEmuServer/zone/spdat.h
@@ -19,6 +20,12 @@ namespace parser
     public enum SpellClasses
     {
         WAR = 1, CLR, PAL, RNG, SHD, DRU, MNK, BRD, ROG, SHM, NEC, WIZ, MAG, ENC, BST, BER
+    }
+
+    public enum SpellClassesLong
+    {
+        Warrior = 1, Cleric, Paladin, Ranger, ShadowKnight, Druid, Monk, Bard, Rogue, Shaman, 
+        Necro, Wizard, Mage, Enchanter, Beastlord, Berserker
     }
 
     public enum SpellEffect
@@ -176,10 +183,12 @@ namespace parser
         Old_Giants = 17,
         Old_Dragons = 18,
         Undead_AE = 24,
+        Summoned_AE = 25,
         Hatelist = 33,
         Chest = 34,
         Target_Group = 41,
         Directional = 42,
+        Single_In_Group = 43,
         Targets_Target = 46
     }
 
@@ -414,8 +423,8 @@ namespace parser
                 if (Slots[i] != null)
                     result.Add(String.Format("{0}: {1}", i + 1, Slots[i]));
 
-            if (!String.IsNullOrEmpty(Desc))
-                result.Add(Desc);
+            //if (!String.IsNullOrEmpty(Desc))
+            //    result.Add(Desc);
 
             return result.ToArray();
         }
@@ -756,8 +765,9 @@ namespace parser
                 return null;
 
             // type 32 and 109 (summon item) misuse the calc field as a count value
+            // type 148 and 149 use the calc field as a effect slot index
             string variable = "";
-            if (type != 32 && type != 109)
+            if (type != 32 && type != 109 && type != 148 && type != 149)
             {
                 value = ParseValueFormula(value, max, calc, spell.Ticks);
 
@@ -945,7 +955,9 @@ namespace parser
                 case 84:
                     return "Gravity Flux";
                 case 85:
-                    return String.Format("Add Proc: [Spell {0}] with {1}% Rate Mod", value, value2);
+                    if (value2 > 0)
+                        return String.Format("Add Proc: [Spell {0}] with {1}% Rate Mod", value, value2);
+                    return String.Format("Add Proc: [Spell {0}]", value);
                 case 86:
                     return String.Format("Decrease Assist Radius up to level {0}", max);
                 case 87:
@@ -1175,7 +1187,7 @@ namespace parser
                 case 200:
                     return FormatPercent("Proc Rate", value);
                 case 201:
-                    return String.Format("Add Range Proc: [Spell {0}] RateMod: {1}%", value, value2);
+                    return String.Format("Add Range Proc: [Spell {0}] with {1}% Rate Mod", value, value2);
                 case 202:
                     return "Project Illusion";
                 case 203:
@@ -1353,6 +1365,9 @@ namespace parser
                 case 408:
                     // how is this different than 214?
                     return FormatPercent("Max HP", -value);
+                case 418:
+                    // how is this different than 220 bonus? setting it to regular damage for now
+                    return FormatCount(TrimEnum((SpellSkill)value2) + " Damage", value);
                 case 419:
                     // this is used for potions. how is it different than 85?
                     // value2 looks like a calc value
