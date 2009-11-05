@@ -331,7 +331,7 @@ namespace parser
         public string Desc;
         public int MaxHits;
         public int MaxTargets;
-        public int RecourseID; // not affected by focus items
+        public int RecourseID; 
         public int TimerID;
         public int ViralPulse;
         public int ViralRange;
@@ -502,7 +502,8 @@ namespace parser
             spell.Beneficial = ParseInt(fields[83]) != 0;
             if (spell.Beneficial)
                 spell.ResistType = SpellResist.Unresistable;
-            spell.Ticks = ParseDurationForumula(ParseInt(fields[17]), ParseInt(fields[16]));
+            //Console.WriteLine(" Calc: " + fields[16] +" Value: " + fields[17] + "   " + spell.ID + " " + spell.Name);
+            spell.Ticks = ParseDurationForumula(ParseInt(fields[16]), ParseInt(fields[17]));
             spell.Extra = fields[3];
             spell.Hate = ParseInt(fields[173]);
             spell.Endurance = ParseInt(fields[166]);
@@ -576,26 +577,95 @@ namespace parser
             return spell;
         }
 
-        /// <summary>
-        /// Parse a spell duration.
-        /// </summary>
-        static int ParseDurationForumula(int value, int calc)
-        {
-            // most of the formulas are used to define a lower bound when scaling by level
-            // i'm going to ignore those and only show the upper bound
-            if (calc == 50)
-                value = 72000;
 
-            if (calc == 3600 && value == 0)
-                value = 3600;
+        /// <summary>
+        /// Parse a spell duration formula.
+        /// </summary>
+        /// <returns>Numbers of ticks (6 second units)</returns>        
+        static int ParseDurationForumula(int calc, int max)
+        {
+            // show scaled spells at the max level strength
+            int level = MaxLevel;
+            
+            int value = 0;
+
+            switch (calc)
+            {
+                case 0:
+                    value = 0;
+                    break;
+                case 1:
+                    value = level / 2;
+                    if (value < 1)                    
+                        value = 1;
+                    break;
+                case 2:
+                    value = (level / 2) + 5;
+                    if (value < 6)
+                        value = 6;
+                    break;
+                case 3:
+                    value = level * 30;
+                    break;
+                case 4:
+                    value = 50;
+                    break;
+                case 5:
+                    value = 2;
+                    break;
+                case 6:
+                    value = level / 2;
+                    break;
+                case 7:
+                    value = level;
+                    break;
+                case 8:
+                    value = level + 10;
+                    break;
+                case 9:
+                    value = level * 2 + 10;
+                    break;
+                case 10:
+                    value = level * 30 + 10;
+                    break;
+                case 11:
+                    value = (level + 3) * 30;
+                    break;
+                case 12:
+                    value = level / 2;
+                    if (value < 1)
+                        value = 1;
+                    break;
+                case 13:
+                    value = level * 3 + 10;
+                    break;
+                case 14:
+                    value = (level + 2) * 5;
+                    break;
+                case 15:
+                    value = (level + 10) * 10;
+                    break;
+                case 50:
+                    value = 72000;
+                    break;
+                case 3600:
+                    value = 3600;
+                    break;
+                default:
+                    value = max;
+                    break;
+            }
+
+            if (max > 0 && value > max)
+                value = max;
           
             return value;
         }
 
         /// <summary>
-        /// Parse a spell slot value by applying the specified calculation (at max level).
+        /// Parse a spell slot value formula.
         /// </summary>
-        static int ParseValueFormula(int value, int max, int calc, int duration)
+        static int ParseValueFormula(int calc, int value, int max, int duration)
         {
             // the default calculation (100) leaves the base value as is            
             if (calc == 0 || calc == 100)
@@ -769,7 +839,7 @@ namespace parser
             string variable = "";
             if (type != 32 && type != 109 && type != 148 && type != 149)
             {
-                value = ParseValueFormula(value, max, calc, spell.Ticks);
+                value = ParseValueFormula(calc, value, max, spell.Ticks);
 
                 if (calc == 123)
                     variable = " (random/avg)";
@@ -863,7 +933,7 @@ namespace parser
                 case 29:
                     return "Invisible to Animals (Unstable)";
                 case 30:
-                    return String.Format("Decrease Aggro Radius up to level {0}", max);
+                    return String.Format("Limit Aggro Radius to {1} up to level {0}", max, value);
                 case 31:
                     return String.Format("Mesmerize up to level {0}", max);
                 case 32:
@@ -959,7 +1029,7 @@ namespace parser
                         return String.Format("Add Proc: [Spell {0}] with {1}% Rate Mod", value, value2);
                     return String.Format("Add Proc: [Spell {0}]", value);
                 case 86:
-                    return String.Format("Decrease Assist Radius up to level {0}", max);
+                    return String.Format("Limit Social Radius to {1} up to level {0}", max, value);
                 case 87:
                     return FormatPercent("Magnification", value);
                 case 88:
@@ -1272,9 +1342,9 @@ namespace parser
                 case 322:
                     return "Gate to Starting City";
                 case 323:
-                    return String.Format("Add Defensive Proc: [Spell {0}] RateMod: {1}%", value, value2);
+                    return String.Format("Add Defensive Proc: [Spell {0}] with {1}% Rate Mod", value, value2);
                 case 324:
-                    // blood magic
+                    // blood magic. uses HP as mana
                     return String.Format("Cast from HP with {0}% penalty", value);
                 case 328:
                     return FormatCount("Max Negative HP", value);
@@ -1283,6 +1353,7 @@ namespace parser
                 case 330:
                     return FormatPercent("Critical Damage for " + TrimEnum((SpellSkill)value2), value);
                 case 333:
+                    // so far this is only used on spells that have a rune
                     return String.Format("Cast on Fade/Cancel: [Spell {0}]", value);
                 case 335:
                     // prevent spells that match limit rules from landing
