@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
-using System.IO.Compression;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace parser
 {
@@ -13,6 +14,13 @@ namespace parser
     {
         static void Main(string[] args)
         {
+            if (args.Length == 0)
+            {
+                Console.Error.WriteLine("No search parameters specified!");
+                Thread.Sleep(2000);
+                return;
+            }
+
             const string spellFile = "spells_us.txt";
             const string descFile = "dbstr_us.txt";
 
@@ -23,47 +31,24 @@ namespace parser
                 DownloadPatchFile(descFile);
 
             List<Spell> list = SpellParser.LoadFromFile(spellFile, descFile);
-
-            if (args.Length > 0)
-            {
-                Search(list, args);
-            }
-            else
-            {
-                while (true)
-                {
-                    Console.Error.WriteLine();
-                    Console.Error.Write("parser>");
-                    string cmd = Console.ReadLine().Trim().ToLower();
-                    if (cmd == "help" || cmd == "")
-                        Help();
-                    if (cmd == "quit")                    
-                        break;
-                    //if (String.IsNullOrEmpty(cmd))
-                    Search(list, cmd.Split());
-                };
-            }
-        }
-
-        static void Help()
-        {
-            Console.Error.WriteLine("USAGE EXAMPLES:");
-            Console.Error.WriteLine("parser all");
-            Console.Error.WriteLine("parser name \"complete heal\" ");
-            Console.Error.WriteLine("parser id 13");
-            Console.Error.WriteLine("parser type 3");
-            Console.Error.WriteLine("parser class clr");
+            Func<int, Spell> lookup = id => list.FirstOrDefault(x => x.ID == id); // TODO: hash table search
+                
+            var results = Search(list, args);
+            results = Expand(results, lookup);
+            Show(results); 
         }
 
         /// <summary>
-        /// Search the spell list for matching spells
+        /// Search the spell list for matching spells.
         /// </summary>
-        static void Search(List<Spell> list, string[] args)
+        static IEnumerable<Spell> Search(IEnumerable<Spell> list, string[] args)
         {
             IEnumerable<Spell> results = null;
 
             if (args.Length == 1 && args[0] == "all")
                 results = list;
+                //results = list.Where(x => x.Unknown > 0).OrderBy(x => x.Unknown);
+                //results = list.Where(x => (int)x.TargetRestrict > 0).OrderBy(x => x.TargetRestrict);
 
             // search by effect type
             if (args.Length == 2 && args[0] == "type")
@@ -88,12 +73,74 @@ namespace parser
             if (args.Length == 2 && args[0] == "target")
                 results = list.Where(x => x.Target.ToString().ToLower() == args[1].ToLower());
 
-            // show results
-            if (results != null)
-                foreach (Spell spell in results)
-                    Console.WriteLine("\r\n{0}\r\n{1}", spell, String.Join("\r\n", spell.Details()));
+            return results;
+        }
 
-            //Console.WriteLine("============================================================================");
+        /// <summary>
+        /// Recursively expand the spell list to include referenced spells.
+        /// </summary>                
+        static IEnumerable<Spell> Expand(IEnumerable<Spell> list, Func<int, Spell> lookup)
+        {
+            List<Spell> queue = list.ToList();
+
+            Regex spellexpr = new Regex(@"\[Spell\s(\d+)\]");
+
+            // scan each spell in the queue for spell references. if a new reference is found
+            // then add it to the queue so that it can also be checked
+            int i = 0;
+            while (i < queue.Count)
+            {
+                Spell spell = queue[i++];
+
+                if (spell.RecourseID != 0)
+                {                    
+                    Spell spellref = lookup(spell.RecourseID);
+                    if (spellref != null && !queue.Contains(spellref))
+                        queue.Add(spellref);
+                }
+
+                // check effects slots for the [Spell 1234] references
+                foreach (string s in spell.Slots)
+                    if (s != null)
+                    {
+                        Match link = spellexpr.Match(s);
+                        if (link.Success)
+                        {                            
+                            Spell spellref = lookup(Int32.Parse(link.Groups[1].Value));
+                            if (spellref != null && !queue.Contains(spellref))
+                                queue.Add(spellref);
+                        }
+                    }
+            }
+
+            return queue;
+        }
+
+        /// <summary>
+        /// Show list on console.
+        /// </summary>
+        static void Show(IEnumerable<Spell> list)
+        {
+            if (list != null)
+                foreach (Spell spell in list)
+                {
+                    Console.WriteLine("\r\n{0}\r\n{1}", spell, String.Join("\r\n", spell.Details()));
+                    Console.WriteLine(spell.Desc);
+                }
+        }
+
+        /// <summary>
+        /// Download a file from the patch server.
+        /// </summary>
+        static void DownloadPatchFile(string filename)
+        {
+            Console.Error.WriteLine("Downloading " + filename);
+
+            // http://eqitems.13th-floor.org/phpBB2/viewtopic.php?t=316
+            // Newest Patcher path: http://patch.everquest.com:7000/patch/lp2/eq/en/patch1/en-main/
+            // Older Patcher path: http://patch.everquest.com:7000/patch/everquest/en/patch1/main/
+            // Looking at the patcher logs it seems they are switching back and forth between patch0 and patch1. 
+            DownloadFile("http://patch.station.sony.com:7000/patch/everquest/en/patch1/main/" + filename + ".gz", filename);
         }
 
         /// <summary>
@@ -119,20 +166,6 @@ namespace parser
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Download a file from the patch server.
-        /// </summary>
-        static void DownloadPatchFile(string filename)
-        {
-            Console.Error.WriteLine("Downloading " + filename);
-
-            // http://eqitems.13th-floor.org/phpBB2/viewtopic.php?t=316
-            // Newest Patcher path: http://patch.everquest.com:7000/patch/lp2/eq/en/patch1/en-main/
-            // Older Patcher path: http://patch.everquest.com:7000/patch/everquest/en/patch1/main/
-            // Looking at the patcher logs it seems they are switching back and forth between patch0 and patch1. 
-            DownloadFile("http://patch.station.sony.com:7000/patch/everquest/en/patch1/main/" + filename + ".gz", filename);
         }
 
     }
