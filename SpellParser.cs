@@ -400,10 +400,10 @@ namespace parser
             if (Ticks > 0)
                 result.Add("Duration: " + FormatTime(Ticks * 6) + " (" + Ticks + " ticks)");
 
-            if (PushBack > 0)
+            if (PushBack != 0)
                 result.Add("Push: " + PushBack);
 
-            if (Hate > 0)
+            if (Hate != 0)
                 result.Add("Hate: " + Hate);
 
             if (MaxHits > 0)
@@ -865,7 +865,7 @@ namespace parser
                 case 0:
                     // delta hp for heal/nuke, repeating if with duration
                     if (value2 > 0)
-                        return FormatCount("Current HP", value) + repeating + variable + " (If " + (SpellTargetRestrict)value2 + ")";
+                        return FormatCount("Current HP", value) + repeating + variable + " (if " + (SpellTargetRestrict)value2 + ")";
                     return FormatCount("Current HP", value) + repeating + variable;
                 case 1:
                     return FormatCount("AC", (int)(value / (10f / 3f))); 
@@ -1014,7 +1014,7 @@ namespace parser
                 case 79:
                     // delta hp for heal/nuke, non repeating
                     if (value2 > 0)
-                        return FormatCount("Current HP", value) + " (If " + (SpellTargetRestrict)value2 + ")";
+                        return FormatCount("Current HP", value) + " (if " + (SpellTargetRestrict)value2 + ")";
                     return FormatCount("Current HP", value);                    
                 case 81:
                     return String.Format("Resurrection: {0}%", value); 
@@ -1059,7 +1059,7 @@ namespace parser
                 case 100:
                     // heal over time
                     if (value2 > 0)
-                        return FormatCount("Current HP", value) + repeating + " (If " + (SpellTargetRestrict)value2 + ")";
+                        return FormatCount("Current HP", value) + repeating + " (if " + (SpellTargetRestrict)value2 + ")";
                    return FormatCount("Current HP", value) + repeating;
                 case 101:
                     // only castable via Donal's BP. creates a buf that blocks recasting
