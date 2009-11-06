@@ -15,7 +15,7 @@ This parses spells with the word "healing" in their name.
 
 >parser id 13
 
-This parses spell #13
+This parses spell #13 (complete heal)
 
 
 >parser type 3
