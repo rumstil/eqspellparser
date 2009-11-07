@@ -1059,8 +1059,8 @@ namespace parser
                 case 100:
                     // heal over time
                     if (value2 > 0)
-                        return FormatCount("Current HP", value) + repeating + " (if " + (SpellTargetRestrict)value2 + ")";
-                   return FormatCount("Current HP", value) + repeating;
+                        return FormatCount("Current HP", value) + repeating + variable + " (if " + (SpellTargetRestrict)value2 + ")";
+                   return FormatCount("Current HP", value) + repeating + variable;
                 case 101:
                     // only castable via Donal's BP. creates a buf that blocks recasting
                     return "Donal's Heal"; 
