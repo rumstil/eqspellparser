@@ -49,6 +49,9 @@ namespace parser
         INT = 9,
         CHA = 10,
         Melee_Haste = 11,
+        Invis = 12,
+        See_Invis = 13,
+        Enduring_Breath = 14,
         Current_Mana_Repeating = 15,
         Stun = 21,
         Charm = 22,
@@ -74,12 +77,14 @@ namespace parser
         Hate = 92,
         Max_Mana = 97,
         Current_HP_Repeating = 100,
-        Current_HP_Donals = 101,
+        Donals_Heal = 101,
         All_Resists = 111,
         Current_HP_Percent = 147,
+        Absorb_Hits = 163,
         Hate_Repeating = 192,
         Taunt = 199,
         XP_Gain = 337,
+        Add_Spell_Proc = 339,
         Mana_Burn = 350,
         Current_Mana = 358,
         Corruption_Counter = 369,
@@ -462,7 +467,7 @@ namespace parser
         const int MaxLevel = 85;
 
         /// <summary>
-        /// Load spell list from a stream in spell_us.txt format.
+        /// Load spell list from the comma delimitted EQ spell definition files.
         /// </summary>
         public static List<Spell> LoadFromFile(string spellPath, string descPath)
         {
@@ -1163,10 +1168,10 @@ namespace parser
                 case 147:
                     return String.Format("Increase Current HP by {1} Max: {0}% ", value, max);
                 case 148:
-                    //if (max > 1000) max -= 1000;
+                    //if (max > 1000) max -= 1000;                    
                     return String.Format("Stacking: Block new spell if slot {0} is '{1}' and < {2}", calc % 100, TrimEnum((SpellEffect)value), max);
                 case 149:
-                    //if (max > 1000) max -= 1000;
+                    //if (max > 1000) max -= 1000;                    
                     return String.Format("Stacking: Overwrite existing spell if slot {0} is '{1}' and < {2}", calc % 100, TrimEnum((SpellEffect)value), max);
                 case 150:
                     return "Divine Intervention";
@@ -1199,7 +1204,7 @@ namespace parser
                         return String.Format("Absorb Melee Damage: {0}% Total: {1}", value, max);
                     return String.Format("Absorb Melee Damage: {0}%", value);
                 case 163:
-                    return String.Format("Immunity for {0} Hits/Spells", value);
+                    return String.Format("Absorb {0} Hits or Spells", value);
                 case 164:
                     return "Appraise Chest";
                 case 165:
@@ -1360,7 +1365,9 @@ namespace parser
                 case 322:
                     return "Gate to Starting City";
                 case 323:
-                    return String.Format("Add Defensive Proc: [Spell {0}] with {1}% Rate Mod", value, value2);
+                    if (value2 > 0)                        
+                        return String.Format("Add Defensive Proc: [Spell {0}] with {1}% Rate Mod", value, value2);
+                    return String.Format("Add Defensive Proc: [Spell {0}]", value);
                 case 324:
                     // blood magic. uses HP as mana
                     return String.Format("Cast from HP with {0}% penalty", value);
@@ -1374,7 +1381,6 @@ namespace parser
                     // so far this is only used on spells that have a rune
                     return String.Format("Cast on Fade/Cancel: [Spell {0}]", value);
                 case 335:
-                    // prevent spells that match limit rules from landing
                     return "Prevent Matching Spells From Landing";
                 case 337:
                     return FormatPercent("Experience Gain", value);
@@ -1431,7 +1437,7 @@ namespace parser
                     return String.Format("Knockback for {0} and up for {1}", value, value2);
                 case 381:
                     return "Call of Hero";
-                case 382:
+                case 382:                    
                     return String.Format("Inhibit Buff Effect: {0}", TrimEnum((SpellEffect)value2));
                 case 383:
                     return String.Format("Cast on Match: [Spell {0}] Chance: {1}%", value2, value);
@@ -1442,8 +1448,13 @@ namespace parser
                 case 387:
                     return String.Format("Cast if Cured: [Spell {0}]", value);
                 case 392:
-                    // similar to heal focus, but adds a raw amount
                     return FormatCount("Healing", value);
+                case 396:
+                    // used on type 3 augments
+                    return FormatCount("Healing", value);
+                case 398:
+                    // how is this different than 287?
+                    return String.Format("Increase Duration by {0}s", value / 1000);
                 case 399:
                     return FormatPercent("Chance to Twincast", value);
                 case 401:
@@ -1460,7 +1471,6 @@ namespace parser
                     return FormatPercent("Spell Effectiveness", value);
                 case 414:
                     return String.Format("Limit Skill: {0}", TrimEnum((SpellSkill)value));
-
                 case 418:
                     // how is this different than 220 bonus? setting it to regular damage for now
                     return FormatCount(TrimEnum((SpellSkill)value2) + " Damage", value);
@@ -1470,6 +1480,10 @@ namespace parser
                     return String.Format("Add Proc: [Spell {0}]", value);
                 case 424:
                     return "Gravity Flux";
+                case 427:
+                    return String.Format("Cast on Unknown Condition: [Spell {0}]", value);
+                //case 428:
+                //    return String.Format("Limit Skill: {0}", TrimEnum((SpellSkill)value));
 
 
             }
@@ -1493,6 +1507,7 @@ namespace parser
 
         static string TrimEnum(object o)
         {
+            //if (Char.IsDigit(o.ToString()[0])) Console.Error.WriteLine(o);
             return o.ToString().Replace("_", " ").Trim();
         }
 
