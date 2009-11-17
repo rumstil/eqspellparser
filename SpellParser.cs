@@ -21,11 +21,18 @@ namespace parser
     {
         WAR = 1, CLR, PAL, RNG, SHD, DRU, MNK, BRD, ROG, SHM, NEC, WIZ, MAG, ENC, BST, BER
     }
-
+    
     public enum SpellClassesLong
     {
         Warrior = 1, Cleric, Paladin, Ranger, ShadowKnight, Druid, Monk, Bard, Rogue, Shaman, 
         Necro, Wizard, Mage, Enchanter, Beastlord, Berserker
+    }
+
+    [Flags]
+    public enum SpellClassesMask
+    {
+        WAR = 1, CLR = 2, PAL = 4, RNG = 8, SHD = 16, DRU = 32, MNK = 64, BRD = 128, ROG = 256,
+        SHM = 512, NEC = 1024, WIZ = 2048, MAG = 4096, ENC = 8192, BST = 16384, BER = 32768
     }
 
     public enum SpellEffect
@@ -43,6 +50,7 @@ namespace parser
         CHA = 10,
         Melee_Haste = 11,
         Current_Mana_Repeating = 15,
+        Stun = 21,
         Charm = 22,
         Fear = 23,
         Mesmerize = 31,
@@ -69,6 +77,8 @@ namespace parser
         Current_HP_Donals = 101,
         All_Resists = 111,
         Current_HP_Percent = 147,
+        Hate_Repeating = 192,
+        Taunt = 199,
         XP_Gain = 337,
         Mana_Burn = 350,
         Current_Mana = 358,
@@ -336,8 +346,8 @@ namespace parser
         public int ViralPulse;
         public int ViralRange;
         public SpellTargetRestrict TargetRestrict;
-        public int Reg1ID;
-        public int Reg1Count;
+        public int[] RegID;
+        public int[] RegCount;
 
         public int Unknown;
 
@@ -348,6 +358,8 @@ namespace parser
             Slots = new string[12];
             SlotEffects = new int[12];
             Levels = new int[16];
+            RegID = new int[4];
+            RegCount = new int[4];
         }
 
         /// <summary>
@@ -366,8 +378,9 @@ namespace parser
             if (Endurance > 0)
                 result.Add("Endurance: " + Endurance);
 
-            if (Reg1ID > 0)
-                result.Add("Regeant: [Item " + Reg1ID + "] x " + Reg1Count);
+            for (int i = 0; i < RegID.Length; i++)
+                if (RegID[i] > 0)
+                    result.Add("Regeant: [Item " + RegID[i] + "] x " + RegCount[i]);
 
             //result.Add("Skill: " + Skill);
 
@@ -522,8 +535,14 @@ namespace parser
             spell.ViralRange = ParseInt(fields[201]);
             spell.MaxTargets = ParseInt(fields[218]);
             spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[211]);
-            spell.Reg1ID = ParseInt(fields[58]);
-            spell.Reg1Count = ParseInt(fields[62]);
+            spell.RegID[0] = ParseInt(fields[58]);
+            spell.RegCount[0] = ParseInt(fields[62]);
+            spell.RegID[1] = ParseInt(fields[59]);
+            spell.RegCount[1] = ParseInt(fields[63]);
+            spell.RegID[2] = ParseInt(fields[60]);
+            spell.RegCount[2] = ParseInt(fields[64]);
+            spell.RegID[3] = ParseInt(fields[61]);
+            spell.RegCount[3] = ParseInt(fields[65]);
 
             
             //spell.Unknown = ParseInt(fields[222]);
@@ -576,7 +595,6 @@ namespace parser
 
             return spell;
         }
-
 
         /// <summary>
         /// Parse a spell duration formula.
@@ -831,13 +849,13 @@ namespace parser
         {
             // type 254 is used for empty slots
             // type 10 is sometimes used for empty slots
-            if (type == 254 || (type == 10 && (value == 0 || value > 255)))                
+            if (type == 254 || (type == 10 && (value <= 1 || value > 255)))                
                 return null;
 
             // type 32 and 109 (summon item) misuse the calc field as a count value
             // type 148 and 149 use the calc field as a effect slot index
             string variable = "";
-            if (type != 32 && type != 109 && type != 148 && type != 149)
+            if (type != 32 && type != 109 && type != 148 && type != 149 && type != 414)
             {
                 value = ParseValueFormula(calc, value, max, spell.Ticks);
 
@@ -933,7 +951,7 @@ namespace parser
                 case 29:
                     return "Invisible to Animals (Unstable)";
                 case 30:
-                    return String.Format("Limit Aggro Radius to {1} up to level {0}", max, value);
+                    return String.Format("Decrease Aggro Radius to {1} up to level {0}", max, value);
                 case 31:
                     return String.Format("Mesmerize up to level {0}", max);
                 case 32:
@@ -1029,7 +1047,7 @@ namespace parser
                         return String.Format("Add Proc: [Spell {0}] with {1}% Rate Mod", value, value2);
                     return String.Format("Add Proc: [Spell {0}]", value);
                 case 86:
-                    return String.Format("Limit Social Radius to {1} up to level {0}", max, value);
+                    return String.Format("Decrease Social Radius to {1} up to level {0}", max, value);
                 case 87:
                     return FormatPercent("Magnification", value);
                 case 88:
@@ -1357,7 +1375,7 @@ namespace parser
                     return String.Format("Cast on Fade/Cancel: [Spell {0}]", value);
                 case 335:
                     // prevent spells that match limit rules from landing
-                    return "Prevent Spell Landing On Match";
+                    return "Prevent Matching Spells From Landing";
                 case 337:
                     return FormatPercent("Experience Gain", value);
                 case 339:
@@ -1436,6 +1454,13 @@ namespace parser
                 case 408:
                     // how is this different than 214?
                     return FormatPercent("Max HP", -value);
+                case 411:
+                    return String.Format("Limit Class: {0}", (SpellClassesMask)(value >> 1));
+                case 413:
+                    return FormatPercent("Spell Effectiveness", value);
+                case 414:
+                    return String.Format("Limit Skill: {0}", TrimEnum((SpellSkill)value));
+
                 case 418:
                     // how is this different than 220 bonus? setting it to regular damage for now
                     return FormatCount(TrimEnum((SpellSkill)value2) + " Damage", value);
