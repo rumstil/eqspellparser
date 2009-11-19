@@ -15,7 +15,7 @@ using System.Diagnostics;
 
 
 
-namespace parser
+namespace Everquest
 {
     public enum SpellClasses
     {
@@ -202,7 +202,8 @@ namespace parser
         Hatelist = 33,
         Chest = 34,
         Target_Group = 41,
-        Directional = 42,
+        Directed_AE_Narrow = 42, // hail of arrows
+        Directed_AE_Wide = 44, // vinelash cascade
         Single_In_Group = 43,
         Targets_Target = 46
     }
@@ -242,7 +243,8 @@ namespace parser
         HP_Between_25_35_Percent = 401,
         HP_Between_1_25_Percent = 400,
         HP_Between_1_35_Percent = 507, // between or below?
-        Undead2 = 603,
+        Undead2 = 603, 
+        Undead3 = 608,
         Summoned2 = 624
     }
 
@@ -342,6 +344,7 @@ namespace parser
         public float QuietTime;
         public float RecastTime;
         public float PushBack;
+        public float PushUp;
         public int DescID;
         public string Desc;
         public int MaxHits;
@@ -421,6 +424,9 @@ namespace parser
             if (PushBack != 0)
                 result.Add("Push: " + PushBack);
 
+            if (PushUp != 0)
+                result.Add("Push Up: " + PushUp);
+
             if (Hate != 0)
                 result.Add("Hate: " + Hate);
 
@@ -481,7 +487,7 @@ namespace parser
                         string[] fields = line.Split('^');
                         // type 6 is used for spell descriptions
                         if (fields[1] == "6")
-                            desc[Int32.Parse(fields[0])] = fields[2];
+                            desc[Int32.Parse(fields[0])] = fields[2].Trim();
                     }
             
 
@@ -531,6 +537,7 @@ namespace parser
             spell.QuietTime = ParseFloat(fields[14]) / 1000f;
             spell.RecastTime = ParseFloat(fields[15]) / 1000f;
             spell.PushBack = ParseFloat(fields[11]);
+            spell.PushUp = ParseFloat(fields[12]);
             spell.DescID = ParseInt(fields[155]);
             spell.MaxHits = ParseInt(fields[176]);
             spell.RecourseID = ParseInt(fields[150]);
@@ -1192,7 +1199,7 @@ namespace parser
                         value = max;
                     return FormatPercent("Chance to Reflect Spell", value);
                 case 159:
-                    return FormatCount("Stats", value);
+                    return FormatCount("All Stats", value);
                 case 160:
                     return String.Format("Intoxicate if Tolerance < {0}", value);
                 case 161:
@@ -1400,7 +1407,7 @@ namespace parser
                 case 351:
                     // the +3 is just a guess that's correct most of the time since spells have 3 ranks
                     // and the effects are placed after the spells
-                    return String.Format("Aura Effect: [Spell {0}]", spell.ID + 3);
+                    return String.Format("Aura Effect: [Spell {0}] (Guess)", spell.ID + 3);
                 case 353:
                     return FormatCount("Max Aura Effects", value);
                 case 358:
@@ -1472,14 +1479,15 @@ namespace parser
                 case 414:
                     return String.Format("Limit Skill: {0}", TrimEnum((SpellSkill)value));
                 case 418:
-                    // how is this different than 220 bonus? setting it to regular damage for now
-                    return FormatCount(TrimEnum((SpellSkill)value2) + " Damage", value);
+                    // how is this different than 220 bonus? 
+                    return FormatCount(TrimEnum((SpellSkill)value2) + " Damage Bonus", value);
                 case 419:
                     // this is used for potions. how is it different than 85?
                     // value2 looks like a calc value
                     return String.Format("Add Proc: [Spell {0}]", value);
                 case 424:
-                    return "Gravity Flux";
+                    // repeating?
+                    return String.Format("Knockback for {0} and up for {1}", value, value2);
                 case 427:
                     return String.Format("Cast on Unknown Condition: [Spell {0}]", value);
                 //case 428:

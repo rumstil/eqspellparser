@@ -7,6 +7,7 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Everquest;
 
 namespace parser
 {
@@ -125,7 +126,8 @@ namespace parser
                 foreach (Spell spell in list)
                 {
                     Console.WriteLine("\r\n{0}\r\n{1}", spell, String.Join("\r\n", spell.Details()));
-                    Console.WriteLine(spell.Desc);
+                    if (!String.IsNullOrEmpty(spell.Desc))
+                        Console.WriteLine(spell.Desc);
                 }
         }
 
@@ -140,7 +142,8 @@ namespace parser
             // Newest Patcher path: http://patch.everquest.com:7000/patch/lp2/eq/en/patch1/en-main/
             // Older Patcher path: http://patch.everquest.com:7000/patch/everquest/en/patch1/main/
             // Looking at the patcher logs it seems they are switching back and forth between patch0 and patch1. 
-            DownloadFile("http://patch.station.sony.com:7000/patch/everquest/en/patch1/main/" + filename + ".gz", filename);
+            DownloadFile("http://patch.station.sony.com:7000/patch/everquest/en/patch0/main/" + filename + ".gz", filename);
+            //DownloadFile("http://patch.station.sony.com:7000/patch/everquest/en/everquest-update.xml.gz", "update.xml");
         }
 
         /// <summary>
