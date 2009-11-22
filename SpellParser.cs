@@ -202,8 +202,8 @@ namespace Everquest
         Hatelist = 33,
         Chest = 34,
         Target_Group = 41,
-        Directed_AE_Narrow = 42, // hail of arrows
-        Directed_AE_Wide = 44, // vinelash cascade
+        Frontal_AE = 42, // hail of arrows
+        Frontal_AE2 = 44, // vinelash cascade
         Single_In_Group = 43,
         Targets_Target = 46
     }
@@ -356,6 +356,8 @@ namespace Everquest
         public SpellTargetRestrict TargetRestrict;
         public int[] RegID;
         public int[] RegCount;
+        public string LandOnSelf;
+        public string LandOnOther;
 
         public int Unknown;
 
@@ -397,11 +399,10 @@ namespace Everquest
             else
                 result.Add("Target: " + Target);
 
-            if (Range > 0)
+            if (AERange > 0)
+                result.Add("Range: " + Range + ", AE Range: " + AERange);
+            else if (Range > 0)
                 result.Add("Range: " + Range);
-
-            //if (AERange > 0)
-            //    result.Add("AE Range: " + AERange);
 
             if (ViralRange > 0)
                 result.Add("Viral Range: " + ViralRange + ", Recast: " + ViralPulse + "s");
@@ -421,11 +422,10 @@ namespace Everquest
             if (Ticks > 0)
                 result.Add("Duration: " + FormatTime(Ticks * 6) + " (" + Ticks + " ticks)");
 
-            if (PushBack != 0)
-                result.Add("Push: " + PushBack);
-
             if (PushUp != 0)
-                result.Add("Push Up: " + PushUp);
+                result.Add("Push: " + PushBack + ", Up: " + PushUp);
+            else if (PushBack != 0)
+                result.Add("Push: " + PushBack);
 
             if (Hate != 0)
                 result.Add("Hate: " + Hate);
@@ -523,14 +523,13 @@ namespace Everquest
             spell.Target = (SpellTarget)ParseInt(fields[98]);
             spell.ResistType = (SpellResist)ParseInt(fields[85]);
             spell.ResistMod = ParseInt(fields[147]);
-            spell.Beneficial = ParseInt(fields[83]) != 0;
-            if (spell.Beneficial)
-                spell.ResistType = SpellResist.Unresistable;
-            //Console.WriteLine(" Calc: " + fields[16] +" Value: " + fields[17] + "   " + spell.ID + " " + spell.Name);
+            spell.Beneficial = ParseInt(fields[83]) != 0;            
             spell.Ticks = ParseDurationForumula(ParseInt(fields[16]), ParseInt(fields[17]));
             spell.Extra = fields[3];
             spell.Hate = ParseInt(fields[173]);
             spell.Endurance = ParseInt(fields[166]);
+            //spell.LandOnSelf = fields[6];
+            //spell.LandOnOther = fields[7];
             spell.Range = ParseInt(fields[9]);
             spell.AERange = ParseInt(fields[10]);
             spell.CastingTime = ParseFloat(fields[13]) / 1000f;
@@ -559,6 +558,9 @@ namespace Everquest
             
             //spell.Unknown = ParseInt(fields[222]);
 
+            if (spell.Beneficial)
+                spell.ResistType = SpellResist.Unresistable;
+
             // fix up data fields the ignored for self targeted spells
             if (spell.Target == SpellTarget.Self)
             {
@@ -569,7 +571,7 @@ namespace Everquest
             // each class can have a different level to cast the spell at
             spell.Classes = String.Empty;
             for (int i = 0; i < spell.Levels.Length; i++)
-            {
+            {                
                 spell.Levels[i] = ParseInt(fields[104 + i]);
                 if (spell.Levels[i] != 0 && spell.Levels[i] != 255)
                     spell.Classes += " " + (SpellClasses)(i + 1) + "/" + spell.Levels[i];
@@ -859,9 +861,12 @@ namespace Everquest
         /// <returns>A description of the slot effect or a null if the slot has no effect.</returns>
         static string ParseSlot(Spell spell, int type, int value, int value2, int max, int calc)
         {
-            // type 254 is used for empty slots
+            // type 254 is used for empty slots            
+            if (type == 254)
+                return null;
+
             // type 10 is sometimes used for empty slots
-            if (type == 254 || (type == 10 && (value <= 1 || value > 255)))                
+            if (type == 10 && (value <= 1 || value > 255))
                 return null;
 
             // type 32 and 109 (summon item) misuse the calc field as a count value
@@ -883,7 +888,8 @@ namespace Everquest
                 //if (calc > 141 && calc < 200)
                 //if (calc > 212 && calc < 1000)
                 //    return String.Format("{0} Unknown Calc: Val={1} Val2={2} Max={3} Calc={4}", (SpellEffect)type, value, value2, max, calc);
-            }
+            }                      
+
 
             // some types are repeating if they have a duration. in these cases there is one type that doesn't
             // repeat (hp 79) and one type that does repeat (hp 0). but the repeating types are sometimes used as
