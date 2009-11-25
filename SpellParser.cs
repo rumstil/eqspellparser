@@ -202,8 +202,8 @@ namespace Everquest
         Hatelist = 33,
         Chest = 34,
         Target_Group = 41,
-        Frontal_AE = 42, // hail of arrows
-        Frontal_AE2 = 44, // vinelash cascade
+        Directional_AE = 42, // see degree fields
+        Frontal_AE = 44, // vinelash cascade
         Single_In_Group = 43,
         Targets_Target = 46
     }
@@ -301,6 +301,7 @@ namespace Everquest
         Hideous_Harpy = 527
     }
 
+    /*
     public class SpellSlot
     {
         public int Effect;
@@ -315,6 +316,7 @@ namespace Everquest
             return Desc;
         }
     }
+    */
 
     public class Spell
     {
@@ -358,6 +360,9 @@ namespace Everquest
         public int[] RegCount;
         public string LandOnSelf;
         public string LandOnOther;
+        public int StartDegree;
+        public int EndDegree;
+        public bool MGB;
 
         public int Unknown;
 
@@ -394,7 +399,9 @@ namespace Everquest
 
             //result.Add("Skill: " + Skill);
 
-            if (TargetRestrict > 0)
+            if (Target == SpellTarget.Directional_AE)
+                result.Add("Target: " + Target + " (" + StartDegree + "° to " + EndDegree + "°)");
+            else if (TargetRestrict > 0)
                 result.Add("Target: " + Target + " (" + TargetRestrict + ")");
             else
                 result.Add("Target: " + Target);
@@ -406,10 +413,10 @@ namespace Everquest
 
             if (ViralRange > 0)
                 result.Add("Viral Range: " + ViralRange + ", Recast: " + ViralPulse + "s");
-                        
-            if (ResistType != SpellResist.Unresistable && ResistMod != 0)
+
+            if (!Beneficial && ResistType != SpellResist.Unresistable && ResistMod != 0)
                 result.Add("Resist: " + ResistType + " " + ResistMod);
-            else if (ResistType != SpellResist.Unresistable)
+            else if (!Beneficial)
                 result.Add("Resist: " + ResistType);
 
             if (TimerID > 0)
@@ -439,7 +446,7 @@ namespace Everquest
             if (RecourseID > 0)
                 result.Add("Recourse: [Spell " + RecourseID + "]");
 
-            if (Unknown > 0)
+            if (Unknown != 0)
                 result.Add("Unknown: " + Unknown);
 
 
@@ -515,37 +522,21 @@ namespace Everquest
             Spell spell = new Spell();
 
             spell.ID = Convert.ToInt32(fields[0]);
-            spell.GroupID = ParseInt(fields[207]);
             spell.Name = fields[1];
-            spell.Icon = ParseInt(fields[144]);
-            spell.Mana = ParseInt(fields[19]);
-            spell.Skill = (SpellSkill)ParseInt(fields[100]);
-            spell.Target = (SpellTarget)ParseInt(fields[98]);
-            spell.ResistType = (SpellResist)ParseInt(fields[85]);
-            spell.ResistMod = ParseInt(fields[147]);
-            spell.Beneficial = ParseInt(fields[83]) != 0;            
-            spell.Ticks = ParseDurationForumula(ParseInt(fields[16]), ParseInt(fields[17]));
             spell.Extra = fields[3];
-            spell.Hate = ParseInt(fields[173]);
-            spell.Endurance = ParseInt(fields[166]);
             //spell.LandOnSelf = fields[6];
             //spell.LandOnOther = fields[7];
+            spell.Ticks = ParseDurationForumula(ParseInt(fields[16]), ParseInt(fields[17]));
+            spell.Mana = ParseInt(fields[19]);             
+
+           
             spell.Range = ParseInt(fields[9]);
             spell.AERange = ParseInt(fields[10]);
+            spell.PushBack = ParseFloat(fields[11]);
+            spell.PushUp = ParseFloat(fields[12]);
             spell.CastingTime = ParseFloat(fields[13]) / 1000f;
             spell.QuietTime = ParseFloat(fields[14]) / 1000f;
             spell.RecastTime = ParseFloat(fields[15]) / 1000f;
-            spell.PushBack = ParseFloat(fields[11]);
-            spell.PushUp = ParseFloat(fields[12]);
-            spell.DescID = ParseInt(fields[155]);
-            spell.MaxHits = ParseInt(fields[176]);
-            spell.RecourseID = ParseInt(fields[150]);
-            spell.TimerID = ParseInt(fields[167]);
-            spell.ViralPulse = ParseInt(fields[191]);
-            //spell.Viral2 = ParseInt(fields[192]);
-            spell.ViralRange = ParseInt(fields[201]);
-            spell.MaxTargets = ParseInt(fields[218]);
-            spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[211]);
             spell.RegID[0] = ParseInt(fields[58]);
             spell.RegCount[0] = ParseInt(fields[62]);
             spell.RegID[1] = ParseInt(fields[59]);
@@ -554,28 +545,39 @@ namespace Everquest
             spell.RegCount[2] = ParseInt(fields[64]);
             spell.RegID[3] = ParseInt(fields[61]);
             spell.RegCount[3] = ParseInt(fields[65]);
+            spell.Beneficial = ParseInt(fields[83]) != 0;
+            spell.ResistType = (SpellResist)ParseInt(fields[85]);
+            spell.Target = (SpellTarget)ParseInt(fields[98]);
+            spell.Skill = (SpellSkill)ParseInt(fields[100]);
+            spell.Icon = ParseInt(fields[145]);
+            spell.ResistMod = ParseInt(fields[147]);
+            spell.RecourseID = ParseInt(fields[150]);
+            spell.DescID = ParseInt(fields[155]);
+            spell.Endurance = ParseInt(fields[166]);
+            spell.TimerID = ParseInt(fields[167]);
+            spell.Hate = ParseInt(fields[173]);
+            spell.MaxHits = ParseInt(fields[176]);
+            spell.MGB = ParseInt(fields[185]) != 0;
+            spell.ViralPulse = ParseInt(fields[191]);
+            //spell.ViralMaxSpread = ParseInt(fields[192]);
+            spell.StartDegree = ParseInt(fields[194]);
+            spell.EndDegree = ParseInt(fields[195]);
+            spell.ViralRange = ParseInt(fields[201]);
+            spell.GroupID = ParseInt(fields[207]);
+            spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[211]);
+            spell.MaxTargets = ParseInt(fields[218]);
 
             
-            //spell.Unknown = ParseInt(fields[222]);
-
-            if (spell.Beneficial)
-                spell.ResistType = SpellResist.Unresistable;
-
-            // fix up data fields the ignored for self targeted spells
-            if (spell.Target == SpellTarget.Self)
-            {
-                spell.Range = 0;
-                spell.MaxTargets = 0;
-            }
+            spell.Unknown = ParseInt(fields[185]);
 
             // each class can have a different level to cast the spell at
             spell.Classes = String.Empty;
             for (int i = 0; i < spell.Levels.Length; i++)
-            {                
+            {
                 spell.Levels[i] = ParseInt(fields[104 + i]);
                 if (spell.Levels[i] != 0 && spell.Levels[i] != 255)
                     spell.Classes += " " + (SpellClasses)(i + 1) + "/" + spell.Levels[i];
-            }           
+            }
             spell.Classes = spell.Classes.TrimStart();
 
             // each spell has 12 effect slots:
@@ -596,7 +598,6 @@ namespace Everquest
                 //if (calc == 110 && max == 0) 
                 //if (calc == 100 && max < value && max > 0)
                 //    Console.WriteLine("---  " + spell + " " + String.Format("Eff={0} Val={1} Val2={2} Max={3} Calc={4}, {5}", type, value, value2, max, calc, calc & 255));
-                      
 
                 spell.SlotEffects[i] = type;
                 spell.Slots[i] = ParseSlot(spell, type, value, value2, max, calc);
@@ -606,6 +607,13 @@ namespace Everquest
             //if (spell.ID == 15044)
             //    for (int i = 0; i < fields.Length; i++)
             //        Console.WriteLine("{0}: {1}", i, fields[i]);
+
+            // fix up data fields the ignored for self targeted spells
+            if (spell.Target == SpellTarget.Self)
+            {
+                spell.Range = 0;
+                spell.MaxTargets = 0;
+            }
 
             return spell;
         }
