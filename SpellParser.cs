@@ -205,6 +205,7 @@ namespace Everquest
         Directional_AE = 42, // see degree fields
         Frontal_AE = 44, // vinelash cascade
         Single_In_Group = 43,
+        Target_Ring_AE = 45,
         Targets_Target = 46
     }
 
@@ -400,7 +401,7 @@ namespace Everquest
             //result.Add("Skill: " + Skill);
 
             if (Target == SpellTarget.Directional_AE)
-                result.Add("Target: " + Target + " (" + StartDegree + "° to " + EndDegree + "°)");
+                result.Add("Target: " + Target + " (" + StartDegree + " to " + EndDegree + " Degrees)");
             else if (TargetRestrict > 0)
                 result.Add("Target: " + Target + " (" + TargetRestrict + ")");
             else
@@ -568,7 +569,7 @@ namespace Everquest
             spell.MaxTargets = ParseInt(fields[218]);
 
             
-            spell.Unknown = ParseInt(fields[185]);
+            //spell.Unknown = ParseInt(fields[200]);
 
             // each class can have a different level to cast the spell at
             spell.Classes = String.Empty;
@@ -613,6 +614,11 @@ namespace Everquest
             {
                 spell.Range = 0;
                 spell.MaxTargets = 0;
+            }
+
+            if (spell.Target == SpellTarget.Single)
+            {
+                spell.AERange = 0;
             }
 
             return spell;
@@ -831,13 +837,13 @@ namespace Everquest
                         change = level * calc;
 
                     // variable over duration
-                    // splort (growing): Current_HP Unknown Calc: Val=1 Val2=0 Max=0 Calc=1035
+                    // e.g. splort (growing): Current_HP Unknown Calc: Val=1 Val2=0 Max=0 Calc=1035
                     // 34 - 69 - 104 - 139 - 174 - 209 - 244 - 279 - 314 - 349 - 384 - 419 - 454 - 489 - 524 - 559 - 594 - 629 - 664 - 699 - 699 
-                    // venonscale (decaying): Current_HP Unknown Calc: Val=-822 Val2=0 Max=822 Calc=1018
+                    // e.g. venonscale (decaying): Current_HP Unknown Calc: Val=-822 Val2=0 Max=822 Calc=1018
                     if (calc >= 1000 && calc < 2000)
                         change = ticks * (calc - 1000) * -1;
 
-                    // more level based calcs
+                    // level based calcs
                     if (calc >= 2000)
                         change = level * (calc - 2000);
                     break;
