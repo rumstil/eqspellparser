@@ -203,7 +203,7 @@ namespace Everquest
         Chest = 34,
         Target_Group = 41,
         Directional_AE = 42, // see degree fields
-        Frontal_AE = 44, // vinelash cascade
+        Frontal_AE = 44, 
         Single_In_Group = 43,
         Target_Ring_AE = 45,
         Targets_Target = 46
@@ -1291,8 +1291,10 @@ namespace Everquest
                     return FormatCount("Hate", value) + repeating;
                 case 193:
                     return String.Format("{0} Attack for {1} with {2}% Accuracy Mod", TrimEnum(spell.Skill), value, value2);
-                case 194:
-                    return "Remove All Aggro";
+                case 194:                    
+                    if (value < 100)
+                        return String.Format("Wipe Aggro, Chance: {0}%", value);
+                    return "Wipe Aggro";
                 case 195:
                     // 100 is full resist. not sure why some spells have more
                     return String.Format("Stun Resist ({0})", value);
