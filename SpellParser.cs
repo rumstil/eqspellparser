@@ -1496,7 +1496,7 @@ namespace Everquest
                 case 418:
                     // how is this different than 220 bonus? 
                     return FormatCount(TrimEnum((SpellSkill)base2) + " Damage Bonus", value);
-                case 1419:
+                case 419:
                     // this is used for potions. how is it different than 85?
                     return String.Format("Add Proc: [Spell {0}]", base1);
                 case 424:                    
