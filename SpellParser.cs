@@ -62,7 +62,7 @@ namespace Everquest
         Disease_Counter = 35,
         Poison_Counter = 36,
         Invulnerability = 40,
-        Promised_Heal_Marker = 44,
+        Delayed_Heal_Marker = 44,
         Fire_Resist = 46,
         Cold_Resist = 47,
         Poison_Resist = 48,
@@ -709,7 +709,7 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Parse a spell slot value formula.
+        /// Parse a spell effect slot value formula.
         /// </summary>
         static int ParseValueFormula(int calc, int value, int max, int duration)
         {
@@ -873,49 +873,41 @@ namespace Everquest
         /// [Item 123]     is a reference to item 123
         /// </summary>
         /// <returns>A description of the slot effect or a null if the slot has no effect.</returns>
-        static string ParseSlot(Spell spell, int type, int value, int value2, int max, int calc)
+        static string ParseSlot(Spell spell, int type, int base1, int base2, int max, int calc)
         {
             // type 254 is used for empty slots            
             if (type == 254)
                 return null;
 
             // type 10 is sometimes used for empty slots
-            if (type == 10 && (value <= 1 || value > 255))
+            if (type == 10 && (base1 <= 1 || base1 > 255))
                 return null;
 
-            // type 32 and 109 (summon item) misuse the calc field as a count value
-            // type 148 and 149 use the calc field as a effect slot index
+            // all the the "increase by x" type effects use a scaled value based on the calc formula
+            // the big switch below determines if an effect uses base1 or value
+            int value = ParseValueFormula(calc, base1, max, spell.Ticks);
+
+            // prepare a comment for effects that do not have a constant value
             string variable = "";
-            if (type != 32 && type != 109 && type != 148 && type != 149 && type != 414)
-            {
-                value = ParseValueFormula(calc, value, max, spell.Ticks);
 
-                if (calc == 123)
-                    variable = " (random/avg)";
+            if (calc == 123)
+                variable = " (random/avg)";
 
-                if (calc == 107 || calc == 108 || calc == 120 || calc == 122)
-                    variable = " (growing/avg)";
+            if (calc == 107 || calc == 108 || calc == 120 || calc == 122)
+                variable = " (growing/avg)";
 
-                if (calc > 1000 && calc < 2000)
-                    variable = " (variable/avg)";
+            if (calc > 1000 && calc < 2000)
+                variable = " (variable/avg)";
 
-                //if (calc > 141 && calc < 200)
-                //if (calc > 212 && calc < 1000)
-                //    return String.Format("{0} Unknown Calc: Val={1} Val2={2} Max={3} Calc={4}", (SpellEffect)type, value, value2, max, calc);
-            }                      
-
-
-            // some types are repeating if they have a duration. in these cases there is one type that doesn't
-            // repeat (hp 79) and one type that does repeat (hp 0). but the repeating types are sometimes used as
-            // an instant boost on spells without a duration so we still have to check for the duration.            
+            // prepare a comment for effects that repeat for each tick of the duration
             string repeating = (spell.Ticks > 0) ? " per tick" : null;
 
             switch (type)
             {                
                 case 0:
                     // delta hp for heal/nuke, repeating if with duration
-                    if (value2 > 0)
-                        return FormatCount("Current HP", value) + repeating + variable + " (if " + (SpellTargetRestrict)value2 + ")";
+                    if (base2 > 0)
+                        return FormatCount("Current HP", value) + repeating + variable + " (If " + (SpellTargetRestrict)base2 + ")";
                     return FormatCount("Current HP", value) + repeating + variable;
                 case 1:
                     return FormatCount("AC", (int)(value / (10f / 3f))); 
@@ -973,7 +965,7 @@ namespace Everquest
                 case 25:
                     return "Bind";
                 case 26:
-                    if (value2 > 1)
+                    if (base2 > 1)
                         return "Gate to Secondary Bind";
                     return "Gate";
                 case 27:
@@ -987,7 +979,7 @@ namespace Everquest
                 case 31:
                     return String.Format("Mesmerize up to level {0}", max);
                 case 32:
-                    return String.Format("Summon: [Item {0}]", value);
+                    return String.Format("Summon: [Item {0}]", base1);
                 case 33:
                     return String.Format("Summon Pet: {0}", spell.Extra);
                 case 35:
@@ -1001,7 +993,7 @@ namespace Everquest
                 case 42:
                     return "Shadowstep";                
                 case 44:
-                    return String.Format("Stacking: Promised Heal Marker ({0})", value);
+                    return String.Format("Stacking: Delayed Heal Marker ({0})", value);
                 case 46:
                     return FormatCount("Fire Resist", value);
                 case 47:
@@ -1025,7 +1017,7 @@ namespace Everquest
                 case 57:
                     return "Levitate";
                 case 58:
-                    return String.Format("Illusion: {0} ({1})", TrimEnum((SpellIllusion)value), value2);
+                    return String.Format("Illusion: {0} ({1})", TrimEnum((SpellIllusion)base1), base2);
                 case 59:
                     return FormatCount("Damage Shield", -value);
                 case 61:
@@ -1063,8 +1055,8 @@ namespace Everquest
                     return FormatCount("Spell Damage Taken", -value);                    
                 case 79:
                     // delta hp for heal/nuke, non repeating
-                    if (value2 > 0)
-                        return FormatCount("Current HP", value) + " (if " + (SpellTargetRestrict)value2 + ")";
+                    if (base2 > 0)
+                        return FormatCount("Current HP", value) + " (If " + (SpellTargetRestrict)base2 + ")";
                     return FormatCount("Current HP", value);                    
                 case 81:
                     return String.Format("Resurrection: {0}%", value); 
@@ -1075,8 +1067,8 @@ namespace Everquest
                 case 84:
                     return "Gravity Flux";
                 case 85:
-                    if (value2 > 0)
-                        return String.Format("Add Proc: [Spell {0}] with {1}% Rate Mod", value, value2);
+                    if (base2 > 0)
+                        return String.Format("Add Proc: [Spell {0}] with {1}% Rate Mod", value, base2);
                     return String.Format("Add Proc: [Spell {0}]", value);
                 case 86:
                     return String.Format("Decrease Social Radius to {1} up to level {0}", max, value);
@@ -1108,8 +1100,8 @@ namespace Everquest
                     return "Root";
                 case 100:
                     // heal over time
-                    if (value2 > 0)
-                        return FormatCount("Current HP", value) + repeating + variable + " (if " + (SpellTargetRestrict)value2 + ")";
+                    if (base2 > 0)
+                        return FormatCount("Current HP", value) + repeating + variable + " (If " + (SpellTargetRestrict)base2 + ")";
                    return FormatCount("Current HP", value) + repeating + variable;
                 case 101:
                     // only castable via Donal's BP. creates a buf that blocks recasting
@@ -1127,7 +1119,7 @@ namespace Everquest
                 case 108:
                     return String.Format("Summon Familiar: {0}", spell.Extra);
                 case 109:                    
-                    return String.Format("Summon: [Item {0}]", value);
+                    return String.Format("Summon: [Item {0}]", base1);
                 case 111:
                     return FormatCount("All Resists", value);
                 case 112:
@@ -1151,9 +1143,9 @@ namespace Everquest
                 case 123:
                     return "Screech";
                 case 124:
-                    return String.Format("{0} Spell Damage by {1}% to {2}%", value >= 0 ? "Increase" : "Decrease", value, value2);
+                    return String.Format("{0} Spell Damage by {1}% to {2}%", value >= 0 ? "Increase" : "Decrease", value, base2);
                 case 125:                    
-                    return String.Format("{0} Healing by {1}% to {2}%", value >= 0 ? "Increase" : "Decrease", value, value2);
+                    return String.Format("{0} Healing by {1}% to {2}%", value >= 0 ? "Increase" : "Decrease", value, base2);
                 case 126:
                     return FormatPercent("Spell Resist Rate", -value);
                 case 127:
@@ -1167,9 +1159,9 @@ namespace Everquest
                 case 131:
                     return FormatPercent("Chance of Using Reagent", -value);
                 case 132:
-                    return String.Format("{0} Spell Mana Cost {1}% to {2}%", value < 0 ? "Increase" : "Decrease", Math.Abs(value), Math.Abs(value2));
+                    return String.Format("{0} Spell Mana Cost {1}% to {2}%", value < 0 ? "Increase" : "Decrease", Math.Abs(value), Math.Abs(base2));
                 case 134:
-                    return String.Format("Limit Max Level: {0} (lose {1}% per level)", value, value2);
+                    return String.Format("Limit Max Level: {0} (lose {1}% per level)", value, base2);
                 case 135:
                     return String.Format("Limit Resist: {0}", (SpellResist)value);
                 case 136:
@@ -1196,10 +1188,10 @@ namespace Everquest
                     return String.Format("Increase Current HP by {1} Max: {0}% ", value, max);
                 case 148:
                     //if (max > 1000) max -= 1000;                    
-                    return String.Format("Stacking: Block new spell if slot {0} is '{1}' and < {2}", calc % 100, TrimEnum((SpellEffect)value), max);
+                    return String.Format("Stacking: Block new spell if slot {0} is '{1}' and < {2}", calc % 100, TrimEnum((SpellEffect)base1), max);
                 case 149:
                     //if (max > 1000) max -= 1000;                    
-                    return String.Format("Stacking: Overwrite existing spell if slot {0} is '{1}' and < {2}", calc % 100, TrimEnum((SpellEffect)value), max);
+                    return String.Format("Stacking: Overwrite existing spell if slot {0} is '{1}' and < {2}", calc % 100, TrimEnum((SpellEffect)base1), max);
                 case 150:
                     return "Divine Intervention";
                 case 151:
@@ -1244,7 +1236,7 @@ namespace Everquest
                     // how is this different than an endless rune?
                     return FormatPercent("Melee Mitigation", -value);
                 case 169:
-                    return FormatPercent("Chance to Critical Hit with " + TrimEnum((SpellSkill)value2), value);
+                    return FormatPercent("Chance to Critical Hit with " + TrimEnum((SpellSkill)base2), value);
                 case 170:
                     return FormatPercent("Chance to Critical Cast", value);
                 case 171:
@@ -1272,13 +1264,13 @@ namespace Everquest
                 case 182:
                     return FormatPercent("Weapon Delay", value);
                 case 183:
-                    return FormatPercent("Skill Check for " + TrimEnum((SpellSkill)value2), value);
+                    return FormatPercent("Skill Check for " + TrimEnum((SpellSkill)base2), value);
                 case 184:
-                    return FormatPercent("Chance to Hit with " + TrimEnum((SpellSkill)value2), value);
+                    return FormatPercent("Chance to Hit with " + TrimEnum((SpellSkill)base2), value);
                 case 185:
-                    return FormatPercent(TrimEnum((SpellSkill)value2) + " Damage", value);
+                    return FormatPercent(TrimEnum((SpellSkill)base2) + " Damage", value);
                 case 186:
-                    return FormatPercent(TrimEnum((SpellSkill)value2) + " Min Damage", value);
+                    return FormatPercent(TrimEnum((SpellSkill)base2) + " Min Damage", value);
                 case 188:
                     return FormatPercent("Chance to Block", value);
                 case 189:
@@ -1290,10 +1282,10 @@ namespace Everquest
                 case 192:
                     return FormatCount("Hate", value) + repeating;
                 case 193:
-                    return String.Format("{0} Attack for {1} with {2}% Accuracy Mod", TrimEnum(spell.Skill), value, value2);
+                    return String.Format("{0} Attack for {1} with {2}% Accuracy Mod", TrimEnum(spell.Skill), value, base2);
                 case 194:                    
                     if (value < 100)
-                        return String.Format("Wipe Aggro, Chance: {0}%", value);
+                        return String.Format("Wipe Aggro Chance: {0}%", value);
                     return "Wipe Aggro";
                 case 195:
                     // 100 is full resist. not sure why some spells have more
@@ -1301,7 +1293,7 @@ namespace Everquest
                 case 196:
                     return String.Format("Srikethrough ({0})", value);
                 case 197:
-                    return FormatPercent(TrimEnum((SpellSkill)value2) + " Damage Taken", value);
+                    return FormatPercent(TrimEnum((SpellSkill)base2) + " Damage Taken", value);
                 case 198:
                     return FormatCount("Current Endurance", value);
                 case 199:
@@ -1309,7 +1301,7 @@ namespace Everquest
                 case 200:
                     return FormatPercent("Proc Rate", value);
                 case 201:
-                    return String.Format("Add Range Proc: [Spell {0}] with {1}% Rate Mod", value, value2);
+                    return String.Format("Add Range Proc: [Spell {0}] with {1}% Rate Mod", value, base2);
                 case 202:
                     return "Project Illusion";
                 case 203:
@@ -1325,11 +1317,11 @@ namespace Everquest
                 case 216:
                     return FormatPercent("Accuracy", value);
                 case 220:                    
-                    return FormatCount(TrimEnum((SpellSkill)value2) + " Damage Bonus", value);
+                    return FormatCount(TrimEnum((SpellSkill)base2) + " Damage Bonus", value);
                 case 227:
-                    return String.Format("Reduce {0} Timer by {1}s", TrimEnum((SpellSkill)value2), value);
+                    return String.Format("Reduce {0} Timer by {1}s", TrimEnum((SpellSkill)base2), value);
                 case 232:
-                    return String.Format("Divine Save: [Spell {0}] Chance: {1}%", value2, value);
+                    return String.Format("Divine Save: [Spell {0}] Chance: {1}%", base2, value);
                 case 233:
                     return FormatPercent("Food Consumption", -value);
                 case 243:
@@ -1337,7 +1329,7 @@ namespace Everquest
                 case 258:
                     return String.Format("Triple Backstab ({0})", value);
                 case 262:
-                    return FormatCount(TrimEnum((SpellSkillCap)value2) + " Cap", value);
+                    return FormatCount(TrimEnum((SpellSkillCap)base2) + " Cap", value);
                 case 272:
                     return FormatPercent("Spell Casting Skill", value);
                 case 273:
@@ -1353,17 +1345,17 @@ namespace Everquest
                 case 287:
                     return String.Format("Increase Duration by {0}s", value * 6);
                 case 289: 
-                    // how is this different than 373?
-                    return String.Format("Cast on Fade: [Spell {0}]", value);
+                    // how is this different than 373? if base2 > 0, what is base1?                                       
+                    return String.Format("Cast on Fade: [Spell {0}]", (base2 > 0) ? base2 : base1);
                 case 291:
                     return String.Format("Purify ({0})", value);
                 case 294:
-                    if (value > 0 && value2 > 100)
-                        return FormatPercent("Chance to Critical Nuke", value) + " and " + FormatPercent("Critical Nuke Damage", value2 - 100);
+                    if (value > 0 && base2 > 100)
+                        return FormatPercent("Chance to Critical Nuke", value) + " and " + FormatPercent("Critical Nuke Damage", base2 - 100);
                     else if (value > 0)
                         return FormatPercent("Chance to Critical Nuke", value);
                     else                    
-                        return FormatPercent("Critical Nuke Damage", value2 - 100);
+                        return FormatPercent("Critical Nuke Damage", base2 - 100);
                 case 296:
                     return FormatPercent("Spell Damage Taken", value);
                 case 297:
@@ -1394,9 +1386,9 @@ namespace Everquest
                 case 322:
                     return "Gate to Starting City";
                 case 323:
-                    if (value2 > 0)                        
-                        return String.Format("Add Defensive Proc: [Spell {0}] with {1}% Rate Mod", value, value2);
-                    return String.Format("Add Defensive Proc: [Spell {0}]", value);
+                    if (base2 > 0)
+                        return String.Format("Add Defensive Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
+                    return String.Format("Add Defensive Proc: [Spell {0}]", base1);
                 case 324:
                     // blood magic. uses HP as mana
                     return String.Format("Cast from HP with {0}% penalty", value);
@@ -1405,7 +1397,7 @@ namespace Everquest
                 case 329:
                     return String.Format("Absorb Damage Using Mana: {0}%", value);
                 case 330:
-                    return FormatPercent("Critical Damage for " + TrimEnum((SpellSkill)value2), value);
+                    return FormatPercent("Critical Damage for " + TrimEnum((SpellSkill)base2), value);
                 case 333:
                     // so far this is only used on spells that have a rune
                     return String.Format("Cast on Fade/Cancel: [Spell {0}]", value);
@@ -1414,9 +1406,9 @@ namespace Everquest
                 case 337:
                     return FormatPercent("Experience Gain", value);
                 case 339:
-                    return String.Format("Add Spell Proc: [Spell {0}] Chance: {1}%", value2, value);
+                    return String.Format("Add Spell Proc: [Spell {0}] Chance: {1}%", base2, value);
                 case 340:
-                    return String.Format("Cast: [Spell {0}] Chance: {1}%", value2, value);
+                    return String.Format("Cast: [Spell {0}] Chance: {1}%", base2, value);
                 case 342:
                     return "Prevent Fleeing";
                 case 343:
@@ -1435,15 +1427,15 @@ namespace Everquest
                 case 358:
                     return FormatCount("Current Mana", value);
                 case 360:
-                    return String.Format("Add Killshot Proc: [Spell {0}] Chance: {1}%", value2, value);
+                    return String.Format("Add Killshot Proc: [Spell {0}] Chance: {1}%", base2, value);
                 case 361:
-                    return String.Format("Cast on Death: [Spell {0}] Chance: {1}%", value2, value);
+                    return String.Format("Cast on Death: [Spell {0}] Chance: {1}%", base2, value);
                 case 365:
-                    return String.Format("Cast on Killshot: [Spell {0}] Chance: {1}%", value2, value);
+                    return String.Format("Cast on Killshot: [Spell {0}] Chance: {1}%", base2, value);
                 case 367:
                     return String.Format("Transform Body Type ({0})", value);
                 case 368:
-                    return String.Format("Faction {0} Modifier: {1}", value, value2);
+                    return String.Format("Faction {0} Modifier: {1}", value, base2);
                 case 369:
                     return FormatCount("Corruption Counter", value);
                 case 370:
@@ -1453,29 +1445,30 @@ namespace Everquest
                     // no idea if this is also mitigated
                     return FormatPercent("Melee Delay", Math.Abs(value));
                 case 373:
-                    return String.Format("Cast on Fade: [Spell {0}]", value);
+                    // this appears to be used when a spell is removed via any method: times out, cured, used up (i.e. a rune)
+                    return String.Format("Cast on Fade: [Spell {0}]", base1);
                 case 374:       
                     // i think this is used when several effects need to be placed in a slot. 
                     // i.e. multiple spells are needed but a single cast is required                    
-                    return String.Format("Cast: [Spell {0}]", value2);
+                    return String.Format("Cast: [Spell {0}]", base2);
                 case 375:
                     return FormatPercent("Critical DoT Damage", value - 100);
                 case 377:
-                    return String.Format("Cast if Not Cured: [Spell {0}]", value);
+                    return String.Format("Cast if Not Cured: [Spell {0}]", base1);
                 case 380:
-                    return String.Format("Knockback for {0} and up for {1}", value, value2);
+                    return String.Format("Knockback for {0} and up for {1}", value, base2);
                 case 381:
                     return "Call of Hero";
                 case 382:                    
-                    return String.Format("Inhibit Buff Effect: {0}", TrimEnum((SpellEffect)value2));
+                    return String.Format("Inhibit Buff Effect: {0}", TrimEnum((SpellEffect)base2));
                 case 383:
-                    return String.Format("Cast on Match: [Spell {0}] Chance: {1}%", value2, value);
+                    return String.Format("Cast on Match: [Spell {0}] Chance: {1}%", base2, value);
                 case 385:
                     return String.Format("Limit Spells: {1}[Group {0}]", Math.Abs(value), value >= 0 ? "" : "Exclude ");
                 case 386:
-                    return String.Format("Cast on Curer: [Spell {0}]", value);
+                    return String.Format("Cast on Curer: [Spell {0}]", base1);
                 case 387:
-                    return String.Format("Cast if Cured: [Spell {0}]", value);
+                    return String.Format("Cast if Cured: [Spell {0}]", base1);
                 case 392:
                     return FormatCount("Healing", value);
                 case 396:
@@ -1490,7 +1483,7 @@ namespace Everquest
                     // e.g. Drains up to 401 mana from your target. For each point of mana drained, the target will take damage.
                     return String.Format("Inflict Damage from Mana Tap ({0})", value);
                 case 406:
-                    return String.Format("Cast if Attacked: [Spell {0}]", value);
+                    return String.Format("Cast if Attacked: [Spell {0}]", base1);
                 case 408:
                     // how is this different than 214?
                     return FormatPercent("Max HP", -value);
@@ -1499,26 +1492,24 @@ namespace Everquest
                 case 413:
                     return FormatPercent("Spell Effectiveness", value);
                 case 414:
-                    return String.Format("Limit Skill: {0}", TrimEnum((SpellSkill)value));
+                    return String.Format("Limit Skill: {0}", TrimEnum((SpellSkill)base1));
                 case 418:
                     // how is this different than 220 bonus? 
-                    return FormatCount(TrimEnum((SpellSkill)value2) + " Damage Bonus", value);
-                case 419:
+                    return FormatCount(TrimEnum((SpellSkill)base2) + " Damage Bonus", value);
+                case 1419:
                     // this is used for potions. how is it different than 85?
-                    // value2 looks like a calc value
-                    return String.Format("Add Proc: [Spell {0}]", value);
-                case 424:
-                    // repeating?
-                    return String.Format("Knockback for {0} and up for {1}", value, value2);
+                    return String.Format("Add Proc: [Spell {0}]", base1);
+                case 424:                    
+                    return String.Format("Knockback for {0} and up for {1}", value, base2);
                 case 427:
-                    return String.Format("Cast on Unknown Condition: [Spell {0}]", value);
+                    return String.Format("Cast on Unknown Condition: [Spell {0}]", base1);
                 //case 428:
                 //    return String.Format("Limit Skill: {0}", TrimEnum((SpellSkill)value));
 
 
             }
 
-            return String.Format("Unknown Effect: {0} Val={1} Val2={2} Max={3} Calc={4}", type, value, value2, max, calc);
+            return String.Format("Unknown Effect: {0} Base1={1} Base2={2} Max={3} Calc={4} Value={5}", type, base1, base2, max, calc, value);
         }
 
         static float ParseFloat(string s)
