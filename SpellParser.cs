@@ -1159,7 +1159,7 @@ namespace Everquest
                 case 131:
                     return FormatPercent("Chance of Using Reagent", -value);
                 case 132:
-                    return String.Format("{0} Spell Mana Cost {1}% to {2}%", value < 0 ? "Increase" : "Decrease", Math.Abs(value), Math.Abs(base2));
+                    return String.Format("{0} Spell Mana Cost by {1}% to {2}%", value < 0 ? "Increase" : "Decrease", Math.Abs(value), Math.Abs(base2));
                 case 134:
                     return String.Format("Limit Max Level: {0} (lose {1}% per level)", value, base2);
                 case 135:
@@ -1485,8 +1485,12 @@ namespace Everquest
                 case 406:
                     return String.Format("Cast if Attacked: [Spell {0}]", base1);
                 case 408:
-                    // how is this different than 214?
-                    return FormatPercent("Max HP", -value);
+                    // unlike 214, this does not show a lower max HP
+                    return String.Format("Limit HP to Lowest of {0}% or {1} ", base1, base2);
+                case 409:
+                    return String.Format("Limit Mana to Lowest of {0}% or {1} ", base1, base2);
+                case 410:
+                    return String.Format("Limit End to Lowest of {0}% or {1} ", base1, base2);
                 case 411:
                     return String.Format("Limit Class: {0}", (SpellClassesMask)(value >> 1));
                 case 413:
