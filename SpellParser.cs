@@ -211,9 +211,9 @@ namespace Everquest
 
     public enum SpellTargetRestrict
     {
-        Animal_Humanoid = 100,
+        Animal_or_Humanoid = 100,
         Dragon = 101,
-        Animal_Insect = 102,
+        Animal_or_Insect = 102,
         Animal = 104,
         Plant = 105,
         Giant = 106,
@@ -223,7 +223,7 @@ namespace Everquest
         Kobald = 113,
         Shade = 114,
         Drakkin = 115,
-        Animal_Plant = 117,
+        Animal_or_Plant = 117,
         Summoned = 118,
         Fire_Pet = 119,
         Undead = 120,
@@ -238,12 +238,12 @@ namespace Everquest
         Not_In_Combat = 216,
         HP_Below_35_Percent = 250,
         Chain_Plate_Classes = 304,
-        HP_Between_55_65_Percent = 404,
-        HP_Between_45_55_Percent = 403,
-        HP_Between_35_45_Percent = 402,
-        HP_Between_25_35_Percent = 401,
-        HP_Between_1_25_Percent = 400,
-        HP_Between_1_35_Percent = 507, // between or below?
+        HP_Between_55_and_65_Percent = 404,
+        HP_Between_45_and_55_Percent = 403,
+        HP_Between_35_and_45_Percent = 402,
+        HP_Between_25_and_35_Percent = 401,
+        HP_Between_1_and_25_Percent = 400,
+        HP_Between_1_and_35_Percent = 507, // between or below?
         Undead2 = 603, 
         Undead3 = 608,
         Summoned2 = 624
@@ -402,7 +402,7 @@ namespace Everquest
             if (Target == SpellTarget.Directional_AE)
                 result.Add("Target: " + FormatEnum(Target) + " (" + StartDegree + " to " + EndDegree + " Degrees)");
             else if (TargetRestrict > 0)
-                result.Add("Target: " + FormatEnum(Target) + " (" + TargetRestrict + ")");
+                result.Add("Target: " + FormatEnum(Target) + " (" + FormatEnum(TargetRestrict) + ")");
             else
                 result.Add("Target: " + FormatEnum(Target));
 
@@ -585,7 +585,7 @@ namespace Everquest
             spell.MaxTargets = ParseInt(fields[218]);
 
             
-            //spell.Unknown = ParseInt(fields[200]);
+            //spell.Unknown = ParseInt(fields[211]);
 
             // each class can have a different level to cast the spell at
             spell.Classes = String.Empty;
@@ -1227,7 +1227,7 @@ namespace Everquest
                         value = max;
                     return Spell.FormatPercent("Chance to Reflect Spell", value);
                 case 159:
-                    return Spell.FormatCount("All Stats", value);
+                    return Spell.FormatCount("Base Stats", value);
                 case 160:
                     return String.Format("Intoxicate if Tolerance < {0}", value);
                 case 161:
@@ -1383,6 +1383,7 @@ namespace Everquest
                 case 300:
                     return "Doppelganger";
                 case 303:
+                    // this seems to be a total. so if it affects a dot, it should be divided by number of ticks
                     return Spell.FormatCount("Spell Damage", value);
                 case 305:
                     return Spell.FormatCount("Damage Shield Taken", -Math.Abs(value));
@@ -1471,6 +1472,10 @@ namespace Everquest
                     return Spell.FormatPercent("Critical DoT Damage", value - 100);
                 case 377:
                     return String.Format("Cast if Not Cured: [Spell {0}]", base1);
+                case 379:
+                    if (base2 > 0)
+                        return String.Format("Knockback for {0} in Direction: {1}", value, base2);
+                    return String.Format("Knockback for {0}", value);
                 case 380:
                     return String.Format("Knockback for {0} and up for {1}", value, base2);
                 case 381:
@@ -1498,6 +1503,9 @@ namespace Everquest
                 case 401:
                     // e.g. Drains up to 401 mana from your target. For each point of mana drained, the target will take damage.
                     return String.Format("Inflict Damage from Mana Tap ({0})", value);
+                case 402:
+                    // e.g. Consumes up to #6 endurance and inflicts damage for each point of endurance consumed.
+                    return String.Format("Inflict Damage from Endurance Tap ({0})", value);
                 case 406:
                     return String.Format("Cast if Attacked: [Spell {0}]", base1);
                 case 408:
