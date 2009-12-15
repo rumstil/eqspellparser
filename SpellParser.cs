@@ -1317,7 +1317,7 @@ namespace Everquest
                 case 200:
                     return Spell.FormatPercent("Proc Rate", value);
                 case 201:
-                    return String.Format("Add Range Proc: [Spell {0}] with {1}% Rate Mod", value, base2);
+                    return String.Format("Add Range Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
                 case 202:
                     return "Project Illusion";
                 case 203:
@@ -1337,7 +1337,7 @@ namespace Everquest
                 case 227:
                     return String.Format("Reduce {0} Timer by {1}s", Spell.FormatEnum((SpellSkill)base2), value);
                 case 232:
-                    return String.Format("Divine Save: [Spell {0}] Chance: {1}%", base2, value);
+                    return String.Format("Divine Save: [Spell {0}] Chance: {1}%", base2, base1);
                 case 233:
                     return Spell.FormatPercent("Food Consumption", -value);
                 case 243:
@@ -1417,15 +1417,15 @@ namespace Everquest
                     return Spell.FormatPercent("Critical Damage for " + Spell.FormatEnum((SpellSkill)base2), value);
                 case 333:
                     // so far this is only used on spells that have a rune
-                    return String.Format("Cast on Fade/Cancel: [Spell {0}]", value);
+                    return String.Format("Cast on Fade/Cancel: [Spell {0}]", base1);
                 case 335:
                     return "Prevent Matching Spells From Landing";
                 case 337:
                     return Spell.FormatPercent("Experience Gain", value);
                 case 339:
-                    return String.Format("Add Spell Proc: [Spell {0}] Chance: {1}%", base2, value);
+                    return String.Format("Add Spell Proc: [Spell {0}] Chance: {1}%", base2, base1);
                 case 340:
-                    return String.Format("Cast: [Spell {0}] Chance: {1}%", base2, value);
+                    return String.Format("Cast: [Spell {0}] Chance: {1}%", base2, base1);
                 case 342:
                     return "Prevent Fleeing";
                 case 343:
@@ -1444,15 +1444,15 @@ namespace Everquest
                 case 358:
                     return Spell.FormatCount("Current Mana", value);
                 case 360:
-                    return String.Format("Add Killshot Proc: [Spell {0}] Chance: {1}%", base2, value);
+                    return String.Format("Add Killshot Proc: [Spell {0}] Chance: {1}%", base2, base1);
                 case 361:
-                    return String.Format("Cast on Death: [Spell {0}] Chance: {1}%", base2, value);
+                    return String.Format("Cast on Death: [Spell {0}] Chance: {1}%", base2, base1);
                 case 365:
-                    return String.Format("Cast on Killshot: [Spell {0}] Chance: {1}%", base2, value);
+                    return String.Format("Cast on Killshot: [Spell {0}] Chance: {1}%", base2, base1);
                 case 367:
                     return String.Format("Transform Body Type ({0})", value);
                 case 368:
-                    return String.Format("Faction {0} Modifier: {1}", value, base2);
+                    return String.Format("Faction {0} Modifier: {1}", base1, base2);
                 case 369:
                     return Spell.FormatCount("Corruption Counter", value);
                 case 370:
@@ -1465,8 +1465,8 @@ namespace Everquest
                     // this appears to be used when a spell is removed via any method: times out, cured, used up (i.e. a rune)
                     return String.Format("Cast on Fade: [Spell {0}]", base1);
                 case 374:       
-                    // i think this is used when several effects need to be placed in a slot. 
-                    // i.e. multiple spells are needed but a single cast is required                    
+                    if (base1 < 100)
+                        return String.Format("Cast: [Spell {0}] Chance: {1}%", base2, base1);
                     return String.Format("Cast: [Spell {0}]", base2);
                 case 375:
                     return Spell.FormatPercent("Critical DoT Damage", value - 100);
@@ -1483,7 +1483,7 @@ namespace Everquest
                 case 382:                    
                     return String.Format("Inhibit Buff Effect: {0}", Spell.FormatEnum((SpellEffect)base2));
                 case 383:
-                    return String.Format("Cast on Match: [Spell {0}] Chance: {1}%", base2, value);
+                    return String.Format("Cast on Match: [Spell {0}] Chance: {1}%", base2, base1);
                 case 385:
                     return String.Format("Limit Spells: {1}[Group {0}]", Math.Abs(value), value >= 0 ? "" : "Exclude ");
                 case 386:
@@ -1510,11 +1510,11 @@ namespace Everquest
                     return String.Format("Cast if Attacked: [Spell {0}]", base1);
                 case 408:
                     // unlike 214, this does not show a lower max HP
-                    return String.Format("Limit HP to Lowest of {0}% or {1} ", base1, base2);
+                    return String.Format("Cap HP to Lowest of {0}% or {1} ", base1, base2);
                 case 409:
-                    return String.Format("Limit Mana to Lowest of {0}% or {1} ", base1, base2);
+                    return String.Format("Cap Mana to Lowest of {0}% or {1} ", base1, base2);
                 case 410:
-                    return String.Format("Limit End to Lowest of {0}% or {1} ", base1, base2);
+                    return String.Format("Cap End to Lowest of {0}% or {1} ", base1, base2);
                 case 411:
                     return String.Format("Limit Class: {0}", (SpellClassesMask)(value >> 1));
                 case 413:
