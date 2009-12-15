@@ -2,7 +2,10 @@
 REQUIREMENTS
 ============
 You need to have .NET 3.5 installed to run this application. 
-If you run the app and get the error: "This application failed to initialize properly", then you don't have the .NET framework installed.
+If you run the program and get the error: "This application failed to initialize properly", then you don't have the .NET framework installed.
+
+You can download .NET 3.5 from here:
+
 http://www.microsoft.com/downloads/details.aspx?FamilyId=333325FD-AE52-4E35-B531-508D977D32A6&displaylang=en
 
 
