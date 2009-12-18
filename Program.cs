@@ -48,7 +48,6 @@ namespace parser
 
             if (args.Length == 1 && args[0] == "all")
                 results = list;
-                //results = list.Where(x => x.Unknown > 0).OrderBy(x => x.Unknown);
                 //results = list.Where(x => (int)x.TargetRestrict > 0).OrderBy(x => x.TargetRestrict);
 
             // search by effect type
@@ -58,6 +57,10 @@ namespace parser
             // search by id
             if (args.Length == 2 && args[0] == "id")
                 results = list.Where(x => x.ID.ToString() == args[1]);
+
+            // search by group
+            if (args.Length == 2 && args[0] == "group")
+                results = list.Where(x => x.GroupID.ToString() == args[1]);
 
             // search by name
             if (args.Length == 2 && args[0] == "name")
@@ -73,6 +76,10 @@ namespace parser
             // search by target
             if (args.Length == 2 && args[0] == "target")
                 results = list.Where(x => x.Target.ToString().ToLower() == args[1].ToLower());
+
+            // debugging: search the unknown field 
+            if (args.Length == 1 && args[0] == "unknown")
+                results = list.Where(x => x.Unknown > 0).OrderBy(x => x.Unknown);
 
             return results;
         }
