@@ -1177,27 +1177,27 @@ namespace Everquest
                 case 132:
                     return String.Format("{0} Spell Mana Cost by {1}% to {2}%", value < 0 ? "Increase" : "Decrease", Math.Abs(value), Math.Abs(base2));
                 case 134:
-                    return String.Format("Limit Max Level: {0} (lose {1}% per level)", value, base2);
+                    return String.Format("Limit Max Level: {0} (lose {1}% per level)", base1, base2);
                 case 135:
                     return String.Format("Limit Resist: {0}", (SpellResist)value);
                 case 136:
-                    return String.Format("Limit Target: {1}{0}", Spell.FormatEnum((SpellTarget)Math.Abs(value)), value >= 0 ? "" : "Exclude ");
+                    return String.Format("Limit Target: {1}{0}", Spell.FormatEnum((SpellTarget)Math.Abs(base1)), base1 >= 0 ? "" : "Exclude ");
                 case 137:
-                    return String.Format("Limit Effect: {1}{0}", Spell.FormatEnum((SpellEffect)Math.Abs(value)), value >= 0 ? "" : "Exclude ");
+                    return String.Format("Limit Effect: {1}{0}", Spell.FormatEnum((SpellEffect)Math.Abs(base1)), base1 >= 0 ? "" : "Exclude ");
                 case 138:
-                    return String.Format("Limit Type: {0}", value == 0 ? "Detrimental" : "Beneficial");
+                    return String.Format("Limit Type: {0}", base1 == 0 ? "Detrimental" : "Beneficial");
                 case 139:
-                    return String.Format("Limit Spell: {1}[Spell {0}]", Math.Abs(value), value >= 0 ? "" : "Exclude ");
+                    return String.Format("Limit Spell: {1}[Spell {0}]", Math.Abs(base1), base1 >= 0 ? "" : "Exclude ");
                 case 140:
-                    return String.Format("Limit Min Duration: {0}s", value * 6);
+                    return String.Format("Limit Min Duration: {0}s", base1 * 6);
                 case 141:
                     return String.Format("Limit Max Duration: {0}s", 0); 
                 case 142:
-                    return String.Format("Limit Min Level: {0}", value);
+                    return String.Format("Limit Min Level: {0}", base1);
                 case 143:
-                    return String.Format("Limit Min Casting Time: {0}s", value / 1000f);
+                    return String.Format("Limit Min Casting Time: {0}s", base1 / 1000f);
                 case 144:
-                    return String.Format("Limit Max Casting Time: {0}s", value / 1000f);
+                    return String.Format("Limit Max Casting Time: {0}s", base1 / 1000f);
                 case 145:
                     return String.Format("Teleport to {0}", spell.Extra);
                 case 147:
@@ -1432,7 +1432,7 @@ namespace Everquest
                     // is this persistent or instant?
                     return String.Format("Interrupt Spell Chance: {0}%", value); 
                 case 348:
-                    return String.Format("Limit Min Mana Cost: {0}", value); 
+                    return String.Format("Limit Min Mana Cost: {0}", base1); 
                 case 350:
                     return String.Format("Mana Burn: {0}", value); 
                 case 351:
@@ -1500,27 +1500,32 @@ namespace Everquest
                     return String.Format("Increase Duration by {0}s", value / 1000);
                 case 399:
                     return Spell.FormatPercent("Chance to Twincast", value);
+                case 400:
+                    // e.g. Channels the power of sunlight, consuming up to #1 mana to heal your group.
+                    return String.Format("Consume up to {0} of Target's Mana to Heal Group (1:{1} Ratio)", value, base2 / 10f);
                 case 401:
                     // e.g. Drains up to 401 mana from your target. For each point of mana drained, the target will take damage.
-                    return String.Format("Inflict Damage from Mana Tap ({0})", value);
+                    return String.Format("Consume up to {0} of Target's Mana to Inflict Damage (1:{1} Ratio)", value, base2 / -10f);
                 case 402:
                     // e.g. Consumes up to #6 endurance and inflicts damage for each point of endurance consumed.
-                    return String.Format("Inflict Damage from Endurance Tap ({0})", value);
+                    return String.Format("Consume up to {0} of Target's Endurance to Inflict Damage (1:{1} Ratio)", value, base2 / -10f);
+                case 404:
+                    return String.Format("Limit Skill: {1}{0}", Spell.FormatEnum((SpellSkill)Math.Abs(base1)), base1 >= 0 ? "" : "Exclude ");
                 case 406:
                     return String.Format("Cast if Attacked: [Spell {0}]", base1);
                 case 408:
                     // unlike 214, this does not show a lower max HP
-                    return String.Format("Cap HP to Lowest of {0}% or {1} ", base1, base2);
+                    return String.Format("Cap HP at Lowest of {0}% or {1} ", base1, base2);
                 case 409:
-                    return String.Format("Cap Mana to Lowest of {0}% or {1} ", base1, base2);
+                    return String.Format("Cap Mana at Lowest of {0}% or {1} ", base1, base2);
                 case 410:
-                    return String.Format("Cap End to Lowest of {0}% or {1} ", base1, base2);
+                    return String.Format("Cap Endurance at Lowest of {0}% or {1} ", base1, base2);
                 case 411:
                     return String.Format("Limit Class: {0}", (SpellClassesMask)(value >> 1));
                 case 413:
                     return Spell.FormatPercent("Spell Effectiveness", value);
                 case 414:
-                    return String.Format("Limit Skill: {0}", Spell.FormatEnum((SpellSkill)base1));
+                    return String.Format("Limit Bard Skill: {0}", Spell.FormatEnum((SpellSkill)base1));
                 case 418:
                     // how is this different than 220 bonus? 
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", value);
