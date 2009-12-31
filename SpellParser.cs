@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
-using System.Diagnostics;
+using System.Text;
+using System.Text.RegularExpressions;
 
 
 
@@ -286,7 +286,8 @@ namespace Everquest
         Golem = 374, // has subtypes
         Pyrilen = 411,
         Goblin = 433, // has subtypes
-        Basilisk = 436,  
+        Basilisk = 436,
+        Werewolf = 454,
         Gnomework = 457,
         Orc = 458,
         Stone_Gargoyle = 464,
@@ -368,6 +369,14 @@ namespace Everquest
 
         //public string Focus;        
 
+        /// Effects can reference other spells or items via square bracket notation. e.g.
+        /// [Spell 123]    is a reference to spell 123
+        /// [Group 123]    is a reference to spell group 123
+        /// [Item 123]     is a reference to item 123
+        public static Regex SpellRef = new Regex(@"\[Spell\s(\d+)\]");
+        public static Regex GroupRef = new Regex(@"\[Group\s(\d+)\]");
+        public static Regex ItemRef = new Regex(@"\[Item\s(\d+)\]");
+
         public Spell()
         {
             Slots = new string[12];
@@ -375,6 +384,13 @@ namespace Everquest
             Levels = new int[16];
             RegID = new int[4];
             RegCount = new int[4];
+        }
+
+        public override string ToString()
+        {
+            if (GroupID <= 0)
+                return String.Format("[{0}] {1}", ID, Name);
+            return String.Format("[{0}/{2}] {1}", ID, Name, GroupID);
         }
 
         /// <summary>
@@ -455,13 +471,6 @@ namespace Everquest
                     result.Add(String.Format("{0}: {1}", i + 1, Slots[i]));
 
             return result.ToArray();
-        }
-
-        public override string ToString()
-        {
-            if (GroupID <= 0)
-                return String.Format("[{0}] {1}", ID, Name);
-            return String.Format("[{0}/{2}] {1}", ID, Name, GroupID);
         }
 
         static public string FormatEnum(object o)
@@ -628,6 +637,7 @@ namespace Everquest
             {
                 spell.Range = 0;
                 spell.MaxTargets = 0;
+                spell.Hate = 0; // a bunch of self only AAs have 1 hate
             }
 
             if (spell.Target == SpellTarget.Single)
@@ -882,10 +892,6 @@ namespace Everquest
 
         /// <summary>
         /// Parses a spell effect slot. Each slot has a series of attributes associated with it.
-        /// Effects can reference other spells or items via square bracket notation. e.g.
-        /// [Spell 123]    is a reference to spell 123
-        /// [Group 123]    is a reference to spell group 123
-        /// [Item 123]     is a reference to item 123
         /// </summary>
         /// <returns>A description of the slot effect or a null if the slot has no effect.</returns>
         static string ParseSlot(Spell spell, int type, int base1, int base2, int max, int calc)
@@ -922,7 +928,7 @@ namespace Everquest
                 case 0:
                     // delta hp for heal/nuke, repeating if with duration
                     if (base2 > 0)
-                        return Spell.FormatCount("Current HP", value) + repeating + variable + " (If " + (SpellTargetRestrict)base2 + ")";
+                        return Spell.FormatCount("Current HP", value) + repeating + variable + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
                     return Spell.FormatCount("Current HP", value) + repeating + variable;
                 case 1:
                     return Spell.FormatCount("AC", (int)(value / (10f / 3f))); 
@@ -1072,7 +1078,7 @@ namespace Everquest
                 case 79:
                     // delta hp for heal/nuke, non repeating
                     if (base2 > 0)
-                        return Spell.FormatCount("Current HP", value) + " (If " + (SpellTargetRestrict)base2 + ")";
+                        return Spell.FormatCount("Current HP", value) + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
                     return Spell.FormatCount("Current HP", value);                    
                 case 81:
                     return String.Format("Resurrection: {0}%", value); 
@@ -1117,7 +1123,7 @@ namespace Everquest
                 case 100:
                     // heal over time
                     if (base2 > 0)
-                        return Spell.FormatCount("Current HP", value) + repeating + variable + " (If " + (SpellTargetRestrict)base2 + ")";
+                        return Spell.FormatCount("Current HP", value) + repeating + variable + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
                    return Spell.FormatCount("Current HP", value) + repeating + variable;
                 case 101:
                     // only castable via Donal's BP. creates a buf that blocks recasting
@@ -1150,9 +1156,8 @@ namespace Everquest
                     return Spell.FormatCount("Curse Counter", value);
                 case 119:
                     return Spell.FormatPercent("Melee Haste v3", value);
-                case 120:
-                    // works like healing focus. no idea why it is a separate effect
-                    return Spell.FormatPercent("Healing Effectiveness", value);
+                case 120:                    
+                    return Spell.FormatPercent("Healing Taken", value);
                 case 121:
                     // damages the target whenever it hits something
                     return Spell.FormatCount("Reverse Damage Shield", -value);
@@ -1363,8 +1368,8 @@ namespace Everquest
                 case 289: 
                     // how is this different than 373? if base2 > 0, what is base1?                                       
                     return String.Format("Cast on Fade: [Spell {0}]", (base2 > 0) ? base2 : base1);
-                case 291:
-                    return String.Format("Purify ({0})", value);
+                case 291:                    
+                    return String.Format("Dispell Detrimental ({0})", value);
                 case 294:
                     if (value > 0 && base2 > 100)
                         return Spell.FormatPercent("Chance to Critical Nuke", value) + " and " + Spell.FormatPercent("Critical Nuke Damage", base2 - 100);
@@ -1425,7 +1430,9 @@ namespace Everquest
                 case 339:
                     return String.Format("Add Spell Proc: [Spell {0}] Chance: {1}%", base2, base1);
                 case 340:
-                    return String.Format("Cast: [Spell {0}] Chance: {1}%", base2, base1);
+                    if (base1 < 100)
+                        return String.Format("Cast: [Spell {0}] Chance: {1}%", base2, base1);
+                    return String.Format("Cast: [Spell {0}]", base2);
                 case 342:
                     return "Prevent Fleeing";
                 case 343:
