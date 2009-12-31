@@ -287,7 +287,6 @@ namespace Everquest
         Pyrilen = 411,
         Goblin = 433, // has subtypes
         Basilisk = 436,
-        Werewolf = 454,
         Gnomework = 457,
         Orc = 458,
         Stone_Gargoyle = 464,
@@ -990,7 +989,7 @@ namespace Everquest
                         return "Gate to Secondary Bind";
                     return "Gate";
                 case 27:
-                    return String.Format("Dispell ({0})", value);
+                    return String.Format("Dispel ({0})", value);
                 case 28:
                     return "Invisible to Undead (Unstable)";
                 case 29:
@@ -1332,7 +1331,7 @@ namespace Everquest
                 case 206:
                     return "AE Taunt";
                 case 209:
-                    return String.Format("Dispell Beneficial ({0})", value);
+                    return String.Format("Dispel Beneficial ({0})", value);
                 case 214:
                     return Spell.FormatPercent("Max HP", value / 100);
                 case 216:
@@ -1369,7 +1368,7 @@ namespace Everquest
                     // how is this different than 373? if base2 > 0, what is base1?                                       
                     return String.Format("Cast on Fade: [Spell {0}]", (base2 > 0) ? base2 : base1);
                 case 291:                    
-                    return String.Format("Dispell Detrimental ({0})", value);
+                    return String.Format("Dispel Detrimental ({0})", value);
                 case 294:
                     if (value > 0 && base2 > 100)
                         return Spell.FormatPercent("Chance to Critical Nuke", value) + " and " + Spell.FormatPercent("Critical Nuke Damage", base2 - 100);
