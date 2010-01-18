@@ -349,9 +349,7 @@ namespace Everquest
 
         public int Unknown;
 
-        // This parser shows all spells as if they were cast by a level 85 player
-        const int MaxLevel = 85;
-     
+   
         /// Effects can reference other spells or items via square bracket notation. e.g.
         /// [Spell 123]    is a reference to spell 123
         /// [Group 123]    is a reference to spell group 123
@@ -457,8 +455,8 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Fix data fields that do not make sense in the current context
-        /// this may happen when spells are not properly zeroed by the EQ spell editor
+        /// Fix fields that do not make sense in the current context.
+        /// This may happen when spells are not properly zeroed by the EQ spell editor
         /// </summary>
         public void Clean()
         {
@@ -489,21 +487,22 @@ namespace Everquest
         /// <summary>
         /// Parse a spell effect slot. Each spell has 12 of effect slots with associated attributes.
         /// </summary>        
-        public string ParseSlot(int type, int base1, int base2, int max, int calc)
+        public string ParseSlot(int type, int base1, int base2, int max, int calc, int level)
         {
-            // type 254 is used for empty slots            
+            // type 254 indicates an unused slot
             if (type == 254)
                 return null;
 
-            // type 10 is sometimes used for empty slots
+            // type 10 sometimes indicates an unused slot
             if (type == 10 && (base1 <= 1 || base1 > 255))
                 return null;
 
             // all the the "increase by x" type effects use a scaled value based on the calc formula
             // the big switch below determines if an effect uses base1 or value
-            int value = CalcValue(calc, base1, max, Ticks);
+            int value = CalcValue(calc, base1, max, Ticks, level);
 
             // prepare a comment for effects that do not have a constant value
+            // only used by effects that modify hp
             string variable = "";
 
             if (calc == 123)
@@ -516,6 +515,7 @@ namespace Everquest
                 variable = " (growing/avg)";
 
             // prepare a comment for effects that repeat for each tick of the duration
+            // only used by effects that modify hp/mana 
             string repeating = (Ticks > 0) ? " per tick" : null;
 
             switch (type)
@@ -547,11 +547,7 @@ namespace Everquest
                     return Spell.FormatCount("CHA", value);
                 case 11:
                     // haste is given as a factor of 100. so 85 = 15% slow, 130 = 30% haste 
-                    if (value < 100)
-                        value = -100 + value;
-                    else
-                        value = value - 100;
-                    return Spell.FormatPercent("Melee Haste", value);
+                    return Spell.FormatPercent("Melee Haste", value - 100);
                 case 12:
                     return "Invisible (Unstable)";
                 case 13:
@@ -1132,7 +1128,7 @@ namespace Everquest
                     // how is this different than 220 bonus? 
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", value);
                 case 419:
-                    // this is used for potions. how is it different than 85?
+                    // this is used for potions. how is it different than 85? maybe proc rate?
                     return String.Format("Add Proc: [Spell {0}]", base1);
                 case 424:
                     return String.Format("Knockback for {0} and up for {1}", value, base2);
@@ -1150,11 +1146,8 @@ namespace Everquest
         /// Parse a spell duration formula.
         /// </summary>
         /// <returns>Numbers of ticks (6 second units)</returns>        
-        static public int CalcDuration(int calc, int max)
+        static public int CalcDuration(int calc, int max, int level)
         {
-            // show scaled spells at the max level strength
-            int level = MaxLevel;
-
             int value = 0;
 
             switch (calc)
@@ -1233,17 +1226,14 @@ namespace Everquest
         /// <summary>
         /// Parse an effect slot value formula.
         /// </summary>
-        static public int CalcValue(int calc, int value, int max, int duration)
+        static public int CalcValue(int calc, int value, int max, int duration, int level)
         {
             // the default calculation (100) leaves the base value as is            
             if (calc == 0 || calc == 100)
                 return value;
 
-            // show scaled spells at the max level strength
-            int level = MaxLevel;
-
             // show decaying/growing spells at their avg strength
-            int ticks = duration / 2;
+            int tick = duration / 2;
 
             int change = 0;
 
@@ -1265,10 +1255,10 @@ namespace Everquest
                     change = level * 4;
                     break;
                 case 107:
-                    change = -1 * ticks;
+                    change = -1 * tick;
                     break;
                 case 108:
-                    change = -2 * ticks;
+                    change = -2 * tick;
                     break;
                 case 109:
                     change = level / 4;
@@ -1304,13 +1294,13 @@ namespace Everquest
                     change = level / 8;
                     break;
                 case 120:
-                    change = -5 * ticks;
+                    change = -5 * tick;
                     break;
                 case 121:
                     change = level / 3;
                     break;
                 case 122:
-                    change = -12 * ticks;
+                    change = -12 * tick;
                     break;
                 case 123:
                     // random in range
@@ -1353,19 +1343,18 @@ namespace Everquest
                     if (level > 30) change = 3 * (level - 30) / 2;
                     break;
 
-                default:
-                    // TODO: future calcs may be added in the < 1000 range.
+                default:                    
                     if (calc > 0 && calc < 1000)
                         change = level * calc;
 
-                    // variable over duration
+                    // 1000..1999 variable by tick
                     // e.g. splort (growing): Current_HP Unknown Calc: Val=1 Val2=0 Max=0 Calc=1035
-                    // 34 - 69 - 104 - 139 - 174 - 209 - 244 - 279 - 314 - 349 - 384 - 419 - 454 - 489 - 524 - 559 - 594 - 629 - 664 - 699 - 699 
+                    //      34 - 69 - 104 - 139 - 174 - 209 - 244 - 279 - 314 - 349 - 384 - 419 - 454 - 489 - 524 - 559 - 594 - 629 - 664 - 699 - 699 
                     // e.g. venonscale (decaying): Current_HP Unknown Calc: Val=-822 Val2=0 Max=822 Calc=1018
                     if (calc >= 1000 && calc < 2000)
-                        change = ticks * (calc - 1000) * -1;
+                        change = tick * (calc - 1000) * -1;
 
-                    // level based calcs
+                    // 2000..2999 variable by level
                     if (calc >= 2000)
                         change = level * (calc - 2000);
                     break;
@@ -1416,6 +1405,9 @@ namespace Everquest
 
     public static class SpellParser
     {
+        // This parser shows all spells as if they were cast by a level 85 player
+        public const int MaxLevel = 85;
+
         /// <summary>
         /// Load spell list from the comma delimitted EQ spell definition files.
         /// </summary>
@@ -1463,7 +1455,7 @@ namespace Everquest
             spell.Extra = fields[3];
             //spell.LandOnSelf = fields[6];
             //spell.LandOnOther = fields[7];
-            spell.Ticks = Spell.CalcDuration(ParseInt(fields[16]), ParseInt(fields[17]));
+            spell.Ticks = Spell.CalcDuration(ParseInt(fields[16]), ParseInt(fields[17]), MaxLevel);
             spell.Mana = ParseInt(fields[19]);             
 
             spell.Range = ParseInt(fields[9]);
@@ -1524,7 +1516,7 @@ namespace Everquest
                 int value2 = ParseInt(fields[32 + i]);
 
                 spell.SlotEffects[i] = type;
-                spell.Slots[i] = spell.ParseSlot(type, value, value2, max, calc);
+                spell.Slots[i] = spell.ParseSlot(type, value, value2, max, calc, MaxLevel);
             }
 
             // some debug stuff
