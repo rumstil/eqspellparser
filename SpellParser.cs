@@ -83,6 +83,7 @@ namespace Everquest
         Absorb_Hits = 163,
         Hate_Repeating = 192,
         Taunt = 199,
+        Spell_Damage_Bonus = 286,
         XP_Gain = 337,
         Add_Spell_Proc = 339,
         Mana_Burn = 350,
@@ -486,6 +487,8 @@ namespace Everquest
 
         /// <summary>
         /// Parse a spell effect slot. Each spell has 12 of effect slots with associated attributes.
+        /// Base spell attributes like ID, Skill, Ticks are referenced and should be set before
+        /// calling this function.
         /// </summary>        
         public string ParseSlot(int type, int base1, int base2, int max, int calc, int level)
         {
@@ -497,12 +500,12 @@ namespace Everquest
             if (type == 10 && (base1 <= 1 || base1 > 255))
                 return null;
 
-            // all the the "increase by x" type effects use a scaled value based on the calc formula
-            // the big switch below determines if an effect uses base1 or value
-            int value = CalcValue(calc, base1, max, Ticks, level);
+            // the "increase by x" type effects use a scaled value based on the calc formula
+            // show decaying/growing spells at their avg strength (i.e. ticks / 2)
+            int value = CalcValue(calc, base1, max, Ticks / 2, level);
 
             // prepare a comment for effects that do not have a constant value
-            // only used by effects that modify hp
+            // this is only used by effects that modify hp
             string variable = "";
 
             if (calc == 123)
@@ -515,7 +518,7 @@ namespace Everquest
                 variable = " (growing/avg)";
 
             // prepare a comment for effects that repeat for each tick of the duration
-            // only used by effects that modify hp/mana 
+            // this is only used by effects that modify hp/mana 
             string repeating = (Ticks > 0) ? " per tick" : null;
 
             switch (type)
@@ -950,10 +953,9 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Critical Heal", value);
                 case 279:
                     return Spell.FormatPercent("Chance to Flurry", value);
-                case 286:
-                    // similar to damage focus, but adds a raw amount
-                    // how is this different than 303?
-                    return Spell.FormatCount("Spell Damage", value);
+                case 286:                    
+                    // amount is added after crits. (after focus too?)
+                    return Spell.FormatCount("Spell Damage Bonus", value);
                 case 287:
                     return String.Format("Increase Duration by {0}s", value * 6);
                 case 289:
@@ -1226,14 +1228,11 @@ namespace Everquest
         /// <summary>
         /// Parse an effect slot value formula.
         /// </summary>
-        static public int CalcValue(int calc, int value, int max, int duration, int level)
+        static public int CalcValue(int calc, int value, int max, int tick, int level)
         {
             // the default calculation (100) leaves the base value as is            
             if (calc == 0 || calc == 100)
                 return value;
-
-            // show decaying/growing spells at their avg strength
-            int tick = duration / 2;
 
             int change = 0;
 
