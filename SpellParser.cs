@@ -208,7 +208,8 @@ namespace Everquest
         Frontal_AE = 44, 
         Single_In_Group = 43,
         Target_Ring_AE = 45,
-        Targets_Target = 46
+        Targets_Target = 46,
+        Pet_Owner = 47
     }
 
     public enum SpellTargetRestrict
@@ -304,7 +305,7 @@ namespace Everquest
         Hideous_Harpy = 527
     }
 
-    public class Spell
+    public sealed class Spell
     {
         public int ID;
         public int GroupID;
@@ -347,6 +348,11 @@ namespace Everquest
         public int StartDegree;
         public int EndDegree;
         public bool MGB;
+        //public int TotalHate;
+        public int TotalNuke;
+        //public int TotalDoT;
+        //public int TotalHeal;
+        //public int TotalHoT;
 
         public int Unknown;
 
@@ -487,7 +493,7 @@ namespace Everquest
 
         /// <summary>
         /// Parse a spell effect slot. Each spell has 12 of effect slots with associated attributes.
-        /// Base spell attributes like ID, Skill, Ticks are referenced and should be set before
+        /// Base spell attributes like ID, Skill, Extra, Ticks are referenced and should be set before
         /// calling this function.
         /// </summary>        
         public string ParseSlot(int type, int base1, int base2, int max, int calc, int level)
@@ -500,8 +506,9 @@ namespace Everquest
             if (type == 10 && (base1 <= 1 || base1 > 255))
                 return null;
 
-            // the "increase by x" type effects use a scaled value based on the calc formula
-            // show decaying/growing spells at their avg strength (i.e. ticks / 2)
+            // many spells use a scaled value based on either current tick or caster level
+            // the switch(type) below determines if an effect uses the scaled value, or the original base1 value
+            // decaying/growing spells are shown at their average strength (i.e. ticks / 2)
             int value = CalcValue(calc, base1, max, Ticks / 2, level);
 
             // prepare a comment for effects that do not have a constant value
@@ -518,7 +525,7 @@ namespace Everquest
                 variable = " (growing/avg)";
 
             // prepare a comment for effects that repeat for each tick of the duration
-            // this is only used by effects that modify hp/mana 
+            // this is only used by effects that modify hp/mana/end/hate 
             string repeating = (Ticks > 0) ? " per tick" : null;
 
             switch (type)
@@ -549,7 +556,7 @@ namespace Everquest
                 case 10:
                     return Spell.FormatCount("CHA", value);
                 case 11:
-                    // haste is given as a factor of 100. so 85 = 15% slow, 130 = 30% haste 
+                    // base attack speed is 100. so 85 = 15% slow, 130 = 30% haste 
                     return Spell.FormatPercent("Melee Haste", value - 100);
                 case 12:
                     return "Invisible (Unstable)";
@@ -953,8 +960,9 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Critical Heal", value);
                 case 279:
                     return Spell.FormatPercent("Chance to Flurry", value);
-                case 286:                    
-                    // amount is added after crits. (after focus too?)
+                case 286:
+                    // this seems to be a total. so if it affects a dot, it should be divided by number of ticks
+                    // amount is added after crits. after focus too?
                     return Spell.FormatCount("Spell Damage Bonus", value);
                 case 287:
                     return String.Format("Increase Duration by {0}s", value * 6);
@@ -1096,8 +1104,8 @@ namespace Everquest
                     // used on type 3 augments
                     return Spell.FormatCount("Healing", value);
                 case 398:
-                    // how is this different than 287?
-                    return String.Format("Increase Duration by {0}s", value / 1000);
+                    // for type 152 swarm pets
+                    return String.Format("Increase Pet Duration by {0}s", value / 1000);
                 case 399:
                     return Spell.FormatPercent("Chance to Twincast", value);
                 case 400:
@@ -1142,6 +1150,30 @@ namespace Everquest
             }
 
             return String.Format("Unknown Effect: {0} Base1={1} Base2={2} Max={3} Calc={4} Value={5}", type, base1, base2, max, calc, value);
+        }
+
+        /// <summary>
+        /// Keep a running sum of some important effects (nukes, heals, hate)
+        /// This will ignore effects on spells that autocast other spells. e.g. Summer's Mist
+        /// </summary>
+        public void SumSlot(int type, int base1, int base2, int max, int calc, int level)
+        {
+            int value = CalcValue(calc, base1, max, Ticks / 2, level);
+
+            switch (type)
+            {
+                case 0:
+                    if (value < 0 && Ticks == 0)
+                        TotalNuke += value;
+                    //if (value < 0 && Ticks > 0)
+                    //    TotalDoT += value * Ticks;
+                    break;
+                case 79:
+                    if (value < 0)
+                        TotalNuke += value;
+                    break;
+            } 
+
         }
 
         /// <summary>
@@ -1506,6 +1538,7 @@ namespace Everquest
             // 32..43 - slot 1..12 base_2 effect
             // 44..55 - slot 1..12 max effect
             // 70..81 - slot 1..12 calc forumla data
+            spell.TotalNuke = 0;
             for (int i = 0; i < spell.Slots.Length; i++)
             {
                 int type = ParseInt(fields[86 + i]);
@@ -1516,6 +1549,8 @@ namespace Everquest
 
                 spell.SlotEffects[i] = type;
                 spell.Slots[i] = spell.ParseSlot(type, value, value2, max, calc, MaxLevel);
+
+                spell.SumSlot(type, value, value2, max, calc, MaxLevel);
             }
 
             // some debug stuff
