@@ -21,10 +21,10 @@ namespace Everquest
     {
         WAR = 1, CLR, PAL, RNG, SHD, DRU, MNK, BRD, ROG, SHM, NEC, WIZ, MAG, ENC, BST, BER
     }
-    
+
     public enum SpellClassesLong
     {
-        Warrior = 1, Cleric, Paladin, Ranger, ShadowKnight, Druid, Monk, Bard, Rogue, Shaman, 
+        Warrior = 1, Cleric, Paladin, Ranger, ShadowKnight, Druid, Monk, Bard, Rogue, Shaman,
         Necro, Wizard, Mage, Enchanter, Beastlord, Berserker
     }
 
@@ -181,7 +181,7 @@ namespace Everquest
     }
 
     public enum SpellTarget
-    {     
+    {
         Line_of_Sight = 1,
         Caster_AE = 2,
         Caster_Group = 3,
@@ -205,7 +205,7 @@ namespace Everquest
         Nearby_Allies = 40,
         Target_Group = 41,
         Directional_AE = 42, // see degree fields
-        Frontal_AE = 44, 
+        Frontal_AE = 44,
         Single_In_Group = 43,
         Target_Ring_AE = 45,
         Targets_Target = 46,
@@ -247,7 +247,7 @@ namespace Everquest
         HP_Between_25_and_35_Percent = 401,
         HP_Between_1_and_25_Percent = 400,
         HP_Between_1_and_35_Percent = 507, // between or below?
-        Undead2 = 603, 
+        Undead2 = 603,
         Undead3 = 608,
         Summoned2 = 624
     }
@@ -275,13 +275,13 @@ namespace Everquest
         Gargoyle = 29,
         Wolf = 42,
         Bear = 43,
-        Imp = 46,        
+        Imp = 46,
         Elemental = 75, // has subtypes
         Scarecrow = 82,
         //Skeleton = 85,
         Iksar = 128,
         Kunark_Goblin = 137,
-        Tree = 143,        
+        Tree = 143,
         Iksar_Skeleton = 161,
         Guktan = 330,
         Scaled_Wolf = 356,
@@ -313,9 +313,10 @@ namespace Everquest
         public int Icon;
         public int Mana;
         public int Endurance;
+        public int EnduranceUpkeep;
         public int Ticks;
         public string[] Slots;
-        public int[] SlotEffects;        
+        public int[] SlotEffects;
         public int[] Levels;
         public string Classes;
         public SpellSkill Skill;
@@ -327,6 +328,7 @@ namespace Everquest
         public int Hate;
         public int Range;
         public int AERange;
+        public int AEDuration; // rain spells
         public float CastingTime;
         public float QuietTime;
         public float RecastTime;
@@ -336,7 +338,7 @@ namespace Everquest
         public string Desc;
         public int MaxHits;
         public int MaxTargets;
-        public int RecourseID; 
+        public int RecourseID;
         public int TimerID;
         public int ViralPulse;
         public int ViralRange;
@@ -354,9 +356,9 @@ namespace Everquest
         //public int TotalHeal;
         //public int TotalHoT;
 
-        public int Unknown;
+        public float Unknown;
 
-   
+
         /// Effects can reference other spells or items via square bracket notation. e.g.
         /// [Spell 123]    is a reference to spell 123
         /// [Group 123]    is a reference to spell group 123
@@ -387,14 +389,16 @@ namespace Everquest
         public string[] Details()
         {
             List<string> result = new List<string>();
-     
+
             if (!String.IsNullOrEmpty(Classes))
                 result.Add("Classes: " + Classes);
 
             if (Mana > 0)
                 result.Add("Mana: " + Mana);
 
-            if (Endurance > 0)
+            if (EnduranceUpkeep > 0)
+                result.Add("Endurance: " + Endurance + ", Upkeep: " + EnduranceUpkeep + " per tick");
+            else if (Endurance > 0)
                 result.Add("Endurance: " + Endurance);
 
             for (int i = 0; i < RegID.Length; i++)
@@ -482,7 +486,7 @@ namespace Everquest
 
             Classes = String.Empty;
             for (int i = 0; i < Levels.Length; i++)
-            {                
+            {
                 if (Levels[i] == 255)
                     Levels[i] = 0;
                 if (Levels[i] != 0)
@@ -1007,7 +1011,7 @@ namespace Everquest
                 case 320:
                     return String.Format("Shield Block ({0})", value);
                 case 322:
-                    return "Gate to Starting City";
+                    return "Gate to Home City";
                 case 323:
                     if (base2 > 0)
                         return String.Format("Add Defensive Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
@@ -1172,7 +1176,7 @@ namespace Everquest
                     if (value < 0)
                         TotalNuke += value;
                     break;
-            } 
+            }
 
         }
 
@@ -1374,7 +1378,7 @@ namespace Everquest
                     if (level > 30) change = 3 * (level - 30) / 2;
                     break;
 
-                default:                    
+                default:
                     if (calc > 0 && calc < 1000)
                         change = level * calc;
 
@@ -1456,7 +1460,7 @@ namespace Everquest
                         if (fields[1] == "6")
                             desc[Int32.Parse(fields[0])] = fields[2].Trim();
                     }
-            
+
 
             // load spell definition file
             List<Spell> list = new List<Spell>();
@@ -1487,7 +1491,7 @@ namespace Everquest
             //spell.LandOnSelf = fields[6];
             //spell.LandOnOther = fields[7];
             spell.Ticks = Spell.CalcDuration(ParseInt(fields[16]), ParseInt(fields[17]), MaxLevel);
-            spell.Mana = ParseInt(fields[19]);             
+            spell.Mana = ParseInt(fields[19]);
 
             spell.Range = ParseInt(fields[9]);
             spell.AERange = ParseInt(fields[10]);
@@ -1496,6 +1500,7 @@ namespace Everquest
             spell.CastingTime = ParseFloat(fields[13]) / 1000f;
             spell.QuietTime = ParseFloat(fields[14]) / 1000f;
             spell.RecastTime = ParseFloat(fields[15]) / 1000f;
+            spell.AEDuration = ParseInt(fields[18]);
             spell.RegID[0] = ParseInt(fields[58]);
             spell.RegCount[0] = ParseInt(fields[62]);
             spell.RegID[1] = ParseInt(fields[59]);
@@ -1515,6 +1520,7 @@ namespace Everquest
             spell.Endurance = ParseInt(fields[166]);
             spell.TimerID = ParseInt(fields[167]);
             spell.Hate = ParseInt(fields[173]);
+            spell.EnduranceUpkeep = ParseInt(fields[174]);
             spell.MaxHits = ParseInt(fields[176]);
             spell.MGB = ParseInt(fields[185]) != 0;
             spell.ViralPulse = ParseInt(fields[191]);
@@ -1526,7 +1532,8 @@ namespace Everquest
             spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[211]);
             spell.MaxTargets = ParseInt(fields[218]);
 
-            //spell.Unknown = ParseInt(fields[211]);
+            // debug stuff
+            //spell.Unknown = ParseFloat(fields[221]);
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
@@ -1553,8 +1560,8 @@ namespace Everquest
                 spell.SumSlot(type, value, value2, max, calc, MaxLevel);
             }
 
-            // some debug stuff
-            //if (spell.ID == 15044)
+            // debug stuff
+            //if (spell.ID == 19871)
             //    for (int i = 0; i < fields.Length; i++)
             //        Console.WriteLine("{0}: {1}", i, fields[i]);
 
