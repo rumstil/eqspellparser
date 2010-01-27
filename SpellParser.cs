@@ -247,6 +247,8 @@ namespace Everquest
         HP_Between_25_and_35_Percent = 401,
         HP_Between_1_and_25_Percent = 400,
         HP_Between_1_and_35_Percent = 507, // between or below?
+        HP_Below_75_Percent = 515,
+        HP_Below_90_Percent = 518,
         Undead2 = 603,
         Undead3 = 608,
         Summoned2 = 624
@@ -343,6 +345,7 @@ namespace Everquest
         public int ViralPulse;
         public int ViralRange;
         public SpellTargetRestrict TargetRestrict;
+        public SpellTargetRestrict ProcRestrict;
         public int[] RegID;
         public int[] RegCount;
         //public string LandOnSelf;
@@ -350,6 +353,8 @@ namespace Everquest
         public int StartDegree;
         public int EndDegree;
         public bool MGB;
+        
+
         //public int TotalHate;
         public int TotalNuke;
         //public int TotalDoT;
@@ -998,7 +1003,7 @@ namespace Everquest
                 case 305:
                     return Spell.FormatCount("Damage Shield Taken", -Math.Abs(value));
                 case 310:
-                    return String.Format("Reduce Timer by {0}s", value / 1000);
+                    return String.Format("Reduce Timer by {0}s", value / 1000f);
                 case 311:
                     // does this affect procs that the caster can also cast as spells?
                     return "Limit Type: Exclude Procs";
@@ -1528,9 +1533,12 @@ namespace Everquest
             spell.StartDegree = ParseInt(fields[194]);
             spell.EndDegree = ParseInt(fields[195]);
             spell.ViralRange = ParseInt(fields[201]);
+            // 202 = bard related
             spell.GroupID = ParseInt(fields[207]);
+            // 208 = rank 1/5/10
             spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[211]);
             spell.MaxTargets = ParseInt(fields[218]);
+            spell.ProcRestrict = (SpellTargetRestrict)ParseInt(fields[220]);  // field 206/216 seems to be related
 
             // debug stuff
             //spell.Unknown = ParseFloat(fields[221]);
