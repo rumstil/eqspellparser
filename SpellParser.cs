@@ -13,6 +13,12 @@ using System.Text.RegularExpressions;
  *
  */
 
+/* TODO:
+ * Root break chance reduction on strong roots.
+ * Distance based damaged scaling. e.g. Vigorous Shuriken 
+ * 
+ */
+
 
 
 namespace Everquest
@@ -202,7 +208,7 @@ namespace Everquest
         Summoned_AE = 25,
         Hatelist = 33,
         Chest = 34,
-        Nearby_Allies = 40,
+        Nearby_Allies = 40, // friendly AE
         Target_Group = 41,
         Directional_AE = 42, // see degree fields
         Frontal_AE = 44,
@@ -441,6 +447,8 @@ namespace Everquest
 
             if (Ticks > 0)
                 result.Add("Duration: " + FormatTime(Ticks * 6) + " (" + Ticks + " ticks)");
+            else if (AEDuration >= 2500)
+                result.Add("AE Waves: " + AEDuration / 2500);
 
             if (PushUp != 0)
                 result.Add("Push: " + PushBack + ", Up: " + PushUp);
@@ -1541,7 +1549,7 @@ namespace Everquest
             spell.ProcRestrict = (SpellTargetRestrict)ParseInt(fields[220]);  // field 206/216 seems to be related
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[221]);
+            //spell.Unknown = ParseFloat(fields[18]);
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
