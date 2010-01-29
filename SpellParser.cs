@@ -359,6 +359,7 @@ namespace Everquest
         public int StartDegree;
         public int EndDegree;
         public bool MGB;
+        public int Rank;
         
 
         //public int TotalHate;
@@ -1062,10 +1063,11 @@ namespace Everquest
                     return String.Format("Mana Burn: {0}", value);
                 case 351:
                     // the +3 is just a guess that's correct most of the time since spells have 3 ranks
-                    // and the effects are placed after the spells
-                    return String.Format("Aura Effect: [Spell {0}] (Guess)", ID + 3);
+                    // and the effects are placed after the spells                    
+                    int id = (Rank >= 1) ? ID + 3 : ID + 1;
+                    return String.Format("Aura Effect: [Spell {0}] ({1})", id, Extra);
                 case 353:
-                    return Spell.FormatCount("Max Aura Effects", value);
+                    return Spell.FormatCount("Aura Slots", value);
                 case 358:
                     return Spell.FormatCount("Current Mana", value);
                 case 360:
@@ -1543,7 +1545,7 @@ namespace Everquest
             spell.ViralRange = ParseInt(fields[201]);
             // 202 = bard related
             spell.GroupID = ParseInt(fields[207]);
-            // 208 = rank 1/5/10
+            spell.Rank = ParseInt(fields[208]); // rank 1/5/10
             spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[211]);
             spell.MaxTargets = ParseInt(fields[218]);
             spell.ProcRestrict = (SpellTargetRestrict)ParseInt(fields[220]);  // field 206/216 seems to be related
