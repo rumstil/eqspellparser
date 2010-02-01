@@ -360,7 +360,7 @@ namespace Everquest
         public int EndDegree;
         public bool MGB;
         public int Rank;
-        
+
 
         //public int TotalHate;
         public int TotalNuke;
@@ -530,17 +530,14 @@ namespace Everquest
             int value = CalcValue(calc, base1, max, Ticks / 2, level);
 
             // prepare a comment for effects that do not have a constant value
-            // this is only used by effects that modify hp
+            // this is only used by hp/mana effects
             string variable = "";
 
             if (calc == 123)
-                variable = " (random/avg)";
+                variable = String.Format(" (Random: {0} to {1})", base1, max * ((value >= 0) ? 1 : -1));
 
-            if (calc == 107 || calc == 108 || calc == 120 || calc == 122)
-                variable = " (growing/avg)";
-
-            if (calc > 1000 && calc < 2000)
-                variable = " (growing/avg)";
+            if (calc == 107 || calc == 108 || calc == 120 || calc == 122 || (calc > 1000 && calc < 2000))
+                variable = String.Format(" (Growing: {0} to {1})", CalcValue(calc, base1, max, 1, level), CalcValue(calc, base1, max, Ticks, level));
 
             // prepare a comment for effects that repeat for each tick of the duration
             // this is only used by effects that modify hp/mana/end/hate 
@@ -585,7 +582,7 @@ namespace Everquest
                 case 14:
                     return "Enduring Breath";
                 case 15:
-                    return Spell.FormatCount("Current Mana", value) + repeating;
+                    return Spell.FormatCount("Current Mana", value) + repeating + variable;
                 case 18:
                     return "Pacify";
                 case 19:
@@ -697,8 +694,8 @@ namespace Everquest
                 case 79:
                     // delta hp for heal/nuke, non repeating
                     if (base2 > 0)
-                        return Spell.FormatCount("Current HP", value) + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
-                    return Spell.FormatCount("Current HP", value);
+                        return Spell.FormatCount("Current HP", value) + variable + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
+                    return Spell.FormatCount("Current HP", value) + variable;
                 case 81:
                     return String.Format("Resurrection: {0}%", value);
                 case 82:
@@ -914,13 +911,13 @@ namespace Everquest
                 case 188:
                     return Spell.FormatPercent("Chance to Block", value);
                 case 189:
-                    return Spell.FormatCount("Current Endurance", value) + repeating;
+                    return Spell.FormatCount("Current Endurance", value) + repeating + variable;
                 case 190:
                     return Spell.FormatCount("Max Endurance", value);
                 case 191:
                     return "Prevent Combat";
                 case 192:
-                    return Spell.FormatCount("Hate", value) + repeating;
+                    return Spell.FormatCount("Hate", value) + repeating + variable;
                 case 193:
                     return String.Format("{0} Attack for {1} with {2}% Accuracy Mod", Spell.FormatEnum(Skill), value, base2);
                 case 194:
@@ -1064,12 +1061,13 @@ namespace Everquest
                 case 351:
                     // the +3 is just a guess that's correct most of the time since spells have 3 ranks
                     // and the effects are placed after the spells                    
-                    int id = (Rank >= 1) ? ID + 3 : ID + 1;
+                    //int id = (Rank >= 1) ? ID + 3 : ID + 1;
+                    int id = (Rank >= 1) || Extra.TrimEnd(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }).EndsWith("Rk") ? ID + 3 : ID + 1;
                     return String.Format("Aura Effect: [Spell {0}] ({1})", id, Extra);
                 case 353:
                     return Spell.FormatCount("Aura Slots", value);
                 case 358:
-                    return Spell.FormatCount("Current Mana", value);
+                    return Spell.FormatCount("Current Mana", value) + variable;
                 case 360:
                     return String.Format("Add Killshot Proc: [Spell {0}] Chance: {1}%", base2, base1);
                 case 361:
@@ -1285,6 +1283,10 @@ namespace Everquest
             if (calc == 0 || calc == 100)
                 return value;
 
+            // the max is given as a positive number even though the value is negative
+            if (value < 0 || max < 0)
+                max = -max;
+
             int change = 0;
 
             switch (calc)
@@ -1354,7 +1356,7 @@ namespace Everquest
                     break;
                 case 123:
                     // random in range
-                    change = (max - Math.Abs(value)) / 2;
+                    change = (Math.Abs(max) - Math.Abs(value)) / 2;
                     break;
                 case 124:
                     if (level > 50) change = (level - 50);
@@ -1415,13 +1417,8 @@ namespace Everquest
                 change = -change;
             value += change;
 
-            // the max is sometimes given as a positive number even though the value is negative
-            if (max < 0)
-                max = -max;
-            if (max > 0 && value > max)
+            if ((max > 0 && value > max) || (max < 0 && value < max))
                 value = max;
-            if (max > 0 && value < -max)
-                value = -max;
 
             return value;
         }
