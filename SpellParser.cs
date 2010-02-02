@@ -87,6 +87,7 @@ namespace Everquest
         All_Resists = 111,
         Current_HP_Percent = 147,
         Absorb_Hits = 163,
+        Lifetap_From_Weapon = 178,
         Hate_Repeating = 192,
         Taunt = 199,
         Spell_Damage_Bonus = 286,
@@ -296,6 +297,7 @@ namespace Everquest
         Skeleton = 367,
         Golem = 374, // has subtypes
         Pyrilen = 411,
+        Gelidran = 417,
         Goblin = 433, // has subtypes
         Basilisk = 436,
         Gnomework = 457,
@@ -322,13 +324,16 @@ namespace Everquest
         public int Mana;
         public int Endurance;
         public int EnduranceUpkeep;
-        public int Ticks;
+        public int DurationTicks;
+        public bool DurationExtendable;
         public string[] Slots;
         public int[] SlotEffects;
         public int[] Levels;
-        public string Classes;
+        public string ClassesLevels;
+        public SpellClassesMask ClassesMask;
         public SpellSkill Skill;
         public bool Beneficial;
+        public bool BeneficialBlockable;
         public SpellTarget Target;
         public SpellResist ResistType;
         public int ResistMod;
@@ -358,7 +363,7 @@ namespace Everquest
         //public string LandOnOther;
         public int StartDegree;
         public int EndDegree;
-        public bool MGB;
+        public bool MGBable;
         public int Rank;
 
 
@@ -402,8 +407,8 @@ namespace Everquest
         {
             List<string> result = new List<string>();
 
-            if (!String.IsNullOrEmpty(Classes))
-                result.Add("Classes: " + Classes);
+            if (!String.IsNullOrEmpty(ClassesLevels))
+                result.Add("Classes: " + ClassesLevels);
 
             if (Mana > 0)
                 result.Add("Mana: " + Mana);
@@ -423,6 +428,8 @@ namespace Everquest
                 result.Add("Target: " + FormatEnum(Target) + " (" + StartDegree + " to " + EndDegree + " Degrees)");
             else if (TargetRestrict > 0)
                 result.Add("Target: " + FormatEnum(Target) + " (" + FormatEnum(TargetRestrict) + ")");
+            else if ((Target == SpellTarget.Caster_Group || Target == SpellTarget.Target_Group) && (ClassesMask != 0 && ClassesMask != SpellClassesMask.BRD) && DurationTicks > 0)
+                result.Add("Target: " + FormatEnum(Target) + ", MGB: " + (MGBable ? "Yes" : "No"));
             else
                 result.Add("Target: " + FormatEnum(Target));
 
@@ -438,6 +445,8 @@ namespace Everquest
                 result.Add("Resist: " + ResistType + " " + ResistMod);
             else if (!Beneficial)
                 result.Add("Resist: " + ResistType);
+            else if (!BeneficialBlockable)
+                result.Add("Beneficial: Not Blockable");
 
             if (TimerID > 0)
                 result.Add("Casting: " + CastingTime.ToString() + "s, Recast: " + FormatTime(RecastTime) + ", Timer: " + TimerID);
@@ -445,9 +454,11 @@ namespace Everquest
                 result.Add("Casting: " + CastingTime.ToString() + "s, Recast: " + FormatTime(RecastTime));
             else
                 result.Add("Casting: " + CastingTime.ToString() + "s");
-
-            if (Ticks > 0)
-                result.Add("Duration: " + FormatTime(Ticks * 6) + " (" + Ticks + " ticks)");
+            
+            if (DurationTicks > 0 && Beneficial && ClassesMask != 0 && ClassesMask != SpellClassesMask.BRD)
+                result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)" + ", Extend: " + (DurationExtendable ? "Yes" : "No"));
+            else if (DurationTicks > 0)
+                result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)");
             else if (AEDuration >= 2500)
                 result.Add("AE Waves: " + AEDuration / 2500);
 
@@ -485,6 +496,20 @@ namespace Everquest
         /// </summary>
         public void Clean()
         {
+            ClassesLevels = String.Empty;
+            ClassesMask = 0;
+            for (int i = 0; i < Levels.Length; i++)
+            {
+                if (Levels[i] == 255)
+                    Levels[i] = 0;
+                if (Levels[i] != 0)
+                {
+                    ClassesMask |= (SpellClassesMask)(1 << i);
+                    ClassesLevels += " " + (SpellClasses)(i + 1) + "/" + Levels[i];
+                }
+            }
+            ClassesLevels = ClassesLevels.TrimStart();
+
             if (Target == SpellTarget.Self)
             {
                 Range = 0;
@@ -495,18 +520,9 @@ namespace Everquest
             if (Target == SpellTarget.Single)
             {
                 AERange = 0;
-                MaxTargets = 0;
+                MaxTargets = 0;                
             }
 
-            Classes = String.Empty;
-            for (int i = 0; i < Levels.Length; i++)
-            {
-                if (Levels[i] == 255)
-                    Levels[i] = 0;
-                if (Levels[i] != 0)
-                    Classes += " " + (SpellClasses)(i + 1) + "/" + Levels[i];
-            }
-            Classes = Classes.TrimStart();
         }
 
         /// <summary>
@@ -527,7 +543,7 @@ namespace Everquest
             // many spells use a scaled value based on either current tick or caster level
             // the switch(type) below determines if an effect uses the scaled value, or the original base1 value
             // decaying/growing spells are shown at their average strength (i.e. ticks / 2)
-            int value = CalcValue(calc, base1, max, Ticks / 2, level);
+            int value = CalcValue(calc, base1, max, DurationTicks / 2, level);
 
             // prepare a comment for effects that do not have a constant value
             // this is only used by hp/mana effects
@@ -537,11 +553,11 @@ namespace Everquest
                 variable = String.Format(" (Random: {0} to {1})", base1, max * ((value >= 0) ? 1 : -1));
 
             if (calc == 107 || calc == 108 || calc == 120 || calc == 122 || (calc > 1000 && calc < 2000))
-                variable = String.Format(" (Growing: {0} to {1})", CalcValue(calc, base1, max, 1, level), CalcValue(calc, base1, max, Ticks, level));
+                variable = String.Format(" (Growing: {0} to {1})", CalcValue(calc, base1, max, 1, level), CalcValue(calc, base1, max, DurationTicks, level));
 
             // prepare a comment for effects that repeat for each tick of the duration
             // this is only used by effects that modify hp/mana/end/hate 
-            string repeating = (Ticks > 0) ? " per tick" : null;
+            string repeating = (DurationTicks > 0) ? " per tick" : null;
 
             switch (type)
             {
@@ -706,8 +722,8 @@ namespace Everquest
                     return "Gravity Flux";
                 case 85:
                     if (base2 > 0)
-                        return String.Format("Add Proc: [Spell {0}] with {1}% Rate Mod", value, base2);
-                    return String.Format("Add Proc: [Spell {0}]", value);
+                        return String.Format("Add Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
+                    return String.Format("Add Proc: [Spell {0}]", base1);
                 case 86:
                     return String.Format("Decrease Social Radius to {1} up to level {0}", max, value);
                 case 87:
@@ -1175,12 +1191,12 @@ namespace Everquest
         /// </summary>
         public void SumSlot(int type, int base1, int base2, int max, int calc, int level)
         {
-            int value = CalcValue(calc, base1, max, Ticks / 2, level);
+            int value = CalcValue(calc, base1, max, DurationTicks / 2, level);
 
             switch (type)
             {
                 case 0:
-                    if (value < 0 && Ticks == 0)
+                    if (value < 0 && DurationTicks == 0)
                         TotalNuke += value;
                     //if (value < 0 && Ticks > 0)
                     //    TotalDoT += value * Ticks;
@@ -1502,7 +1518,7 @@ namespace Everquest
             spell.Extra = fields[3];
             //spell.LandOnSelf = fields[6];
             //spell.LandOnOther = fields[7];
-            spell.Ticks = Spell.CalcDuration(ParseInt(fields[16]), ParseInt(fields[17]), MaxLevel);
+            spell.DurationTicks = Spell.CalcDuration(ParseInt(fields[16]), ParseInt(fields[17]), MaxLevel);
             spell.Mana = ParseInt(fields[19]);
 
             spell.Range = ParseInt(fields[9]);
@@ -1534,15 +1550,17 @@ namespace Everquest
             spell.Hate = ParseInt(fields[173]);
             spell.EnduranceUpkeep = ParseInt(fields[174]);
             spell.MaxHits = ParseInt(fields[176]);
-            spell.MGB = ParseInt(fields[185]) != 0;
+            spell.MGBable = ParseInt(fields[185]) != 0;
             spell.ViralPulse = ParseInt(fields[191]);
             //spell.ViralMaxSpread = ParseInt(fields[192]);
             spell.StartDegree = ParseInt(fields[194]);
             spell.EndDegree = ParseInt(fields[195]);
+            spell.DurationExtendable = !ParseBool(fields[197]);
             spell.ViralRange = ParseInt(fields[201]);
             // 202 = bard related
+            spell.BeneficialBlockable = !ParseBool(fields[205]); // for beneficial spells
             spell.GroupID = ParseInt(fields[207]);
-            spell.Rank = ParseInt(fields[208]); // rank 1/5/10
+            spell.Rank = ParseInt(fields[208]); // rank 1/5/10. a few auras do not have this set properly
             spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[211]);
             spell.MaxTargets = ParseInt(fields[218]);
             spell.ProcRestrict = (SpellTargetRestrict)ParseInt(fields[220]);  // field 206/216 seems to be related
@@ -1597,6 +1615,11 @@ namespace Everquest
             if (String.IsNullOrEmpty(s))
                 return 0;
             return (int)Single.Parse(s);
+        }
+
+        static bool ParseBool(string s)
+        {
+            return !String.IsNullOrEmpty(s) && (s != "0");
         }
 
     }
