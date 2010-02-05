@@ -13,14 +13,6 @@ using System.Text.RegularExpressions;
  *
  */
 
-/* TODO:
- * Root break chance reduction on strong roots.
- * Distance based damaged scaling. e.g. Vigorous Shuriken 
- * 
- */
-
-
-
 namespace Everquest
 {
     public enum SpellClasses
@@ -445,8 +437,8 @@ namespace Everquest
                 result.Add("Resist: " + ResistType + " " + ResistMod);
             else if (!Beneficial)
                 result.Add("Resist: " + ResistType);
-            else if (!BeneficialBlockable)
-                result.Add("Beneficial: Not Blockable");
+            else 
+                result.Add("Beneficial: " + (BeneficialBlockable ? "Blockable" : "Not Blockable"));
 
             if (TimerID > 0)
                 result.Add("Casting: " + CastingTime.ToString() + "s, Recast: " + FormatTime(RecastTime) + ", Timer: " + TimerID);
@@ -455,7 +447,7 @@ namespace Everquest
             else
                 result.Add("Casting: " + CastingTime.ToString() + "s");
             
-            if (DurationTicks > 0 && Beneficial && ClassesMask != 0 && ClassesMask != SpellClassesMask.BRD)
+            if (DurationTicks > 0 && Beneficial && ClassesMask != SpellClassesMask.BRD)
                 result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)" + ", Extend: " + (DurationExtendable ? "Yes" : "No"));
             else if (DurationTicks > 0)
                 result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)");
@@ -553,7 +545,11 @@ namespace Everquest
                 variable = String.Format(" (Random: {0} to {1})", base1, max * ((value >= 0) ? 1 : -1));
 
             if (calc == 107 || calc == 108 || calc == 120 || calc == 122 || (calc > 1000 && calc < 2000))
-                variable = String.Format(" (Growing: {0} to {1})", CalcValue(calc, base1, max, 1, level), CalcValue(calc, base1, max, DurationTicks, level));
+            {
+                int start = CalcValue(calc, base1, max, 1, level);
+                int finish = CalcValue(calc, base1, max, DurationTicks, level);
+                variable = String.Format(" ({2}: {0} to {1})", start, finish, Math.Abs(start) < Math.Abs(finish) ? "Growing" : "Decaying");
+            }
 
             // prepare a comment for effects that repeat for each tick of the duration
             // this is only used by effects that modify hp/mana/end/hate 
@@ -1054,7 +1050,7 @@ namespace Everquest
                     return Spell.FormatPercent("Critical Damage for " + Spell.FormatEnum((SpellSkill)base2), value);
                 case 333:
                     // so far this is only used on spells that have a rune
-                    return String.Format("Cast on Fade/Cancel: [Spell {0}]", base1);
+                    return String.Format("Cast on Rune Depleted: [Spell {0}]", base1);
                 case 335:
                     return "Prevent Matching Spells From Landing";
                 case 337:
@@ -1099,11 +1095,9 @@ namespace Everquest
                 case 370:
                     return Spell.FormatCount("Corruption Resist", value);
                 case 371:
-                    // this may be used to prevent overwritting melee haste
-                    // no idea if this is also mitigated
                     return Spell.FormatPercent("Melee Delay", Math.Abs(value));
                 case 373:
-                    // this appears to be used when a spell is removed via any method: times out, cured, used up (i.e. a rune)
+                    // this appears to be used when a spell is removed via any method: times out, cured, rune used up 
                     return String.Format("Cast on Fade: [Spell {0}]", base1);
                 case 374:
                     if (base1 < 100)
@@ -1137,7 +1131,6 @@ namespace Everquest
                     // used on type 3 augments
                     return Spell.FormatCount("Healing", value);
                 case 398:
-                    // for type 152 swarm pets
                     return String.Format("Increase Pet Duration by {0}s", value / 1000);
                 case 399:
                     return Spell.FormatPercent("Chance to Twincast", value);
@@ -1172,7 +1165,7 @@ namespace Everquest
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", value);
                 case 419:
                     // this is used for potions. how is it different than 85? maybe proc rate?
-                    return String.Format("Add Proc: [Spell {0}]", base1);
+                    return String.Format("Add Proc: [Spell {0}] (Unknown: {1})", base1, base2);
                 case 424:
                     return String.Format("Knockback for {0} and up for {1}", value, base2);
                 case 427:
@@ -1433,7 +1426,7 @@ namespace Everquest
                 change = -change;
             value += change;
 
-            if ((max > 0 && value > max) || (max < 0 && value < max))
+            if (max != 0 && Math.Abs(value) > Math.Abs(max))
                 value = max;
 
             return value;
@@ -1594,7 +1587,7 @@ namespace Everquest
             }
 
             // debug stuff
-            //if (spell.ID == 19871)
+            //if (spell.ID == 16548)
             //    for (int i = 0; i < fields.Length; i++)
             //        Console.WriteLine("{0}: {1}", i, fields[i]);
 
