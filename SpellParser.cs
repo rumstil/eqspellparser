@@ -700,9 +700,9 @@ namespace Everquest
                     return "Sentinel";
                 case 77:
                     return "Locate Corpse";
-                case 78:
-                    // absorbs raw value rather than %. see also 296
-                    return Spell.FormatCount("Spell Damage Taken", -value);
+                case 78:                    
+                    //return Spell.FormatCount("Spell Damage Taken", -value);
+                    return String.Format("Absorb Spell Damage: 100% Total: {0}", value);
                 case 79:
                     // delta hp for heal/nuke, non repeating
                     if (base2 > 0)
@@ -1136,13 +1136,13 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Twincast", value);
                 case 400:
                     // e.g. Channels the power of sunlight, consuming up to #1 mana to heal your group.
-                    return String.Format("Consume up to {0} of Target's Mana to Heal Group (1:{1} Ratio)", value, base2 / 10f);
+                    return String.Format("Use Target's Mana to Heal Group ({0}:{1})", value, Math.Floor(value * base2 / 10f));
                 case 401:
                     // e.g. Drains up to 401 mana from your target. For each point of mana drained, the target will take damage.
-                    return String.Format("Consume up to {0} of Target's Mana to Inflict Damage (1:{1} Ratio)", value, base2 / -10f);
+                    return String.Format("Use Target's Mana to Inflict Damage ({0}:{1})", value, Math.Floor(value * base2 / -10f));
                 case 402:
                     // e.g. Consumes up to #6 endurance and inflicts damage for each point of endurance consumed.
-                    return String.Format("Consume up to {0} of Target's Endurance to Inflict Damage (1:{1} Ratio)", value, base2 / -10f);
+                    return String.Format("Use Target's Endurance to Inflict Damage ({0}:{1})", value, Math.Floor(value * base2 / -10f));
                 case 404:
                     return String.Format("Limit Skill: {1}{0}", Spell.FormatEnum((SpellSkill)Math.Abs(base1)), base1 >= 0 ? "" : "Exclude ");
                 case 406:
