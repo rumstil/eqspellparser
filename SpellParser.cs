@@ -82,6 +82,7 @@ namespace Everquest
         Lifetap_From_Weapon = 178,
         Hate_Repeating = 192,
         Taunt = 199,
+        Weapon_Damage_Bonus = 220,
         Spell_Damage_Bonus = 286,
         XP_Gain = 337,
         Add_Spell_Proc = 339,
@@ -201,7 +202,7 @@ namespace Everquest
         Summoned_AE = 25,
         Hatelist = 33,
         Chest = 34,
-        Nearby_Allies = 40, // friendly AE
+        Nearby_Players = 40, // bard AE hits all players
         Target_Group = 41,
         Directional_AE = 42, // see degree fields
         Frontal_AE = 44,
@@ -250,7 +251,8 @@ namespace Everquest
         HP_Below_90_Percent = 518,
         Undead2 = 603,
         Undead3 = 608,
-        Summoned2 = 624
+        Summoned2 = 624,
+        Exclude_Pets = 701
     }
 
     public enum SpellIllusion
@@ -357,6 +359,7 @@ namespace Everquest
         public int EndDegree;
         public bool MGBable;
         public int Rank;
+        public bool OutOfCombat;
 
 
         //public int TotalHate;
@@ -415,6 +418,9 @@ namespace Everquest
                     result.Add("Regeant: [Item " + RegID[i] + "] x " + RegCount[i]);
 
             //result.Add("Skill: " + Skill);
+
+            if (OutOfCombat)
+                result.Add("Restriction: Out of Combat");
 
             if (Target == SpellTarget.Directional_AE)
                 result.Add("Target: " + FormatEnum(Target) + " (" + StartDegree + " to " + EndDegree + " Degrees)");
@@ -602,9 +608,9 @@ namespace Everquest
                 case 20:
                     return "Blind";
                 case 21:
-                    if (max == 0)
+                    if (max == 0 && ClassesMask != 0)
                         max = 55;
-                    return String.Format("Stun for {0}s up to level {1}", value / 1000f, max);
+                    return String.Format("Stun for {0}s", value / 1000f) + (max > 0 ? String.Format(" up to level {0}", max) : "");
                 case 22:
                     return String.Format("Charm up to level {0}", max);
                 case 23:
@@ -675,9 +681,9 @@ namespace Everquest
                 case 63:
                     return String.Format("Memory Blur ({0})", value);
                 case 64:
-                    if (max == 0)
+                    if (max == 0 && ClassesMask != 0)
                         max = 55;
-                    return String.Format("SpinStun for {0}s up to level {1}", value / 1000f, max);
+                    return String.Format("SpinStun for {0}s", value / 1000f) + (max > 0 ? String.Format(" up to level {0}", max) : "");
                 case 65:
                     return "Infravision";
                 case 66:
@@ -1292,7 +1298,7 @@ namespace Everquest
             if (calc == 0 || calc == 100)
                 return value;
 
-            // the max is given as a positive number even though the value is negative
+            // the max is given as a positive number - even when the value is negative
             if (value < 0 || max < 0)
                 max = -max;
 
@@ -1530,7 +1536,7 @@ namespace Everquest
             spell.RegCount[2] = ParseInt(fields[64]);
             spell.RegID[3] = ParseInt(fields[61]);
             spell.RegCount[3] = ParseInt(fields[65]);
-            spell.Beneficial = ParseInt(fields[83]) != 0;
+            spell.Beneficial = ParseBool(fields[83]);
             spell.ResistType = (SpellResist)ParseInt(fields[85]);
             spell.Target = (SpellTarget)ParseInt(fields[98]);
             spell.Skill = (SpellSkill)ParseInt(fields[100]);
@@ -1543,7 +1549,7 @@ namespace Everquest
             spell.Hate = ParseInt(fields[173]);
             spell.EnduranceUpkeep = ParseInt(fields[174]);
             spell.MaxHits = ParseInt(fields[176]);
-            spell.MGBable = ParseInt(fields[185]) != 0;
+            spell.MGBable = ParseBool(fields[185]);
             spell.ViralPulse = ParseInt(fields[191]);
             //spell.ViralMaxSpread = ParseInt(fields[192]);
             spell.StartDegree = ParseInt(fields[194]);
@@ -1555,6 +1561,7 @@ namespace Everquest
             spell.GroupID = ParseInt(fields[207]);
             spell.Rank = ParseInt(fields[208]); // rank 1/5/10. a few auras do not have this set properly
             spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[211]);
+            spell.OutOfCombat = !ParseBool(fields[214]);
             spell.MaxTargets = ParseInt(fields[218]);
             spell.ProcRestrict = (SpellTargetRestrict)ParseInt(fields[220]);  // field 206/216 seems to be related
 
