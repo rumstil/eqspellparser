@@ -1124,7 +1124,8 @@ namespace Everquest
                 case 382:
                     return String.Format("Inhibit Buff Effect: {0}", Spell.FormatEnum((SpellEffect)base2));
                 case 383:
-                    return String.Format("Cast on Match: [Spell {0}] Chance: {1}%", base2, base1);
+                    // e.g. Has a chance to cast a mana recovering spell every time a spell is cast.
+                    return String.Format("Cast on Matching Spell: [Spell {0}] Chance: {1}%", base2, base1);
                 case 385:
                     return String.Format("Limit Spells: {1}[Group {0}]", Math.Abs(value), value >= 0 ? "" : "Exclude ");
                 case 386:
@@ -1175,9 +1176,10 @@ namespace Everquest
                 case 424:
                     return String.Format("Knockback for {0} and up for {1}", value, base2);
                 case 427:
-                    return String.Format("Cast on Unknown Condition: [Spell {0}]", base1);
-                //case 428:
-                //    return String.Format("Limit Skill: {0}", Spell.TrimEnum((SpellSkill)value));
+                    // e.g. Has a chance to cast a healing spell every time a weapon skill is used.
+                    return String.Format("Cast on Matching Melee: [Spell {0}] Chance: {1}%", base1, base2);
+                case 428:
+                    return String.Format("Limit Skill: {0}", Spell.FormatEnum((SpellSkill)value));
 
             }
 
