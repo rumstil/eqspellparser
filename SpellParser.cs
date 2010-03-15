@@ -554,7 +554,8 @@ namespace Everquest
             {
                 int start = CalcValue(calc, base1, max, 1, level);
                 int finish = CalcValue(calc, base1, max, DurationTicks, level);
-                variable = String.Format(" ({2}: {0} to {1})", start, finish, Math.Abs(start) < Math.Abs(finish) ? "Growing" : "Decaying");
+                variable = String.Format(" ({2}: {0} to {1})", start, finish, Math.Abs(start) < Math.Abs(finish) ? "Growing" : "Decaying"); 
+                // +String.Format("Unknown Effect: {0} Base1={1} Base2={2} Max={3} Calc={4} Value={5}", type, base1, base2, max, calc, value); 
             }
 
             // prepare a comment for effects that repeat for each tick of the duration
@@ -1187,30 +1188,6 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Keep a running sum of some important effects (nukes, heals, hate)
-        /// This will ignore effects on spells that autocast other spells. e.g. Summer's Mist
-        /// </summary>
-        public void SumSlot(int type, int base1, int base2, int max, int calc, int level)
-        {
-            int value = CalcValue(calc, base1, max, DurationTicks / 2, level);
-
-            switch (type)
-            {
-                case 0:
-                    if (value < 0 && DurationTicks == 0)
-                        TotalNuke += value;
-                    //if (value < 0 && Ticks > 0)
-                    //    TotalDoT += value * Ticks;
-                    break;
-                case 79:
-                    if (value < 0)
-                        TotalNuke += value;
-                    break;
-            }
-
-        }
-
-        /// <summary>
         /// Parse a spell duration formula.
         /// </summary>
         /// <returns>Numbers of ticks (6 second units)</returns>        
@@ -1300,7 +1277,7 @@ namespace Everquest
             if (calc == 0 || calc == 100)
                 return value;
 
-            // the max is given as a positive number - even when the value is negative
+            // the max is given as a positive number (except for one spell?) - even when the value is negative
             if (value < 0 || max < 0)
                 max = -max;
 
@@ -1420,6 +1397,10 @@ namespace Everquest
                     // e.g. splort (growing): Current_HP Unknown Calc: Val=1 Val2=0 Max=0 Calc=1035
                     //      34 - 69 - 104 - 139 - 174 - 209 - 244 - 279 - 314 - 349 - 384 - 419 - 454 - 489 - 524 - 559 - 594 - 629 - 664 - 699 - 699 
                     // e.g. venonscale (decaying): Current_HP Unknown Calc: Val=-822 Val2=0 Max=822 Calc=1018
+                    // e.g. Fabled Rot of the Plaguebringer: Base1=1 Base2=0 Max=0 Calc=1088
+                    // the following two seem to conflict. using the current calc deathcloth becomes a heal
+                    // e.g. Deathcloth Spore: Base1=-1000 Base2=0 Max=0 Calc=1999
+                    // e.g. Bleeding Bite: Base1=-1000 Base2=0 Max=0 Calc=1100 (The damage done will decrease in severity over time.)
                     if (calc >= 1000 && calc < 2000)
                         change = tick * (calc - 1000) * -1;
 
@@ -1438,6 +1419,29 @@ namespace Everquest
                 value = max;
 
             return value;
+        }
+
+        /// <summary>
+        /// Keep a running sum of some important effects (nukes, heals, hate)
+        /// This will ignore effects on spells that autocast other spells. e.g. Summer's Mist
+        /// </summary>
+        public void SumSlot(int type, int base1, int base2, int max, int calc, int level)
+        {
+            int value = CalcValue(calc, base1, max, DurationTicks / 2, level);
+
+            switch (type)
+            {
+                case 0:
+                    if (value < 0 && DurationTicks == 0)
+                        TotalNuke += value;
+                    //if (value < 0 && Ticks > 0)
+                    //    TotalDoT += value * Ticks;
+                    break;
+                case 79:
+                    if (value < 0)
+                        TotalNuke += value;
+                    break;
+            }
         }
 
         static private string FormatEnum(object o)
