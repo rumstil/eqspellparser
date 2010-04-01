@@ -306,7 +306,8 @@ namespace Everquest
         Scrykin = 495, // has subtypes
         Bixie = 520,
         Drakkin = 522,
-        Hideous_Harpy = 527
+        Hideous_Harpy = 527,
+        Crystal_Sphere = 616
     }
 
     public sealed class Spell
@@ -443,7 +444,7 @@ namespace Everquest
                 result.Add("Resist: " + ResistType + " " + ResistMod);
             else if (!Beneficial)
                 result.Add("Resist: " + ResistType);
-            else 
+            else
                 result.Add("Beneficial: " + (BeneficialBlockable ? "Blockable" : "Not Blockable"));
 
             if (TimerID > 0)
@@ -452,7 +453,7 @@ namespace Everquest
                 result.Add("Casting: " + CastingTime.ToString() + "s, Recast: " + FormatTime(RecastTime));
             else
                 result.Add("Casting: " + CastingTime.ToString() + "s");
-            
+
             if (DurationTicks > 0 && Beneficial && ClassesMask != SpellClassesMask.BRD)
                 result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)" + ", Extend: " + (DurationExtendable ? "Yes" : "No"));
             else if (DurationTicks > 0)
@@ -518,7 +519,7 @@ namespace Everquest
             if (Target == SpellTarget.Single)
             {
                 AERange = 0;
-                MaxTargets = 0;                
+                MaxTargets = 0;
             }
 
         }
@@ -554,7 +555,7 @@ namespace Everquest
             {
                 int start = CalcValue(calc, base1, max, 1, level);
                 int finish = CalcValue(calc, base1, max, DurationTicks, level);
-                variable = String.Format(" ({2}: {0} to {1})", start, finish, Math.Abs(start) < Math.Abs(finish) ? "Growing" : "Decaying"); 
+                variable = String.Format(" ({2}: {0} to {1})", start, finish, Math.Abs(start) < Math.Abs(finish) ? "Growing" : "Decaying");
                 // +String.Format("Unknown Effect: {0} Base1={1} Base2={2} Max={3} Calc={4} Value={5}", type, base1, base2, max, calc, value); 
             }
 
@@ -707,7 +708,7 @@ namespace Everquest
                     return "Sentinel";
                 case 77:
                     return "Locate Corpse";
-                case 78:                    
+                case 78:
                     //return Spell.FormatCount("Spell Damage Taken", -value);
                     return String.Format("Absorb Spell Damage: 100% Total: {0}", value);
                 case 79:
@@ -1071,7 +1072,6 @@ namespace Everquest
                 case 342:
                     return "Prevent Fleeing";
                 case 343:
-                    // is this persistent or instant?
                     return String.Format("Interrupt Spell Chance: {0}%", value);
                 case 348:
                     return String.Format("Limit Min Mana Cost: {0}", base1);
@@ -1134,7 +1134,10 @@ namespace Everquest
                 case 387:
                     return String.Format("Cast if Cured: [Spell {0}]", base1);
                 case 392:
-                    return Spell.FormatCount("Healing", value);
+                    return Spell.FormatCount("Healing Taken", value);
+                case 393:
+                    return Spell.FormatPercent("Healing Taken", value);
+
                 case 396:
                     // used on type 3 augments
                     return Spell.FormatCount("Healing", value);
@@ -1177,8 +1180,7 @@ namespace Everquest
                 case 424:
                     return String.Format("Knockback for {0} and up for {1}", value, base2);
                 case 427:
-                    // e.g. Has a chance to cast a healing spell every time a weapon skill is used.
-                    return String.Format("Cast on Matching Melee: [Spell {0}] Chance: {1}%", base1, base2);
+                    return String.Format("Cast on Skill Use: [Spell {0}] Chance: {1}%", base1, base2 / 10);
                 case 428:
                     return String.Format("Limit Skill: {0}", Spell.FormatEnum((SpellSkill)value));
 
