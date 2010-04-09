@@ -632,7 +632,7 @@ namespace Everquest
                 case 29:
                     return "Invisible to Animals (Unstable)";
                 case 30:
-                    return String.Format("Decrease Aggro Radius to {1} up to level {0}", max, value);
+                    return String.Format("Decrease Aggro Radius to {0} up to level {1}", value, max);
                 case 31:
                     return String.Format("Mesmerize up to level {0}", max);
                 case 32:
@@ -685,7 +685,7 @@ namespace Everquest
                 case 64:
                     if (max == 0 && ClassesMask != 0)
                         max = 55;
-                    return String.Format("SpinStun for {0}s", value / 1000f) + (max > 0 ? String.Format(" up to level {0}", max) : "");
+                    return String.Format("SpinStun for {0}s", value / 1000f) + Spell.FormatLevel(max);
                 case 65:
                     return "Infravision";
                 case 66:
@@ -729,7 +729,7 @@ namespace Everquest
                         return String.Format("Add Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
                     return String.Format("Add Proc: [Spell {0}]", base1);
                 case 86:
-                    return String.Format("Decrease Social Radius to {1} up to level {0}", max, value);
+                    return String.Format("Decrease Social Radius to {0} up to level {1}", value, max);
                 case 87:
                     return Spell.FormatPercent("Magnification", value);
                 case 88:
@@ -1080,8 +1080,7 @@ namespace Everquest
                 case 351:
                     // the +3 is just a guess that's correct most of the time since spells have 3 ranks
                     // and the effects are placed after the spells                    
-                    //int id = (Rank >= 1) ? ID + 3 : ID + 1;
-                    int id = (Rank >= 1) || Extra.TrimEnd(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }).EndsWith("Rk") ? ID + 3 : ID + 1;
+                    int id = (Rank >= 1) || Extra.Contains("Rk") ? ID + 3 : ID + 1;
                     return String.Format("Aura Effect: [Spell {0}] ({1})", id, Extra);
                 case 353:
                     return Spell.FormatCount("Aura Slots", value);
@@ -1178,7 +1177,7 @@ namespace Everquest
                     // this is used for potions. how is it different than 85? maybe proc rate?
                     return String.Format("Add Proc: [Spell {0}] (Unknown: {1})", base1, base2);
                 case 424:
-                    return String.Format("Knockback for {0} and up for {1}", value, base2);
+                    return String.Format("Gradual Knockback for {0} (Unknown: {1})", value, base2);
                 case 427:
                     return String.Format("Cast on Skill Use: [Spell {0}] Chance: {1}%", base1, base2 / 10);
                 case 428:
@@ -1279,10 +1278,7 @@ namespace Everquest
             if (calc == 0 || calc == 100)
                 return value;
 
-            // the max is given as a positive number (except for one spell?) - even when the value is negative
-            if (value < 0 || max < 0)
-                max = -max;
-
+            int start = value;
             int change = 0;
 
             switch (calc)
@@ -1396,13 +1392,13 @@ namespace Everquest
                         change = level * calc;
 
                     // 1000..1999 variable by tick
-                    // e.g. splort (growing): Current_HP Unknown Calc: Val=1 Val2=0 Max=0 Calc=1035
+                    // e.g. splort (growing): Effect=0 Base1=1 Base2=0 Max=0 Calc=1035 
                     //      34 - 69 - 104 - 139 - 174 - 209 - 244 - 279 - 314 - 349 - 384 - 419 - 454 - 489 - 524 - 559 - 594 - 629 - 664 - 699 - 699 
-                    // e.g. venonscale (decaying): Current_HP Unknown Calc: Val=-822 Val2=0 Max=822 Calc=1018
-                    // e.g. Fabled Rot of the Plaguebringer: Base1=1 Base2=0 Max=0 Calc=1088
-                    // the following two seem to conflict. using the current calc deathcloth becomes a heal
+                    // e.g. venonscale (decaying): Effect=0 Base1=-822 Base2=0 Max=822 Calc=1018 
+                    // 
                     // e.g. Deathcloth Spore: Base1=-1000 Base2=0 Max=0 Calc=1999
                     // e.g. Bleeding Bite: Base1=-1000 Base2=0 Max=0 Calc=1100 (The damage done will decrease in severity over time.)
+                    // e.g. Blood Rites: Base1=-1500 Base2=0 Max=0 Calc=1999 
                     if (calc >= 1000 && calc < 2000)
                         change = tick * (calc - 1000) * -1;
 
@@ -1412,38 +1408,16 @@ namespace Everquest
                     break;
             }
 
-            // if the base value was negative then the change should be subtracted rather then added
-            if (value < 0)
-                change = -change;
-            value += change;
+            //if (Math.Abs(value) >= 100)
+                value = Math.Abs(value) + change;
 
-            if (max != 0 && Math.Abs(value) > Math.Abs(max))
-                value = max;
+            if (max != 0 && value > Math.Abs(max))            
+                value = Math.Abs(max);
+
+            if (start < 0)
+                value = -value;
 
             return value;
-        }
-
-        /// <summary>
-        /// Keep a running sum of some important effects (nukes, heals, hate)
-        /// This will ignore effects on spells that autocast other spells. e.g. Summer's Mist
-        /// </summary>
-        public void SumSlot(int type, int base1, int base2, int max, int calc, int level)
-        {
-            int value = CalcValue(calc, base1, max, DurationTicks / 2, level);
-
-            switch (type)
-            {
-                case 0:
-                    if (value < 0 && DurationTicks == 0)
-                        TotalNuke += value;
-                    //if (value < 0 && Ticks > 0)
-                    //    TotalDoT += value * Ticks;
-                    break;
-                case 79:
-                    if (value < 0)
-                        TotalNuke += value;
-                    break;
-            }
         }
 
         static private string FormatEnum(object o)
@@ -1471,6 +1445,14 @@ namespace Everquest
         {
             return Spell.FormatCount(name, count) + "%";
         }
+
+        static private string FormatLevel(int level)
+        {
+            if (level > 0)
+                return String.Format(" up to level {0}", level);
+            return null;
+        }
+
     }
 
     public static class SpellParser
@@ -1598,7 +1580,6 @@ namespace Everquest
                 spell.SlotEffects[i] = type;
                 spell.Slots[i] = spell.ParseSlot(type, value, value2, max, calc, MaxLevel);
 
-                spell.SumSlot(type, value, value2, max, calc, MaxLevel);
             }
 
             // debug stuff
