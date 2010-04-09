@@ -255,6 +255,13 @@ namespace Everquest
         Exclude_Pets = 701
     }
 
+    public enum SpellZoneRestrict
+    {
+        Outdoors = 1,
+        Indoors = 2,
+        None = 0
+    }
+
     public enum SpellIllusion
     {
         Human = 1,
@@ -361,6 +368,7 @@ namespace Everquest
         public bool MGBable;
         public int Rank;
         public bool OutOfCombat;
+        public SpellZoneRestrict Zone;
 
 
         //public int TotalHate;
@@ -422,6 +430,9 @@ namespace Everquest
 
             if (OutOfCombat)
                 result.Add("Restriction: Out of Combat");
+
+            if (Zone != SpellZoneRestrict.None)
+                result.Add("Restriction: " + Zone + " Only");
 
             if (Target == SpellTarget.Directional_AE)
                 result.Add("Target: " + FormatEnum(Target) + " (" + StartDegree + " to " + EndDegree + " Degrees)");
@@ -522,6 +533,8 @@ namespace Everquest
                 MaxTargets = 0;
             }
 
+            if (Zone != SpellZoneRestrict.Indoors && Zone != SpellZoneRestrict.Outdoors)
+                Zone = SpellZoneRestrict.None;
         }
 
         /// <summary>
@@ -1530,6 +1543,7 @@ namespace Everquest
             spell.ResistType = (SpellResist)ParseInt(fields[85]);
             spell.Target = (SpellTarget)ParseInt(fields[98]);
             spell.Skill = (SpellSkill)ParseInt(fields[100]);
+            spell.Zone = (SpellZoneRestrict)ParseInt(fields[101]);
             spell.Icon = ParseInt(fields[145]);
             spell.ResistMod = ParseInt(fields[147]);
             spell.RecourseID = ParseInt(fields[150]);
