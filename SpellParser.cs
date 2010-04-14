@@ -361,6 +361,7 @@ namespace Everquest
         public SpellTargetRestrict ProcRestrict;
         public int[] RegID;
         public int[] RegCount;
+        public int[] FocusID;
         //public string LandOnSelf;
         //public string LandOnOther;
         public int StartDegree;
@@ -395,6 +396,7 @@ namespace Everquest
             Levels = new int[16];
             RegID = new int[4];
             RegCount = new int[4];
+            FocusID = new int[4];
         }
 
         public override string ToString()
@@ -425,6 +427,10 @@ namespace Everquest
             for (int i = 0; i < RegID.Length; i++)
                 if (RegID[i] > 0)
                     result.Add("Regeant: [Item " + RegID[i] + "] x " + RegCount[i]);
+
+            for (int i = 0; i < FocusID.Length; i++)
+                if (FocusID[i] > 0)
+                    result.Add("Focus: [Item " + FocusID[i] + "]");
 
             //result.Add("Skill: " + Skill);
 
@@ -1531,14 +1537,16 @@ namespace Everquest
             spell.QuietTime = ParseFloat(fields[14]) / 1000f;
             spell.RecastTime = ParseFloat(fields[15]) / 1000f;
             spell.AEDuration = ParseInt(fields[18]);
-            spell.RegID[0] = ParseInt(fields[58]);
-            spell.RegCount[0] = ParseInt(fields[62]);
-            spell.RegID[1] = ParseInt(fields[59]);
-            spell.RegCount[1] = ParseInt(fields[63]);
-            spell.RegID[2] = ParseInt(fields[60]);
-            spell.RegCount[2] = ParseInt(fields[64]);
-            spell.RegID[3] = ParseInt(fields[61]);
-            spell.RegCount[3] = ParseInt(fields[65]);
+
+            for (int i = 0; i < 3; i++)
+            {
+                spell.RegID[i] = ParseInt(fields[58 + i]);
+                spell.RegCount[i] = ParseInt(fields[62 + i]);
+            }
+
+            for (int i = 0; i < 3; i++)
+                spell.FocusID[i] = ParseInt(fields[66 + i]);
+
             spell.Beneficial = ParseBool(fields[83]);
             spell.ResistType = (SpellResist)ParseInt(fields[85]);
             spell.Target = (SpellTarget)ParseInt(fields[98]);
