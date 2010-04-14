@@ -720,6 +720,8 @@ namespace Everquest
                 case 73:
                     return "Bind Sight";
                 case 74:
+                    if (value < 100)
+                        return String.Format("Feign Death (Success: {0}%)", value);
                     return "Feign Death";
                 case 75:
                     return "Voice Graft";
@@ -961,7 +963,7 @@ namespace Everquest
                     return String.Format("{0} Attack for {1} with {2}% Accuracy Mod", Spell.FormatEnum(Skill), value, base2);
                 case 194:
                     if (value < 100)
-                        return String.Format("Wipe Aggro Chance: {0}%", value);
+                        return String.Format("Wipe Aggro (Success: {0}%)", value);
                     return "Wipe Aggro";
                 case 195:
                     // 100 is full resist. not sure why some spells have more
