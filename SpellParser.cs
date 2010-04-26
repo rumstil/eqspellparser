@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -7,9 +8,15 @@ using System.Text.RegularExpressions;
 
 
 /*
- * EQEmu has parsed a lot of the spell effects and calculations
+ * For comparison EQEmu has parsed a lot of the spell effects and calculations
  * http://code.google.com/p/projecteqemu/source/browse/trunk/EQEmuServer/zone/spdat.h
  * http://sourceforge.net/projects/eqemulator/files/OpenZone/OpenSpell_2.0/OpenSpell_2.0.zip/download
+ * 
+ * http://forums.station.sony.com/eq/posts/list.m?start=150&topic_id=162971
+ * What's the difference between HATE_MOD and SPELL_HATE_GIVEN?
+ * This one is hard.  HATE_MOD is an offset.  Positive values increase the hate by a flat amount.  Negative values decrease the hate by a flat amount.  
+ * It's hardly ever used. SPELL_HATE_GIVEN overwrites the hate assigned by a spell.  However, there are some components of a spell (skill attack) for 
+ * instance, that assign their hate separately, regardless of what you put in this field.
  *
  */
 
@@ -371,13 +378,6 @@ namespace Everquest
         public bool OutOfCombat;
         public SpellZoneRestrict Zone;
 
-
-        //public int TotalHate;
-        public int TotalNuke;
-        //public int TotalDoT;
-        //public int TotalHeal;
-        //public int TotalHoT;
-
         public float Unknown;
 
 
@@ -655,6 +655,7 @@ namespace Everquest
                 case 31:
                     return String.Format("Mesmerize up to level {0}", max);
                 case 32:
+                    //return String.Format("Summon: [Item {0}] x {1}", base1, calc);
                     return String.Format("Summon: [Item {0}]", base1);
                 case 33:
                     return String.Format("Summon Pet: {0}", Extra);
@@ -1478,7 +1479,10 @@ namespace Everquest
 
     public static class SpellParser
     {
-        // This parser shows all spells as if they were cast by a level 85 player
+        // the spell file is in US culture (dots are used for decimals)
+        private static readonly CultureInfo culture = new CultureInfo("en-US", false);
+
+        // shows all spells as if they were cast by a level 85 player
         public const int MaxLevel = 85;
 
         /// <summary>
@@ -1591,8 +1595,7 @@ namespace Everquest
             // 20..31 - slot 1..12 base effect
             // 32..43 - slot 1..12 base_2 effect
             // 44..55 - slot 1..12 max effect
-            // 70..81 - slot 1..12 calc forumla data
-            spell.TotalNuke = 0;
+            // 70..81 - slot 1..12 calc forumla data            
             for (int i = 0; i < spell.Slots.Length; i++)
             {
                 int type = ParseInt(fields[86 + i]);
@@ -1620,14 +1623,14 @@ namespace Everquest
         {
             if (String.IsNullOrEmpty(s))
                 return 0f;
-            return Single.Parse(s);
+            return Single.Parse(s, culture);
         }
 
         static int ParseInt(string s)
         {
             if (String.IsNullOrEmpty(s))
                 return 0;
-            return (int)Single.Parse(s);
+            return (int)Single.Parse(s, culture);
         }
 
         static bool ParseBool(string s)
