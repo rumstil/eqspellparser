@@ -101,7 +101,7 @@ namespace Everquest
 
     public enum SpellSkill
     {
-        Melee = -1,
+        Hit = -1, // weapons/archery/backstab/frenzy/kick/etc..
         _1H_Blunt = 0,
         _1H_Slash = 1,
         _2H_Blunt = 2,
@@ -915,7 +915,9 @@ namespace Everquest
                     // how is this different than an endless rune?
                     return Spell.FormatPercent("Melee Mitigation", -value);
                 case 169:
-                    return Spell.FormatPercent("Chance to Critical Hit with " + Spell.FormatEnum((SpellSkill)base2), value);
+                    if ((SpellSkill)base2 != SpellSkill.Hit)
+                        return Spell.FormatPercent("Chance to Critical Hit with " + Spell.FormatEnum((SpellSkill)base2), value);
+                    return Spell.FormatPercent("Chance to Critical Hit", value);
                 case 170:
                     return Spell.FormatPercent("Chance to Critical Cast", value);
                 case 171:
@@ -945,7 +947,9 @@ namespace Everquest
                 case 183:
                     return Spell.FormatPercent("Skill Check for " + Spell.FormatEnum((SpellSkill)base2), value);
                 case 184:
-                    return Spell.FormatPercent("Chance to Hit with " + Spell.FormatEnum((SpellSkill)base2), value);
+                    if ((SpellSkill)base2 != SpellSkill.Hit)
+                        return Spell.FormatPercent("Chance to Hit with " + Spell.FormatEnum((SpellSkill)base2), value);
+                    return Spell.FormatPercent("Chance to Hit", value);
                 case 185:
                     return Spell.FormatPercent(Spell.FormatEnum((SpellSkill)base2) + " Damage", value);
                 case 186:
@@ -1077,7 +1081,9 @@ namespace Everquest
                 case 329:
                     return String.Format("Absorb Damage Using Mana: {0}%", value);
                 case 330:
-                    return Spell.FormatPercent("Critical Damage for " + Spell.FormatEnum((SpellSkill)base2), value);
+                    if ((SpellSkill)base2 != SpellSkill.Hit)
+                        return Spell.FormatPercent("Critical Hit Damage for " + Spell.FormatEnum((SpellSkill)base2), value);
+                    return Spell.FormatPercent("Critical Hit Damage", value);
                 case 333:
                     // so far this is only used on spells that have a rune
                     return String.Format("Cast on Rune Depleted: [Spell {0}]", base1);
@@ -1513,7 +1519,8 @@ namespace Everquest
                         string line = text.ReadLine();
                         string[] fields = line.Split('^');
                         Spell spell = ParseFields(fields);
-                        desc.TryGetValue(spell.DescID, out spell.Desc);
+                        if (!desc.TryGetValue(spell.DescID, out spell.Desc))
+                            spell.Desc = spell.DescID.ToString();
                         list.Add(spell);
                     }
 
