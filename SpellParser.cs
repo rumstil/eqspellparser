@@ -96,7 +96,8 @@ namespace Everquest
         Mana_Burn = 350,
         Current_Mana = 358,
         Corruption_Counter = 369,
-        Corruption_Resist = 370
+        Corruption_Resist = 370,
+        Twincast = 399
     }
 
     public enum SpellSkill
@@ -1092,7 +1093,8 @@ namespace Everquest
                 case 337:
                     return Spell.FormatPercent("Experience Gain", value);
                 case 339:
-                    return String.Format("Add Spell Proc: [Spell {0}] Chance: {1}%", base2, base1);
+                    // how is this different than 383 (besides chance)
+                    return String.Format("Cast on Matching Spell: [Spell {0}] Chance: {1}%", base2, base1);
                 case 340:
                     if (base1 < 100)
                         return String.Format("Cast: [Spell {0}] Chance: {1}%", base2, base1);
@@ -1153,7 +1155,7 @@ namespace Everquest
                     return String.Format("Inhibit Buff Effect: {0}", Spell.FormatEnum((SpellEffect)base2));
                 case 383:
                     // e.g. Has a chance to cast a mana recovering spell every time a spell is cast.
-                    return String.Format("Cast on Matching Spell: [Spell {0}] Chance: {1}%", base2, base1);
+                    return String.Format("Cast on Matching Spell: [Spell {0}] Chance: {1}%", base2, base1 / 10);
                 case 385:
                     return String.Format("Limit Spells: {1}[Group {0}]", Math.Abs(value), value >= 0 ? "" : "Exclude ");
                 case 386:
