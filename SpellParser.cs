@@ -7,16 +7,11 @@ using System.Text.RegularExpressions;
 
 
 
-/*
- * For comparison EQEmu has parsed a lot of the spell effects and calculations
+/* 
+ * 
  * http://code.google.com/p/projecteqemu/source/browse/trunk/EQEmuServer/zone/spdat.h
  * http://sourceforge.net/projects/eqemulator/files/OpenZone/OpenSpell_2.0/OpenSpell_2.0.zip/download
- * 
  * http://forums.station.sony.com/eq/posts/list.m?start=150&topic_id=162971
- * What's the difference between HATE_MOD and SPELL_HATE_GIVEN?
- * This one is hard.  HATE_MOD is an offset.  Positive values increase the hate by a flat amount.  Negative values decrease the hate by a flat amount.  
- * It's hardly ever used. SPELL_HATE_GIVEN overwrites the hate assigned by a spell.  However, there are some components of a spell (skill attack) for 
- * instance, that assign their hate separately, regardless of what you put in this field.
  *
  */
 
@@ -77,6 +72,7 @@ namespace Everquest
         Levitate = 57,
         Damage_Shield = 59,
         Summon_Skeleton_Pet = 71,
+        Melee_Proc = 85,
         Assist_Radius = 86,
         Max_HP = 69,
         Hate = 92,
@@ -86,9 +82,11 @@ namespace Everquest
         All_Resists = 111,
         Current_HP_Percent = 147,
         Absorb_Hits = 163,
+        Melee_Mitigation = 168,
         Lifetap_From_Weapon = 178,
         Hate_Repeating = 192,
         Taunt = 199,
+        Proc_Rate = 200,
         Weapon_Damage_Bonus = 220,
         Spell_Damage_Bonus = 286,
         XP_Gain = 337,
@@ -348,7 +346,7 @@ namespace Everquest
         public SpellResist ResistType;
         public int ResistMod;
         public string Extra;
-        public int Hate;
+        public int HateOverride;
         public int Range;
         public int AERange;
         public int AEDuration; // rain spells
@@ -484,8 +482,8 @@ namespace Everquest
             else if (PushBack != 0)
                 result.Add("Push: " + PushBack);
 
-            if (Hate != 0)
-                result.Add("Hate: " + Hate);
+            if (HateOverride != 0)
+                result.Add("Hate: " + HateOverride);
 
             if (MaxHits > 0)
                 result.Add("Max Hits: " + MaxHits);
@@ -531,7 +529,7 @@ namespace Everquest
             {
                 Range = 0;
                 MaxTargets = 0;
-                Hate = 0; // a bunch of self only AAs have 1 hate
+                HateOverride = 0; // a bunch of self only AAs have 1 hate
             }
 
             if (Target == SpellTarget.Single)
@@ -881,7 +879,7 @@ namespace Everquest
                 case 153:
                     return String.Format("Balance Group HP with {0}% Penalty", value);
                 case 154:
-                    return String.Format("Remove Detrimental ({0})", value);
+                    return String.Format("Cure Detrimental ({0})", value);
                 case 156:
                     return "Illusion: Target";
                 case 157:
@@ -1093,7 +1091,7 @@ namespace Everquest
                 case 337:
                     return Spell.FormatPercent("Experience Gain", value);
                 case 339:
-                    // how is this different than 383 (besides chance)
+                    // how is this different than 383? (besides chance)
                     return String.Format("Cast on Matching Spell: [Spell {0}] Chance: {1}%", base2, base1);
                 case 340:
                     if (base1 < 100)
@@ -1200,6 +1198,9 @@ namespace Everquest
                     return Spell.FormatPercent("Spell Effectiveness", value);
                 case 414:
                     return String.Format("Limit Bard Skill: {0}", Spell.FormatEnum((SpellSkill)base1));
+                case 417:
+                    // how is this different than 15?
+                    return Spell.FormatCount("Current Mana", value) + repeating + variable;
                 case 418:
                     // how is this different than 220 bonus? 
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", value);
@@ -1573,7 +1574,7 @@ namespace Everquest
             spell.DescID = ParseInt(fields[155]);
             spell.Endurance = ParseInt(fields[166]);
             spell.TimerID = ParseInt(fields[167]);
-            spell.Hate = ParseInt(fields[173]);
+            spell.HateOverride = ParseInt(fields[173]);
             spell.EnduranceUpkeep = ParseInt(fields[174]);
             spell.MaxHits = ParseInt(fields[176]);
             spell.MGBable = ParseBool(fields[185]);
