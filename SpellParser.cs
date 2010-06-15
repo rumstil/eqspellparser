@@ -81,6 +81,8 @@ namespace Everquest
         Donals_Heal = 101,
         All_Resists = 111,
         Current_HP_Percent = 147,
+        Spell_Rune = 161,
+        Melee_Rune = 162,
         Absorb_Hits = 163,
         Melee_Mitigation = 168,
         Lifetap_From_Weapon = 178,
@@ -245,6 +247,16 @@ namespace Everquest
         HP_Above_75_Percent = 201,
         HP_Below_20_Percent = 203,
         Not_In_Combat = 216,
+        At_Least_1_Pet_On_Hatelist = 221,
+        At_Least_2_Pets_On_Hatelist = 222,
+        At_Least_3_Pets_On_Hatelist = 223,
+        At_Least_4_Pets_On_Hatelist = 224,
+        At_Least_5_Pets_On_Hatelist = 225,
+        At_Least_6_Pets_On_Hatelist = 226,
+        At_Least_7_Pets_On_Hatelist = 227,
+        At_Least_8_Pets_On_Hatelist = 228,
+        At_Least_9_Pets_On_Hatelist = 229,
+        At_Least_10_Pets_On_Hatelist = 230,
         HP_Below_35_Percent = 250,
         Chain_Plate_Classes = 304,
         HP_Between_55_and_65_Percent = 404,
@@ -952,7 +964,7 @@ namespace Everquest
                 case 185:
                     return Spell.FormatPercent(Spell.FormatEnum((SpellSkill)base2) + " Damage", value);
                 case 186:
-                    return Spell.FormatPercent(Spell.FormatEnum((SpellSkill)base2) + " Min Damage", value);
+                    return Spell.FormatPercent("Min " + Spell.FormatEnum((SpellSkill)base2) + " Damage", value); // only DI1?
                 case 188:
                     return Spell.FormatPercent("Chance to Block", value);
                 case 189:
@@ -1080,9 +1092,7 @@ namespace Everquest
                 case 329:
                     return String.Format("Absorb Damage Using Mana: {0}%", value);
                 case 330:
-                    if ((SpellSkill)base2 != SpellSkill.Hit)
-                        return Spell.FormatPercent("Critical Hit Damage for " + Spell.FormatEnum((SpellSkill)base2), value);
-                    return Spell.FormatPercent("Critical Hit Damage", value);
+                    return Spell.FormatPercent("Critical " + Spell.FormatEnum((SpellSkill)base2) + " Damage", value);
                 case 333:
                     // so far this is only used on spells that have a rune
                     return String.Format("Cast on Rune Depleted: [Spell {0}]", base1);
@@ -1208,7 +1218,7 @@ namespace Everquest
                     // this is used for potions. how is it different than 85? maybe proc rate?
                     return String.Format("Add Proc: [Spell {0}] (Unknown: {1})", base1, base2);
                 case 424:
-                    return String.Format("Gradual Knockback for {0} (Unknown: {1})", value, base2);
+                    return String.Format("Gradual Knockback for {0} (Unknown: {1})", base1, base2);
                 case 427:
                     return String.Format("Cast on Skill Use: [Spell {0}] Chance: {1}%", base1, base2 / 10);
                 case 428:
