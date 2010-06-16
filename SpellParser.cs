@@ -644,9 +644,9 @@ namespace Everquest
                         max = 55;
                     return String.Format("Stun for {0}s", value / 1000f) + (max > 0 ? String.Format(" up to level {0}", max) : "");
                 case 22:
-                    return String.Format("Charm up to level {0}", max);
+                    return "Charm" + Spell.FormatLevel(max);
                 case 23:
-                    return String.Format("Fear up to level {0}", max);
+                    return "Fear" + Spell.FormatLevel(max);
                 case 24:
                     return Spell.FormatCount("Stamina Loss", value);
                 case 25:
@@ -664,7 +664,7 @@ namespace Everquest
                 case 30:
                     return String.Format("Decrease Aggro Radius to {0} up to level {1}", value, max);
                 case 31:
-                    return String.Format("Mesmerize up to level {0}", max);
+                    return "Mesmerize" + Spell.FormatLevel(max);
                 case 32:
                     //return String.Format("Summon: [Item {0}] x {1}", base1, calc);
                     return String.Format("Summon: [Item {0}]", base1);
@@ -833,9 +833,9 @@ namespace Everquest
                 case 123:
                     return "Screech";
                 case 124:
-                    return String.Format("{0} Spell Damage by {1}% to {2}%", value >= 0 ? "Increase" : "Decrease", value, base2);
+                    return Spell.FormatPercent("Spell Damage", base1, base2);
                 case 125:
-                    return String.Format("{0} Healing by {1}% to {2}%", value >= 0 ? "Increase" : "Decrease", value, base2);
+                    return Spell.FormatPercent("Healing", base1, base2);
                 case 126:
                     return Spell.FormatPercent("Spell Resist Rate", -value);
                 case 127:
@@ -845,11 +845,12 @@ namespace Everquest
                 case 129:
                     return Spell.FormatPercent("Spell Range", value);
                 case 130:
-                    return Spell.FormatPercent("Spell and Bash Hate", value);
+                    // i think this affects all special attacks. bash/kick/frenzy/etc...
+                    return Spell.FormatPercent("Spell and Bash Hate", base1, base2);
                 case 131:
                     return Spell.FormatPercent("Chance of Using Reagent", -value);
                 case 132:
-                    return String.Format("{0} Spell Mana Cost by {1}% to {2}%", value < 0 ? "Increase" : "Decrease", Math.Abs(value), Math.Abs(base2));
+                    return Spell.FormatPercent("Spell Mana Cost", -base1, -base2);
                 case 134:
                     return String.Format("Limit Max Level: {0} (lose {1}% per level)", base1, base2);
                 case 135:
@@ -1097,12 +1098,12 @@ namespace Everquest
                     // so far this is only used on spells that have a rune
                     return String.Format("Cast on Rune Depleted: [Spell {0}]", base1);
                 case 335:
-                    return "Prevent Matching Spells From Landing";
+                    return "Prevent Spells From Landing";
                 case 337:
                     return Spell.FormatPercent("Experience Gain", value);
                 case 339:
                     // how is this different than 383? (besides chance)
-                    return String.Format("Cast on Matching Spell: [Spell {0}] Chance: {1}%", base2, base1);
+                    return String.Format("Cast on Spell Use: [Spell {0}] Chance: {1}%", base2, base1);
                 case 340:
                     if (base1 < 100)
                         return String.Format("Cast: [Spell {0}] Chance: {1}%", base2, base1);
@@ -1163,7 +1164,7 @@ namespace Everquest
                     return String.Format("Inhibit Buff Effect: {0}", Spell.FormatEnum((SpellEffect)base2));
                 case 383:
                     // e.g. Has a chance to cast a mana recovering spell every time a spell is cast.
-                    return String.Format("Cast on Matching Spell: [Spell {0}] Chance: {1}%", base2, base1 / 10);
+                    return String.Format("Cast on Spell Use: [Spell {0}] Chance: {1}%", base2, base1 / 10);
                 case 385:
                     return String.Format("Limit Spells: {1}[Group {0}]", Math.Abs(value), value >= 0 ? "" : "Exclude ");
                 case 386:
@@ -1450,9 +1451,9 @@ namespace Everquest
             }
 
             //if (Math.Abs(value) >= 100)
-                value = Math.Abs(value) + change;
+            value = Math.Abs(value) + change;
 
-            if (max != 0 && value > Math.Abs(max))            
+            if (max != 0 && value > Math.Abs(max))
                 value = Math.Abs(max);
 
             if (start < 0)
@@ -1471,15 +1472,13 @@ namespace Everquest
         {
             if (seconds <= 60)
                 return seconds.ToString() + "s";
+
             return new TimeSpan(0, 0, (int)seconds).ToString();
         }
 
         static private string FormatCount(string name, int count)
         {
-            if (count >= 0)
-                return String.Format("Increase {0} by {1}", name, count);
-            else
-                return String.Format("Decrease {0} by {1}", name, -count);
+            return String.Format("{0} {1} by {2}", count < 0 ? "Decrease" : "Increase", name, Math.Abs(count));
         }
 
         static private string FormatPercent(string name, int count)
@@ -1487,10 +1486,26 @@ namespace Everquest
             return Spell.FormatCount(name, count) + "%";
         }
 
+        static private string FormatPercent(string name, int min, int max)
+        {
+            if (Math.Abs(min) > Math.Abs(max))
+            {
+                int temp = min;
+                min = max;
+                max = temp;
+            }
+
+            if (min == max)
+                return String.Format("{0} {1} by {2}%", max < 0 ? "Decrease" : "Increase", name, Math.Abs(min));
+
+            return String.Format("{0} {1} by {2}% to {3}%", max < 0 ? "Decrease" : "Increase", name, Math.Abs(min), Math.Abs(max));
+        }
+
         static private string FormatLevel(int level)
         {
             if (level > 0)
                 return String.Format(" up to level {0}", level);
+
             return null;
         }
 
