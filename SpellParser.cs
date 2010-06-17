@@ -573,21 +573,7 @@ namespace Everquest
             // the switch(type) below determines if an effect uses the scaled value, or the original base1 value
             // decaying/growing spells are shown at their average strength (i.e. ticks / 2)
             int value = CalcValue(calc, base1, max, DurationTicks / 2, level);
-
-            // prepare a comment for effects that do not have a constant value
-            // this is only used by hp/mana effects
-            string variable = "";
-
-            if (calc == 123)
-                variable = String.Format(" (Random: {0} to {1})", base1, max * ((value >= 0) ? 1 : -1));
-
-            if (calc == 107 || calc == 108 || calc == 120 || calc == 122 || (calc > 1000 && calc < 2000))
-            {
-                int start = CalcValue(calc, base1, max, 1, level);
-                int finish = CalcValue(calc, base1, max, DurationTicks, level);
-                variable = String.Format(" ({2}: {0} to {1})", start, finish, Math.Abs(start) < Math.Abs(finish) ? "Growing" : "Decaying");
-                // +String.Format("Unknown Effect: {0} Base1={1} Base2={2} Max={3} Calc={4} Value={5}", type, base1, base2, max, calc, value); 
-            }
+            string variable = CalcValueRange(calc, base1, max, DurationTicks, level);
 
             // prepare a comment for effects that repeat for each tick of the duration
             // this is only used by effects that modify hp/mana/end/hate 
@@ -1312,15 +1298,15 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Parse an effect slot value formula.
+        /// Parse a value formula.
         /// </summary>
-        static public int CalcValue(int calc, int value, int max, int tick, int level)
+        static public int CalcValue(int calc, int base1, int max, int tick, int level)
         {
             // the default calculation (100) leaves the base value as is            
             if (calc == 0 || calc == 100)
-                return value;
+                return base1;
 
-            int start = value;
+            int start = base1;
             int change = 0;
 
             switch (calc)
@@ -1390,7 +1376,7 @@ namespace Everquest
                     break;
                 case 123:
                     // random in range
-                    change = (Math.Abs(max) - Math.Abs(value)) / 2;
+                    change = (Math.Abs(max) - Math.Abs(base1)) / 2;
                     break;
                 case 124:
                     if (level > 50) change = (level - 50);
@@ -1450,21 +1436,39 @@ namespace Everquest
                     break;
             }
 
-            //if (Math.Abs(value) >= 100)
-            value = Math.Abs(value) + change;
+            base1 = Math.Abs(base1) + change;
 
-            if (max != 0 && value > Math.Abs(max))
-                value = Math.Abs(max);
+            if (max != 0 && base1 > Math.Abs(max))
+                base1 = Math.Abs(max);
 
             if (start < 0)
-                value = -value;
+                base1 = -base1;
 
-            return value;
+            return base1;
+        }
+
+        /// <summary>
+        /// Parse a value formula range.
+        /// </summary>
+        static public string CalcValueRange(int calc, int base1, int max, int ticks, int level)
+        {
+            int start = CalcValue(calc, base1, max, 1, 1);
+            int finish = CalcValue(calc, base1, max, ticks, level);
+
+            if (calc == 123)
+                return String.Format(" (Random: {0} to {1})", base1, max * ((base1 >= 0) ? 1 : -1));
+
+            if (calc == 107 || calc == 108 || calc == 120 || calc == 122 || (calc > 1000 && calc < 2000))
+                return String.Format(" ({2}: {0} to {1})", start, finish, Math.Abs(start) < Math.Abs(finish) ? "Growing" : "Decaying");
+
+            //if (start != finish)
+            //    return String.Format(" ({0} @L1 to {1} @L{2})", start, finish, level);
+
+            return null;
         }
 
         static private string FormatEnum(object o)
         {
-            //if (Char.IsDigit(o.ToString()[0])) Console.Error.WriteLine(o);
             return o.ToString().Replace("_", " ").Trim();
         }
 
@@ -1476,27 +1480,27 @@ namespace Everquest
             return new TimeSpan(0, 0, (int)seconds).ToString();
         }
 
-        static private string FormatCount(string name, int count)
+        static private string FormatCount(string name, int value)
         {
-            return String.Format("{0} {1} by {2}", count < 0 ? "Decrease" : "Increase", name, Math.Abs(count));
+            return String.Format("{0} {1} by {2}", value < 0 ? "Decrease" : "Increase", name, Math.Abs(value));
         }
 
-        static private string FormatPercent(string name, int count)
+        static private string FormatPercent(string name, int value)
         {
-            return Spell.FormatCount(name, count) + "%";
+            return Spell.FormatPercent(name, value, value);
         }
 
         static private string FormatPercent(string name, int min, int max)
         {
+            if (min == max)
+                return String.Format("{0} {1} by {2}%", max < 0 ? "Decrease" : "Increase", name, Math.Abs(max));
+
             if (Math.Abs(min) > Math.Abs(max))
             {
                 int temp = min;
                 min = max;
                 max = temp;
             }
-
-            if (min == max)
-                return String.Format("{0} {1} by {2}%", max < 0 ? "Decrease" : "Increase", name, Math.Abs(min));
 
             return String.Format("{0} {1} by {2}% to {3}%", max < 0 ? "Decrease" : "Increase", name, Math.Abs(min), Math.Abs(max));
         }
@@ -1517,6 +1521,7 @@ namespace Everquest
         private static readonly CultureInfo culture = new CultureInfo("en-US", false);
 
         // shows all spells as if they were cast by a level 85 player
+        // many potions can apply spell effects based on a lower level 
         public const int MaxLevel = 85;
 
         /// <summary>
