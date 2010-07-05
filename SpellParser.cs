@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
  * http://code.google.com/p/projecteqemu/source/browse/trunk/EQEmuServer/zone/spdat.h
  * http://sourceforge.net/projects/eqemulator/files/OpenZone/OpenSpell_2.0/OpenSpell_2.0.zip/download
  * http://forums.station.sony.com/eq/posts/list.m?start=150&topic_id=162971
+ * http://forums.station.sony.com/eq/posts/list.m?start=50&topic_id=165000 - resists
  *
  */
 
@@ -357,6 +358,8 @@ namespace Everquest
         public SpellTarget Target;
         public SpellResist ResistType;
         public int ResistMod;
+        public int MinResist;
+        public int MaxResist;
         public string Extra;
         public int HateOverride;
         public int Range;
@@ -388,6 +391,7 @@ namespace Everquest
         public int Rank;
         public bool OutOfCombat;
         public SpellZoneRestrict Zone;
+
 
         public float Unknown;
 
@@ -423,6 +427,7 @@ namespace Everquest
         public string[] Details()
         {
             List<string> result = new List<string>();
+            string line;
 
             if (!String.IsNullOrEmpty(ClassesLevels))
                 result.Add("Classes: " + ClassesLevels);
@@ -468,8 +473,8 @@ namespace Everquest
             if (ViralRange > 0)
                 result.Add("Viral Range: " + ViralRange + ", Recast: " + ViralPulse + "s");
 
-            if (!Beneficial && ResistType != SpellResist.Unresistable && ResistMod != 0)
-                result.Add("Resist: " + ResistType + " " + ResistMod);
+            if (!Beneficial && ResistMod != 0)
+                result.Add("Resist: " + ResistType + " " + ResistMod + (MinResist > 0 ? ", Min: " + MinResist / 2f + "%" : "") + (MaxResist > 0 ? ", Max: " + MaxResist / 2f + "%" : ""));
             else if (!Beneficial)
                 result.Add("Resist: " + ResistType);
             else
@@ -549,6 +554,10 @@ namespace Everquest
                 AERange = 0;
                 MaxTargets = 0;
             }
+
+            if (ResistType == SpellResist.Unresistable)
+                ResistMod = 0;
+
 
             if (Zone != SpellZoneRestrict.Indoors && Zone != SpellZoneRestrict.Outdoors)
                 Zone = SpellZoneRestrict.None;
@@ -1608,6 +1617,8 @@ namespace Everquest
             spell.EnduranceUpkeep = ParseInt(fields[174]);
             spell.MaxHits = ParseInt(fields[176]);
             spell.MGBable = ParseBool(fields[185]);
+            spell.MinResist = ParseInt(fields[189]);
+            spell.MaxResist = ParseInt(fields[190]);
             spell.ViralPulse = ParseInt(fields[191]);
             //spell.ViralMaxSpread = ParseInt(fields[192]);
             spell.StartDegree = ParseInt(fields[194]);
@@ -1624,7 +1635,7 @@ namespace Everquest
             spell.ProcRestrict = (SpellTargetRestrict)ParseInt(fields[220]);  // field 206/216 seems to be related
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[18]);
+            //spell.Unknown = ParseFloat(fields[190]);
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
