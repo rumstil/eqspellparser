@@ -7,6 +7,7 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Xml;
 using Everquest;
 
 namespace parser
@@ -31,12 +32,15 @@ namespace parser
             if (!File.Exists(descFile))
                 DownloadPatchFile(descFile);
 
+
             List<Spell> list = SpellParser.LoadFromFile(spellFile, descFile);
+
             Func<int, Spell> lookup = id => list.FirstOrDefault(x => x.ID == id); // TODO: hash table search
-                
+
             var results = Search(list, args);
-            results = Expand(results, lookup);
-            Show(results); 
+            //results = Expand(results, lookup);
+            Show(results);
+
         }
 
         /// <summary>
@@ -48,7 +52,7 @@ namespace parser
 
             if (args.Length == 1 && args[0] == "all")
                 results = list;
-                //results = list.Where(x => (int)x.TargetRestrict > 0).OrderBy(x => x.TargetRestrict);
+            //results = list.Where(x => (int)x.TargetRestrict > 0).OrderBy(x => x.TargetRestrict);
 
             // search by effect type
             if (args.Length == 2 && args[0] == "type")
@@ -81,6 +85,7 @@ namespace parser
             if (args.Length == 1 && args[0] == "unknown")
                 results = list.Where(x => x.Unknown > 0).OrderBy(x => x.Unknown);
 
+
             return results;
         }
 
@@ -101,7 +106,7 @@ namespace parser
                 Spell spell = queue[i++];
 
                 if (spell.RecourseID != 0)
-                {                    
+                {
                     Spell spellref = lookup(spell.RecourseID);
                     if (spellref != null && !queue.Contains(spellref))
                         queue.Add(spellref);
@@ -113,7 +118,7 @@ namespace parser
                     {
                         Match link = spellexpr.Match(s);
                         if (link.Success)
-                        {                            
+                        {
                             Spell spellref = lookup(Int32.Parse(link.Groups[1].Value));
                             if (spellref != null && !queue.Contains(spellref))
                                 queue.Add(spellref);
@@ -129,13 +134,32 @@ namespace parser
         /// </summary>
         static void Show(IEnumerable<Spell> list)
         {
-            if (list != null)
-                foreach (Spell spell in list)
-                {
-                    Console.WriteLine("\r\n{0}\r\n{1}", spell, String.Join("\r\n", spell.Details()));
-                    if (!String.IsNullOrEmpty(spell.Desc))
-                        Console.WriteLine(spell.Desc);
-                }
+            if (list == null)
+                return;
+
+            int count = 0;
+
+            foreach (Spell spell in list)
+            {
+                count++;
+                Console.WriteLine("\r\n{0}\r\n{1}", spell, String.Join("\r\n", spell.Details()));
+                if (!String.IsNullOrEmpty(spell.Desc))
+                    Console.WriteLine(spell.Desc);
+            }
+
+            Console.Error.WriteLine();
+            Console.Error.WriteLine("{0} results", count);
+        }
+
+        static void DownloadPatchDir()
+        {
+            //DownloadFile("http://patch.station.sony.com:7000/patch/everquest/en/everquest-update.xml.gz", "update.xml");
+
+            //XmlDocument doc = new XmlDocument();
+            //doc.Load("update.xml");
+            //XmlNode node = doc.SelectSingleNode("//VerantPatcher/Product[@Name='EverQuest']/Distribution[@Name='Main Distribution']/Directory[@LocalPath='::HomeDirectory::']");
+            //Console.WriteLine(node.Name + " " + node.Value);
+            //Console.WriteLine(node.Attributes["RemotePath"].Value);
         }
 
         /// <summary>
@@ -143,14 +167,9 @@ namespace parser
         /// </summary>
         static void DownloadPatchFile(string filename)
         {
-            Console.Error.WriteLine("Downloading " + filename);
+            DownloadFile("http://patch.everquest.com:7000/patch/everquest/en/patch0/main/" + filename + ".gz", filename);
+            //DownloadFile("http://eq.patch.station.sony.com/patch/everquest/en-test/patch0/main/" + filename + ".gz", filename);
 
-            // http://eqitems.13th-floor.org/phpBB2/viewtopic.php?t=316
-            // Newest Patcher path: http://patch.everquest.com:7000/patch/lp2/eq/en/patch1/en-main/
-            // Older Patcher path: http://patch.everquest.com:7000/patch/everquest/en/patch1/main/
-            // Looking at the patcher logs it seems they are switching back and forth between patch0 and patch1. 
-            DownloadFile("http://patch.station.sony.com:7000/patch/everquest/en/patch0/main/" + filename + ".gz", filename);
-            //DownloadFile("http://patch.station.sony.com:7000/patch/everquest/en/everquest-update.xml.gz", "update.xml");
         }
 
         /// <summary>
@@ -158,6 +177,8 @@ namespace parser
         /// </summary>
         static void DownloadFile(string url, string path)
         {
+            Console.Error.WriteLine("=> " + url);
+
             using (WebClient web = new WebClient())
             {
                 byte[] data = web.DownloadData(url);
