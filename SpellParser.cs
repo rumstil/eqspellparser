@@ -599,7 +599,7 @@ namespace Everquest
 
             switch (type)
             {
-                case -10:
+                case 0:
                     // delta hp for heal/nuke, repeating if with duration
                     if (base2 > 0)
                         return Spell.FormatCount("Current HP", value) + repeating + variable + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
