@@ -332,8 +332,17 @@ namespace Everquest
         Scrykin = 495, // has subtypes
         Bixie = 520,
         Drakkin = 522,
+        Dragon = 530,
         Hideous_Harpy = 527,
         Crystal_Sphere = 616
+    }
+
+    public enum SpellFaction
+    {
+        SHIP_Workshop = 1178,
+        Kithicor_Good = 1204, // army of light
+        Kithicor_Evil = 1205, // army of obliteration
+        Ancient_Iksar = 1229
     }
 
     public sealed class Spell
@@ -564,8 +573,8 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Parse a spell effect slot. Each spell has 12 of effect slots with associated attributes.
-        /// Base spell attributes like ID, Skill, Extra, Ticks are referenced and should be set before
+        /// Parse a spell effect slot. Each spell has 12 effect slots. Devs refer to these as SPAs.
+        /// Other attributes like ID, Skill, Extra, Ticks are referenced and should be set before
         /// calling this function.
         /// </summary>        
         public string ParseSlot(int type, int base1, int base2, int max, int calc, int level)
@@ -590,7 +599,7 @@ namespace Everquest
 
             switch (type)
             {
-                case 0:
+                case -10:
                     // delta hp for heal/nuke, repeating if with duration
                     if (base2 > 0)
                         return Spell.FormatCount("Current HP", value) + repeating + variable + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
@@ -1003,9 +1012,11 @@ namespace Everquest
                 case 209:
                     return String.Format("Dispel Beneficial ({0})", value);
                 case 214:
-                    return Spell.FormatPercent("Max HP", value / 100);
+                    return Spell.FormatPercent("Max HP", value / 100f);
                 case 216:
                     return Spell.FormatPercent("Accuracy", value);
+                case 219:
+                    return Spell.FormatPercent("Chance to Slay Undead", value / 100f);
                 case 220:
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", value);
                 case 227:
@@ -1035,7 +1046,8 @@ namespace Everquest
                 case 287:
                     return String.Format("Increase Duration by {0}s", value * 6);
                 case 289:
-                    // how is this different than 373? if base2 > 0, what is base1?                                       
+                    // how is this different than 373? if base2 > 0, what is base1?  
+                    // this may only trigger if the spell times out                 
                     return String.Format("Cast on Fade: [Spell {0}]", (base2 > 0) ? base2 : base1);
                 case 291:
                     return String.Format("Dispel Detrimental ({0})", value);
@@ -1129,7 +1141,7 @@ namespace Everquest
                 case 367:
                     return String.Format("Transform Body Type ({0})", value);
                 case 368:
-                    return String.Format("Faction {0} Modifier: {1}", base1, base2);
+                    return Spell.FormatCount("Faction with " + FormatEnum((SpellFaction)base1), base2);
                 case 369:
                     return Spell.FormatCount("Corruption Counter", value);
                 case 370:
@@ -1214,7 +1226,7 @@ namespace Everquest
                     // this is used for potions. how is it different than 85? maybe proc rate?
                     return String.Format("Add Proc: [Spell {0}] (Unknown: {1})", base1, base2);
                 case 424:
-                    return String.Format("Gradual Knockback for {0} (Unknown: {1})", base1, base2);
+                    return String.Format("Gradual {2} for {0} (Unknown: {1})", Math.Abs(base1), base2, base1 > 0 ? "Push" : "Pull");
                 case 427:
                     return String.Format("Cast on Skill Use: [Spell {0}] Chance: {1}%", base1, base2 / 10);
                 case 428:
@@ -1494,19 +1506,19 @@ namespace Everquest
             return String.Format("{0} {1} by {2}", value < 0 ? "Decrease" : "Increase", name, Math.Abs(value));
         }
 
-        static private string FormatPercent(string name, int value)
+        static private string FormatPercent(string name, float value)
         {
             return Spell.FormatPercent(name, value, value);
         }
 
-        static private string FormatPercent(string name, int min, int max)
+        static private string FormatPercent(string name, float min, float max)
         {
             if (min == max)
                 return String.Format("{0} {1} by {2}%", max < 0 ? "Decrease" : "Increase", name, Math.Abs(max));
 
             if (Math.Abs(min) > Math.Abs(max))
             {
-                int temp = min;
+                float temp = min;
                 min = max;
                 max = temp;
             }
