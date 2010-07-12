@@ -28,14 +28,12 @@ namespace parser
 
             if (args.Length == 1 && args[0] == "update")
             {
-                File.Delete("update.xml");
-                File.Delete(spellFile);
-                File.Delete(descFile);
                 DownloadPatchFiles();
                 return;
             }
 
-            DownloadPatchFiles();
+            if (!File.Exists(spellFile) || !File.Exists(descFile))
+                DownloadPatchFiles();
 
             List<Spell> list = SpellParser.LoadFromFile(spellFile, descFile);
 
@@ -163,19 +161,16 @@ namespace parser
             //string patch = "http://eq.patch.station.sony.com/patch/everquest/en/everquest-update.xml.gz"; // live servers (patch.everquest.com:7000 also works)
             string patch = "http://eq.patch.station.sony.com/patch/everquest/en-test/everquest-update.xml.gz"; // test server 
 
-            if (!File.Exists("update.xml"))
-                DownloadFile(patch, "update.xml");
+            DownloadFile(patch, "update.xml");
 
             XmlDocument doc = new XmlDocument();
             doc.Load("update.xml");
             string server = "http://" + doc.SelectSingleNode("//VerantPatcher/Product[@Name='EverQuest']").Attributes["Server"].Value;
             string path = "/" + doc.SelectSingleNode("//VerantPatcher/Product[@Name='EverQuest']/Distribution[@Name='Main Distribution']/Directory[@LocalPath='::HomeDirectory::']").Attributes["RemotePath"].Value + "/";
 
-            if (!File.Exists(spellFile))
-                DownloadFile(server + path + spellFile + ".gz", spellFile);
+            DownloadFile(server + path + spellFile + ".gz", spellFile);
 
-            if (!File.Exists(descFile))
-                DownloadFile(server + path + descFile + ".gz", descFile);
+            DownloadFile(server + path + descFile + ".gz", descFile);
 
             //DownloadFile("http://patch.everquest.com:7000/patch/everquest/en/patch0/main/" + filename + ".gz", filename);
             //DownloadFile("http://eq.patch.station.sony.com/patch/everquest/en-test/patch0/main/" + filename + ".gz", filename);
@@ -187,6 +182,7 @@ namespace parser
         static void DownloadFile(string url, string path)
         {
             Console.Error.WriteLine("=> " + url);
+            int timer = System.Environment.TickCount;
 
             using (WebClient web = new WebClient())
             {
@@ -205,7 +201,8 @@ namespace parser
                         output.Write(buffer, 0, read);
                     }
 
-                    Console.Error.WriteLine(" {0} bytes", output.Length);
+                    int duration = System.Environment.TickCount - timer;
+                    Console.Error.WriteLine(" {0} bytes, {1} kB/s", output.Length, output.Length / duration);
                 }
             }
         }
