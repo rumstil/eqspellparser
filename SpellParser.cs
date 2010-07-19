@@ -358,7 +358,7 @@ namespace Everquest
         public bool DurationExtendable;
         public string[] Slots;
         public int[] SlotEffects;
-        public int[] Levels;
+        public byte[] Levels;
         public string ClassesLevels;
         public SpellClassesMask ClassesMask;
         public SpellSkill Skill;
@@ -417,7 +417,7 @@ namespace Everquest
         {
             Slots = new string[12];
             SlotEffects = new int[12];
-            Levels = new int[16];
+            Levels = new byte[16];
             RegID = new int[4];
             RegCount = new int[4];
             FocusID = new int[4];
@@ -436,7 +436,6 @@ namespace Everquest
         public string[] Details()
         {
             List<string> result = new List<string>();
-            string line;
 
             if (!String.IsNullOrEmpty(ClassesLevels))
                 result.Add("Classes: " + ClassesLevels);
@@ -572,24 +571,43 @@ namespace Everquest
                 Zone = SpellZoneRestrict.None;
         }
 
+        public bool HasEffect(int spa)
+        {
+            return Array.IndexOf(SlotEffects, spa) >= 0;
+        }
+
+        public bool HasEffect(string text)
+        {
+            int spa;
+            if (Int32.TryParse(text, out spa))
+                return HasEffect(spa);
+
+            for (int i = 0; i < Slots.Length; i++)
+                if (Slots[i] != null && Slots[i].StartsWith(text, StringComparison.CurrentCultureIgnoreCase))
+                    return true;
+
+            return false;
+        }
+
         /// <summary>
         /// Parse a spell effect slot. Each spell has 12 effect slots. Devs refer to these as SPAs.
         /// Other attributes like ID, Skill, Extra, Ticks are referenced and should be set before
         /// calling this function.
         /// </summary>        
-        public string ParseSlot(int type, int base1, int base2, int max, int calc, int level)
+        public string ParseSlot(int spa, int base1, int base2, int max, int calc, int level)
         {
             // type 254 indicates an unused slot
-            if (type == 254)
+            if (spa == 254)
                 return null;
 
             // type 10 sometimes indicates an unused slot
-            if (type == 10 && (base1 <= 1 || base1 > 255))
+            if (spa == 10 && (base1 <= 1 || base1 > 255))
                 return null;
 
             // many spells use a scaled value based on either current tick or caster level
             // the switch(type) below determines if an effect uses the scaled value, or the original base1 value
             // decaying/growing spells are shown at their average strength (i.e. ticks / 2)
+            // when both base1 and value are equal i've mostly defaulted to value, but this is kind of arbitrary *TODO*
             int value = CalcValue(calc, base1, max, DurationTicks / 2, level);
             string variable = CalcValueRange(calc, base1, max, DurationTicks, level);
 
@@ -597,10 +615,9 @@ namespace Everquest
             // this is only used by effects that modify hp/mana/end/hate 
             string repeating = (DurationTicks > 0) ? " per tick" : null;
 
-            switch (type)
+            switch (spa)
             {
                 case 0:
-                    // delta hp for heal/nuke, repeating if with duration
                     if (base2 > 0)
                         return Spell.FormatCount("Current HP", value) + repeating + variable + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
                     return Spell.FormatCount("Current HP", value) + repeating + variable;
@@ -780,7 +797,7 @@ namespace Everquest
                 case 93:
                     return "Stop Rain";
                 case 94:
-                    return "Fade If Combat Initiated";
+                    return "Cancel If Combat Initiated";
                 case 95:
                     return "Sacrifice";
                 case 96:
@@ -1002,15 +1019,22 @@ namespace Everquest
                 case 201:
                     return String.Format("Add Range Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
                 case 202:
-                    return "Project Illusion";
+                    return "Casting Mode: Project Illusion";
                 case 203:
-                    return "Mass Group Buff";
+                    return "Casting Mode: Mass Group Buff";
                 case 204:
-                    return String.Format("Group Fear Immunity ({0})", value);
+                    return String.Format("Group Fear Immunity for {0}s", value * 10);
+                case 205:
+                    return String.Format("AE Attack ({0})", value);
                 case 206:
-                    return "AE Taunt";
+                    return String.Format("AE Taunt ({0})", value);
                 case 209:
                     return String.Format("Dispel Beneficial ({0})", value);
+                case 210:
+                    return String.Format("Pet Shielding for {0}s", value * 12);
+                case 211:
+                    // use spell duration if it is > 0?
+                    return String.Format("AE Attack for {0}s", value * 12);
                 case 214:
                     return Spell.FormatPercent("Max HP", value / 100f);
                 case 216:
@@ -1022,7 +1046,7 @@ namespace Everquest
                 case 227:
                     return String.Format("Reduce {0} Timer by {1}s", Spell.FormatEnum((SpellSkill)base2), value);
                 case 232:
-                    return String.Format("Divine Save: [Spell {0}] Chance: {1}%", base2, base1);
+                    return String.Format("Cast on Death Save: [Spell {0}] Chance: {1}%", base2, base1);
                 case 233:
                     return Spell.FormatPercent("Food Consumption", -value);
                 case 243:
@@ -1086,6 +1110,8 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Critical HoT", value);
                 case 320:
                     return String.Format("Shield Block ({0})", value);
+                case 321:
+                    return Spell.FormatCount("Target's Target Hate", -value);
                 case 322:
                     return "Gate to Home City";
                 case 323:
@@ -1231,10 +1257,12 @@ namespace Everquest
                     return String.Format("Cast on Skill Use: [Spell {0}] Chance: {1}%", base1, base2 / 10);
                 case 428:
                     return String.Format("Limit Skill: {0}", Spell.FormatEnum((SpellSkill)value));
+                case 429:
+                    return String.Format("Add Skill Proc: [Spell {0}]", base1);
 
             }
 
-            return String.Format("Unknown Effect: {0} Base1={1} Base2={2} Max={3} Calc={4} Value={5}", type, base1, base2, max, calc, value);
+            return String.Format("Unknown Effect: {0} Base1={1} Base2={2} Max={3} Calc={4} Value={5}", spa, base1, base2, max, calc, value);
         }
 
         /// <summary>
@@ -1651,7 +1679,7 @@ namespace Everquest
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
-                spell.Levels[i] = ParseInt(fields[104 + i]);
+                spell.Levels[i] = (byte)ParseInt(fields[104 + i]);
 
             // each spell has 12 effect slots:
             // 86..97 - slot 1..12 type
@@ -1661,14 +1689,14 @@ namespace Everquest
             // 70..81 - slot 1..12 calc forumla data            
             for (int i = 0; i < spell.Slots.Length; i++)
             {
-                int type = ParseInt(fields[86 + i]);
+                int spa = ParseInt(fields[86 + i]);
                 int calc = ParseInt(fields[70 + i]);
                 int max = ParseInt(fields[44 + i]);
                 int value = ParseInt(fields[20 + i]);
                 int value2 = ParseInt(fields[32 + i]);
 
-                spell.SlotEffects[i] = type;
-                spell.Slots[i] = spell.ParseSlot(type, value, value2, max, calc, MaxLevel);
+                spell.SlotEffects[i] = spa;
+                spell.Slots[i] = spell.ParseSlot(spa, value, value2, max, calc, MaxLevel);
 
             }
 
