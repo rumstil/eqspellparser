@@ -58,7 +58,7 @@ namespace parser
 
             // search by effect type
             if (args.Length == 2 && args[0] == "type")
-                results = list.Where(x => x.SlotEffects.Contains(Int32.Parse(args[1])));
+                results = list.Where(x => x.HasEffect(args[1]));
 
             // search by id
             if (args.Length == 2 && args[0] == "id")
