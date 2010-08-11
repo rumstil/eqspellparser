@@ -211,9 +211,10 @@ namespace Everquest
         Summoned_AE = 25,
         Hatelist = 33,
         Chest = 34,
+        Caster_PB_Players = 36, // only PCs? originally used for GM mass illusions
         Nearby_Players = 40, // bard AE hits all players
         Target_Group = 41,
-        Directional_AE = 42, // see degree fields
+        Directional_AE = 42, 
         Frontal_AE = 44,
         Single_In_Group = 43,
         Target_Ring_AE = 45,
@@ -299,8 +300,7 @@ namespace Everquest
         Werewolf = 14,
         Brownie = 15,
         Centaur = 16,
-        Froglok = 26,
-        Froglok_Ghoul = 27,
+        Froglok = 27,
         Gargoyle = 29,
         Wolf = 42,
         Bear = 43,
@@ -309,6 +309,7 @@ namespace Everquest
         Scarecrow = 82,
         //Skeleton = 85,
         Iksar = 128,
+        Vah_Shir = 130,
         Kunark_Goblin = 137,
         Tree = 143,
         Iksar_Skeleton = 161,
@@ -645,7 +646,7 @@ namespace Everquest
                     // base attack speed is 100. so 85 = 15% slow, 130 = 30% haste 
                     return Spell.FormatPercent("Melee Haste", value - 100);
                 case 12:
-                    return "Invisible (Unstable)";
+                    return "Invisibility (Unstable)";
                 case 13:
                     if (value > 1)
                         return "See Invisible (Enhanced)";
@@ -679,9 +680,9 @@ namespace Everquest
                 case 27:
                     return String.Format("Dispel ({0})", value);
                 case 28:
-                    return "Invisible to Undead (Unstable)";
+                    return "Invisibility to Undead (Unstable)";
                 case 29:
-                    return "Invisible to Animals (Unstable)";
+                    return "Invisibility to Animals (Unstable)";
                 case 30:
                     return String.Format("Decrease Aggro Radius to {0} up to level {1}", value, max);
                 case 31:
@@ -727,7 +728,7 @@ namespace Everquest
                 case 57:
                     return "Levitate";
                 case 58:
-                    return String.Format("Illusion: {0} ({1})", Spell.FormatEnum((SpellIllusion)base1), base2);
+                    return String.Format("Illusion: {0}", Spell.FormatEnum((SpellIllusion)base1), base2);
                 case 59:
                     return Spell.FormatCount("Damage Shield", -value);
                 case 61:
@@ -1103,9 +1104,9 @@ namespace Everquest
                     // does this affect procs that the caster can also cast as spells?
                     return "Limit Type: Exclude Procs";
                 case 314:
-                    return "Invisible (Permanent)";
+                    return "Invisibility";
                 case 315:
-                    return "Invisible to Undead (Permanent)";
+                    return "Invisibility to Undead";
                 case 319:
                     return Spell.FormatPercent("Chance to Critical HoT", value);
                 case 320:
@@ -1162,6 +1163,8 @@ namespace Everquest
                     return String.Format("Add Killshot Proc: [Spell {0}] Chance: {1}%", base2, base1);
                 case 361:
                     return String.Format("Cast on Death: [Spell {0}] Chance: {1}%", base2, base1);
+                case 364:
+                    return Spell.FormatPercent("Chance to Triple Attack", value);
                 case 365:
                     return String.Format("Cast on Killshot: [Spell {0}] Chance: {1}%", base2, base1);
                 case 367:
@@ -1576,7 +1579,7 @@ namespace Everquest
         /// <summary>
         /// Load spell list from the comma delimitted EQ spell definition files.
         /// </summary>
-        static public List<Spell> LoadFromFile(string spellPath, string descPath)
+        static public IList<Spell> LoadFromFile(string spellPath, string descPath)
         {
             // load description text file
             Dictionary<int, string> desc = new Dictionary<int, string>();
@@ -1602,7 +1605,8 @@ namespace Everquest
                         string[] fields = line.Split('^');
                         Spell spell = ParseFields(fields);
                         if (!desc.TryGetValue(spell.DescID, out spell.Desc))
-                            spell.Desc = spell.DescID.ToString();
+                            spell.Desc = null;
+                            //spell.Desc = spell.DescID.ToString();
                         list.Add(spell);
                     }
 

@@ -35,7 +35,7 @@ namespace parser
             if (!File.Exists(spellFile) || !File.Exists(descFile))
                 DownloadPatchFiles();
 
-            List<Spell> list = SpellParser.LoadFromFile(spellFile, descFile);
+            IList<Spell> list = SpellParser.LoadFromFile(spellFile, descFile);
 
             Func<int, Spell> lookup = id => list.FirstOrDefault(x => x.ID == id); // TODO: hash table search
 
@@ -96,39 +96,37 @@ namespace parser
         /// </summary>                
         static IEnumerable<Spell> Expand(IEnumerable<Spell> list, Func<int, Spell> lookup)
         {
-            List<Spell> queue = list.ToList();
-
-            Regex spellexpr = new Regex(@"\[Spell\s(\d+)\]");
+            List<Spell> results = list.ToList();
 
             // scan each spell in the queue for spell references. if a new reference is found
             // then add it to the queue so that it can also be checked
             int i = 0;
-            while (i < queue.Count)
+            while (i < results.Count)
             {
-                Spell spell = queue[i++];
+                Spell spell = results[i++];
 
                 if (spell.RecourseID != 0)
                 {
                     Spell spellref = lookup(spell.RecourseID);
-                    if (spellref != null && !queue.Contains(spellref))
-                        queue.Add(spellref);
+                    if (spellref != null && !results.Contains(spellref))
+                        results.Add(spellref);
                 }
 
                 // check effects slots for the [Spell 1234] references
                 foreach (string s in spell.Slots)
                     if (s != null)
                     {
-                        Match link = spellexpr.Match(s);
+                        Match link = Spell.SpellRef.Match(s);
                         if (link.Success)
                         {
                             Spell spellref = lookup(Int32.Parse(link.Groups[1].Value));
-                            if (spellref != null && !queue.Contains(spellref))
-                                queue.Add(spellref);
+                            if (spellref != null && !results.Contains(spellref))
+                                results.Add(spellref);
                         }
                     }
             }
 
-            return queue;
+            return results;
         }
 
         /// <summary>
