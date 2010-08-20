@@ -214,7 +214,7 @@ namespace Everquest
         Caster_PB_Players = 36, // only PCs? originally used for GM mass illusions
         Nearby_Players = 40, // bard AE hits all players
         Target_Group = 41,
-        Directional_AE = 42, 
+        Directional_AE = 42,
         Frontal_AE = 44,
         Single_In_Group = 43,
         Target_Ring_AE = 45,
@@ -272,7 +272,8 @@ namespace Everquest
         Undead2 = 603,
         Undead3 = 608,
         Summoned2 = 624,
-        Exclude_Pets = 701
+        Exclude_Pets = 701,
+        Undead4 = 818
     }
 
     public enum SpellZoneRestrict
@@ -305,7 +306,7 @@ namespace Everquest
         Wolf = 42,
         Bear = 43,
         Imp = 46,
-        Elemental = 75, // has subtypes
+        Elemental = 75,
         Scarecrow = 82,
         //Skeleton = 85,
         Iksar = 128,
@@ -316,10 +317,10 @@ namespace Everquest
         Guktan = 330,
         Scaled_Wolf = 356,
         Skeleton = 367,
-        Golem = 374, // has subtypes
+        Golem = 374,
         Pyrilen = 411,
         Gelidran = 417,
-        Goblin = 433, // has subtypes
+        Goblin = 433,
         Basilisk = 436,
         Gnomework = 457,
         Orc = 458,
@@ -330,7 +331,7 @@ namespace Everquest
         Fairy = 473,
         Spectre = 485,
         Banshee = 487,
-        Scrykin = 495, // has subtypes
+        Scrykin = 495,
         Bixie = 520,
         Drakkin = 522,
         Dragon = 530,
@@ -401,6 +402,7 @@ namespace Everquest
         public int Rank;
         public bool OutOfCombat;
         public SpellZoneRestrict Zone;
+        public bool DurationFrozen; // in guildhall/lobby
 
 
         public float Unknown;
@@ -605,10 +607,8 @@ namespace Everquest
             if (spa == 10 && (base1 <= 1 || base1 > 255))
                 return null;
 
-            // many spells use a scaled value based on either current tick or caster level
-            // the switch(type) below determines if an effect uses the scaled value, or the original base1 value
+            // many SPAs use a scaled value based on either current tick or caster level
             // decaying/growing spells are shown at their average strength (i.e. ticks / 2)
-            // when both base1 and value are equal i've mostly defaulted to value, but this is kind of arbitrary *TODO*
             int value = CalcValue(calc, base1, max, DurationTicks / 2, level);
             string variable = CalcValueRange(calc, base1, max, DurationTicks, level);
 
@@ -906,7 +906,7 @@ namespace Everquest
                     //if (max > 1000) max -= 1000;                    
                     return String.Format("Stacking: Overwrite existing spell if slot {0} is '{1}' and < {2}", calc % 100, Spell.FormatEnum((SpellEffect)base1), max);
                 case 150:
-                    return "Divine Intervention";
+                    return String.Format("Divine Intervention (Unknown: {0})", max);
                 case 151:
                     return "Suspend Pet";
                 case 152:
@@ -1103,6 +1103,8 @@ namespace Everquest
                 case 311:
                     // does this affect procs that the caster can also cast as spells?
                     return "Limit Type: Exclude Procs";
+                case 312:
+                    return "Sanctuary";
                 case 314:
                     return "Invisibility";
                 case 315:
@@ -1128,6 +1130,8 @@ namespace Everquest
                     return String.Format("Absorb Damage Using Mana: {0}%", value);
                 case 330:
                     return Spell.FormatPercent("Critical " + Spell.FormatEnum((SpellSkill)base2) + " Damage", value);
+                case 331:
+                    return Spell.FormatPercent("Chance to Salvage Components", value);
                 case 333:
                     // so far this is only used on spells that have a rune
                     return String.Format("Cast on Rune Depleted: [Spell {0}]", base1);
@@ -1207,6 +1211,8 @@ namespace Everquest
                     return String.Format("Cast on Curer: [Spell {0}]", base1);
                 case 387:
                     return String.Format("Cast if Cured: [Spell {0}]", base1);
+                case 389:
+                    return "Reset Recast Timers";
                 case 392:
                     return Spell.FormatCount("Healing Taken", value);
                 case 393:
@@ -1544,15 +1550,15 @@ namespace Everquest
 
         static private string FormatPercent(string name, float min, float max)
         {
-            if (min == max)
-                return String.Format("{0} {1} by {2}%", max < 0 ? "Decrease" : "Increase", name, Math.Abs(max));
-
             if (Math.Abs(min) > Math.Abs(max))
             {
                 float temp = min;
                 min = max;
                 max = temp;
             }
+
+            if (min == max)
+                return String.Format("{0} {1} by {2}%", max < 0 ? "Decrease" : "Increase", name, Math.Abs(max));
 
             return String.Format("{0} {1} by {2}% to {3}%", max < 0 ? "Decrease" : "Increase", name, Math.Abs(min), Math.Abs(max));
         }
@@ -1574,7 +1580,7 @@ namespace Everquest
 
         // shows all spells as if they were cast by a level 85 player
         // many potions can apply spell effects based on a lower level 
-        public const int MaxLevel = 85;
+        public const int MaxLevel = 90;
 
         /// <summary>
         /// Load spell list from the comma delimitted EQ spell definition files.
@@ -1596,7 +1602,7 @@ namespace Everquest
 
 
             // load spell definition file
-            List<Spell> list = new List<Spell>();
+            var list = new List<Spell>(30000);
             if (File.Exists(spellPath))
                 using (StreamReader text = File.OpenText(spellPath))
                     while (!text.EndOfStream)
@@ -1606,10 +1612,10 @@ namespace Everquest
                         Spell spell = ParseFields(fields);
                         if (!desc.TryGetValue(spell.DescID, out spell.Desc))
                             spell.Desc = null;
-                            //spell.Desc = spell.DescID.ToString();
                         list.Add(spell);
                     }
 
+            list.TrimExcess();
             return list;
         }
 
@@ -1668,6 +1674,7 @@ namespace Everquest
             spell.StartDegree = ParseInt(fields[194]);
             spell.EndDegree = ParseInt(fields[195]);
             spell.DurationExtendable = !ParseBool(fields[197]);
+            spell.DurationFrozen = ParseBool(fields[200]);
             spell.ViralRange = ParseInt(fields[201]);
             // 202 = bard related
             spell.BeneficialBlockable = !ParseBool(fields[205]); // for beneficial spells
@@ -1677,9 +1684,10 @@ namespace Everquest
             spell.OutOfCombat = !ParseBool(fields[214]);
             spell.MaxTargets = ParseInt(fields[218]);
             spell.ProcRestrict = (SpellTargetRestrict)ParseInt(fields[220]);  // field 206/216 seems to be related
+            
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[190]);
+            //spell.Unknown = ParseFloat(fields[206]);
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
@@ -1705,9 +1713,7 @@ namespace Everquest
             }
 
             // debug stuff
-            //if (spell.ID == 16548)
-            //    for (int i = 0; i < fields.Length; i++)
-            //        Console.WriteLine("{0}: {1}", i, fields[i]);
+            //if (spell.ID == 24198) for (int i = 0; i < fields.Length; i++) Console.Error.WriteLine("{0}: {1}", i, fields[i]);
 
             spell.Clean();
 
