@@ -54,6 +54,7 @@ namespace Everquest
         See_Invis = 13,
         Enduring_Breath = 14,
         Current_Mana_Repeating = 15,
+        Blind = 20,
         Stun = 21,
         Charm = 22,
         Fear = 23,
@@ -87,6 +88,7 @@ namespace Everquest
         Absorb_Hits = 163,
         Melee_Mitigation = 168,
         Lifetap_From_Weapon = 178,
+        Endurance_Repeating = 189,
         Hate_Repeating = 192,
         Taunt = 199,
         Proc_Rate = 200,
@@ -298,7 +300,7 @@ namespace Everquest
         Halfling = 11,
         Gnome = 12,
         Aviak = 13,
-        Werewolf = 14,
+        Old_Werewolf = 14,
         Brownie = 15,
         Centaur = 16,
         Froglok = 27,
@@ -322,6 +324,7 @@ namespace Everquest
         Gelidran = 417,
         Goblin = 433,
         Basilisk = 436,
+        Werewolf = 454,
         Gnomework = 457,
         Orc = 458,
         Stone_Gargoyle = 464,
@@ -332,6 +335,7 @@ namespace Everquest
         Spectre = 485,
         Banshee = 487,
         Scrykin = 495,
+        Totem = 514,
         Bixie = 520,
         Drakkin = 522,
         Dragon = 530,
@@ -373,6 +377,7 @@ namespace Everquest
         public int MaxResist;
         public string Extra;
         public int HateOverride;
+        public int HateMod;
         public int Range;
         public int AERange;
         public int AEDuration; // rain spells
@@ -394,7 +399,7 @@ namespace Everquest
         public int[] RegID;
         public int[] RegCount;
         public int[] FocusID;
-        //public string LandOnSelf;
+        public string LandOnSelf;
         //public string LandOnOther;
         public int StartDegree;
         public int EndDegree;
@@ -510,6 +515,9 @@ namespace Everquest
             else if (PushBack != 0)
                 result.Add("Push: " + PushBack);
 
+            if (HateMod != 0)
+                result.Add("Hate Mod: " + HateMod);
+
             if (HateOverride != 0)
                 result.Add("Hate: " + HateOverride);
 
@@ -525,10 +533,12 @@ namespace Everquest
             if (Unknown != 0)
                 result.Add("Unknown: " + Unknown);
 
-
             for (int i = 0; i < Slots.Length; i++)
                 if (Slots[i] != null)
                     result.Add(String.Format("{0}: {1}", i + 1, Slots[i]));
+
+            if (!String.IsNullOrEmpty(LandOnSelf))
+                result.Add(LandOnSelf);
 
             return result.ToArray();
         }
@@ -845,6 +855,8 @@ namespace Everquest
                     return "Feed Hunger";
                 case 116:
                     return Spell.FormatCount("Curse Counter", value);
+                case 118:
+                    return Spell.FormatCount("Singing Skill", value);
                 case 119:
                     return Spell.FormatPercent("Melee Haste v3", value);
                 case 120:
@@ -1053,7 +1065,7 @@ namespace Everquest
                 case 243:
                     return Spell.FormatPercent("Chance of Charm Breaking", -value);
                 case 258:
-                    return String.Format("Triple Backstab ({0})", value);
+                    return Spell.FormatPercent("Chance to Triple Backstab", value);
                 case 262:
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkillCap)base2) + " Cap", value);
                 case 272:
@@ -1064,6 +1076,8 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Critical Heal", value);
                 case 279:
                     return Spell.FormatPercent("Chance to Flurry", value);
+                case 280:
+                    return Spell.FormatPercent("Pet Chance to Flurry", value);
                 case 286:
                     // this seems to be a total. so if it affects a dot, it should be divided by number of ticks
                     // amount is added after crits. after focus too?
@@ -1098,6 +1112,10 @@ namespace Everquest
                     return Spell.FormatCount("Spell Damage", value);
                 case 305:
                     return Spell.FormatCount("Damage Shield Taken", -Math.Abs(value));
+                case 306:
+                    return String.Format("Summon Pet: {0} x {1} for {2}s", Extra, value, max);
+                case 309:
+                    return "Teleport to Bind";
                 case 310:
                     return String.Format("Reduce Timer by {0}s", value / 1000f);
                 case 311:
@@ -1135,8 +1153,11 @@ namespace Everquest
                 case 333:
                     // so far this is only used on spells that have a rune
                     return String.Format("Cast on Rune Depleted: [Spell {0}]", base1);
+                case 334:
+                    // only used by a few bard songs. how is this different than 1/100
+                    return Spell.FormatCount("Current HP", value) + repeating + variable;
                 case 335:
-                    return "Prevent Spells From Landing";
+                    return "Block Incoming Spell";
                 case 337:
                     return Spell.FormatPercent("Experience Gain", value);
                 case 339:
@@ -1192,6 +1213,8 @@ namespace Everquest
                     return Spell.FormatPercent("Critical DoT Damage", value - 100);
                 case 377:
                     return String.Format("Cast if Not Cured: [Spell {0}]", base1);
+                case 378:
+                    return Spell.FormatPercent("Chance to Resist " + Spell.FormatEnum((SpellEffect)base2), value);
                 case 379:
                     if (base2 > 0)
                         return String.Format("Knockback for {0} in Direction: {1}", value, base2);
@@ -1217,7 +1240,6 @@ namespace Everquest
                     return Spell.FormatCount("Healing Taken", value);
                 case 393:
                     return Spell.FormatPercent("Healing Taken", value);
-
                 case 396:
                     // used on type 3 augments
                     return Spell.FormatCount("Healing", value);
@@ -1251,6 +1273,9 @@ namespace Everquest
                     return Spell.FormatPercent("Spell Effectiveness", value);
                 case 414:
                     return String.Format("Limit Bard Skill: {0}", Spell.FormatEnum((SpellSkill)base1));
+                case 416:
+                    // how is this differnt than 1?
+                    return Spell.FormatCount("AC", (int)(value / (10f / 3f)));
                 case 417:
                     // how is this different than 15?
                     return Spell.FormatCount("Current Mana", value) + repeating + variable;
@@ -1602,7 +1627,7 @@ namespace Everquest
 
 
             // load spell definition file
-            var list = new List<Spell>(30000);
+            List<Spell> list = new List<Spell>(30000);
             if (File.Exists(spellPath))
                 using (StreamReader text = File.OpenText(spellPath))
                     while (!text.EndOfStream)
@@ -1629,7 +1654,7 @@ namespace Everquest
             spell.ID = Convert.ToInt32(fields[0]);
             spell.Name = fields[1];
             spell.Extra = fields[3];
-            //spell.LandOnSelf = fields[6];
+            spell.LandOnSelf = fields[6];
             //spell.LandOnOther = fields[7];
             spell.DurationTicks = Spell.CalcDuration(ParseInt(fields[16]), ParseInt(fields[17]), MaxLevel);
             spell.Mana = ParseInt(fields[19]);
@@ -1661,6 +1686,7 @@ namespace Everquest
             spell.ResistMod = ParseInt(fields[147]);
             spell.RecourseID = ParseInt(fields[150]);
             spell.DescID = ParseInt(fields[155]);
+            spell.HateMod = ParseInt(fields[162]);
             spell.Endurance = ParseInt(fields[166]);
             spell.TimerID = ParseInt(fields[167]);
             spell.HateOverride = ParseInt(fields[173]);
@@ -1684,10 +1710,10 @@ namespace Everquest
             spell.OutOfCombat = !ParseBool(fields[214]);
             spell.MaxTargets = ParseInt(fields[218]);
             spell.ProcRestrict = (SpellTargetRestrict)ParseInt(fields[220]);  // field 206/216 seems to be related
-            
+
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[206]);
+            //spell.Unknown = ParseFloat(fields[162]);
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
@@ -1713,7 +1739,7 @@ namespace Everquest
             }
 
             // debug stuff
-            //if (spell.ID == 24198) for (int i = 0; i < fields.Length; i++) Console.Error.WriteLine("{0}: {1}", i, fields[i]);
+            //if (spell.ID == 25307) for (int i = 0; i < fields.Length; i++) Console.Error.WriteLine("{0}: {1}", i, fields[i]);
 
             spell.Clean();
 
