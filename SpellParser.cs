@@ -1085,8 +1085,8 @@ namespace Everquest
                 case 287:
                     return String.Format("Increase Duration by {0}s", value * 6);
                 case 289:
-                    // how is this different than 373? if base2 > 0, what is base1?  
-                    // this may only trigger if the spell times out                 
+                    // how is this different than 373? if base2 > 0, what is base1?
+                    // this may only trigger if the spell times out
                     return String.Format("Cast on Fade: [Spell {0}]", (base2 > 0) ? base2 : base1);
                 case 291:
                     return String.Format("Dispel Detrimental ({0})", value);
@@ -1203,7 +1203,7 @@ namespace Everquest
                 case 371:
                     return Spell.FormatPercent("Melee Delay", Math.Abs(value));
                 case 373:
-                    // this appears to be used when a spell is removed via any method: times out, cured, rune used up 
+                    // this appears to be used when a spell is removed via any method: times out, cured, rune depleted, max hits
                     return String.Format("Cast on Fade: [Spell {0}]", base1);
                 case 374:
                     if (base1 < 100)
@@ -1226,7 +1226,6 @@ namespace Everquest
                 case 382:
                     return String.Format("Inhibit Buff Effect: {0}", Spell.FormatEnum((SpellEffect)base2));
                 case 383:
-                    // e.g. Has a chance to cast a mana recovering spell every time a spell is cast.
                     return String.Format("Cast on Spell Use: [Spell {0}] Chance: {1}%", base2, base1 / 10);
                 case 385:
                     return String.Format("Limit Spells: {1}[Group {0}]", Math.Abs(value), value >= 0 ? "" : "Exclude ");
@@ -1259,7 +1258,7 @@ namespace Everquest
                 case 404:
                     return String.Format("Limit Skill: {1}{0}", Spell.FormatEnum((SpellSkill)Math.Abs(base1)), base1 >= 0 ? "" : "Exclude ");
                 case 406:
-                    return String.Format("Cast if Attacked: [Spell {0}]", base1);
+                    return String.Format("Cast on Max Hits: [Spell {0}]", base1);
                 case 408:
                     // unlike 214, this does not show a lower max HP
                     return String.Format("Cap HP at Lowest of {0}% or {1} ", base1, base2);
