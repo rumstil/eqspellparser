@@ -1237,7 +1237,7 @@ namespace Everquest
                 case 389:
                     return "Reset Recast Timers";
                 case 392:
-                    return Spell.FormatCount("Healing Taken", value);
+                    return Spell.FormatCount("Healing", value);
                 case 393:
                     return Spell.FormatPercent("Healing Taken", value);
                 case 396:
