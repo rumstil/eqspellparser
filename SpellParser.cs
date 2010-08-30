@@ -1222,9 +1222,9 @@ namespace Everquest
                 case 380:
                     return String.Format("Knockback for {0} and up for {1}", value, base2);
                 case 381:
-                    return "Call of Hero";
+                    return String.Format("Summon Target to {0} in Front", value);
                 case 382:
-                    return String.Format("Inhibit Buff Effect: {0}", Spell.FormatEnum((SpellEffect)base2));
+                    return String.Format("Inhibit Effect: {0}", Spell.FormatEnum((SpellEffect)base2));
                 case 383:
                     return String.Format("Cast on Spell Use: [Spell {0}] Chance: {1}%", base2, base1 / 10);
                 case 385:
