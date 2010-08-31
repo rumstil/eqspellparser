@@ -14,8 +14,8 @@ namespace parser
 {
     class Program
     {
-        const string spellFile = "spells_us.txt";
-        const string descFile = "dbstr_us.txt";
+        const string SpellFilename = "spells_us.txt";
+        const string DescFilename = "dbstr_us.txt";
 
         static void Main(string[] args)
         {
@@ -32,10 +32,10 @@ namespace parser
                 return;
             }
 
-            if (!File.Exists(spellFile) || !File.Exists(descFile))
+            if (!File.Exists(SpellFilename) || !File.Exists(DescFilename))
                 DownloadPatchFiles();
 
-            IList<Spell> list = SpellParser.LoadFromFile(spellFile, descFile);
+            IList<Spell> list = SpellParser.LoadFromFile(SpellFilename, DescFilename);
 
             Func<int, Spell> lookup = id => list.FirstOrDefault(x => x.ID == id); // TODO: hash table search
 
@@ -116,7 +116,7 @@ namespace parser
                 foreach (string s in spell.Slots)
                     if (s != null)
                     {
-                        Match link = Spell.SpellRef.Match(s);
+                        Match link = Spell.SpellRefExpr.Match(s);
                         if (link.Success)
                         {
                             Spell spellref = lookup(Int32.Parse(link.Groups[1].Value));
@@ -142,9 +142,12 @@ namespace parser
             foreach (Spell spell in list)
             {
                 count++;
-                Console.WriteLine("\r\n{0}\r\n{1}", spell, String.Join("\r\n", spell.Details()));
+                Console.WriteLine(spell);
+                foreach (string s in spell.Details())
+                    Console.WriteLine(s);
                 if (!String.IsNullOrEmpty(spell.Desc))
                     Console.WriteLine(spell.Desc);
+                Console.WriteLine();
             }
 
             Console.Error.WriteLine();
@@ -166,12 +169,9 @@ namespace parser
             string server = "http://" + doc.SelectSingleNode("//VerantPatcher/Product[@Name='EverQuest']").Attributes["Server"].Value;
             string path = "/" + doc.SelectSingleNode("//VerantPatcher/Product[@Name='EverQuest']/Distribution[@Name='Main Distribution']/Directory[@LocalPath='::HomeDirectory::']").Attributes["RemotePath"].Value + "/";
 
-            DownloadFile(server + path + spellFile + ".gz", spellFile);
+            DownloadFile(server + path + SpellFilename + ".gz", SpellFilename);
 
-            DownloadFile(server + path + descFile + ".gz", descFile);
-
-            //DownloadFile("http://patch.everquest.com:7000/patch/everquest/en/patch0/main/" + filename + ".gz", filename);
-            //DownloadFile("http://eq.patch.station.sony.com/patch/everquest/en-test/patch0/main/" + filename + ".gz", filename);
+            DownloadFile(server + path + DescFilename + ".gz", DescFilename);
         }
 
         /// <summary>

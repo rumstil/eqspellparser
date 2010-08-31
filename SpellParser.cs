@@ -301,10 +301,10 @@ namespace Everquest
         Gnome = 12,
         Aviak = 13,
         Old_Werewolf = 14,
-        Brownie = 15,
-        Centaur = 16,
+        Old_Brownie = 15,
+        Old_Centaur = 16,
         Froglok = 27,
-        Gargoyle = 29,
+        Old_Gargoyle = 29,
         Wolf = 42,
         Bear = 43,
         Imp = 46,
@@ -317,6 +317,7 @@ namespace Everquest
         Tree = 143,
         Iksar_Skeleton = 161,
         Guktan = 330,
+        Ogre_Pirate = 340,
         Scaled_Wolf = 356,
         Skeleton = 367,
         Golem = 374,
@@ -324,10 +325,15 @@ namespace Everquest
         Gelidran = 417,
         Goblin = 433,
         Basilisk = 436,
+        Spider = 440,
         Werewolf = 454,
+        Kobold = 455,
+        Sporali = 456,
         Gnomework = 457,
         Orc = 458,
-        Stone_Gargoyle = 464,
+        Drachnid = 461,
+        Gargoyle = 464,
+        Undead_Shiliskin = 467,
         Evil_Eye = 469,
         Minotaur = 470,
         Zombie = 471,
@@ -337,10 +343,18 @@ namespace Everquest
         Scrykin = 495,
         Totem = 514,
         Bixie = 520,
+        Centaur = 521,
         Drakkin = 522,
+        Satyr = 529,
         Dragon = 530,
         Hideous_Harpy = 527,
-        Crystal_Sphere = 616
+        Aviak_Rook = 558,
+        Kerran = 562,
+        Siren = 564,
+        Brownie = 568,
+        Crystal_Sphere = 616,
+        Amygdalan = 663,
+        Royal_Guardian = 667
     }
 
     public enum SpellFaction
@@ -417,9 +431,9 @@ namespace Everquest
         /// [Spell 123]    is a reference to spell 123
         /// [Group 123]    is a reference to spell group 123
         /// [Item 123]     is a reference to item 123
-        static public readonly Regex SpellRef = new Regex(@"\[Spell\s(\d+)\]");
-        static public readonly Regex GroupRef = new Regex(@"\[Group\s(\d+)\]");
-        static public readonly Regex ItemRef = new Regex(@"\[Item\s(\d+)\]");
+        static public readonly Regex SpellRefExpr = new Regex(@"\[Spell\s(\d+)\]");
+        static public readonly Regex GroupRefExpr = new Regex(@"\[Group\s(\d+)\]");
+        static public readonly Regex ItemRefExpr = new Regex(@"\[Item\s(\d+)\]");
 
         public Spell()
         {
@@ -441,9 +455,11 @@ namespace Everquest
         /// <summary>
         /// Get a full description of the spell. This is mostly useful as a debug dump.
         /// </summary>        
-        public string[] Details()
+        public IEnumerable<string> Details()
         {
-            List<string> result = new List<string>();
+            List<string> result = new List<string>(20);
+            //Action<string> Add = delegate(string s) { result.Add(s); };
+
 
             if (!String.IsNullOrEmpty(ClassesLevels))
                 result.Add("Classes: " + ClassesLevels);
@@ -540,7 +556,7 @@ namespace Everquest
             if (!String.IsNullOrEmpty(LandOnSelf))
                 result.Add(LandOnSelf);
 
-            return result.ToArray();
+            return result;
         }
 
         /// <summary>
@@ -604,7 +620,7 @@ namespace Everquest
 
         /// <summary>
         /// Parse a spell effect slot. Each spell has 12 effect slots. Devs refer to these as SPAs.
-        /// Other attributes like ID, Skill, Extra, Ticks are referenced and should be set before
+        /// Attributes like ID, Skill, Extra, DurationTicks are referenced and should be set before
         /// calling this function.
         /// </summary>        
         public string ParseSlot(int spa, int base1, int base2, int max, int calc, int level)
@@ -620,18 +636,20 @@ namespace Everquest
             // many SPAs use a scaled value based on either current tick or caster level
             // decaying/growing spells are shown at their average strength (i.e. ticks / 2)
             int value = CalcValue(calc, base1, max, DurationTicks / 2, level);
-            string variable = CalcValueRange(calc, base1, max, DurationTicks, level);
+            string range = CalcValueRange(calc, base1, max, DurationTicks, level);
 
             // prepare a comment for effects that repeat for each tick of the duration
             // this is only used by effects that modify hp/mana/end/hate 
             string repeating = (DurationTicks > 0) ? " per tick" : null;
 
+            //Func<string, string> FormatCount = delegate(string name) { return ((value > 0) ? "Increase " : "Decrease ") + name + " by " + Math.Abs(value); };
+
             switch (spa)
             {
                 case 0:
                     if (base2 > 0)
-                        return Spell.FormatCount("Current HP", value) + repeating + variable + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
-                    return Spell.FormatCount("Current HP", value) + repeating + variable;
+                        return Spell.FormatCount("Current HP", value) + repeating + range + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
+                    return Spell.FormatCount("Current HP", value) + repeating + range;
                 case 1:
                     return Spell.FormatCount("AC", (int)(value / (10f / 3f)));
                 case 2:
@@ -664,7 +682,7 @@ namespace Everquest
                 case 14:
                     return "Enduring Breath";
                 case 15:
-                    return Spell.FormatCount("Current Mana", value) + repeating + variable;
+                    return Spell.FormatCount("Current Mana", value) + repeating + range;
                 case 18:
                     return "Pacify";
                 case 19:
@@ -674,7 +692,7 @@ namespace Everquest
                 case 21:
                     if (max == 0 && ClassesMask != 0)
                         max = 55;
-                    return String.Format("Stun for {0}s", value / 1000f) + (max > 0 ? String.Format(" up to level {0}", max) : "");
+                    return String.Format("Stun for {0}s", value / 1000f) + Spell.FormatLevel(max);
                 case 22:
                     return "Charm" + Spell.FormatLevel(max);
                 case 23:
@@ -779,8 +797,8 @@ namespace Everquest
                 case 79:
                     // delta hp for heal/nuke, non repeating
                     if (base2 > 0)
-                        return Spell.FormatCount("Current HP", value) + variable + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
-                    return Spell.FormatCount("Current HP", value) + variable;
+                        return Spell.FormatCount("Current HP", value) + range + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
+                    return Spell.FormatCount("Current HP", value) + range;
                 case 81:
                     return String.Format("Resurrection: {0}%", value);
                 case 82:
@@ -824,8 +842,8 @@ namespace Everquest
                 case 100:
                     // heal over time
                     if (base2 > 0)
-                        return Spell.FormatCount("Current HP", value) + repeating + variable + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
-                    return Spell.FormatCount("Current HP", value) + repeating + variable;
+                        return Spell.FormatCount("Current HP", value) + repeating + range + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
+                    return Spell.FormatCount("Current HP", value) + repeating + range;
                 case 101:
                     // only castable via Donal's BP. creates a buf that blocks recasting
                     return "Donal's Heal";
@@ -1003,13 +1021,13 @@ namespace Everquest
                 case 188:
                     return Spell.FormatPercent("Chance to Block", value);
                 case 189:
-                    return Spell.FormatCount("Current Endurance", value) + repeating + variable;
+                    return Spell.FormatCount("Current Endurance", value) + repeating + range;
                 case 190:
                     return Spell.FormatCount("Max Endurance", value);
                 case 191:
                     return "Prevent Combat";
                 case 192:
-                    return Spell.FormatCount("Hate", value) + repeating + variable;
+                    return Spell.FormatCount("Hate", value) + repeating + range;
                 case 193:
                     return String.Format("{0} Attack for {1} with {2}% Accuracy Mod", Spell.FormatEnum(Skill), value, base2);
                 case 194:
@@ -1155,7 +1173,7 @@ namespace Everquest
                     return String.Format("Cast on Rune Depleted: [Spell {0}]", base1);
                 case 334:
                     // only used by a few bard songs. how is this different than 1/100
-                    return Spell.FormatCount("Current HP", value) + repeating + variable;
+                    return Spell.FormatCount("Current HP", value) + repeating + range;
                 case 335:
                     return "Block Incoming Spell";
                 case 337:
@@ -1183,7 +1201,7 @@ namespace Everquest
                 case 353:
                     return Spell.FormatCount("Aura Slots", value);
                 case 358:
-                    return Spell.FormatCount("Current Mana", value) + variable;
+                    return Spell.FormatCount("Current Mana", value) + range;
                 case 360:
                     return String.Format("Add Killshot Proc: [Spell {0}] Chance: {1}%", base2, base1);
                 case 361:
@@ -1277,7 +1295,7 @@ namespace Everquest
                     return Spell.FormatCount("AC", (int)(value / (10f / 3f)));
                 case 417:
                     // how is this different than 15?
-                    return Spell.FormatCount("Current Mana", value) + repeating + variable;
+                    return Spell.FormatCount("Current Mana", value) + repeating + range;
                 case 418:
                     // how is this different than 220 bonus? 
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", value);
@@ -1299,7 +1317,7 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Parse a spell duration formula.
+        /// Calculate a duration.
         /// </summary>
         /// <returns>Numbers of ticks (6 second units)</returns>        
         static public int CalcDuration(int calc, int max, int level)
@@ -1380,7 +1398,7 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Parse a value formula.
+        /// Calculate an effect slot value. 
         /// </summary>
         static public int CalcValue(int calc, int base1, int max, int tick, int level)
         {
@@ -1530,7 +1548,7 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Parse a value formula range.
+        /// Calculate an effect slot value range.
         /// </summary>
         static public string CalcValueRange(int calc, int base1, int max, int ticks, int level)
         {
@@ -1602,10 +1620,6 @@ namespace Everquest
         // the spell file is in US culture (dots are used for decimals)
         private static readonly CultureInfo culture = new CultureInfo("en-US", false);
 
-        // shows all spells as if they were cast by a level 85 player
-        // many potions can apply spell effects based on a lower level 
-        public const int MaxLevel = 90;
-
         /// <summary>
         /// Load spell list from the comma delimitted EQ spell definition files.
         /// </summary>
@@ -1633,7 +1647,7 @@ namespace Everquest
                     {
                         string line = text.ReadLine();
                         string[] fields = line.Split('^');
-                        Spell spell = ParseFields(fields);
+                        Spell spell = LoadSpell(fields);
                         if (!desc.TryGetValue(spell.DescID, out spell.Desc))
                             spell.Desc = null;
                         list.Add(spell);
@@ -1646,8 +1660,10 @@ namespace Everquest
         /// <summary>
         /// Parse a spell from a set of spell fields. 
         /// </summary>        
-        static Spell ParseFields(string[] fields)
+        static Spell LoadSpell(string[] fields)
         {
+            int MaxLevel = 90;
+
             Spell spell = new Spell();
 
             spell.ID = Convert.ToInt32(fields[0]);
@@ -1719,9 +1735,9 @@ namespace Everquest
                 spell.Levels[i] = (byte)ParseInt(fields[104 + i]);
 
             // each spell has 12 effect slots:
-            // 86..97 - slot 1..12 type
-            // 20..31 - slot 1..12 base effect
-            // 32..43 - slot 1..12 base_2 effect
+            // 86..97 - slot 1..12 spa/type
+            // 20..31 - slot 1..12 base1 effect
+            // 32..43 - slot 1..12 base2 effect
             // 44..55 - slot 1..12 max effect
             // 70..81 - slot 1..12 calc forumla data            
             for (int i = 0; i < spell.Slots.Length; i++)
@@ -1729,12 +1745,11 @@ namespace Everquest
                 int spa = ParseInt(fields[86 + i]);
                 int calc = ParseInt(fields[70 + i]);
                 int max = ParseInt(fields[44 + i]);
-                int value = ParseInt(fields[20 + i]);
-                int value2 = ParseInt(fields[32 + i]);
+                int base1 = ParseInt(fields[20 + i]);
+                int base2 = ParseInt(fields[32 + i]);
 
                 spell.SlotEffects[i] = spa;
-                spell.Slots[i] = spell.ParseSlot(spa, value, value2, max, calc, MaxLevel);
-
+                spell.Slots[i] = spell.ParseSlot(spa, base1, base2, max, calc, MaxLevel);
             }
 
             // debug stuff
@@ -1766,5 +1781,14 @@ namespace Everquest
 
     }
 
+    /*
+    public static class SpellExtensions
+    {
+        public static IEnumerable<Spell> Expand(this IEnumerable<Spell> source)
+        {
+            return source;
+        }
+    }
+     */
 
 }
