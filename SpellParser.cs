@@ -245,11 +245,11 @@ namespace Everquest
         Living = 121,
         Fairy = 122,
         Humanoid = 123,
-        HP_Below_10_Percent = 124,
+        HP_Less_Than_10_Percent = 124, // dupe of 502
         Clockwork = 125,
         Wisp = 126,
         HP_Above_75_Percent = 201,
-        HP_Below_20_Percent = 203,
+        HP_Less_Than_20_Percent = 203, // dupe of 504
         Not_In_Combat = 216,
         At_Least_1_Pet_On_Hatelist = 221,
         At_Least_2_Pets_On_Hatelist = 222,
@@ -261,15 +261,31 @@ namespace Everquest
         At_Least_8_Pets_On_Hatelist = 228,
         At_Least_9_Pets_On_Hatelist = 229,
         At_Least_10_Pets_On_Hatelist = 230,
-        HP_Below_35_Percent = 250,
+        HP_Less_Than_35_Percent = 250, // duple of 507
         Chain_Plate_Classes = 304,
-        HP_Between_55_and_65_Percent = 404,
-        HP_Between_45_and_55_Percent = 403,
-        HP_Between_35_and_45_Percent = 402,
-        HP_Between_25_and_35_Percent = 401,
+        HP_Between_15_and_25_Percent = 399,
         HP_Between_1_and_25_Percent = 400,
-        HP_Between_1_and_35_Percent = 507, // between or below?
+        HP_Between_25_and_35_Percent = 401,
+        HP_Between_35_and_45_Percent = 402,
+        HP_Between_45_and_55_Percent = 403,
+        HP_Between_55_and_65_Percent = 404,
+        HP_Below_5_Percent = 501, 
+        HP_Below_10_Percent = 502, 
+        HP_Below_15_Percent = 503, 
+        HP_Below_20_Percent = 504, 
+        HP_Below_25_Percent = 505, 
+        HP_Below_30_Percent = 506,
+        HP_Below_35_Percent = 507,        
+        HP_Below_40_Percent = 508,
+        HP_Below_45_Percent = 509,
+        HP_Below_50_Percent = 510,
+        HP_Below_55_Percent = 511,
+        HP_Below_60_Percent = 512,
+        HP_Below_65_Percent = 513,
+        HP_Below_70_Percent = 514,
         HP_Below_75_Percent = 515,
+        HP_Below_80_Percent = 516,
+        HP_Below_85_Percent = 517,
         HP_Below_90_Percent = 518,
         Undead2 = 603,
         Undead3 = 608,
@@ -491,7 +507,7 @@ namespace Everquest
             if (Target == SpellTarget.Directional_AE)
                 result.Add("Target: " + FormatEnum(Target) + " (" + StartDegree + " to " + EndDegree + " Degrees)");
             else if (TargetRestrict > 0)
-                result.Add("Target: " + FormatEnum(Target) + " (" + FormatEnum(TargetRestrict) + ")");
+                result.Add("Target: " + FormatEnum(Target) + " (If " + FormatEnum(TargetRestrict) + ")");
             else if ((Target == SpellTarget.Caster_Group || Target == SpellTarget.Target_Group) && (ClassesMask != 0 && ClassesMask != SpellClassesMask.BRD) && DurationTicks > 0)
                 result.Add("Target: " + FormatEnum(Target) + ", MGB: " + (MGBable ? "Yes" : "No"));
             else
