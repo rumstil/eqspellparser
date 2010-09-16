@@ -394,6 +394,7 @@ namespace Everquest
         public bool DurationExtendable;
         public string[] Slots;
         public int[] SlotEffects;
+        public byte Level;
         public byte[] Levels;
         public string ClassesLevels;
         public SpellClassesMask ClassesMask;
@@ -583,12 +584,14 @@ namespace Everquest
         {
             ClassesLevels = String.Empty;
             ClassesMask = 0;
+            Level = 0;
             for (int i = 0; i < Levels.Length; i++)
             {
                 if (Levels[i] == 255)
                     Levels[i] = 0;
                 if (Levels[i] != 0)
                 {
+                    Level = Levels[i];
                     ClassesMask |= (SpellClassesMask)(1 << i);
                     ClassesLevels += " " + (SpellClasses)(i + 1) + "/" + Levels[i];
                 }
@@ -1325,6 +1328,8 @@ namespace Everquest
                 case 428:
                     return String.Format("Limit Skill: {0}", Spell.FormatEnum((SpellSkill)value));
                 case 429:
+                    if (base2 > 0)
+                        return String.Format("Add Skill Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
                     return String.Format("Add Skill Proc: [Spell {0}]", base1);
 
             }
