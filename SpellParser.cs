@@ -439,6 +439,7 @@ namespace Everquest
         public bool OutOfCombat;
         public SpellZoneRestrict Zone;
         public bool DurationFrozen; // in guildhall/lobby
+        public bool Dispellable;
 
 
         public float Unknown;
@@ -542,6 +543,9 @@ namespace Everquest
                 result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)");
             else if (AEDuration >= 2500)
                 result.Add("AE Waves: " + AEDuration / 2500);
+
+            if (!Dispellable)
+                result.Add("Dispellable: " + Dispellable);
 
             if (PushUp != 0)
                 result.Add("Push: " + PushBack + ", Up: " + PushUp);
@@ -1729,6 +1733,7 @@ namespace Everquest
             spell.EnduranceUpkeep = ParseInt(fields[174]);
             spell.MaxHits = ParseInt(fields[176]);
             spell.MGBable = ParseBool(fields[185]);
+            spell.Dispellable = !ParseBool(fields[186]);
             spell.MinResist = ParseInt(fields[189]);
             spell.MaxResist = ParseInt(fields[190]);
             spell.ViralPulse = ParseInt(fields[191]);
@@ -1749,7 +1754,7 @@ namespace Everquest
 
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[162]);
+            //spell.Unknown = ParseFloat(fields[186]);
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
@@ -1774,7 +1779,7 @@ namespace Everquest
             }
 
             // debug stuff
-            //if (spell.ID == 25307) for (int i = 0; i < fields.Length; i++) Console.Error.WriteLine("{0}: {1}", i, fields[i]);
+            //if (spell.ID == 17935) for (int i = 0; i < fields.Length; i++) Console.Error.WriteLine("{0}: {1}", i, fields[i]);
 
             spell.Clean();
 
