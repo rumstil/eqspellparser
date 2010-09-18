@@ -440,6 +440,7 @@ namespace Everquest
         public SpellZoneRestrict Zone;
         public bool DurationFrozen; // in guildhall/lobby
         public bool Dispellable;
+        public bool DeathDispellable;
 
 
         public float Unknown;
@@ -1751,10 +1752,11 @@ namespace Everquest
             spell.OutOfCombat = !ParseBool(fields[214]);
             spell.MaxTargets = ParseInt(fields[218]);
             spell.ProcRestrict = (SpellTargetRestrict)ParseInt(fields[220]);  // field 206/216 seems to be related
+            spell.DeathDispellable = !ParseBool(fields[224]);
 
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[186]);
+            //spell.Unknown = ParseFloat(fields[223]);
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
@@ -1779,7 +1781,7 @@ namespace Everquest
             }
 
             // debug stuff
-            //if (spell.ID == 17935) for (int i = 0; i < fields.Length; i++) Console.Error.WriteLine("{0}: {1}", i, fields[i]);
+            //if (spell.ID == 17913 || spell.ID == 6880) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
 
             spell.Clean();
 
