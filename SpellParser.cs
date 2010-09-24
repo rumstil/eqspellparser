@@ -95,7 +95,7 @@ namespace Everquest
         Weapon_Damage_Bonus = 220,
         Spell_Damage_Bonus = 286,
         XP_Gain = 337,
-        Add_Spell_Proc = 339,
+        Casting_Trigger = 339,
         Mana_Burn = 350,
         Current_Mana = 358,
         Corruption_Counter = 369,
@@ -291,8 +291,9 @@ namespace Everquest
         Undead2 = 603,
         Undead3 = 608,
         Summoned2 = 624,
-        Exclude_Pets = 701,
-        Undead4 = 818
+        Not_Pet = 701,
+        Undead4 = 818,
+        Summoned4 = 819
     }
 
     public enum SpellZoneRestrict
@@ -551,8 +552,8 @@ namespace Everquest
             else if (AEDuration >= 2500)
                 result.Add("AE Waves: " + AEDuration / 2500);
 
-            if (!Dispellable)
-                result.Add("Dispellable: " + Dispellable);
+            if (!Dispellable && DurationTicks > 0)
+                result.Add("Dispellable: " + (Dispellable ? "Yes" : "No"));
 
             if (PushUp != 0)
                 result.Add("Push: " + PushBack + ", Up: " + PushUp);
@@ -672,6 +673,9 @@ namespace Everquest
             // this is only used by effects that modify hp/mana/end/hate 
             string repeating = (DurationTicks > 0) ? " per tick" : null;
 
+            // some effects are capped at a max level
+            string maxlevel = (max > 0) ? String.Format(" up to level {0}", max) : null;
+
             //Func<string, string> FormatCount = delegate(string name) { return ((value > 0) ? "Increase " : "Decrease ") + name + " by " + Math.Abs(value); };
 
             switch (spa)
@@ -722,11 +726,11 @@ namespace Everquest
                 case 21:
                     if (max == 0 && ClassesMask != 0)
                         max = 55;
-                    return String.Format("Stun for {0}s", value / 1000f) + Spell.FormatLevel(max);
+                    return String.Format("Stun for {0}s", value / 1000f) + maxlevel;
                 case 22:
-                    return "Charm" + Spell.FormatLevel(max);
+                    return "Charm" + maxlevel;
                 case 23:
-                    return "Fear" + Spell.FormatLevel(max);
+                    return "Fear" + maxlevel;
                 case 24:
                     return Spell.FormatCount("Stamina Loss", value);
                 case 25:
@@ -742,9 +746,9 @@ namespace Everquest
                 case 29:
                     return "Invisibility to Animals (Unstable)";
                 case 30:
-                    return String.Format("Decrease Aggro Radius to {0} up to level {1}", value, max);
+                    return String.Format("Decrease Aggro Radius to {0}", value) + maxlevel;
                 case 31:
-                    return "Mesmerize" + Spell.FormatLevel(max);
+                    return "Mesmerize" + maxlevel;
                 case 32:
                     //return String.Format("Summon: [Item {0}] x {1}", base1, calc);
                     return String.Format("Summon: [Item {0}]", base1);
@@ -796,7 +800,7 @@ namespace Everquest
                 case 64:
                     if (max == 0 && ClassesMask != 0)
                         max = 55;
-                    return String.Format("SpinStun for {0}s", value / 1000f) + Spell.FormatLevel(max);
+                    return String.Format("SpinStun for {0}s", value / 1000f) + maxlevel;
                 case 65:
                     return "Infravision";
                 case 66:
@@ -842,7 +846,7 @@ namespace Everquest
                         return String.Format("Add Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
                     return String.Format("Add Proc: [Spell {0}]", base1);
                 case 86:
-                    return String.Format("Decrease Social Radius to {0} up to level {1}", value, max);
+                    return String.Format("Decrease Social Radius to {0}", value) + maxlevel;
                 case 87:
                     return Spell.FormatPercent("Magnification", value);
                 case 88:
@@ -1313,7 +1317,7 @@ namespace Everquest
                 case 409:
                     return String.Format("Cap Mana at Lowest of {0}% or {1} ", base1, base2);
                 case 410:
-                    return String.Format("Cap Endurance at Lowest of {0}% or {1} ", base1, base2);
+                    return String.Format("Cap Endurance at Lowest of {0}% or {1} ", base1, max > 0 ? max : base2);
                 case 411:
                     return String.Format("Limit Class: {0}", (SpellClassesMask)(value >> 1));
                 case 413:
@@ -1635,14 +1639,6 @@ namespace Everquest
                 return String.Format("{0} {1} by {2}%", max < 0 ? "Decrease" : "Increase", name, Math.Abs(max));
 
             return String.Format("{0} {1} by {2}% to {3}%", max < 0 ? "Decrease" : "Increase", name, Math.Abs(min), Math.Abs(max));
-        }
-
-        static private string FormatLevel(int level)
-        {
-            if (level > 0)
-                return String.Format(" up to level {0}", level);
-
-            return null;
         }
 
     }
