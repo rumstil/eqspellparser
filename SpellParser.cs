@@ -1159,6 +1159,9 @@ namespace Everquest
                     return String.Format("Wake the Dead ({0})", max);
                 case 300:
                     return "Doppelganger";
+                case 302:
+                    // see also 124
+                    return Spell.FormatPercent("Spell Damage", value);
                 case 303:
                     // this seems to be a total. so if it affects a dot, it should be divided by number of ticks
                     return Spell.FormatCount("Spell Damage", value);
@@ -1269,10 +1272,10 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Resist " + Spell.FormatEnum((SpellEffect)base2), value);
                 case 379:
                     if (base2 > 0)
-                        return String.Format("Knockback for {0} in Direction: {1}", value, base2);
+                        return String.Format("Knockback for {0} in Direction: {1}", base1, base2);
                     return String.Format("Knockback for {0}", value);
                 case 380:
-                    return String.Format("Knockback for {0} and up for {1}", value, base2);
+                    return String.Format("Knockback for {0} and up for {1}", base2, base1);
                 case 381:
                     return String.Format("Summon Target to {0} in Front", value);
                 case 382:
