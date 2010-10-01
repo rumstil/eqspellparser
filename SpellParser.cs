@@ -388,6 +388,18 @@ namespace Everquest
         Ancient_Iksar = 1229
     }
 
+    public enum SpellMaxHits
+    {
+        Incoming_Hit_Attempt = 1, // incoming melee attempts (prior to success checks)
+        Outgoing_Hit_Attempt = 2, // outgoing melee attempts of Skill type (prior to success checks)
+        Incoming_Spell = 3,
+        Outgoing_Spell = 4,
+        Outgoing_Hit_Success = 5, 
+        Incoming_Hit_Success = 6, 
+        Spell_Cast = 7, // matching limits if any are defined
+        Defensive_Proc_Cast = 10 
+    }
+
     public sealed class Spell
     {
         public int ID;
@@ -427,6 +439,7 @@ namespace Everquest
         public int DescID;
         public string Desc;
         public int MaxHits;
+        public SpellMaxHits MaxHitsType;
         public int MaxTargets;
         public int RecourseID;
         public int TimerID;
@@ -447,7 +460,8 @@ namespace Everquest
         public SpellZoneRestrict Zone;
         public bool DurationFrozen; // in guildhall/lobby
         public bool Dispellable;
-        public bool DeathDispellable;
+        public bool PersistAfterDeath;
+        public bool ShortDuration; // song window
 
 
         public float Unknown;
@@ -546,14 +560,17 @@ namespace Everquest
                 result.Add("Casting: " + CastingTime.ToString() + "s");
 
             if (DurationTicks > 0 && Beneficial && ClassesMask != SpellClassesMask.BRD)
-                result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)" + ", Extend: " + (DurationExtendable ? "Yes" : "No"));
+                result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)" + ", Extend: " + (DurationExtendable ? "Yes" : "No") + ", Dispel: " + (Dispellable ? "Yes" : "No"));
             else if (DurationTicks > 0)
                 result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)");
             else if (AEDuration >= 2500)
                 result.Add("AE Waves: " + AEDuration / 2500);
 
-            if (!Dispellable && DurationTicks > 0)
-                result.Add("Dispellable: " + (Dispellable ? "Yes" : "No"));
+            //if (DurationTicks > 0 && !Dispellable)
+            //    result.Add("Dispellable: " + (Dispellable ? "Yes" : "No"));
+
+            if (DurationTicks > 0 && PersistAfterDeath)
+                result.Add("Persist After Death: Yes");
 
             if (PushUp != 0)
                 result.Add("Push: " + PushBack + ", Up: " + PushUp);
@@ -567,7 +584,7 @@ namespace Everquest
                 result.Add("Hate: " + HateOverride);
 
             if (MaxHits > 0)
-                result.Add("Max Hits: " + MaxHits);
+                result.Add("Max Hits: " + MaxHits + " (" + FormatEnum((SpellMaxHits)MaxHitsType) + ")");
 
             if (MaxTargets > 0)
                 result.Add("Max Targets: " + MaxTargets);
@@ -1316,11 +1333,11 @@ namespace Everquest
                     return String.Format("Cast on Max Hits: [Spell {0}]", base1);
                 case 408:
                     // unlike 214, this does not show a lower max HP
-                    return String.Format("Cap HP at Lowest of {0}% or {1} ", base1, base2);
+                    return String.Format("Cap HP at {0}% or {1} ", base1, base2);
                 case 409:
-                    return String.Format("Cap Mana at Lowest of {0}% or {1} ", base1, base2);
+                    return String.Format("Cap Mana at {0}% or {1} ", base1, base2);
                 case 410:
-                    return String.Format("Cap Endurance at Lowest of {0}% or {1} ", base1, max > 0 ? max : base2);
+                    return String.Format("Cap Endurance at {0}% or {1} ", base1, max > 0 ? max : base2);
                 case 411:
                     return String.Format("Limit Class: {0}", (SpellClassesMask)(value >> 1));
                 case 413:
@@ -1608,7 +1625,10 @@ namespace Everquest
 
         static private string FormatEnum(object o)
         {
-            return o.ToString().Replace("_", " ").Trim();
+            string type = o.ToString().Replace("_", " ").Trim();
+            if (Regex.IsMatch(type, @"^\d+$"))
+                type = "Type " + type; // undefined numeric enum
+            return type;
         }
 
         static private string FormatTime(float seconds)
@@ -1731,12 +1751,14 @@ namespace Everquest
             spell.Icon = ParseInt(fields[145]);
             spell.ResistMod = ParseInt(fields[147]);
             spell.RecourseID = ParseInt(fields[150]);
+            spell.ShortDuration = ParseBool(fields[154]);
             spell.DescID = ParseInt(fields[155]);
             spell.HateMod = ParseInt(fields[162]);
             spell.Endurance = ParseInt(fields[166]);
             spell.TimerID = ParseInt(fields[167]);
             spell.HateOverride = ParseInt(fields[173]);
             spell.EnduranceUpkeep = ParseInt(fields[174]);
+            spell.MaxHitsType = (SpellMaxHits)ParseInt(fields[175]);
             spell.MaxHits = ParseInt(fields[176]);
             spell.MGBable = ParseBool(fields[185]);
             spell.Dispellable = !ParseBool(fields[186]);
@@ -1757,22 +1779,22 @@ namespace Everquest
             spell.OutOfCombat = !ParseBool(fields[214]);
             spell.MaxTargets = ParseInt(fields[218]);
             spell.ProcRestrict = (SpellTargetRestrict)ParseInt(fields[220]);  // field 206/216 seems to be related
-            spell.DeathDispellable = !ParseBool(fields[224]);
+            spell.PersistAfterDeath = ParseBool(fields[224]);
 
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[223]);
+            //spell.Unknown = ParseFloat(fields[154]);
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
                 spell.Levels[i] = (byte)ParseInt(fields[104 + i]);
 
-            // each spell has 12 effect slots:
-            // 86..97 - slot 1..12 spa/type
+            // each spell has 12 effect slots which have 5 attributes each            
             // 20..31 - slot 1..12 base1 effect
             // 32..43 - slot 1..12 base2 effect
             // 44..55 - slot 1..12 max effect
-            // 70..81 - slot 1..12 calc forumla data            
+            // 70..81 - slot 1..12 calc forumla data 
+            // 86..97 - slot 1..12 spa/type
             for (int i = 0; i < spell.Slots.Length; i++)
             {
                 int spa = ParseInt(fields[86 + i]);
@@ -1786,7 +1808,7 @@ namespace Everquest
             }
 
             // debug stuff
-            //if (spell.ID == 17913 || spell.ID == 6880) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
+            //if (spell.ID == 26225) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
 
             spell.Clean();
 
