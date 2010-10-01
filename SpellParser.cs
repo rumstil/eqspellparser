@@ -560,14 +560,14 @@ namespace Everquest
                 result.Add("Casting: " + CastingTime.ToString() + "s");
 
             if (DurationTicks > 0 && Beneficial && ClassesMask != SpellClassesMask.BRD)
-                result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)" + ", Extend: " + (DurationExtendable ? "Yes" : "No") + ", Dispel: " + (Dispellable ? "Yes" : "No"));
+                result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)" + ", Extend: " + (DurationExtendable ? "Yes" : "No"));
             else if (DurationTicks > 0)
                 result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)");
             else if (AEDuration >= 2500)
                 result.Add("AE Waves: " + AEDuration / 2500);
 
-            //if (DurationTicks > 0 && !Dispellable)
-            //    result.Add("Dispellable: " + (Dispellable ? "Yes" : "No"));
+            if (DurationTicks > 0 && !Dispellable)
+                result.Add("Dispellable: " + (Dispellable ? "Yes" : "No"));
 
             if (DurationTicks > 0 && PersistAfterDeath)
                 result.Add("Persist After Death: Yes");
@@ -780,7 +780,7 @@ namespace Everquest
                 case 41:
                     return "Destroy";
                 case 42:
-                    // TODO: how this this work for highsun?
+                    // TODO: how does this this work for highsun?
                     return "Shadowstep";
                 case 44:
                     return String.Format("Stacking: Delayed Heal Marker ({0})", value);
@@ -1294,7 +1294,7 @@ namespace Everquest
                 case 380:
                     return String.Format("Knockback for {0} and up for {1}", base2, base1);
                 case 381:
-                    return String.Format("Summon Target to {0} in Front", value);
+                    return String.Format("Summon to {0} in Front", value);
                 case 382:
                     return String.Format("Inhibit Effect: {0}", Spell.FormatEnum((SpellEffect)base2));
                 case 383:
