@@ -396,7 +396,7 @@ namespace Everquest
         Outgoing_Spell = 4,
         Outgoing_Hit_Success = 5, 
         Incoming_Hit_Success = 6, 
-        Spell_Cast = 7, // matching limits if any are defined
+        Outgoing_Spell_Match = 7, // matching limits if any are defined
         Defensive_Proc_Cast = 10 
     }
 
@@ -537,13 +537,15 @@ namespace Everquest
             else
                 result.Add("Target: " + FormatEnum(Target));
 
-            if (AERange > 0)
+            if (AERange > 0 && Range == 0)
+                result.Add("AE Range: " + AERange);
+            else if (AERange > 0)
                 result.Add("Range: " + Range + ", AE Range: " + AERange);
             else if (Range > 0)
                 result.Add("Range: " + Range);
 
             if (ViralRange > 0)
-                result.Add("Viral Range: " + ViralRange + ", Recast: " + ViralPulse + "s");
+                result.Add("Viral: Yes, Range: " + ViralRange + ", Recast: " + ViralPulse + "s");
 
             if (!Beneficial && ResistMod != 0)
                 result.Add("Resist: " + ResistType + " " + ResistMod + (MinResist > 0 ? ", Min: " + MinResist / 2f + "%" : "") + (MaxResist > 0 ? ", Max: " + MaxResist / 2f + "%" : ""));
@@ -600,7 +602,7 @@ namespace Everquest
                     result.Add(String.Format("{0}: {1}", i + 1, Slots[i]));
 
             if (!String.IsNullOrEmpty(LandOnSelf))
-                result.Add(LandOnSelf);
+                result.Add("Text: " + LandOnSelf);
 
             return result;
         }
@@ -630,6 +632,7 @@ namespace Everquest
             if (Target == SpellTarget.Self)
             {
                 Range = 0;
+                AERange = 0;
                 MaxTargets = 0;
                 HateOverride = 0; // a bunch of self only AAs have 1 hate
             }
@@ -642,7 +645,6 @@ namespace Everquest
 
             if (ResistType == SpellResist.Unresistable)
                 ResistMod = 0;
-
 
             if (Zone != SpellZoneRestrict.Indoors && Zone != SpellZoneRestrict.Outdoors)
                 Zone = SpellZoneRestrict.None;
@@ -882,7 +884,7 @@ namespace Everquest
                     return "Sacrifice";
                 case 96:
                     // silence, but named this way to match melee version
-                    return "Prevent Spell Casting";
+                    return "Inhibit Spell Casting";
                 case 97:
                     return Spell.FormatCount("Max Mana", value);
                 case 98:
@@ -905,7 +907,7 @@ namespace Everquest
                 case 104:
                     return String.Format("Translocate to {0}", Extra);
                 case 105:
-                    return "Prevent Gate";
+                    return "Inhibit Gate";
                 case 106:
                     return String.Format("Summon Warder: {0}", Extra);
                 case 108:
@@ -1076,7 +1078,7 @@ namespace Everquest
                 case 190:
                     return Spell.FormatCount("Max Endurance", value);
                 case 191:
-                    return "Prevent Combat";
+                    return "Inhibit Combat";
                 case 192:
                     return Spell.FormatCount("Hate", value) + repeating + range;
                 case 193:
@@ -1240,7 +1242,7 @@ namespace Everquest
                         return String.Format("Cast: [Spell {0}] Chance: {1}%", base2, base1);
                     return String.Format("Cast: [Spell {0}]", base2);
                 case 342:
-                    return "Prevent Fleeing";
+                    return "Inhibit Low Health Fleeing";
                 case 343:
                     return String.Format("Interrupt Spell Chance: {0}%", value);
                 case 348:
