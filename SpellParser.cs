@@ -292,8 +292,7 @@ namespace Everquest
         Undead3 = 608,
         Summoned2 = 624,
         Not_Pet = 701,
-        Undead4 = 818,
-        Summoned4 = 819
+        Undead4 = 818
     }
 
     public enum SpellZoneRestrict
@@ -462,6 +461,7 @@ namespace Everquest
         public bool Dispellable;
         public bool PersistAfterDeath;
         public bool ShortDuration; // song window
+        public bool CancelOnSit;
 
 
         public float Unknown;
@@ -989,7 +989,7 @@ namespace Everquest
                     //if (max > 1000) max -= 1000;                    
                     return String.Format("Stacking: Overwrite existing spell if slot {0} is '{1}' and < {2}", calc % 100, Spell.FormatEnum((SpellEffect)base1), max);
                 case 150:
-                    return String.Format("Divine Intervention (Unknown: {0})", max);
+                    return String.Format("Divine Intervention with {0} Heal", max);
                 case 151:
                     return "Suspend Pet";
                 case 152:
@@ -1750,6 +1750,7 @@ namespace Everquest
             spell.Target = (SpellTarget)ParseInt(fields[98]);
             spell.Skill = (SpellSkill)ParseInt(fields[100]);
             spell.Zone = (SpellZoneRestrict)ParseInt(fields[101]);
+            spell.CancelOnSit = ParseBool(fields[124]);
             spell.Icon = ParseInt(fields[145]);
             spell.ResistMod = ParseInt(fields[147]);
             spell.RecourseID = ParseInt(fields[150]);
@@ -1785,7 +1786,7 @@ namespace Everquest
 
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[154]);
+            //spell.Unknown = ParseFloat(fields[124]);
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
@@ -1810,7 +1811,7 @@ namespace Everquest
             }
 
             // debug stuff
-            //if (spell.ID == 26225) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
+            //if (spell.ID == 23407) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
 
             spell.Clean();
 
