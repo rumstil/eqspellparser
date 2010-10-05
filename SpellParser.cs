@@ -528,6 +528,9 @@ namespace Everquest
             if (Zone != SpellZoneRestrict.None)
                 result.Add("Restriction: " + Zone + " Only");
 
+            if (CancelOnSit)
+                result.Add("Restriction: Cancel on Sit");
+
             if (Target == SpellTarget.Directional_AE)
                 result.Add("Target: " + FormatEnum(Target) + " (" + StartDegree + " to " + EndDegree + " Degrees)");
             else if (TargetRestrict > 0)
@@ -829,7 +832,7 @@ namespace Everquest
                 case 68:
                     return "Reclaim Pet";
                 case 69:
-                    return Spell.FormatCount("Max HP", value);
+                    return Spell.FormatCount("Max HP", value) + range;
                 case 71:
                     return String.Format("Summon Pet: {0}", Extra);
                 case 73:
