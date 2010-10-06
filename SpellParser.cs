@@ -396,7 +396,8 @@ namespace Everquest
         Outgoing_Hit_Success = 5, 
         Incoming_Hit_Success = 6, 
         Outgoing_Spell_Match = 7, // matching limits if any are defined
-        Defensive_Proc_Cast = 10 
+        Defensive_Proc_Cast = 10,
+        Offensive_Proc_Cast = 11
     }
 
     public sealed class Spell
@@ -1123,7 +1124,9 @@ namespace Everquest
                     // use spell duration if it is > 0?
                     return String.Format("AE Attack for {0}s", value * 12);
                 case 214:
-                    return Spell.FormatPercent("Max HP", value / 100f);
+                    if (Math.Abs(value) >= 100)
+                        value = (int)(value / 100f);
+                    return Spell.FormatPercent("Max HP", value);
                 case 216:
                     return Spell.FormatPercent("Accuracy", value);
                 case 219:
@@ -1360,7 +1363,9 @@ namespace Everquest
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", value);
                 case 419:
                     // this is used for potions. how is it different than 85? maybe proc rate?
-                    return String.Format("Add Proc: [Spell {0}] (Unknown: {1})", base1, base2);
+                    if (base2 > 0)
+                        return String.Format("Add Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
+                    return String.Format("Add Proc: [Spell {0}]", base1);
                 case 424:
                     return String.Format("Gradual {2} for {0} (Unknown: {1})", Math.Abs(base1), base2, base1 > 0 ? "Push" : "Pull");
                 case 427:
