@@ -865,7 +865,7 @@ namespace Everquest
                 case 84:
                     return "Gravity Flux";
                 case 85:
-                    if (base2 > 0)
+                    if (base2 != 0)
                         return String.Format("Add Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
                     return String.Format("Add Proc: [Spell {0}]", base1);
                 case 86:
@@ -1216,7 +1216,7 @@ namespace Everquest
                 case 322:
                     return "Gate to Home City";
                 case 323:
-                    if (base2 > 0)
+                    if (base2 != 0)
                         return String.Format("Add Defensive Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
                     return String.Format("Add Defensive Proc: [Spell {0}]", base1);
                 case 324:
@@ -1363,7 +1363,7 @@ namespace Everquest
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", value);
                 case 419:
                     // this is used for potions. how is it different than 85? maybe proc rate?
-                    if (base2 > 0)
+                    if (base2 != 0)
                         return String.Format("Add Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
                     return String.Format("Add Proc: [Spell {0}]", base1);
                 case 424:
@@ -1373,7 +1373,7 @@ namespace Everquest
                 case 428:
                     return String.Format("Limit Skill: {0}", Spell.FormatEnum((SpellSkill)value));
                 case 429:
-                    if (base2 > 0)
+                    if (base2 != 0)
                         return String.Format("Add Skill Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
                     return String.Format("Add Skill Proc: [Spell {0}]", base1);
 
