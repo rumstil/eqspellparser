@@ -292,7 +292,8 @@ namespace Everquest
         Undead3 = 608,
         Summoned2 = 624,
         Not_Pet = 701,
-        Undead4 = 818
+        Undead4 = 818,
+        Not_Undead4 = 819
     }
 
     public enum SpellZoneRestrict
@@ -887,7 +888,7 @@ namespace Everquest
                 case 95:
                     return "Sacrifice";
                 case 96:
-                    // silence, but named this way to match melee version
+                    // aka silence, but named this way to match melee version
                     return "Inhibit Spell Casting";
                 case 97:
                     return Spell.FormatCount("Max Mana", value);
@@ -1614,21 +1615,23 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Calculate an effect slot value range.
+        /// Calculate the range a slot effect can have.
         /// </summary>
-        static public string CalcValueRange(int calc, int base1, int max, int ticks, int level)
+        static public string CalcValueRange(int calc, int base1, int max, int duration, int level)
         {
             int start = CalcValue(calc, base1, max, 1, 1);
-            int finish = CalcValue(calc, base1, max, ticks, level);
+            int finish = CalcValue(calc, base1, max, duration, level);
+
+            string type = Math.Abs(start) < Math.Abs(finish) ? "Growing" : "Decaying";
 
             if (calc == 123)
                 return String.Format(" (Random: {0} to {1})", base1, max * ((base1 >= 0) ? 1 : -1));
+         
+            if (calc == 107 || calc == 108 || calc == 120 || calc == 122)
+                return String.Format(" ({2} {0} to {1})", start, finish, type);
 
-            if (calc == 107 || calc == 108 || calc == 120 || calc == 122 || (calc > 1000 && calc < 2000))
-                return String.Format(" ({2}: {0} to {1})", start, finish, Math.Abs(start) < Math.Abs(finish) ? "Growing" : "Decaying");
-
-            //if (start != finish)
-            //    return String.Format(" ({0} @L1 to {1} @L{2})", start, finish, level);
+            if (calc > 1000 && calc < 2000)
+                return String.Format(" ({2} {0} to {1} @ {3}/tick)", start, finish, type, calc - 1000);
 
             return null;
         }
@@ -1794,7 +1797,7 @@ namespace Everquest
 
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[124]);
+            //spell.Unknown = ParseFloat(fields[161]);
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
@@ -1819,7 +1822,7 @@ namespace Everquest
             }
 
             // debug stuff
-            //if (spell.ID == 23407) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
+            //if (spell.ID == 22769) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
 
             spell.Clean();
 
