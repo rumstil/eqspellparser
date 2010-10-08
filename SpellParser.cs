@@ -396,7 +396,7 @@ namespace Everquest
         Outgoing_Spell = 4,
         Outgoing_Hit_Success = 5, 
         Incoming_Hit_Success = 6, 
-        Outgoing_Spell_Match = 7, // matching limits if any are defined
+        Matching_Spell = 7, // mostly outgoing, sometimes incoming (puratus) matching limits
         Defensive_Proc_Cast = 10,
         Offensive_Proc_Cast = 11
     }
@@ -1238,7 +1238,7 @@ namespace Everquest
                     // only used by a few bard songs. how is this different than 1/100
                     return Spell.FormatCount("Current HP", value) + repeating + range;
                 case 335:
-                    return "Block Incoming Spell";
+                    return String.Format("Block Matching Spell Chance: {0}%", base1);
                 case 337:
                     return Spell.FormatPercent("Experience Gain", value);
                 case 339:
