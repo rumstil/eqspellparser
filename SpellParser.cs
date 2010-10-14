@@ -214,6 +214,7 @@ namespace Everquest
         Hatelist = 33,
         Chest = 34,
         Caster_PB_Players = 36, // only PCs? originally used for GM mass illusions
+        Pet2 = 38,
         Nearby_Players = 40, // bard AE hits all players
         Target_Group = 41,
         Directional_AE = 42,
@@ -270,13 +271,13 @@ namespace Everquest
         HP_Between_35_and_45_Percent = 402,
         HP_Between_45_and_55_Percent = 403,
         HP_Between_55_and_65_Percent = 404,
-        HP_Below_5_Percent = 501, 
-        HP_Below_10_Percent = 502, 
-        HP_Below_15_Percent = 503, 
-        HP_Below_20_Percent = 504, 
-        HP_Below_25_Percent = 505, 
+        HP_Below_5_Percent = 501,
+        HP_Below_10_Percent = 502,
+        HP_Below_15_Percent = 503,
+        HP_Below_20_Percent = 504,
+        HP_Below_25_Percent = 505,
         HP_Below_30_Percent = 506,
-        HP_Below_35_Percent = 507,        
+        HP_Below_35_Percent = 507,
         HP_Below_40_Percent = 508,
         HP_Below_45_Percent = 509,
         HP_Below_50_Percent = 510,
@@ -298,9 +299,9 @@ namespace Everquest
 
     public enum SpellZoneRestrict
     {
+        None = 0,
         Outdoors = 1,
-        Indoors = 2,
-        None = 0
+        Indoors = 2
     }
 
     public enum SpellIllusion
@@ -390,12 +391,13 @@ namespace Everquest
 
     public enum SpellMaxHits
     {
+        None = 0,
         Incoming_Hit_Attempt = 1, // incoming melee attempts (prior to success checks)
         Outgoing_Hit_Attempt = 2, // outgoing melee attempts of Skill type (prior to success checks)
         Incoming_Spell = 3,
         Outgoing_Spell = 4,
-        Outgoing_Hit_Success = 5, 
-        Incoming_Hit_Success = 6, 
+        Outgoing_Hit_Success = 5,
+        Incoming_Hit_Success = 6,
         Matching_Spell = 7, // mostly outgoing, sometimes incoming (puratus) matching limits
         Defensive_Proc_Cast = 10,
         Offensive_Proc_Cast = 11
@@ -591,7 +593,7 @@ namespace Everquest
                 result.Add("Hate: " + HateOverride);
 
             if (MaxHits > 0)
-                result.Add("Max Hits: " + MaxHits + " (" + FormatEnum((SpellMaxHits)MaxHitsType) + ")");
+                result.Add("Max Hits: " + MaxHits + " " + FormatEnum((SpellMaxHits)MaxHitsType));
 
             if (MaxTargets > 0)
                 result.Add("Max Targets: " + MaxTargets);
@@ -633,6 +635,9 @@ namespace Everquest
                 }
             }
             ClassesLevels = ClassesLevels.TrimStart();
+
+            if (MaxHitsType == SpellMaxHits.None || DurationTicks == 0)
+                MaxHits = 0;
 
             if (Target == SpellTarget.Self)
             {
@@ -820,6 +825,7 @@ namespace Everquest
                 case 61:
                     return "Identify Item";
                 case 63:
+                    // +25 if over level 53, +(cha - 150)/10 max:15. so base is 40 + whatever the value is
                     return String.Format("Memory Blur ({0})", value);
                 case 64:
                     if (max == 0 && ClassesMask != 0)
@@ -1626,7 +1632,7 @@ namespace Everquest
 
             if (calc == 123)
                 return String.Format(" (Random: {0} to {1})", base1, max * ((base1 >= 0) ? 1 : -1));
-         
+
             if (calc == 107 || calc == 108 || calc == 120 || calc == 122)
                 return String.Format(" ({2} {0} to {1})", start, finish, type);
 
@@ -1639,8 +1645,10 @@ namespace Everquest
         static private string FormatEnum(object o)
         {
             string type = o.ToString().Replace("_", " ").Trim();
-            if (Regex.IsMatch(type, @"^\d+$"))
+            if (Regex.IsMatch(type, @"^-?\d+$"))
                 type = "Type " + type; // undefined numeric enum
+            else
+                type = Regex.Replace(type, @"\d+$", ""); // remove numeric suffix on duplicate enums undead3/summoned3/etc
             return type;
         }
 
