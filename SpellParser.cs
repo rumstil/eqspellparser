@@ -1770,7 +1770,7 @@ namespace Everquest
             spell.Skill = (SpellSkill)ParseInt(fields[100]);
             spell.Zone = (SpellZoneRestrict)ParseInt(fields[101]);
             spell.CancelOnSit = ParseBool(fields[124]);
-            spell.Icon = ParseInt(fields[145]);
+            spell.Icon = ParseInt(fields[144]);
             spell.ResistMod = ParseInt(fields[147]);
             spell.RecourseID = ParseInt(fields[150]);
             spell.ShortDuration = ParseBool(fields[154]);
@@ -1830,7 +1830,7 @@ namespace Everquest
             }
 
             // debug stuff
-            //if (spell.ID == 22769) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
+            if (spell.ID == 19158) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
 
             spell.Clean();
 
