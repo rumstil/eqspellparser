@@ -327,9 +327,11 @@ namespace Everquest
         Wolf = 42,
         Bear = 43,
         Imp = 46,
+        Tiger = 63,
         Elemental = 75,
         Scarecrow = 82,
         //Skeleton = 85,
+        Alligator = 91,
         Iksar = 128,
         Vah_Shir = 130,
         Kunark_Goblin = 137,
@@ -466,6 +468,7 @@ namespace Everquest
         public bool PersistAfterDeath;
         public bool ShortDuration; // song window
         public bool CancelOnSit;
+        public bool Sneaking;
 
 
         public float Unknown;
@@ -531,6 +534,9 @@ namespace Everquest
 
             if (Zone != SpellZoneRestrict.None)
                 result.Add("Restriction: " + Zone + " Only");
+
+            if (Sneaking)
+                result.Add("Restriction: Sneaking");
 
             if (CancelOnSit)
                 result.Add("Restriction: Cancel on Sit");
@@ -1790,6 +1796,7 @@ namespace Everquest
             //spell.ViralMaxSpread = ParseInt(fields[192]);
             spell.StartDegree = ParseInt(fields[194]);
             spell.EndDegree = ParseInt(fields[195]);
+            spell.Sneaking = ParseBool(fields[196]);
             spell.DurationExtendable = !ParseBool(fields[197]);
             spell.DurationFrozen = ParseBool(fields[200]);
             spell.ViralRange = ParseInt(fields[201]);
@@ -1805,7 +1812,7 @@ namespace Everquest
 
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[161]);
+            //spell.Unknown = ParseFloat(fields[196]);
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
@@ -1830,7 +1837,7 @@ namespace Everquest
             }
 
             // debug stuff
-            if (spell.ID == 19158) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
+            //if (spell.ID == 19158) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
 
             spell.Clean();
 
