@@ -289,7 +289,7 @@ namespace Everquest
         HP_Below_80_Percent = 516,
         HP_Below_85_Percent = 517,
         HP_Below_90_Percent = 518,
-        Undead2 = 603,
+        Undead2 = 603, // vampiric too? Celestial Contravention Strike
         Undead3 = 608,
         Summoned2 = 624,
         Not_Pet = 701,
@@ -404,11 +404,29 @@ namespace Everquest
         Defensive_Proc_Cast = 10,
         Offensive_Proc_Cast = 11
     }
+    
+    [Flags]
+    public enum SpellTag // this is a parser construct to help categorize spells for easier comparisons.
+    {
+        Heal_Instant,
+        Heal_Duration,
+        Damage_Instant,
+        Damage_Duration,
+        Cure,
+        Stun,
+        Mesmerize,
+        Blur,
+        Pacify,
+        Root,
+        Snare,
+        Rune
+    }
 
     public sealed class Spell
-    {
+    {        
         public int ID;
         public int GroupID;
+        public SpellTag Tags;
         public string Name;
         public int Icon;
         public int Mana;
@@ -558,7 +576,7 @@ namespace Everquest
                 result.Add("Range: " + Range);
 
             if (ViralRange > 0)
-                result.Add("Viral: Yes, Range: " + ViralRange + ", Recast: " + ViralPulse + "s");
+                result.Add("Viral Range: " + ViralRange + ", Recast: " + ViralPulse + "s");
 
             if (!Beneficial && ResistMod != 0)
                 result.Add("Resist: " + ResistType + " " + ResistMod + (MinResist > 0 ? ", Min: " + MinResist / 2f + "%" : "") + (MaxResist > 0 ? ", Max: " + MaxResist / 2f + "%" : ""));
@@ -1303,7 +1321,7 @@ namespace Everquest
                         return String.Format("Cast: [Spell {0}] Chance: {1}%", base2, base1);
                     return String.Format("Cast: [Spell {0}]", base2);
                 case 375:
-                    return Spell.FormatPercent("Critical DoT Damage", value - 100);
+                    return Spell.FormatPercent("Critical DoT Damage", value);
                 case 377:
                     return String.Format("Cast if Not Cured: [Spell {0}]", base1);
                 case 378:
@@ -1660,8 +1678,11 @@ namespace Everquest
 
         static private string FormatTime(float seconds)
         {
-            if (seconds <= 60)
-                return seconds.ToString() + "s";
+            if (seconds < 120)
+                return seconds.ToString("0.#") + "s";
+
+            if (seconds < 7200)
+                return (seconds / 60f).ToString("0.#") + "m";
 
             return new TimeSpan(0, 0, (int)seconds).ToString();
         }
@@ -1801,6 +1822,7 @@ namespace Everquest
             spell.DurationFrozen = ParseBool(fields[200]);
             spell.ViralRange = ParseInt(fields[201]);
             // 202 = bard related
+            // 203 = melee specials
             spell.BeneficialBlockable = !ParseBool(fields[205]); // for beneficial spells
             spell.GroupID = ParseInt(fields[207]);
             spell.Rank = ParseInt(fields[208]); // rank 1/5/10. a few auras do not have this set properly
@@ -1837,7 +1859,7 @@ namespace Everquest
             }
 
             // debug stuff
-            //if (spell.ID == 19158) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
+            //if (spell.ID == 25237) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
 
             spell.Clean();
 
