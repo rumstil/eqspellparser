@@ -14,8 +14,8 @@ namespace parser
 {
     class Program
     {
-        const string SpellFilename = "spells_us.txt";
-        const string DescFilename = "dbstr_us.txt";
+        static string SpellFilename = "spells_us.txt";
+        static string DescFilename = "dbstr_us.txt";
 
         static void Main(string[] args)
         {
@@ -32,15 +32,22 @@ namespace parser
                 return;
             }
 
+            if (File.Exists(args[0]))
+            {
+                SpellFilename = args[0];
+                args[0] = "all";
+            }
+
             if (!File.Exists(SpellFilename) || !File.Exists(DescFilename))
                 DownloadPatchFiles();
 
             IList<Spell> list = SpellParser.LoadFromFile(SpellFilename, DescFilename);
 
-            Func<int, Spell> lookup = id => list.FirstOrDefault(x => x.ID == id); // TODO: hash table search
+            Func<int, Spell> lookup = id => list.FirstOrDefault(x => x.ID == id); 
 
             var results = Search(list, args);
-            //results = Expand(results, lookup);
+            if (args.Length > 1)
+                results = Expand(results, lookup);
             Show(results);
 
         }
@@ -85,7 +92,7 @@ namespace parser
 
             // debugging: search the unknown field 
             if (args.Length == 1 && args[0] == "unknown")
-                results = list.Where(x => x.Unknown > 0).OrderBy(x => x.Unknown);
+                results = list.Where(x => x.Unknown != 0).OrderBy(x => x.Unknown);
 
 
             return results;
@@ -159,19 +166,18 @@ namespace parser
         /// </summary>
         static void DownloadPatchFiles()
         {
-            //string patch = "http://eq.patch.station.sony.com/patch/everquest/en/everquest-update.xml.gz"; // live servers (patch.everquest.com:7000 also works)
-            string patch = "http://eq.patch.station.sony.com/patch/everquest/en-test/everquest-update.xml.gz"; // test server 
+            string patch = "http://eq.patch.station.sony.com/patch/everquest/en/everquest-update.xml.gz"; // live servers (patch.everquest.com:7000 also works)
+            //string patch = "http://eq.patch.station.sony.com/patch/everquest/en-test/everquest-update.xml.gz"; // test server 
 
             DownloadFile(patch, "update.xml");
 
             XmlDocument doc = new XmlDocument();
             doc.Load("update.xml");
-            string server = "http://" + doc.SelectSingleNode("//VerantPatcher/Product[@Name='EverQuest']").Attributes["Server"].Value;
-            string path = "/" + doc.SelectSingleNode("//VerantPatcher/Product[@Name='EverQuest']/Distribution[@Name='Main Distribution']/Directory[@LocalPath='::HomeDirectory::']").Attributes["RemotePath"].Value + "/";
+            string path = "http://" + doc.SelectSingleNode("//VerantPatcher/Product[@Name='EverQuest']").Attributes["Server"].Value + "/" +
+                doc.SelectSingleNode("//VerantPatcher/Product[@Name='EverQuest']/Distribution[@Name='Main Distribution']/Directory[@LocalPath='::HomeDirectory::']").Attributes["RemotePath"].Value + "/";
 
-            DownloadFile(server + path + SpellFilename + ".gz", SpellFilename);
-
-            DownloadFile(server + path + DescFilename + ".gz", DescFilename);
+            DownloadFile(path + SpellFilename + ".gz", SpellFilename);
+            DownloadFile(path + DescFilename + ".gz", DescFilename);
         }
 
         /// <summary>
