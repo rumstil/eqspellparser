@@ -329,7 +329,7 @@ namespace Everquest
         Imp = 46,
         Tiger = 63,
         Elemental = 75,
-        Scarecrow = 82,
+        Old_Scarecrow = 82,
         //Skeleton = 85,
         Alligator = 91,
         Iksar = 128,
@@ -378,9 +378,11 @@ namespace Everquest
         Kerran = 562,
         Siren = 564,
         Brownie = 568,
+        Scarecrow = 575,
         Crystal_Sphere = 616,
         Amygdalan = 663,
-        Royal_Guardian = 667
+        Royal_Guardian = 667,
+        Bunny = 668
     }
 
     public enum SpellFaction
@@ -404,7 +406,7 @@ namespace Everquest
         Defensive_Proc_Cast = 10,
         Offensive_Proc_Cast = 11
     }
-    
+
     [Flags]
     public enum SpellTag // this is a parser construct to help categorize spells for easier comparisons.
     {
@@ -423,7 +425,7 @@ namespace Everquest
     }
 
     public sealed class Spell
-    {        
+    {
         public int ID;
         public int GroupID;
         public SpellTag Tags;
@@ -487,6 +489,8 @@ namespace Everquest
         public bool ShortDuration; // song window
         public bool CancelOnSit;
         public bool Sneaking;
+        public int[] CategoryDescID;
+        public string Category;
 
 
         public float Unknown;
@@ -508,6 +512,7 @@ namespace Everquest
             RegID = new int[4];
             RegCount = new int[4];
             FocusID = new int[4];
+            CategoryDescID = new int[3];
         }
 
         public override string ToString()
@@ -611,7 +616,7 @@ namespace Everquest
                 result.Add("Push: " + PushBack);
 
             if (HateMod != 0)
-                result.Add("Hate Mod: " + HateMod);
+                result.Add("Hate Mod: " + (HateMod > 0 ? "+" : "") + HateMod);
 
             if (HateOverride != 0)
                 result.Add("Hate: " + HateOverride);
@@ -627,6 +632,9 @@ namespace Everquest
 
             if (Unknown != 0)
                 result.Add("Unknown: " + Unknown);
+
+            //if (!String.IsNullOrEmpty(Category))
+            //    result.Add("Category: " + Category);
 
             for (int i = 0; i < Slots.Length; i++)
                 if (Slots[i] != null)
@@ -1574,6 +1582,7 @@ namespace Everquest
                 case 123:
                     // random in range
                     change = (Math.Abs(max) - Math.Abs(base1)) / 2;
+                    //return Math.Abs(base1) + change;
                     break;
                 case 124:
                     if (level > 50) change = (level - 50);
@@ -1725,16 +1734,24 @@ namespace Everquest
         static public IList<Spell> LoadFromFile(string spellPath, string descPath)
         {
             // load description text file
-            Dictionary<int, string> desc = new Dictionary<int, string>();
+            Dictionary<string, string> desc = new Dictionary<string, string>(30000);
             if (File.Exists(descPath))
                 using (StreamReader text = File.OpenText(descPath))
                     while (!text.EndOfStream)
                     {
                         string line = text.ReadLine();
                         string[] fields = line.Split('^');
-                        // type 6 is used for spell descriptions
-                        if (fields[1] == "6")
-                            desc[Int32.Parse(fields[0])] = fields[2].Trim();
+                        // 0 = id in type
+                        // 1 = type
+                        // 2 = description
+                        // type 1 = AA names
+                        // type 4 = AA desc
+                        // type 5 = spell categories
+                        // type 6 = spell desc
+                        // type 7 = lore groups
+                        // type 16 = aug slot desc
+                        // type 18 = currency
+                        desc[fields[1] + "/" + fields[0]] = fields[2].Trim();
                     }
 
 
@@ -1747,8 +1764,20 @@ namespace Everquest
                         string line = text.ReadLine();
                         string[] fields = line.Split('^');
                         Spell spell = LoadSpell(fields);
-                        if (!desc.TryGetValue(spell.DescID, out spell.Desc))
+                        
+                        string s;
+                        if (desc.TryGetValue("5/" + spell.CategoryDescID[0], out s))
+                        {
+                            spell.Category = s;
+                            if (desc.TryGetValue("5/" + spell.CategoryDescID[1], out s))
+                                spell.Category += "/" + s;
+                            if (desc.TryGetValue("5/" + spell.CategoryDescID[2], out s))
+                                spell.Category += "/" + s;
+                        }
+
+                        if (!desc.TryGetValue("6/" + spell.DescID, out spell.Desc))
                             spell.Desc = null;
+
                         list.Add(spell);
                     }
 
@@ -1786,10 +1815,8 @@ namespace Everquest
             {
                 spell.RegID[i] = ParseInt(fields[58 + i]);
                 spell.RegCount[i] = ParseInt(fields[62 + i]);
-            }
-
-            for (int i = 0; i < 3; i++)
                 spell.FocusID[i] = ParseInt(fields[66 + i]);
+            }
 
             spell.Beneficial = ParseBool(fields[83]);
             spell.ResistType = (SpellResist)ParseInt(fields[85]);
@@ -1802,6 +1829,9 @@ namespace Everquest
             spell.RecourseID = ParseInt(fields[150]);
             spell.ShortDuration = ParseBool(fields[154]);
             spell.DescID = ParseInt(fields[155]);
+            spell.CategoryDescID[0] = ParseInt(fields[156]);
+            spell.CategoryDescID[1] = ParseInt(fields[157]);
+            spell.CategoryDescID[2] = ParseInt(fields[158]);
             spell.HateMod = ParseInt(fields[162]);
             spell.Endurance = ParseInt(fields[166]);
             spell.TimerID = ParseInt(fields[167]);
@@ -1834,7 +1864,7 @@ namespace Everquest
 
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[196]);
+            //spell.Unknown = ParseFloat(fields[159]);
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
@@ -1859,7 +1889,7 @@ namespace Everquest
             }
 
             // debug stuff
-            //if (spell.ID == 25237) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
+            //if (spell.ID == 25411) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
 
             spell.Clean();
 
