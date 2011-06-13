@@ -26,9 +26,9 @@ namespace parser
                 return;
             }
 
-            if (args.Length == 1 && args[0] == "update")
+            if (args[0] == "update")
             {
-                DownloadPatchFiles();
+                DownloadPatchFiles(args.Length >= 2 ? args[1] : null);
                 return;
             }
 
@@ -164,10 +164,10 @@ namespace parser
         /// <summary>
         /// Download needed files from the patch server.
         /// </summary>
-        static void DownloadPatchFiles()
+        /// <param name="server">Null for the live server.</param>
+        static void DownloadPatchFiles(string server = null)
         {
-            string patch = "http://eq.patch.station.sony.com/patch/everquest/en/everquest-update.xml.gz"; // live servers (patch.everquest.com:7000 also works)
-            //string patch = "http://eq.patch.station.sony.com/patch/everquest/en-test/everquest-update.xml.gz"; // test server 
+            string patch = "http://eq.patch.station.sony.com/patch/everquest/en" + server +"/everquest-update.xml.gz"; 
 
             DownloadFile(patch, "update.xml");
 

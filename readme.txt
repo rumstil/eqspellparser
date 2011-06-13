@@ -1,38 +1,65 @@
 
 REQUIREMENTS
 ============
-You need to have .NET 3.5 installed to run this application. 
-If you run the program and get the error: "This application failed to initialize properly", then you don't have the .NET framework installed.
+You need to have Microsoft .NET Framework 3.5 installed to run this application. 
+If you run the parser and get the error: "This application failed to initialize properly", then you don't have the .NET framework installed.
 
 You can download .NET 3.5 from here:
 
 http://www.microsoft.com/downloads/details.aspx?FamilyId=333325FD-AE52-4E35-B531-508D977D32A6&displaylang=en
 
 
-USAGE
-=====
-There are 5 ways to use this application:
+
+SEARCHING FOR SPELLS
+=====================
+To search the spell database you supply the search parameters on the command line when you start the parser.
+The parser displays all matching results it will quit and can be rerun again to display different results.
+
+You can search using 5 different methods:
 
 >parser all
 
-This parses all spells.
+This shows all spells.
 
 
 >parser name "healing"
 
-This parses spells with the word "healing" in their name.
+This shows spells with the word "healing" in their name.
 
 
 >parser id 13
 
-This parses spell #13 (complete heal)
+This shows spell #13 (complete heal)
 
 
->parser type 3
+>parser spa 3
 
-This parses spells with effect type 3 (movement speed)
+This shows spells with SPA type 3 (movement speed)
 
 
 >parser class rng
 
-This parser spells a ranger can cast
+This shows ranger spells
+
+
+
+UPDATING THE SPELL DATABASE
+============================
+When the application first runs it checks if you have a copy of the spell files in the current folder.
+If the files do not exist they will be downloaded from the Sony servers and saved for reuse.
+Once the spell database files are saved they will never be automatically updated. 
+If you want to update the spell database manually you must use the update command:
+
+>parser update
+
+Downloads the live server spell database
+
+>parser update -test
+
+Downloads the test server spell database
+
+
+
+
+
+
