@@ -64,7 +64,7 @@ namespace parser
             //results = list.Where(x => (int)x.TargetRestrict > 0).OrderBy(x => x.TargetRestrict);
 
             // search by effect type
-            if (args.Length == 2 && args[0] == "type")
+            if (args.Length == 2 && (args[0] == "type" || args[0] == "spa"))
                 results = list.Where(x => x.HasEffect(args[1]));
 
             // search by id
