@@ -1415,6 +1415,9 @@ namespace Everquest
                     if (base2 != 0)
                         return String.Format("Add Skill Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
                     return String.Format("Add Skill Proc: [Spell {0}]", base1);
+                case 431:
+                    // changes color intensity? 430 also seems to be vision related
+                    return String.Format("Tint Vision: Red={0} Green={1} Blue={2}", base1 >> 16 & 0xff, base1 >> 8 & 0xff, base1 & 0xff);
 
             }
 
@@ -1764,7 +1767,7 @@ namespace Everquest
                         string line = text.ReadLine();
                         string[] fields = line.Split('^');
                         Spell spell = LoadSpell(fields);
-                        
+
                         string s;
                         if (desc.TryGetValue("5/" + spell.CategoryDescID[0], out s))
                         {
