@@ -39,7 +39,7 @@ namespace parser
             }
 
             if (!File.Exists(SpellFilename) || !File.Exists(DescFilename))
-                DownloadPatchFiles();
+                DownloadPatchFiles(null);
 
             IList<Spell> list = SpellParser.LoadFromFile(SpellFilename, DescFilename);
 
@@ -165,7 +165,7 @@ namespace parser
         /// Download needed files from the patch server.
         /// </summary>
         /// <param name="server">Null for the live server.</param>
-        static void DownloadPatchFiles(string server = null)
+        static void DownloadPatchFiles(string server)
         {
             string patch = "http://eq.patch.station.sony.com/patch/everquest/en" + server +"/everquest-update.xml.gz"; 
 

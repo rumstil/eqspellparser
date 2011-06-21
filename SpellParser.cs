@@ -58,6 +58,8 @@ namespace Everquest
         Stun = 21,
         Charm = 22,
         Fear = 23,
+        Bind = 25,
+        Gate = 26,
         Mesmerize = 31,
         Summon_Item = 32,
         Summon_Pet = 33,
@@ -74,13 +76,19 @@ namespace Everquest
         Levitate = 57,
         Damage_Shield = 59,
         Summon_Skeleton_Pet = 71,
+        Resurrect = 81,
+        Summon_Player = 82,
+        Teleport = 83,
         Melee_Proc = 85,
         Assist_Radius = 86,
+        Evacuate = 88,
         Max_HP = 69,
+        Summon_Corpse = 91,
         Hate = 92,
         Max_Mana = 97,
         Current_HP_Repeating = 100,
         Donals_Heal = 101,
+        Translocate = 104,
         All_Resists = 111,
         Current_HP_Percent = 147,
         Spell_Rune = 161,
@@ -94,6 +102,7 @@ namespace Everquest
         Proc_Rate = 200,
         Weapon_Damage_Bonus = 220,
         Spell_Damage_Bonus = 286,
+        Gate_to_Home_City = 322,
         XP_Gain = 337,
         Casting_Trigger = 339,
         Mana_Burn = 350,
@@ -898,7 +907,8 @@ namespace Everquest
                 case 81:
                     return String.Format("Resurrection: {0}%", value);
                 case 82:
-                    return "Call of Hero";
+                    // call of the hero
+                    return "Summon Player";
                 case 83:
                     return String.Format("Teleport to {0}", Extra);
                 case 84:
@@ -1336,10 +1346,10 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Resist " + Spell.FormatEnum((SpellEffect)base2), value);
                 case 379:
                     if (base2 > 0)
-                        return String.Format("Knockback for {0} in Direction: {1}", base1, base2);
-                    return String.Format("Knockback for {0}", value);
+                        return String.Format("Push for {0} in Direction: {1}", base1, base2);
+                    return String.Format("Push forward for {0}", value);
                 case 380:
-                    return String.Format("Knockback for {0} and up for {1}", base2, base1);
+                    return String.Format("Push back for {0} and up for {1}", base2, base1);
                 case 381:
                     return String.Format("Summon to {0} in Front", value);
                 case 382:
