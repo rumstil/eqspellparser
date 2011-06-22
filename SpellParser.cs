@@ -1211,9 +1211,8 @@ namespace Everquest
                 case 287:
                     return String.Format("Increase Duration by {0}s", value * 6);
                 case 289:
-                    // this only triggers if the spell times out. compared with 373
-                    // if base2 > 0, what is base1?
-                    return String.Format("Cast on Fade: [Spell {0}]", (base2 > 0) ? base2 : base1);
+                    // this only triggers if the spell times out. compare with 373
+                    return String.Format("Cast on Duration Fade: [Spell {0}]", base1);
                 case 291:
                     return String.Format("Dispel Detrimental ({0})", value);
                 case 294:
@@ -1332,8 +1331,8 @@ namespace Everquest
                 case 371:
                     return Spell.FormatPercent("Melee Delay", Math.Abs(value));
                 case 373:
-                    // this appears to be used when a spell is removed via any method: times out, cured, rune depleted, max hits
-                    return String.Format("Cast on Done/Depleted: [Spell {0}]", base1);
+                    // this appears to be used when a spell is removed via any method: times out, cured, rune depleted, max hits, mez break
+                    return String.Format("Cast on Fade: [Spell {0}]", base1);
                 case 374:
                     if (base1 < 100)
                         return String.Format("Cast: [Spell {0}] Chance: {1}%", base2, base1);
