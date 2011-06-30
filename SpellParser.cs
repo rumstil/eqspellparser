@@ -333,7 +333,7 @@ namespace Everquest
         Old_Centaur = 16,
         Froglok = 27,
         Old_Gargoyle = 29,
-        Wolf = 42,
+        Old_Wolf = 42,
         Bear = 43,
         Imp = 46,
         Tiger = 63,
@@ -341,6 +341,7 @@ namespace Everquest
         Old_Scarecrow = 82,
         //Skeleton = 85,
         Alligator = 91,
+        Wolf = 100,
         Iksar = 128,
         Vah_Shir = 130,
         Kunark_Goblin = 137,
@@ -794,9 +795,7 @@ namespace Everquest
                 case 20:
                     return "Blind";
                 case 21:
-                    if (max == 0 && ClassesMask != 0)
-                        max = 55;
-                    return String.Format("Stun for {0}s", value / 1000f) + maxlevel;
+                    return String.Format("Stun for {0}s", base1 / 1000f) + maxlevel;
                 case 22:
                     return "Charm" + maxlevel;
                 case 23:
@@ -869,9 +868,7 @@ namespace Everquest
                     // +25 if over level 53, +(cha - 150)/10 max:15. so base is 40 + whatever the value is
                     return String.Format("Memory Blur ({0})", value);
                 case 64:
-                    if (max == 0 && ClassesMask != 0)
-                        max = 55;
-                    return String.Format("SpinStun for {0}s", value / 1000f) + maxlevel;
+                    return String.Format("SpinStun for {0}s", base1 / 1000f) + maxlevel;
                 case 65:
                     return "Infravision";
                 case 66:
@@ -1056,8 +1053,6 @@ namespace Everquest
                 case 157:
                     return Spell.FormatCount("Spell Damage Shield", -value);
                 case 158:
-                    if (max < value)
-                        value = max;
                     return Spell.FormatPercent("Chance to Reflect Spell", value);
                 case 159:
                     return Spell.FormatCount("Base Stats", value);
@@ -1135,7 +1130,7 @@ namespace Everquest
                 case 192:
                     return Spell.FormatCount("Hate", value) + repeating + range;
                 case 193:
-                    return String.Format("{0} Attack for {1} with {2}% Accuracy Mod", Spell.FormatEnum(Skill), value, base2);
+                    return String.Format("{0} Attack for {1} with {2}% Accuracy Mod", Spell.FormatEnum(Skill), base1, base2);
                 case 194:
                     if (value < 100)
                         return String.Format("Wipe Aggro (Success: {0}%)", value);
@@ -1181,9 +1176,9 @@ namespace Everquest
                 case 219:
                     return Spell.FormatPercent("Chance to Slay Undead", value / 100f);
                 case 220:
-                    return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", value);
+                    return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", base1);
                 case 227:
-                    return String.Format("Reduce {0} Timer by {1}s", Spell.FormatEnum((SpellSkill)base2), value);
+                    return String.Format("Reduce {0} Timer by {1}s", Spell.FormatEnum((SpellSkill)base2), base1);
                 case 232:
                     return String.Format("Cast on Death Save: [Spell {0}] Chance: {1}%", base2, base1);
                 case 233:
@@ -1408,7 +1403,7 @@ namespace Everquest
                     return Spell.FormatCount("Current Mana", value) + repeating + range;
                 case 418:
                     // how is this different than 220 bonus? 
-                    return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", value);
+                    return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", base1);
                 case 419:
                     // this is used for potions. how is it different than 85? maybe proc rate?
                     if (base2 != 0)
@@ -1515,13 +1510,19 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Calculate an effect slot value. 
+        /// Calculate a level/tick scaled value. 
         /// </summary>
         static public int CalcValue(int calc, int base1, int max, int tick, int level)
         {
-            // the default calculation (100) leaves the base value as is            
-            if (calc == 0 || calc == 100)
+            if (calc == 0)
                 return base1;
+
+            if (calc == 100)
+            {
+                if (max > 0 && base1 > max)
+                    return max;
+                return base1;
+            }
 
             int start = base1;
             int change = 0;
@@ -1666,7 +1667,7 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Calculate the range a slot effect can have.
+        /// Calculate the min/max values for a scaled value.
         /// </summary>
         static public string CalcValueRange(int calc, int base1, int max, int duration, int level)
         {
