@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
 
 
 
@@ -740,8 +741,7 @@ namespace Everquest
             int value = CalcValue(calc, base1, max, DurationTicks / 2, level);
             string range = CalcValueRange(calc, base1, max, DurationTicks, level);
 
-            // prepare a comment for effects that repeat for each tick of the duration
-            // this is only used by effects that modify hp/mana/end/hate 
+            // some hp/mana/end/hate effects repeat for each tick of the duration
             string repeating = (DurationTicks > 0) ? " per tick" : null;
 
             // some effects are capped at a max level
@@ -925,6 +925,8 @@ namespace Everquest
                 case 91:
                     return String.Format("Summon Corpse up to level {0}", value);
                 case 92:
+                    // calming strike spells are all capped at 100. so base1 would be more appropriate for those
+                    // but most other hate spells seem to imply scaled value is used
                     return Spell.FormatCount("Hate", value);
                 case 93:
                     return "Stop Rain";
@@ -1043,7 +1045,7 @@ namespace Everquest
                 case 151:
                     return "Suspend Pet";
                 case 152:
-                    return String.Format("Summon Pet: {0} x {1} for {2}s", Extra, value, max);
+                    return String.Format("Summon Pet: {0} x {1} for {2}s", Extra, base1, max);
                 case 153:
                     return String.Format("Balance Group HP with {0}% Penalty", value);
                 case 154:
@@ -1053,7 +1055,7 @@ namespace Everquest
                 case 157:
                     return Spell.FormatCount("Spell Damage Shield", -value);
                 case 158:
-                    return Spell.FormatPercent("Chance to Reflect Spell", value);
+                    return Spell.FormatPercent("Chance to Reflect Spell", base1);
                 case 159:
                     return Spell.FormatCount("Base Stats", value);
                 case 160:
@@ -1155,7 +1157,7 @@ namespace Everquest
                 case 203:
                     return "Casting Mode: Mass Group Buff";
                 case 204:
-                    return String.Format("Group Fear Immunity for {0}s", value * 10);
+                    return String.Format("Group Fear Immunity for {0}s", base1 * 10);
                 case 205:
                     return String.Format("AE Attack ({0})", value);
                 case 206:
@@ -1163,10 +1165,10 @@ namespace Everquest
                 case 209:
                     return String.Format("Dispel Beneficial ({0})", value);
                 case 210:
-                    return String.Format("Pet Shielding for {0}s", value * 12);
+                    return String.Format("Pet Shielding for {0}s", base1 * 12);
                 case 211:
                     // use spell duration if it is > 0?
-                    return String.Format("AE Attack for {0}s", value * 12);
+                    return String.Format("AE Attack for {0}s", base1 * 12);
                 case 214:
                     if (Math.Abs(value) >= 100)
                         value = (int)(value / 100f);
@@ -1204,7 +1206,7 @@ namespace Everquest
                     // amount is added after crits. after focus too?
                     return Spell.FormatCount("Spell Damage Bonus", value);
                 case 287:
-                    return String.Format("Increase Duration by {0}s", value * 6);
+                    return String.Format("Increase Duration by {0}s", base1 * 6);
                 case 289:
                     // this only triggers if the spell times out. compare with 373
                     return String.Format("Cast on Duration Fade: [Spell {0}]", base1);
@@ -1236,11 +1238,11 @@ namespace Everquest
                 case 305:
                     return Spell.FormatCount("Damage Shield Taken", -Math.Abs(value));
                 case 306:
-                    return String.Format("Summon Pet: {0} x {1} for {2}s", Extra, value, max);
+                    return String.Format("Summon Pet: {0} x {1} for {2}s", Extra, base1, max);
                 case 309:
                     return "Teleport to Bind";
                 case 310:
-                    return String.Format("Reduce Timer by {0}s", value / 1000f);
+                    return String.Format("Reduce Timer by {0}s", base1 / 1000f);
                 case 311:
                     // does this affect procs that the caster can also cast as spells?
                     return "Limit Type: Exclude Procs";
@@ -1366,7 +1368,7 @@ namespace Everquest
                     // used on type 3 augments
                     return Spell.FormatCount("Healing", value);
                 case 398:
-                    return String.Format("Increase Pet Duration by {0}s", value / 1000);
+                    return String.Format("Increase Pet Duration by {0}s", base1 / 1000);
                 case 399:
                     return Spell.FormatPercent("Chance to Twincast", value);
                 case 400:
@@ -1524,11 +1526,12 @@ namespace Everquest
                 return base1;
             }
 
-            int start = base1;
             int change = 0;
 
             switch (calc)
             {
+                case 100:
+                    break;
                 case 101:
                     change = level / 2;
                     break;
@@ -1595,7 +1598,6 @@ namespace Everquest
                 case 123:
                     // random in range
                     change = (Math.Abs(max) - Math.Abs(base1)) / 2;
-                    //return Math.Abs(base1) + change;
                     break;
                 case 124:
                     if (level > 50) change = (level - 50);
@@ -1655,15 +1657,15 @@ namespace Everquest
                     break;
             }
 
-            base1 = Math.Abs(base1) + change;
+            int value = Math.Abs(base1) + change;
 
-            if (max != 0 && base1 > Math.Abs(max))
-                base1 = Math.Abs(max);
+            if (max != 0 && value > Math.Abs(max))
+                value = Math.Abs(max);
 
-            if (start < 0)
-                base1 = -base1;
+            if (base1 < 0)
+                value = -value;
 
-            return base1;
+            return value;
         }
 
         /// <summary>
