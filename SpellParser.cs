@@ -1347,13 +1347,13 @@ namespace Everquest
                 case 380:
                     return String.Format("Push back for {0} and up for {1}", base2, base1);
                 case 381:
-                    return String.Format("Summon to {0} in Front", value);
+                    return String.Format("Summon to {0} in Front", base1);
                 case 382:
                     return String.Format("Inhibit Effect: {0}", Spell.FormatEnum((SpellEffect)base2));
                 case 383:
                     return String.Format("Cast on Spell Use: [Spell {0}] Chance: {1}%", base2, base1 / 10);
                 case 385:
-                    return String.Format("Limit Spells: {1}[Group {0}]", Math.Abs(value), value >= 0 ? "" : "Exclude ");
+                    return String.Format("Limit Spells: {1}[Group {0}]", Math.Abs(base1), base1 >= 0 ? "" : "Exclude ");
                 case 386:
                     return String.Format("Cast on Curer: [Spell {0}]", base1);
                 case 387:
@@ -1386,11 +1386,17 @@ namespace Everquest
                     return String.Format("Cast on Max Hits: [Spell {0}]", base1);
                 case 408:
                     // unlike 214, this does not show a lower max HP
-                    return String.Format("Cap HP at {0}% or {1} ", base1, base2);
+                    if (base2 > 0)                        
+                        return String.Format("Cap HP at lowest of {0}% or {1}", base1, base2);
+                    return String.Format("Cap HP at {0}%", base1);
                 case 409:
-                    return String.Format("Cap Mana at {0}% or {1} ", base1, base2);
+                    if (base2 > 0)
+                        return String.Format("Cap Mana at lowest of {0}% or {1}", base1, base2);
+                    return String.Format("Cap Mana at {0}%", base1);
                 case 410:
-                    return String.Format("Cap Endurance at {0}% or {1} ", base1, max > 0 ? max : base2);
+                    if (base2 > 0)
+                        return String.Format("Cap Endurance at lowest of {0}% or {1}", base1, base2);
+                    return String.Format("Cap Endurance at {0}%", base1);
                 case 411:
                     return String.Format("Limit Class: {0}", (SpellClassesMask)(value >> 1));
                 case 413:
