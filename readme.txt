@@ -2,7 +2,8 @@
 REQUIREMENTS
 ============
 You need to have Microsoft .NET Framework 3.5 installed to run this application. 
-If you run the parser and get the error: "This application failed to initialize properly", then you don't have the .NET framework installed.
+If you run the parser and get the error: "This application failed to initialize properly", 
+then you don't have the .NET framework installed.
 
 You can download .NET 3.5 from here:
 
@@ -10,12 +11,13 @@ http://www.microsoft.com/downloads/details.aspx?FamilyId=333325FD-AE52-4E35-B531
 
 
 
-SEARCHING FOR SPELLS
+HOW TO USE
 =====================
-To search the spell database you supply the search parameters on the command line when you start the parser.
-The parser displays all matching results it will quit and can be rerun again to display different results.
+The parser is a command line program. To search the database you supply the search parameters 
+when you start the parser. The parser displays all matching results and quits. 
 
 You can search using 5 different methods:
+
 
 >parser all
 
@@ -45,18 +47,18 @@ This shows ranger spells
 
 UPDATING THE SPELL DATABASE
 ============================
-When the application first runs it checks if you have a copy of the spell files in the current folder.
-If the files do not exist they will be downloaded from the Sony servers and saved for reuse.
-Once the spell database files are saved they will never be automatically updated. 
-If you want to update the spell database manually you must use the update command:
+If you run the parser from a folder other than the EQ folder you will need to manually update spell 
+files after a patch. This can be done using the "update" command:
+
 
 >parser update
 
-Downloads the live server spell database
+Downloads the current *live* server spell database
+
 
 >parser update -test
 
-Downloads the test server spell database
+Downloads the current *test* server spell database
 
 
 

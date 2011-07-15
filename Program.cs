@@ -59,39 +59,42 @@ namespace parser
         {
             IEnumerable<Spell> results = null;
 
-            if (args.Length == 1 && args[0] == "all")
+            string type = args.Length >= 1 ? args[0].ToLower() : null;
+            string param1 = args.Length >= 2 ? args[1] : null;
+
+            if (type == "all")
                 results = list;
             //results = list.Where(x => (int)x.TargetRestrict > 0).OrderBy(x => x.TargetRestrict);
 
             // search by effect type
-            if (args.Length == 2 && (args[0] == "type" || args[0] == "spa"))
-                results = list.Where(x => x.HasEffect(args[1]));
+            if (type == "type" || type == "spa")
+                results = list.Where(x => x.HasEffect(param1));
 
             // search by id
-            if (args.Length == 2 && args[0] == "id")
-                results = list.Where(x => x.ID.ToString() == args[1]);
+            if (type == "id")
+                results = list.Where(x => x.ID.ToString() == param1);
 
             // search by group
-            if (args.Length == 2 && args[0] == "group")
-                results = list.Where(x => x.GroupID.ToString() == args[1]);
+            if (type == "group")
+                results = list.Where(x => x.GroupID.ToString() == param1);
 
             // search by name
-            if (args.Length == 2 && args[0] == "name")
-                results = list.Where(x => x.Name.ToLower().Contains(args[1].ToLower())).OrderBy(x => x.Name);
+            if (type == "name")
+                results = list.Where(x => x.Name.ToLower().Contains(param1.ToLower())).OrderBy(x => x.Name);
 
             // search by class
-            if (args.Length == 2 && args[0] == "class")
+            if (type == "class")
             {
-                int i = (int)Enum.Parse(typeof(SpellClasses), args[1].ToUpper()) - 1;
+                int i = (int)Enum.Parse(typeof(SpellClasses), param1.ToUpper()) - 1;
                 results = list.Where(x => x.Levels[i] > 0 && x.Levels[i] < 255).OrderBy(x => x.Levels[i]).ThenBy(x => x.ID);
             }
 
             // search by target
-            if (args.Length == 2 && args[0] == "target")
-                results = list.Where(x => x.Target.ToString().ToLower() == args[1].ToLower());
+            if (type == "target")
+                results = list.Where(x => x.Target.ToString().ToLower() == param1.ToLower());
 
             // debugging: search the unknown field 
-            if (args.Length == 1 && args[0] == "unknown")
+            if (type == "unknown")
                 results = list.Where(x => x.Unknown != 0).OrderBy(x => x.Unknown);
 
 
@@ -162,20 +165,19 @@ namespace parser
         }
 
         /// <summary>
-        /// Download needed files from the patch server.
+        /// Download spell files from the patch server.
         /// </summary>
         /// <param name="server">Null for the live server.</param>
         static void DownloadPatchFiles(string server)
         {
-            string patch = "http://eq.patch.station.sony.com/patch/everquest/en" + server +"/everquest-update.xml.gz"; 
+            string host = "http://eq.patch.station.sony.com";
 
-            DownloadFile(patch, "update.xml");
-
+            string path = host + "/patch/everquest/en" + server +"/everquest-update.xml.gz";
+            DownloadFile(path, "update.xml");
+            
             XmlDocument doc = new XmlDocument();
             doc.Load("update.xml");
-            string path = "http://" + doc.SelectSingleNode("//VerantPatcher/Product[@Name='EverQuest']").Attributes["Server"].Value + "/" +
-                doc.SelectSingleNode("//VerantPatcher/Product[@Name='EverQuest']/Distribution[@Name='Main Distribution']/Directory[@LocalPath='::HomeDirectory::']").Attributes["RemotePath"].Value + "/";
-
+            path = host + "/" + doc.SelectSingleNode("//Product[@Name='EverQuest']/Distribution[@Name='Main Distribution']/Directory[@LocalPath='::HomeDirectory::']/@RemotePath").Value + "/";
             DownloadFile(path + SpellFilename + ".gz", SpellFilename);
             DownloadFile(path + DescFilename + ".gz", DescFilename);
         }

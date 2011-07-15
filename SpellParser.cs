@@ -11,7 +11,6 @@ using System.Diagnostics;
 /* 
  * 
  * http://code.google.com/p/projecteqemu/source/browse/trunk/EQEmuServer/zone/spdat.h
- * http://sourceforge.net/projects/eqemulator/files/OpenZone/OpenSpell_2.0/OpenSpell_2.0.zip/download
  * http://forums.station.sony.com/eq/posts/list.m?start=150&topic_id=162971
  * http://forums.station.sony.com/eq/posts/list.m?start=50&topic_id=165000 - resists
  *
@@ -76,6 +75,7 @@ namespace Everquest
         Rune = 55,
         Levitate = 57,
         Damage_Shield = 59,
+        Memory_Blur = 63,
         Summon_Skeleton_Pet = 71,
         Resurrect = 81,
         Summon_Player = 82,
@@ -91,6 +91,7 @@ namespace Everquest
         Donals_Heal = 101,
         Translocate = 104,
         All_Resists = 111,
+        Aggro_Mult = 114,
         Current_HP_Percent = 147,
         Spell_Rune = 161,
         Melee_Rune = 162,
@@ -99,10 +100,12 @@ namespace Everquest
         Lifetap_From_Weapon = 178,
         Endurance_Repeating = 189,
         Hate_Repeating = 192,
+        Hate_Reset = 194,
         Taunt = 199,
         Proc_Rate = 200,
         Weapon_Damage_Bonus = 220,
         Spell_Damage_Bonus = 286,
+        Targets_Target_Hate = 321,
         Gate_to_Home_City = 322,
         XP_Gain = 337,
         Casting_Trigger = 339,
@@ -260,6 +263,8 @@ namespace Everquest
         HP_Less_Than_10_Percent = 124, // dupe of 502
         Clockwork = 125,
         Wisp = 126,
+        //Regular_Mob = 190,
+        //Raid_Mob = 191,
         HP_Above_75_Percent = 201,
         HP_Less_Than_20_Percent = 203, // dupe of 504
         Not_In_Combat = 216,
@@ -418,28 +423,10 @@ namespace Everquest
         Offensive_Proc_Cast = 11
     }
 
-    [Flags]
-    public enum SpellTag // this is a parser construct to help categorize spells for easier comparisons.
-    {
-        Heal_Instant,
-        Heal_Duration,
-        Damage_Instant,
-        Damage_Duration,
-        Cure,
-        Stun,
-        Mesmerize,
-        Blur,
-        Pacify,
-        Root,
-        Snare,
-        Rune
-    }
-
     public sealed class Spell
     {
         public int ID;
         public int GroupID;
-        public SpellTag Tags;
         public string Name;
         public int Icon;
         public int Mana;
@@ -500,7 +487,7 @@ namespace Everquest
         public bool ShortDuration; // song window
         public bool CancelOnSit;
         public bool Sneaking;
-        public int[] CategoryDescID;
+        public int[] CategoryDescID; // AAs don't have these set
         public string Category;
 
 
@@ -718,6 +705,9 @@ namespace Everquest
                 if (Slots[i] != null && Slots[i].StartsWith(text, StringComparison.CurrentCultureIgnoreCase))
                     return true;
 
+            if (Category.StartsWith(text, StringComparison.CurrentCultureIgnoreCase))
+                return true;
+
             return false;
         }
 
@@ -774,6 +764,7 @@ namespace Everquest
                 case 9:
                     return Spell.FormatCount("WIS", value);
                 case 10:
+                    // 10 is often used as a filler
                     return Spell.FormatCount("CHA", value);
                 case 11:
                     // base attack speed is 100. so 85 = 15% slow, 130 = 30% haste 
@@ -819,7 +810,8 @@ namespace Everquest
                 case 31:
                     return "Mesmerize" + maxlevel;
                 case 32:
-                    //return String.Format("Summon: [Item {0}] x {1}", base1, calc);
+                    // calc 100 = stack size for the item? Pouch of Quellious, Quiver of Marr
+                    //return String.Format("Summon: [Item {0}] x {1} {2} {3}", base1, calc, max, base2);
                     return String.Format("Summon: [Item {0}]", base1);
                 case 33:
                     return String.Format("Summon Pet: {0}", Extra);
@@ -931,7 +923,7 @@ namespace Everquest
                 case 93:
                     return "Stop Rain";
                 case 94:
-                    return "Cancel If Combat Initiated";
+                    return "Cancel if Combat Initiated";
                 case 95:
                     return "Sacrifice";
                 case 96:
@@ -1135,8 +1127,8 @@ namespace Everquest
                     return String.Format("{0} Attack for {1} with {2}% Accuracy Mod", Spell.FormatEnum(Skill), base1, base2);
                 case 194:
                     if (value < 100)
-                        return String.Format("Wipe Aggro (Success: {0}%)", value);
-                    return "Wipe Aggro";
+                        return String.Format("Hate Reset (Success: {0}%)", value);
+                    return "Hate Reset";
                 case 195:
                     // 100 is full resist. not sure why some spells have more
                     return String.Format("Stun Resist ({0})", value);
@@ -1179,6 +1171,8 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Slay Undead", value / 100f);
                 case 220:
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", base1);
+                case 225:
+                    return Spell.FormatCount("Double Attack Skill", base1);
                 case 227:
                     return String.Format("Reduce {0} Timer by {1}s", Spell.FormatEnum((SpellSkill)base2), base1);
                 case 232:
@@ -1191,6 +1185,8 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Triple Backstab", value);
                 case 262:
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkillCap)base2) + " Cap", value);
+                case 270:
+                    return Spell.FormatCount("Beneficial Song Range", base1);
                 case 272:
                     return Spell.FormatPercent("Spell Casting Skill", value);
                 case 273:
@@ -1285,6 +1281,8 @@ namespace Everquest
                     return String.Format("Block Matching Spell Chance: {0}%", base1);
                 case 337:
                     return Spell.FormatPercent("Experience Gain", value);
+                case 338:
+                    return "Summon and Resurrect All Corpses";
                 case 339:
                     // how is this different than 383? (besides chance)
                     return String.Format("Cast on Spell Use: [Spell {0}] Chance: {1}%", base2, base1);
@@ -1295,7 +1293,7 @@ namespace Everquest
                 case 342:
                     return "Inhibit Low Health Fleeing";
                 case 343:
-                    return String.Format("Interrupt Spell Chance: {0}%", value);
+                    return String.Format("Interrupt Casting Chance: {0}%", value);
                 case 348:
                     return String.Format("Limit Min Mana Cost: {0}", base1);
                 case 350:
@@ -1352,6 +1350,8 @@ namespace Everquest
                     return String.Format("Inhibit Effect: {0}", Spell.FormatEnum((SpellEffect)base2));
                 case 383:
                     return String.Format("Cast on Spell Use: [Spell {0}] Chance: {1}%", base2, base1 / 10);
+                case 384:
+                    return "Leap";
                 case 385:
                     return String.Format("Limit Spells: {1}[Group {0}]", Math.Abs(base1), base1 >= 0 ? "" : "Exclude ");
                 case 386:
@@ -1430,6 +1430,8 @@ namespace Everquest
                 case 431:
                     // changes color intensity? 430 also seems to be vision related
                     return String.Format("Tint Vision: Red={0} Green={1} Blue={2}", base1 >> 16 & 0xff, base1 >> 8 & 0xff, base1 & 0xff);
+                case 441:
+                    return String.Format("Cancel if Moved {0}", base1);
 
             }
 
