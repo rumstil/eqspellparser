@@ -466,8 +466,9 @@ namespace Everquest
         public int MaxTargets;
         public int RecourseID;
         public int TimerID;
-        public int ViralPulse;
+        public int ViralTimer;
         public int ViralRange;
+        public int ViralTargets;
         public SpellTargetRestrict TargetRestrict;
         public SpellTargetRestrict ProcRestrict;
         public int[] RegID;
@@ -579,7 +580,7 @@ namespace Everquest
                 result.Add("Range: " + Range);
 
             if (ViralRange > 0)
-                result.Add("Viral Range: " + ViralRange + ", Recast: " + ViralPulse + "s");
+                result.Add("Viral Range: " + ViralRange + ", Recast: " + ViralTimer + "s, Targets: " + ViralTargets);
 
             if (!Beneficial && ResistMod != 0)
                 result.Add("Resist: " + ResistType + " " + ResistMod + (MinResist > 0 ? ", Min: " + MinResist / 2f + "%" : "") + (MaxResist > 0 ? ", Max: " + MaxResist / 2f + "%" : ""));
@@ -1373,13 +1374,14 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Twincast", value);
                 case 400:
                     // e.g. Channels the power of sunlight, consuming up to #1 mana to heal your group.
-                    return String.Format("Use Target's Mana to Heal Group ({0}:{1})", value, Math.Floor(value * base2 / 10f));
+                    Mana = base1; // a bit misleading since the spell will cast with 0 mana and scale the heal
+                    return String.Format("Increase Current Group HP by up to {0} ({1} HP per 1 Mana)", Math.Floor(base1 * base2 / 10f), base2 / 10f);                    
                 case 401:
                     // e.g. Drains up to 401 mana from your target. For each point of mana drained, the target will take damage.
-                    return String.Format("Use Target's Mana to Inflict Damage ({0}:{1})", value, Math.Floor(value * base2 / -10f));
+                    return String.Format("Decrease Current HP by up to {0} ({1} HP per 1 Target Mana)", Math.Floor(base1 * base2 / -10f), base2 / -10f);
                 case 402:
                     // e.g. Consumes up to #6 endurance and inflicts damage for each point of endurance consumed.
-                    return String.Format("Use Target's Endurance to Inflict Damage ({0}:{1})", value, Math.Floor(value * base2 / -10f));
+                    return String.Format("Decrease Current HP by up to {0} ({1} HP per 1 Target End)", Math.Floor(base1 * base2 / -10f), base2 / -10f);
                 case 404:
                     return String.Format("Limit Skill: {1}{0}", Spell.FormatEnum((SpellSkill)Math.Abs(base1)), base1 >= 0 ? "" : "Exclude ");
                 case 406:
@@ -1866,8 +1868,8 @@ namespace Everquest
             spell.Dispellable = !ParseBool(fields[186]);
             spell.MinResist = ParseInt(fields[189]);
             spell.MaxResist = ParseInt(fields[190]);
-            spell.ViralPulse = ParseInt(fields[191]);
-            //spell.ViralMaxSpread = ParseInt(fields[192]);
+            spell.ViralTimer = ParseInt(fields[191]);
+            spell.ViralTargets = ParseInt(fields[192]);
             spell.StartDegree = ParseInt(fields[194]);
             spell.EndDegree = ParseInt(fields[195]);
             spell.Sneaking = ParseBool(fields[196]);
