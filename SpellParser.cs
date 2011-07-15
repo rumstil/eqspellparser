@@ -706,7 +706,7 @@ namespace Everquest
                 if (Slots[i] != null && Slots[i].StartsWith(text, StringComparison.CurrentCultureIgnoreCase))
                     return true;
 
-            if (Category.StartsWith(text, StringComparison.CurrentCultureIgnoreCase))
+            if (Category != null && Category.StartsWith(text, StringComparison.CurrentCultureIgnoreCase))
                 return true;
 
             return false;
@@ -861,7 +861,7 @@ namespace Everquest
                     // +25 if over level 53, +(cha - 150)/10 max:15. so base is 40 + whatever the value is
                     return String.Format("Memory Blur ({0})", value);
                 case 64:
-                    return String.Format("SpinStun for {0}s", base1 / 1000f) + maxlevel;
+                    return String.Format("Stun and Spin for {0}s", base1 / 1000f) + maxlevel;
                 case 65:
                     return "Infravision";
                 case 66:
@@ -1375,7 +1375,8 @@ namespace Everquest
                 case 400:
                     // e.g. Channels the power of sunlight, consuming up to #1 mana to heal your group.
                     Mana = base1; // a bit misleading since the spell will cast with 0 mana and scale the heal
-                    return String.Format("Increase Current Group HP by up to {0} ({1} HP per 1 Mana)", Math.Floor(base1 * base2 / 10f), base2 / 10f);                    
+                    Target = SpellTarget.Caster_Group; // total hack but makes sense as long as other spell effects aren't added
+                    return String.Format("Increase Current HP by up to {0} ({1} HP per 1 Mana)", Math.Floor(base1 * base2 / 10f), base2 / 10f);                    
                 case 401:
                     // e.g. Drains up to 401 mana from your target. For each point of mana drained, the target will take damage.
                     return String.Format("Decrease Current HP by up to {0} ({1} HP per 1 Target Mana)", Math.Floor(base1 * base2 / -10f), base2 / -10f);
