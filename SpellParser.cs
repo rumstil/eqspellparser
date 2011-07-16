@@ -263,8 +263,8 @@ namespace Everquest
         HP_Less_Than_10_Percent = 124, // dupe of 502
         Clockwork = 125,
         Wisp = 126,
-        //Regular_Mob = 190,
-        //Raid_Mob = 191,
+        Not_Raid_Boss = 190,
+        Raid_Boss = 191,
         HP_Above_75_Percent = 201,
         HP_Less_Than_20_Percent = 203, // dupe of 504
         Not_In_Combat = 216,
@@ -1263,11 +1263,11 @@ namespace Everquest
                     return String.Format("Add Defensive Proc: [Spell {0}]", base1);
                 case 324:
                     // blood magic. uses HP as mana
-                    return String.Format("Cast from HP with {0}% penalty", value);
+                    return String.Format("Cast from HP with {0}% Penalty", value);
                 case 328:
                     return Spell.FormatCount("Max Negative HP", value);
                 case 329:
-                    return String.Format("Absorb Damage Using Mana: {0}%", value);
+                    return String.Format("Absorb Damage using Mana: {0}%", value);
                 case 330:
                     return Spell.FormatPercent("Critical " + Spell.FormatEnum((SpellSkill)base2) + " Damage", value);
                 case 331:
