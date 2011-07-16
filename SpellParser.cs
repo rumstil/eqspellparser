@@ -703,11 +703,8 @@ namespace Everquest
                 return HasEffect(spa);
 
             for (int i = 0; i < Slots.Length; i++)
-                if (Slots[i] != null && Slots[i].StartsWith(text, StringComparison.CurrentCultureIgnoreCase))
+                if (Slots[i] != null && Slots[i].IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0)
                     return true;
-
-            if (Category != null && Category.StartsWith(text, StringComparison.CurrentCultureIgnoreCase))
-                return true;
 
             return false;
         }
