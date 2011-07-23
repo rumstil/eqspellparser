@@ -884,7 +884,6 @@ namespace Everquest
                 case 77:
                     return "Locate Corpse";
                 case 78:
-                    //return Spell.FormatCount("Spell Damage Taken", -value);
                     return String.Format("Absorb Spell Damage: 100% Total: {0}", value);
                 case 79:
                     // delta hp for heal/nuke, non repeating
@@ -973,7 +972,8 @@ namespace Everquest
                 case 119:
                     return Spell.FormatPercent("Melee Haste v3", value);
                 case 120:
-                    return Spell.FormatPercent("Healing Taken", value);
+                    // TODO: confirm this is a range
+                    return Spell.FormatPercent("Healing Taken", base2, base1); 
                 case 121:
                     // damages the target whenever it hits something
                     return Spell.FormatCount("Reverse Damage Shield", -value);
@@ -1214,9 +1214,9 @@ namespace Everquest
                     else
                         return Spell.FormatPercent("Critical Nuke Damage", base2 - 100);
                 case 296:
-                    return Spell.FormatPercent("Spell Damage Taken", value);
+                    return Spell.FormatPercent("Spell Damage Taken", base2, base1);
                 case 297:
-                    return Spell.FormatCount("Spell Damage Taken", value);
+                    return Spell.FormatCount("Spell Damage Taken", base1);
                 case 298:
                     return Spell.FormatPercent("Pet Size", value - 100);
                 case 299:
@@ -1359,12 +1359,13 @@ namespace Everquest
                 case 389:
                     return "Reset Recast Timers";
                 case 392:
-                    return Spell.FormatCount("Healing", value);
+                    return Spell.FormatCount("Healing", base1);
                 case 393:
-                    return Spell.FormatPercent("Healing Taken", value);
+                    // TODO: confirm this isn't a range
+                    return Spell.FormatPercent("Healing Taken", base1);
                 case 396:
                     // used on type 3 augments
-                    return Spell.FormatCount("Healing", value);
+                    return Spell.FormatCount("Healing", base1);
                 case 398:
                     return String.Format("Increase Pet Duration by {0}s", base1 / 1000);
                 case 399:
@@ -1737,6 +1738,9 @@ namespace Everquest
                 min = max;
                 max = temp;
             }
+
+            if (min == 0 && max != 0)
+                min = 1;
 
             if (min == max)
                 return String.Format("{0} {1} by {2}%", max < 0 ? "Decrease" : "Increase", name, Math.Abs(max));
