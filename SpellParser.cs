@@ -341,6 +341,7 @@ namespace Everquest
         Old_Gargoyle = 29,
         Old_Wolf = 42,
         Bear = 43,
+        Freeport_Militia = 44,
         Imp = 46,
         Tiger = 63,
         Elemental = 75,
@@ -348,9 +349,11 @@ namespace Everquest
         //Skeleton = 85,
         Alligator = 91,
         Wolf = 100,
+        Spirit_Wolf = 120,
         Iksar = 128,
         Vah_Shir = 130,
         Kunark_Goblin = 137,
+        Nearby_Object = 142,
         Tree = 143,
         Iksar_Skeleton = 161,
         Guktan = 330,
@@ -364,6 +367,7 @@ namespace Everquest
         Noc = 397,
         Golem = 374,
         Pyrilen = 411,
+        Dragorn = 413,
         Gelidran = 417,
         Goblin = 433,
         Basilisk = 436,
@@ -387,6 +391,7 @@ namespace Everquest
         Bixie = 520,
         Centaur = 521,
         Drakkin = 522,
+        Gnoll = 524,
         Satyr = 529,
         Dragon = 530,
         Hideous_Harpy = 527,
@@ -394,8 +399,15 @@ namespace Everquest
         Kerran = 562,
         Siren = 564,
         Brownie = 568,
+        Embattled_Minotaur = 574,
         Scarecrow = 575,
+        Wyvern = 581,
+        Raptor = 609,
+        Crystal_Hydra = 615,
         Crystal_Sphere = 616,
+        Vitrik = 620,
+        Crystalline_Sessiloid = 647,
+        Flame_Telmira = 653,
         Amygdalan = 663,
         Royal_Guardian = 667,
         Bunny = 668
@@ -910,7 +922,7 @@ namespace Everquest
                 case 88:
                     return String.Format("Evacuate to {0}", Extra);
                 case 89:
-                    return Spell.FormatPercent("Player Size", value - 100);
+                    return Spell.FormatPercent("Player Size", base1 - 100);
                 case 91:
                     return String.Format("Summon Corpse up to level {0}", value);
                 case 92:
