@@ -310,6 +310,8 @@ namespace Everquest
         Not_Pet = 701,
         Undead4 = 818,
         Not_Undead4 = 819
+        //Regular_Server = 836,
+        //Progression_Server = 837
     }
 
     public enum SpellZoneRestrict
@@ -740,6 +742,7 @@ namespace Everquest
             // decaying/growing spells are shown at their average strength (i.e. ticks / 2)
             int value = CalcValue(calc, base1, max, DurationTicks / 2, level);
             string range = CalcValueRange(calc, base1, max, DurationTicks, level);
+            //Func<int> base1_or_value = delegate() { Debug.WriteLineIf(base1 != value, "SPA " + spa + " value uncertain"); return base1; };
 
             // some hp/mana/end/hate effects repeat for each tick of the duration
             string repeating = (DurationTicks > 0) ? " per tick" : null;
@@ -780,9 +783,11 @@ namespace Everquest
                     // base attack speed is 100. so 85 = 15% slow, 130 = 30% haste 
                     return Spell.FormatPercent("Melee Haste", value - 100);
                 case 12:
+                    if (base1 > 1)
+                        return "Invisibility (Enhanced)";
                     return "Invisibility (Unstable)";
                 case 13:
-                    if (value > 1)
+                    if (base1 > 1)
                         return "See Invisible (Enhanced)";
                     return "See Invisible";
                 case 14:
@@ -1208,8 +1213,7 @@ namespace Everquest
                 case 280:
                     return Spell.FormatPercent("Pet Chance to Flurry", value);
                 case 286:
-                    // this seems to be a total. so if it affects a dot, it should be divided by number of ticks
-                    // amount is added after crits. after focus too?
+                    // bonus is added after focus and crit multipliers. for DoTs it adds base1/ticks to each tick.
                     return Spell.FormatCount("Spell Damage Bonus", value);
                 case 287:
                     return String.Format("Increase Duration by {0}s", base1 * 6);
@@ -1236,10 +1240,11 @@ namespace Everquest
                 case 300:
                     return "Doppelganger";
                 case 302:
-                    // see also 124
+                    // see also 124. only used on 2 AA
                     return Spell.FormatPercent("Spell Damage", value);
                 case 303:
-                    // this seems to be a total. so if it affects a dot, it should be divided by number of ticks
+                    // used on type 3 augments
+                    // is added before crit multipliers. for DoTs it adds base1/ticks to each tick.
                     return Spell.FormatCount("Spell Damage", value);
                 case 305:
                     return Spell.FormatCount("Damage Shield Taken", -Math.Abs(value));

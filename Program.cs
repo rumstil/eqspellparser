@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -19,6 +20,10 @@ namespace parser
 
         static void Main(string[] args)
         {
+            int dec = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalDigits;
+            if (dec < 2)
+                Console.Error.WriteLine("Your system is set to display {0} decimal digits. Some values will be rounded.", dec);
+            
             if (args.Length == 0)
             {
                 Console.Error.WriteLine("No search parameters specified!");
@@ -49,7 +54,6 @@ namespace parser
             if (args.Length > 1)
                 results = Expand(results, lookup);
             Show(results);
-
         }
 
         /// <summary>
@@ -208,7 +212,7 @@ namespace parser
                     }
 
                     int duration = System.Environment.TickCount - timer;
-                    Console.Error.WriteLine(" {0} bytes, {1} kB/s", output.Length, output.Length / duration);
+                    Console.Error.WriteLine(" {0} bytes", output.Length);
                 }
             }
         }
