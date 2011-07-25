@@ -1062,7 +1062,7 @@ namespace Everquest
                 case 157:
                     return Spell.FormatCount("Spell Damage Shield", -value);
                 case 158:
-                    return Spell.FormatPercent("Chance to Reflect Spell", base1);
+                    return Spell.FormatPercent("Chance to Reflect Spell", value);
                 case 159:
                     return Spell.FormatCount("Base Stats", value);
                 case 160:
@@ -1078,11 +1078,11 @@ namespace Everquest
                 case 163:
                     return String.Format("Absorb {0} Hits or Spells", value);
                 case 164:
-                    return "Appraise Chest";
+                    return String.Format("Appraise Chest ({0})", value);
                 case 165:
-                    return "Disarm Chest";
+                    return String.Format("Disarm Chest ({0})", value);
                 case 166:
-                    return "Unlock Chest";
+                    return String.Format("Unlock Chest ({0})", value);
                 case 167:
                     return String.Format("Pet Power ({0})", value);
                 case 168:
@@ -1213,8 +1213,9 @@ namespace Everquest
                 case 280:
                     return Spell.FormatPercent("Pet Chance to Flurry", value);
                 case 286:
-                    // bonus is added after focus and crit multipliers. for DoTs it adds base1/ticks to each tick.
-                    return Spell.FormatCount("Spell Damage Bonus", value);
+                    // is added after all other multipliers (focus, crit, etc..)
+                    // for DoTs it adds base1/ticks to each tick.
+                    return Spell.FormatCount("Spell Damage Bonus", base1);
                 case 287:
                     return String.Format("Increase Duration by {0}s", base1 * 6);
                 case 289:
@@ -1223,10 +1224,10 @@ namespace Everquest
                 case 291:
                     return String.Format("Dispel Detrimental ({0})", value);
                 case 294:
-                    if (value > 0 && base2 > 100)
-                        return Spell.FormatPercent("Chance to Critical Nuke", value) + " and " + Spell.FormatPercent("Critical Nuke Damage", base2 - 100);
-                    else if (value > 0)
-                        return Spell.FormatPercent("Chance to Critical Nuke", value);
+                    if (base1 > 0 && base2 > 100)
+                        return Spell.FormatPercent("Chance to Critical Nuke", base1) + " and " + Spell.FormatPercent("Critical Nuke Damage", base2 - 100);
+                    else if (base1 > 0)
+                        return Spell.FormatPercent("Chance to Critical Nuke", base1);
                     else
                         return Spell.FormatPercent("Critical Nuke Damage", base2 - 100);
                 case 296:
@@ -1241,11 +1242,12 @@ namespace Everquest
                     return "Doppelganger";
                 case 302:
                     // see also 124. only used on 2 AA
-                    return Spell.FormatPercent("Spell Damage", value);
+                    return Spell.FormatPercent("Spell Damage", base1);
                 case 303:
                     // used on type 3 augments
-                    // is added before crit multipliers. for DoTs it adds base1/ticks to each tick.
-                    return Spell.FormatCount("Spell Damage", value);
+                    // is added before crit multipliers, but after SPA 296 and 302 (and maybe 124). 
+                    // for DoTs it adds base1/ticks to each tick.
+                    return Spell.FormatCount("Spell Damage", base1);
                 case 305:
                     return Spell.FormatCount("Damage Shield Taken", -Math.Abs(value));
                 case 306:
@@ -1930,6 +1932,13 @@ namespace Everquest
 
                 spell.SlotEffects[i] = spa;
                 spell.Slots[i] = spell.ParseSlot(spa, base1, base2, max, calc, MaxLevel);
+
+                // debug stuff: detect difference in value/base1 for spells where i'm not sure which one should be used and have chosen one arbitrarily
+                //int[] uses_value = new int[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 15, 21, 24, 35, 36, 46, 47, 48, 49, 50, 55, 58, 59, 69, 79, 92, 97, 100, 111, 116, 158, 159, 164, 165, 166, 169, 184, 189, 190, 192, 262, 334, 417};
+                //int[] uses_base1 = new int[] { 32, 64, 109, 148, 149, 193, 254, 323, 360, 374, 414 }; 
+                //int value = Spell.CalcValue(calc, base1, max, 0, 90);
+                //if (value != base1 && Array.IndexOf(uses_value, spa) < 0 && Array.IndexOf(uses_base1, spa) < 0)
+                //    Console.Error.WriteLine(String.Format("SPA {1} {0} has diff value/base1: {2}/{3} calc: {4}", spell.Name, spa, value, base1, calc));
             }
 
             // debug stuff
