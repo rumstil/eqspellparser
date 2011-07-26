@@ -309,9 +309,9 @@ namespace Everquest
         Summoned2 = 624,
         Not_Pet = 701,
         Undead4 = 818,
-        Not_Undead4 = 819
-        //Regular_Server = 836,
-        //Progression_Server = 837
+        Not_Undead4 = 819,
+        Regular_Server = 836,
+        Progression_Server = 837
     }
 
     public enum SpellZoneRestrict
