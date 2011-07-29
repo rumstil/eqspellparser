@@ -1239,7 +1239,7 @@ namespace Everquest
                 case 299:
                     return String.Format("Wake the Dead ({0})", max);
                 case 300:
-                    return "Doppelganger";
+                    return "Summon Doppelganger: " + Extra;
                 case 302:
                     // see also 124. only used on 2 AA
                     return Spell.FormatPercent("Spell Damage", base1);
