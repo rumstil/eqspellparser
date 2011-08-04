@@ -398,9 +398,11 @@ namespace Everquest
         Dragon = 530,
         Hideous_Harpy = 527,
         Aviak_Rook = 558,
+        Kedge = 561,
         Kerran = 562,
         Siren = 564,
         Brownie = 568,
+        Steam_Suit = 570,
         Embattled_Minotaur = 574,
         Scarecrow = 575,
         Wyvern = 581,
@@ -1290,7 +1292,7 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Salvage Components", value);
                 case 333:
                     // so far this is only used on spells that have a rune
-                    return String.Format("Cast on Rune Depleted: [Spell {0}]", base1);
+                    return String.Format("Cast on Rune Fade: [Spell {0}]", base1);
                 case 334:
                     // only used by a few bard songs. how is this different than 1/100
                     return Spell.FormatCount("Current HP", value) + repeating + range;
@@ -1378,7 +1380,7 @@ namespace Everquest
                 case 389:
                     return "Reset Recast Timers";
                 case 392:
-                    return Spell.FormatCount("Healing", base1);
+                    return Spell.FormatCount("Healing Bonus", base1);
                 case 393:
                     // TODO: confirm this isn't a range
                     return Spell.FormatPercent("Healing Taken", base1);
