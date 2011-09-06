@@ -60,12 +60,14 @@ namespace Everquest
         Fear = 23,
         Bind = 25,
         Gate = 26,
+        Dispel = 27,
         Mesmerize = 31,
         Summon_Item = 32,
         Summon_Pet = 33,
         Disease_Counter = 35,
         Poison_Counter = 36,
         Invulnerability = 40,
+        Shadowstep = 42,
         Delayed_Heal_Marker = 44,
         Fire_Resist = 46,
         Cold_Resist = 47,
@@ -77,6 +79,7 @@ namespace Everquest
         Damage_Shield = 59,
         Memory_Blur = 63,
         Summon_Skeleton_Pet = 71,
+        Current_HP_Non_Repeating = 79,
         Resurrect = 81,
         Summon_Player = 82,
         Teleport = 83,
@@ -92,19 +95,36 @@ namespace Everquest
         Translocate = 104,
         All_Resists = 111,
         Aggro_Mult = 114,
+        Curse_Counter = 116,
+        Spell_Damage_Focus = 124,
+        Healing_Focus = 125,
+        Haste_Focus = 127,
+        Duration_Focus = 128,
+        Mana_Cost_Focus = 132,
         Current_HP_Percent = 147,
+        Cure_Detrimental = 154,
         Spell_Rune = 161,
         Melee_Rune = 162,
         Absorb_Hits = 163,
         Melee_Mitigation = 168,
+        Critical_Hit_Chance = 169,
+        Crippling_Blow_Chance = 171,
+        Avoid_Melee_Chance = 172,
+        Riposte_Chance = 173,
+        Dodge_Chance = 174,
+        Parry_Chance = 175,
         Lifetap_From_Weapon = 178,
+        Block_Chance = 188,
         Endurance_Repeating = 189,
         Hate_Repeating = 192,
+        Skill_Attack = 193,
         Hate_Reset = 194,
         Taunt = 199,
         Proc_Rate = 200,
         Weapon_Damage_Bonus = 220,
         Spell_Damage_Bonus = 286,
+        Dispel_Detrimental = 291,
+        Critical_Nuke_Chance = 294,
         Targets_Target_Hate = 321,
         Gate_to_Home_City = 322,
         XP_Gain = 337,
@@ -113,7 +133,11 @@ namespace Everquest
         Current_Mana = 358,
         Corruption_Counter = 369,
         Corruption_Resist = 370,
-        Twincast = 399
+        Push = 379,
+        Twincast_Chance = 399,
+        Heal_From_Mana = 400,
+        Teleport_to_Caster_Anchor = 437,
+        Teleport_to_Player_Anchor = 438
     }
 
     public enum SpellSkill
@@ -372,7 +396,8 @@ namespace Everquest
         Dragorn = 413,
         Gelidran = 417,
         Goblin = 433,
-        Basilisk = 436,
+        Kirin = 434,
+        Basilisk = 436,        
         Spider = 440,
         Werewolf = 454,
         Kobold = 455,
@@ -400,11 +425,14 @@ namespace Everquest
         Aviak_Rook = 558,
         Kedge = 561,
         Kerran = 562,
+        Shissar = 563,
         Siren = 564,
+        Plaguebringer = 566,
         Brownie = 568,
         Steam_Suit = 570,
         Embattled_Minotaur = 574,
         Scarecrow = 575,
+        Worg = 580,
         Wyvern = 581,
         Raptor = 609,
         Crystal_Hydra = 615,
@@ -931,7 +959,7 @@ namespace Everquest
                 case 89:
                     return Spell.FormatPercent("Player Size", base1 - 100);
                 case 91:
-                    return String.Format("Summon Corpse up to level {0}", value);
+                    return String.Format("Summon Corpse up to level {0}", base1);
                 case 92:
                     // calming strike spells are all capped at 100. so base1 would be more appropriate for those
                     // but most other hate spells seem to imply scaled value is used
@@ -1130,6 +1158,8 @@ namespace Everquest
                     return Spell.FormatPercent(Spell.FormatEnum((SpellSkill)base2) + " Damage", value);
                 case 186:
                     return Spell.FormatPercent("Min " + Spell.FormatEnum((SpellSkill)base2) + " Damage", value); // only DI1?
+                case 187:
+                    return String.Format("Balance Group Mana with {0}% Penalty", value);
                 case 188:
                     return Spell.FormatPercent("Chance to Block", value);
                 case 189:
@@ -1178,12 +1208,14 @@ namespace Everquest
                 case 211:
                     // use spell duration if it is > 0?
                     return String.Format("AE Attack for {0}s", base1 * 12);
+                case 213:
+                    return String.Format("Pet Power v2 ({0})", value);
                 case 214:
                     if (Math.Abs(value) >= 100)
                         value = (int)(value / 100f);
                     return Spell.FormatPercent("Max HP", value);
                 case 216:
-                    return Spell.FormatPercent("Accuracy", value);
+                    return Spell.FormatPercent("Accuracy", value); 
                 case 219:
                     return Spell.FormatPercent("Chance to Slay Undead", value / 100f);
                 case 220:
@@ -1202,6 +1234,8 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Triple Backstab", value);
                 case 262:
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkillCap)base2) + " Cap", value);
+                //case 266:
+                //    return Spell.FormatPercent("Accuracy v2", value); // accuracy or additional melee round chance
                 case 270:
                     return Spell.FormatCount("Beneficial Song Range", base1);
                 case 272:
@@ -1384,6 +1418,8 @@ namespace Everquest
                 case 393:
                     // TODO: confirm this isn't a range
                     return Spell.FormatPercent("Healing Taken", base1);
+                case 394:
+                    return Spell.FormatCount("Healing Taken", base1);
                 case 396:
                     // used on type 3 augments
                     return Spell.FormatCount("Healing", base1);
@@ -1394,7 +1430,7 @@ namespace Everquest
                 case 400:
                     // e.g. Channels the power of sunlight, consuming up to #1 mana to heal your group.
                     Mana = base1; // a bit misleading since the spell will cast with 0 mana and scale the heal
-                    Target = SpellTarget.Caster_Group; // total hack but makes sense as long as other spell effects aren't added
+                    Target = SpellTarget.Caster_Group; // total hack but makes sense for current spells
                     return String.Format("Increase Current HP by up to {0} ({1} HP per 1 Mana)", Math.Floor(base1 * base2 / 10f), base2 / 10f);                    
                 case 401:
                     // e.g. Drains up to 401 mana from your target. For each point of mana drained, the target will take damage.
@@ -1406,6 +1442,8 @@ namespace Everquest
                     return String.Format("Limit Skill: {1}{0}", Spell.FormatEnum((SpellSkill)Math.Abs(base1)), base1 >= 0 ? "" : "Exclude ");
                 case 406:
                     return String.Format("Cast on Max Hits: [Spell {0}]", base1);
+                case 407:
+                    return String.Format("Cast on Unknown Condition: [Spell {0}]", base1);
                 case 408:
                     // unlike 214, this does not show a lower max HP
                     if (base2 > 0)                        
@@ -1452,8 +1490,20 @@ namespace Everquest
                 case 431:
                     // changes color intensity? 430 also seems to be vision related
                     return String.Format("Tint Vision: Red={0} Green={1} Blue={2}", base1 >> 16 & 0xff, base1 >> 8 & 0xff, base1 & 0xff);
+                case 434:
+                    return Spell.FormatPercent("Chance to Critical Heal v2", base1);
+                case 435:
+                    return Spell.FormatPercent("Chance to Critical HoT v2", base1);
+                case 437:
+                    return "Teleport to your " + (base1 == 52584 ? "Primary Anchor" : "Secondary Anchor");
+                case 438:
+                    return "Teleport to their " + (base1 == 52584 ? "Primary Anchor" : "Secondary Anchor");
                 case 441:
                     return String.Format("Cancel if Moved {0}", base1);
+                case 442:
+                    return String.Format("Cast on {1}: [Spell {0}]", base1, Spell.FormatEnum((SpellTargetRestrict)base2));  
+                case 444:
+                    return String.Format("Capture Aggro up to level {0}", base1);
 
             }
 
@@ -1769,6 +1819,14 @@ namespace Everquest
             return String.Format("{0} {1} by {2}% to {3}%", max < 0 ? "Decrease" : "Increase", name, Math.Abs(min), Math.Abs(max));
         }
 
+        static private string FormatDesc()
+        {
+            // Spell descriptions include references to 12 spell attributes. e.g.
+            // #7 - base1 for slot 7
+            // @7 - calc(base1) for slot 7
+            // $7 - base2 for slot 7
+            return null;
+        }
     }
 
     public static class SpellParser
