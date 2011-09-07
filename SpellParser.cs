@@ -50,7 +50,7 @@ namespace Everquest
         INT = 9,
         CHA = 10,
         Melee_Haste = 11,
-        Invis = 12,
+        Unstable_Invis = 12,
         See_Invis = 13,
         Enduring_Breath = 14,
         Current_Mana_Repeating = 15,
@@ -124,7 +124,9 @@ namespace Everquest
         Weapon_Damage_Bonus = 220,
         Spell_Damage_Bonus = 286,
         Dispel_Detrimental = 291,
+        Critical_DoT_Chance = 273,
         Critical_Nuke_Chance = 294,
+        Invis = 314,
         Targets_Target_Hate = 321,
         Gate_to_Home_City = 322,
         XP_Gain = 337,
@@ -456,15 +458,17 @@ namespace Everquest
     public enum SpellMaxHits
     {
         None = 0,
-        Incoming_Hit_Attempt = 1, // incoming melee attempts (prior to success checks)
-        Outgoing_Hit_Attempt = 2, // outgoing melee attempts of Skill type (prior to success checks)
-        Incoming_Spell = 3,
-        Outgoing_Spell = 4,
-        Outgoing_Hit_Success = 5,
-        Incoming_Hit_Success = 6,
-        Matching_Spell = 7, // mostly outgoing, sometimes incoming (puratus) matching limits
-        Defensive_Proc_Cast = 10,
-        Offensive_Proc_Cast = 11
+        Incoming_Hit_Attempts = 1, // incoming melee attempts (prior to success checks)
+        Outgoing_Hit_Attempts = 2, // outgoing melee attempts of Skill type (prior to success checks)
+        Incoming_Spells = 3,
+        Outgoing_Spells = 4,
+        Outgoing_Hit_Successes = 5,
+        Incoming_Hit_Successes = 6,
+        Matching_Spells = 7, // mostly outgoing, sometimes incoming (puratus) matching limits
+        Incoming_Hits_Or_Spells = 8,
+        Reflected_Spells = 9,
+        Defensive_Proc_Casts = 10,
+        Offensive_Proc_Casts = 11
     }
 
     public sealed class Spell
@@ -1234,8 +1238,9 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Triple Backstab", value);
                 case 262:
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkillCap)base2) + " Cap", value);
-                //case 266:
-                //    return Spell.FormatPercent("Accuracy v2", value); // accuracy or additional melee round chance
+                case 266:
+                    // both double and triple attack? why not just use 177, 364?
+                    return Spell.FormatPercent("Additional Attack Chance", value); 
                 case 270:
                     return Spell.FormatCount("Beneficial Song Range", base1);
                 case 272:
