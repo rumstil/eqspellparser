@@ -1503,7 +1503,7 @@ namespace Everquest
                 case 442:
                     return String.Format("Cast on {1}: [Spell {0}]", base1, Spell.FormatEnum((SpellTargetRestrict)base2));  
                 case 444:
-                    return String.Format("Capture Aggro up to level {0}", base1);
+                    return "Lock Aggro on Caster and " + Spell.FormatPercent("Other Aggro", base2 - 100) + String.Format(" up to level {0}", base1);
 
             }
 
