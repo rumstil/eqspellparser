@@ -136,6 +136,7 @@ namespace Everquest
         Corruption_Counter = 369,
         Corruption_Resist = 370,
         Push = 379,
+        Cast_On_Spell = 383,
         Twincast_Chance = 399,
         Heal_From_Mana = 400,
         Teleport_to_Caster_Anchor = 437,
@@ -1240,7 +1241,7 @@ namespace Everquest
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkillCap)base2) + " Cap", value);
                 case 266:
                     // both double and triple attack? why not just use 177, 364?
-                    return Spell.FormatPercent("Additional Attack Chance", value); 
+                    return Spell.FormatPercent("Chance of Additional Attack", value); 
                 case 270:
                     return Spell.FormatCount("Beneficial Song Range", base1);
                 case 272:
@@ -1336,7 +1337,7 @@ namespace Everquest
                     // only used by a few bard songs. how is this different than 1/100
                     return Spell.FormatCount("Current HP", value) + repeating + range;
                 case 335:
-                    return String.Format("Block Matching Spell Chance: {0}%", base1);
+                    return String.Format("Block Spell Chance: {0}%", base1);
                 case 337:
                     return Spell.FormatPercent("Experience Gain", value);
                 case 338:
@@ -1363,6 +1364,9 @@ namespace Everquest
                     return String.Format("Aura Effect: [Spell {0}] ({1})", id, Extra);
                 case 353:
                     return Spell.FormatCount("Aura Slots", value);
+                case 357:
+                    // similar to 383, but i think this prevents casting of spells matching limits
+                    return "Inhibit Casting";
                 case 358:
                     return Spell.FormatCount("Current Mana", value) + range;
                 case 360:
@@ -1901,7 +1905,7 @@ namespace Everquest
         /// </summary>        
         static Spell LoadSpell(string[] fields)
         {
-            int MaxLevel = 90;
+            int MaxLevel = 95;
 
             Spell spell = new Spell();
 
