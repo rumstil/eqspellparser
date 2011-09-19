@@ -1496,9 +1496,14 @@ namespace Everquest
                     if (base2 != 0)
                         return String.Format("Add Skill Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
                     return String.Format("Add Skill Proc: [Spell {0}]", base1);
+                case 430:
+                    return String.Format("Alter Vision: Base1={0} Base2={1} Max={2}", base1, base2, max);
                 case 431:
-                    // changes color intensity? 430 also seems to be vision related
-                    return String.Format("Tint Vision: Red={0} Green={1} Blue={2}", base1 >> 16 & 0xff, base1 >> 8 & 0xff, base1 & 0xff);
+                    // base1 tints
+                    // base2 blurs?
+                    if (base1 < 0)
+                        return String.Format("Tint Vision: Red={0} Green={1} Blue={2}", base1 >> 16 & 0xff, base1 >> 8 & 0xff, base1 & 0xff);
+                    return String.Format("Alter Vision: Base1={0} Base2={1} Max={2}", base1, base2, max);
                 case 434:
                     return Spell.FormatPercent("Chance to Critical Heal v2", base1);
                 case 435:
