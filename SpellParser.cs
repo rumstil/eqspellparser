@@ -79,6 +79,7 @@ namespace Everquest
         Damage_Shield = 59,
         Memory_Blur = 63,
         Summon_Skeleton_Pet = 71,
+        Feign_Death = 74,
         Current_HP_Non_Repeating = 79,
         Resurrect = 81,
         Summon_Player = 82,
@@ -118,7 +119,7 @@ namespace Everquest
         Endurance_Repeating = 189,
         Hate_Repeating = 192,
         Skill_Attack = 193,
-        Hate_Reset = 194,
+        Cancel_All_Aggro = 194,
         Taunt = 199,
         Proc_Rate = 200,
         Weapon_Damage_Bonus = 220,
@@ -139,6 +140,7 @@ namespace Everquest
         Cast_On_Spell = 383,
         Twincast_Chance = 399,
         Heal_From_Mana = 400,
+        Song_Effectiveness = 413,
         Teleport_to_Caster_Anchor = 437,
         Teleport_to_Player_Anchor = 438
     }
@@ -381,6 +383,7 @@ namespace Everquest
         Spirit_Wolf = 120,
         Iksar = 128,
         Vah_Shir = 130,
+        Mosquito = 134,
         Kunark_Goblin = 137,
         Nearby_Object = 142,
         Tree = 143,
@@ -397,6 +400,7 @@ namespace Everquest
         Golem = 374,
         Pyrilen = 411,
         Dragorn = 413,
+        Rat = 415,
         Gelidran = 417,
         Goblin = 433,
         Kirin = 434,
@@ -445,7 +449,8 @@ namespace Everquest
         Flame_Telmira = 653,
         Amygdalan = 663,
         Royal_Guardian = 667,
-        Bunny = 668
+        Bunny = 668,
+        Undead_Thelasa = 695,
     }
 
     public enum SpellFaction
@@ -901,7 +906,7 @@ namespace Everquest
                 case 57:
                     return "Levitate";
                 case 58:
-                    return String.Format("Illusion: {0}", Spell.FormatEnum((SpellIllusion)base1), base2);
+                    return String.Format("Illusion: {0} ({1})", Spell.FormatEnum((SpellIllusion)base1), base2);
                 case 59:
                     return Spell.FormatCount("Damage Shield", -value);
                 case 61:
@@ -1179,8 +1184,8 @@ namespace Everquest
                     return String.Format("{0} Attack for {1} with {2}% Accuracy Mod", Spell.FormatEnum(Skill), base1, base2);
                 case 194:
                     if (value < 100)
-                        return String.Format("Hate Reset (Success: {0}%)", value);
-                    return "Hate Reset";
+                        return String.Format("Cancel All Aggro (Success: {0}%)", value);
+                    return "Cancel All Aggro";
                 case 195:
                     // 100 is full resist. not sure why some spells have more
                     return String.Format("Stun Resist ({0})", value);
@@ -1469,7 +1474,7 @@ namespace Everquest
                 case 411:
                     return String.Format("Limit Class: {0}", (SpellClassesMask)(value >> 1));
                 case 413:
-                    return Spell.FormatPercent("Spell Effectiveness", value);
+                    return Spell.FormatPercent("Song Effectiveness", value);
                 case 414:
                     return String.Format("Limit Bard Skill: {0}", Spell.FormatEnum((SpellSkill)base1));
                 case 416:
@@ -1487,7 +1492,8 @@ namespace Everquest
                         return String.Format("Add Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
                     return String.Format("Add Proc: [Spell {0}]", base1);
                 case 424:
-                    return String.Format("Gradual {2} for {0} (Unknown: {1})", Math.Abs(base1), base2, base1 > 0 ? "Push" : "Pull");
+                    // base1 is probably velocity. base2 might be range?
+                    return String.Format("Gradual {0}: Base1={1} Base2={2}", base1 > 0 ? "Push" : "Pull", Math.Abs(base1), base2);
                 case 427:
                     return String.Format("Cast on Skill Use: [Spell {0}] Chance: {1}%", base1, base2 / 10);
                 case 428:
@@ -1984,7 +1990,7 @@ namespace Everquest
 
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[159]);
+            //spell.Unknown = ParseFloat(fields[184]);
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
