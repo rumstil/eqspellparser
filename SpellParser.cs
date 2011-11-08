@@ -276,6 +276,7 @@ namespace Everquest
         Plant = 105,
         Giant = 106,
         Bixie = 109,
+        Bixie_Queen = 109 << 16 + 2,
         Harpy = 110,
         Gnoll = 111,
         Sporali = 112,
@@ -315,6 +316,7 @@ namespace Everquest
         HP_Between_35_and_45_Percent = 402,
         HP_Between_45_and_55_Percent = 403,
         HP_Between_55_and_65_Percent = 404,
+        //Has_Mana = 412, // guess based on Suppressive Strike
         HP_Below_5_Percent = 501,
         HP_Below_10_Percent = 502,
         HP_Below_15_Percent = 503,
@@ -376,8 +378,12 @@ namespace Everquest
         Imp = 46,
         Tiger = 63,
         Elemental = 75,
+        Earth_Elemental = 75 << 16,
+        Fire_Elemental = 75 << 16 + 1,
+        Water_Elemental = 75 << 16 + 2,
+        Air_Elemental = 75 << 16 + 3,
         Old_Scarecrow = 82,
-        //Skeleton = 85,
+        Old_Skeleton = 85,
         Alligator = 91,
         Wolf = 100,
         Spirit_Wolf = 120,
@@ -393,26 +399,35 @@ namespace Everquest
         Ogre_Pirate = 340,
         Scaled_Wolf = 356,
         Skeleton = 367,
+        Drybone_Skeleton = 367 << 16 + 1,
+        Mummy = 368,
         Ikaav = 394,
         Aneuk = 395,
         Kyv = 396,
         Noc = 397,
         Golem = 374,
+        Ice_Golem = 374 << 16 + 1,
+        Crystal_Golem = 374 << 16 + 3,
         Pyrilen = 411,
         Dragorn = 413,
         Rat = 415,
         Gelidran = 417,
         Goblin = 433,
+        Solusek_Goblin = 433 << 16 + 1,
+        Dagnor_Goblin = 433 << 16 + 2,
+        Valley_Goblin = 433 << 16 + 3,
         Kirin = 434,
-        Basilisk = 436,        
+        Basilisk = 436,
         Spider = 440,
         Werewolf = 454,
         Kobold = 455,
         Sporali = 456,
         Gnomework = 457,
         Orc = 458,
+        Bloodmoon_Orc = 458 << 16 + 4,
         Drachnid = 461,
         Gargoyle = 464,
+        Runed_Gargoyle = 464 << 16 + 1,
         Undead_Shiliskin = 467,
         Evil_Eye = 469,
         Minotaur = 470,
@@ -436,6 +451,7 @@ namespace Everquest
         Siren = 564,
         Plaguebringer = 566,
         Brownie = 568,
+        Brownie_Noble = 568 << 16 + 2,
         Steam_Suit = 570,
         Embattled_Minotaur = 574,
         Scarecrow = 575,
@@ -451,6 +467,10 @@ namespace Everquest
         Royal_Guardian = 667,
         Bunny = 668,
         Undead_Thelasa = 695,
+        Thel_Ereth_Ril = 695 << 16 + 21,
+        Deadraiser = 696,
+        Hadal = 698,
+        Revenant_Thelasa = 708
     }
 
     public enum SpellFaction
@@ -906,6 +926,9 @@ namespace Everquest
                 case 57:
                     return "Levitate";
                 case 58:
+                    value = base1 << 16 + base2;
+                    if (Enum.IsDefined(typeof(SpellIllusion), value))
+                        return String.Format("Illusion: {0}", Spell.FormatEnum((SpellIllusion)value));
                     return String.Format("Illusion: {0} ({1})", Spell.FormatEnum((SpellIllusion)base1), base2);
                 case 59:
                     return Spell.FormatCount("Damage Shield", -value);
@@ -1030,7 +1053,7 @@ namespace Everquest
                     return Spell.FormatPercent("Melee Haste v3", value);
                 case 120:
                     // TODO: confirm this is a range
-                    return Spell.FormatPercent("Healing Taken", base2, base1); 
+                    return Spell.FormatPercent("Healing Taken", base2, base1);
                 case 121:
                     // damages the target whenever it hits something
                     return Spell.FormatCount("Reverse Damage Shield", -value);
@@ -1225,7 +1248,7 @@ namespace Everquest
                         value = (int)(value / 100f);
                     return Spell.FormatPercent("Max HP", value);
                 case 216:
-                    return Spell.FormatPercent("Accuracy", value); 
+                    return Spell.FormatPercent("Accuracy", value);
                 case 219:
                     return Spell.FormatPercent("Chance to Slay Undead", value / 100f);
                 case 220:
@@ -1246,7 +1269,7 @@ namespace Everquest
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkillCap)base2) + " Cap", value);
                 case 266:
                     // both double and triple attack? why not just use 177, 364?
-                    return Spell.FormatPercent("Chance of Additional Attack", value); 
+                    return Spell.FormatPercent("Chance of Additional Attack", value);
                 case 270:
                     return Spell.FormatCount("Beneficial Song Range", base1);
                 case 272:
@@ -1445,7 +1468,7 @@ namespace Everquest
                     // e.g. Channels the power of sunlight, consuming up to #1 mana to heal your group.
                     Mana = base1; // a bit misleading since the spell will cast with 0 mana and scale the heal
                     Target = SpellTarget.Caster_Group; // total hack but makes sense for current spells
-                    return String.Format("Increase Current HP by up to {0} ({1} HP per 1 Mana)", Math.Floor(base1 * base2 / 10f), base2 / 10f);                    
+                    return String.Format("Increase Current HP by up to {0} ({1} HP per 1 Mana)", Math.Floor(base1 * base2 / 10f), base2 / 10f);
                 case 401:
                     // e.g. Drains up to 401 mana from your target. For each point of mana drained, the target will take damage.
                     return String.Format("Decrease Current HP by up to {0} ({1} HP per 1 Target Mana)", Math.Floor(base1 * base2 / -10f), base2 / -10f);
@@ -1460,7 +1483,7 @@ namespace Everquest
                     return String.Format("Cast on Unknown Condition: [Spell {0}]", base1);
                 case 408:
                     // unlike 214, this does not show a lower max HP
-                    if (base2 > 0)                        
+                    if (base2 > 0)
                         return String.Format("Cap HP at lowest of {0}% or {1}", base1, base2);
                     return String.Format("Cap HP at {0}%", base1);
                 case 409:
@@ -1521,7 +1544,7 @@ namespace Everquest
                 case 441:
                     return String.Format("Cancel if Moved {0}", base1);
                 case 442:
-                    return String.Format("Cast on {1}: [Spell {0}]", base1, Spell.FormatEnum((SpellTargetRestrict)base2));  
+                    return String.Format("Cast on {1}: [Spell {0}]", base1, Spell.FormatEnum((SpellTargetRestrict)base2));
                 case 444:
                     return "Lock Aggro on Caster and " + Spell.FormatPercent("Other Aggro", base2 - 100) + String.Format(" up to level {0}", base1);
 

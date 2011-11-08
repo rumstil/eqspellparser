@@ -23,7 +23,7 @@ namespace parser
             int dec = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalDigits;
             if (dec < 2)
                 Console.Error.WriteLine("Your system is set to display {0} decimal digits. Some values will be rounded.", dec);
-            
+
             if (args.Length == 0)
             {
                 Console.Error.WriteLine("No search parameters specified!");
@@ -48,7 +48,7 @@ namespace parser
 
             IList<Spell> list = SpellParser.LoadFromFile(SpellFilename, DescFilename);
 
-            Func<int, Spell> lookup = id => list.FirstOrDefault(x => x.ID == id); 
+            Func<int, Spell> lookup = id => list.FirstOrDefault(x => x.ID == id);
 
             var results = Search(list, args);
             if (args.Length > 1)
@@ -176,9 +176,9 @@ namespace parser
         {
             string host = "http://eq.patch.station.sony.com";
 
-            string path = host + "/patch/everquest/en" + server +"/everquest-update.xml.gz";
+            string path = host + "/patch/everquest/en" + server + "/everquest-update.xml.gz";
             DownloadFile(path, "update.xml");
-            
+
             XmlDocument doc = new XmlDocument();
             doc.Load("update.xml");
             path = host + "/" + doc.SelectSingleNode("//Product[@Name='EverQuest']/Distribution[@Name='Main Distribution']/Directory[@LocalPath='::HomeDirectory::']/@RemotePath").Value + "/";
@@ -212,8 +212,12 @@ namespace parser
                     }
 
                     int duration = System.Environment.TickCount - timer;
-                    Console.Error.WriteLine(" {0} bytes", output.Length);
+                    Console.Error.WriteLine("   {0} bytes - {1}", output.Length, web.ResponseHeaders["Last-Modified"]);
                 }
+
+                DateTime lastMod;
+                if (DateTime.TryParse(web.ResponseHeaders["Last-Modified"], out lastMod))
+                    File.SetLastWriteTimeUtc(path, lastMod);
             }
         }
 
