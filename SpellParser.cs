@@ -276,7 +276,6 @@ namespace Everquest
         Plant = 105,
         Giant = 106,
         Bixie = 109,
-        Bixie_Queen = 109 << 16 + 2,
         Harpy = 110,
         Gnoll = 111,
         Sporali = 112,
@@ -437,7 +436,8 @@ namespace Everquest
         Banshee = 487,
         Scrykin = 495,
         Totem = 514,
-        Bixie = 520,
+        Bixie_Drone = 520,
+        Bixie_Queen = 520 << 16 + 2,
         Centaur = 521,
         Drakkin = 522,
         Gnoll = 524,
@@ -929,7 +929,9 @@ namespace Everquest
                     value = base1 << 16 + base2;
                     if (Enum.IsDefined(typeof(SpellIllusion), value))
                         return String.Format("Illusion: {0}", Spell.FormatEnum((SpellIllusion)value));
-                    return String.Format("Illusion: {0} ({1})", Spell.FormatEnum((SpellIllusion)base1), base2);
+                    if (base2 > 0)
+                        return String.Format("Illusion: {0} ({1})", Spell.FormatEnum((SpellIllusion)base1), base2);
+                    return String.Format("Illusion: {0}", Spell.FormatEnum((SpellIllusion)base1));
                 case 59:
                     return Spell.FormatCount("Damage Shield", -value);
                 case 61:
