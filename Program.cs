@@ -20,6 +20,8 @@ namespace parser
 
         static void Main(string[] args)
         {
+            int timer = System.Environment.TickCount;
+
             int dec = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalDigits;
             if (dec < 2)
                 Console.Error.WriteLine("Your system is set to display {0} decimal digits. Some values will be rounded.", dec);
@@ -46,14 +48,19 @@ namespace parser
             if (!File.Exists(SpellFilename) || !File.Exists(DescFilename))
                 DownloadPatchFiles(null);
 
-            IList<Spell> list = SpellParser.LoadFromFile(SpellFilename, DescFilename);
+            var spells = SpellParser.LoadFromFile(SpellFilename, DescFilename).ToList();
 
-            Func<int, Spell> lookup = id => list.FirstOrDefault(x => x.ID == id);
+            Func<int, Spell> lookup = id => spells.FirstOrDefault(x => x.ID == id);
 
-            var results = Search(list, args);
-            if (args.Length > 1)
-                results = Expand(results, lookup);
-            Show(results);
+            var results = Search(spells, args);
+            results = Expand(results, lookup);
+
+            if (results != null)
+            {
+                Show(results);
+                Console.Error.WriteLine();
+                Console.Error.WriteLine("{0} results in {1}s", results.Count(), (System.Environment.TickCount - timer) / 1000);
+            }
         }
 
         /// <summary>
@@ -112,32 +119,43 @@ namespace parser
         {
             List<Spell> results = list.ToList();
 
+            // keep a hash based indx of existing results to avoid doing a linear search on results
+            HashSet<int> resultsIndex = new HashSet<int>();
+            foreach (Spell spell in results)
+                resultsIndex.Add(spell.ID);
+
+
+            Func<string, string> expand = text => Spell.SpellRefExpr.Replace(text, delegate(Match m)
+                {
+                    Spell spellref = lookup(Int32.Parse(m.Groups[1].Value));
+                    if (spellref != null)
+                    {
+                        if (!resultsIndex.Contains(spellref.ID))
+                        {
+                            resultsIndex.Add(spellref.ID);
+                            results.Add(spellref);
+                        }
+                        //return spellref.Name;
+                        return String.Format("{1} [Spell {0}]", spellref.ID, spellref.Name);
+                    }
+                    return m.Groups[0].Value;
+                });
+
+
             // scan each spell in the queue for spell references. if a new reference is found
             // then add it to the queue so that it can also be checked
             int i = 0;
             while (i < results.Count)
             {
                 Spell spell = results[i++];
-
-                if (spell.RecourseID != 0)
-                {
-                    Spell spellref = lookup(spell.RecourseID);
-                    if (spellref != null && !results.Contains(spellref))
-                        results.Add(spellref);
-                }
+ 
+                if (spell.Recourse != null)
+                    spell.Recourse = expand(spell.Recourse);
 
                 // check effects slots for the [Spell 1234] references
-                foreach (string s in spell.Slots)
-                    if (s != null)
-                    {
-                        Match link = Spell.SpellRefExpr.Match(s);
-                        if (link.Success)
-                        {
-                            Spell spellref = lookup(Int32.Parse(link.Groups[1].Value));
-                            if (spellref != null && !results.Contains(spellref))
-                                results.Add(spellref);
-                        }
-                    }
+                for (int j = 0; j < spell.Slots.Length; j++)
+                    if (spell.Slots[j] != null)
+                        spell.Slots[j] = expand(spell.Slots[j]);
             }
 
             return results;
@@ -148,14 +166,8 @@ namespace parser
         /// </summary>
         static void Show(IEnumerable<Spell> list)
         {
-            if (list == null)
-                return;
-
-            int count = 0;
-
             foreach (Spell spell in list)
             {
-                count++;
                 Console.WriteLine(spell);
                 foreach (string s in spell.Details())
                     Console.WriteLine(s);
@@ -163,9 +175,6 @@ namespace parser
                     Console.WriteLine(spell.Desc);
                 Console.WriteLine();
             }
-
-            Console.Error.WriteLine();
-            Console.Error.WriteLine("{0} results", count);
         }
 
         /// <summary>
