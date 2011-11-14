@@ -554,6 +554,7 @@ namespace Everquest
         public SpellMaxHits MaxHitsType;
         public int MaxTargets;
         public int RecourseID;
+        public string Recourse;
         public int TimerID;
         public int ViralTimer;
         public int ViralRange;
@@ -715,8 +716,8 @@ namespace Everquest
             if (MaxTargets > 0)
                 result.Add("Max Targets: " + MaxTargets);
 
-            if (RecourseID > 0)
-                result.Add("Recourse: [Spell " + RecourseID + "]");
+            if (Recourse != null)
+                result.Add("Recourse: " + Recourse);
 
             if (Unknown != 0)
                 result.Add("Unknown: " + Unknown);
@@ -1352,6 +1353,8 @@ namespace Everquest
                     return "Invisibility";
                 case 315:
                     return "Invisibility to Undead";
+                // 317 = HP regen cap?
+                // 318 = mana regen cap?
                 case 319:
                     return Spell.FormatPercent("Chance to Critical HoT", value);
                 case 320:
@@ -1394,6 +1397,8 @@ namespace Everquest
                     if (base1 < 100)
                         return String.Format("Cast: [Spell {0}] Chance: {1}%", base2, base1);
                     return String.Format("Cast: [Spell {0}]", base2);
+                case 341:
+                    return Spell.FormatCount("ATK Cap", base1);
                 case 342:
                     return "Inhibit Low Health Fleeing";
                 case 343:
@@ -1403,10 +1408,36 @@ namespace Everquest
                 case 350:
                     return String.Format("Mana Burn: {0}", value);
                 case 351:
-                    // the +3 is just a guess that's correct most of the time since spells have 3 ranks
-                    // and the effects are placed after the spells                    
-                    int id = (Rank >= 1) || Extra.Contains("Rk") ? ID + 3 : ID + 1;
-                    return String.Format("Aura Effect: [Spell {0}] ({1})", id, Extra);
+                    // the actual aura spell effect reference doesn't seem to be stored in the spell file so we have to handle this SPA with guesses/hardcoding
+                    // guess at the aura effect. most of the time it is placed right after the aura in the spell file
+                    //int rank = 
+                    int aura = (Rank >= 1) || Extra.Contains("Rk") ? ID + 3 : ID + 1;
+                    // hardcoded fixes for failed guesses
+                    if (ID == 8921) aura = 8935;
+                    if (ID == 8922) aura = 8936;
+                    if (ID == 8923) aura = 8937;
+                    if (ID == 8924) aura = 8959;
+                    if (ID == 8925) aura = 8938;
+                    if (ID == 8926) aura = 8939;
+                    if (ID == 8654) aura = 8649;
+                    if (ID == 8929) aura = 8943;
+                    if (ID == 8930) aura = 8945;
+                    if (ID == 8931) aura = 8946;
+                    if (ID == 8932) aura = 8947;
+                    if (ID == 8933) aura = 8948;
+                    if (ID == 8934) aura = 8949;
+                    if (ID == 11519) aura = 11539;
+                    if (ID == 11520) aura = 11538;
+                    if (ID == 11521) aura = 11551;
+                    if (ID == 11523) aura = 11540;
+                    if (ID == 32271) aura = 32257;
+                    if (ID == 32007) aura = 31993;
+
+                    if (Extra.StartsWith("IOAuraCantataRk")) aura = 19713 + Rank;
+                    if (Extra.StartsWith("IOEncEchoProc95Rk")) aura = 30179 + Rank;
+                    if (Extra.StartsWith("IORogTrapAggro92Rk")) aura = 26111 + Rank;
+
+                    return String.Format("Aura Effect: [Spell {0}] ({1})", aura, Extra);
                 case 353:
                     return Spell.FormatCount("Aura Slots", value);
                 case 357:
@@ -1514,7 +1545,7 @@ namespace Everquest
                 case 411:
                     return String.Format("Limit Class: {0}", (SpellClassesMask)(value >> 1));
                 case 413:
-                    return Spell.FormatPercent("Song Effectiveness", value);
+                    return Spell.FormatPercent("Spell Effectiveness", value);
                 case 414:
                     return String.Format("Limit Bard Skill: {0}", Spell.FormatEnum((SpellSkill)base1));
                 case 416:
@@ -1897,7 +1928,7 @@ namespace Everquest
         /// <summary>
         /// Load spell list from the comma delimitted EQ spell definition files.
         /// </summary>
-        static public IList<Spell> LoadFromFile(string spellPath, string descPath)
+        static public IEnumerable<Spell> LoadFromFile(string spellPath, string descPath)
         {
             // load description text file
             Dictionary<string, string> desc = new Dictionary<string, string>(30000);
@@ -1922,7 +1953,7 @@ namespace Everquest
 
 
             // load spell definition file
-            List<Spell> list = new List<Spell>(30000);
+            
             if (File.Exists(spellPath))
                 using (StreamReader text = File.OpenText(spellPath))
                     while (!text.EndOfStream)
@@ -1944,11 +1975,9 @@ namespace Everquest
                         if (!desc.TryGetValue("6/" + spell.DescID, out spell.Desc))
                             spell.Desc = null;
 
-                        list.Add(spell);
+                        yield return spell;
                     }
 
-            list.TrimExcess();
-            return list;
         }
 
         /// <summary>
@@ -1962,6 +1991,11 @@ namespace Everquest
 
             spell.ID = Convert.ToInt32(fields[0]);
             spell.Name = fields[1];
+            //spell.NameRank = 0;
+            //if (spell.Name.EndsWith("III")) spell.NameRank = 3;
+            //else if (spell.Name.EndsWith("II")) spell.NameRank = 2;
+            //else if (spell.Name.EndsWith("I")) spell.NameRank = 1;
+
             spell.Extra = fields[3];
             spell.LandOnSelf = fields[6];
             //spell.LandOnOther = fields[7];
@@ -1977,6 +2011,9 @@ namespace Everquest
             spell.RecastTime = ParseFloat(fields[15]) / 1000f;
             spell.AEDuration = ParseInt(fields[18]);
 
+            // 56 = icon
+            // 57 = icon
+
             for (int i = 0; i < 3; i++)
             {
                 spell.RegID[i] = ParseInt(fields[58 + i]);
@@ -1987,12 +2024,15 @@ namespace Everquest
             spell.Beneficial = ParseBool(fields[83]);
             spell.ResistType = (SpellResist)ParseInt(fields[85]);
             spell.Target = (SpellTarget)ParseInt(fields[98]);
+            // 99 =  base difficulty fizzle adjustment?
             spell.Skill = (SpellSkill)ParseInt(fields[100]);
             spell.Zone = (SpellZoneRestrict)ParseInt(fields[101]);
             spell.CancelOnSit = ParseBool(fields[124]);
             spell.Icon = ParseInt(fields[144]);
             spell.ResistMod = ParseInt(fields[147]);
             spell.RecourseID = ParseInt(fields[150]);
+            if (spell.RecourseID != 0)
+                spell.Recourse = String.Format("[Spell {0}]", spell.RecourseID);
             spell.ShortDuration = ParseBool(fields[154]);
             spell.DescID = ParseInt(fields[155]);
             spell.CategoryDescID[0] = ParseInt(fields[156]);
@@ -2022,6 +2062,10 @@ namespace Everquest
             spell.BeneficialBlockable = !ParseBool(fields[205]); // for beneficial spells
             spell.GroupID = ParseInt(fields[207]);
             spell.Rank = ParseInt(fields[208]); // rank 1/5/10. a few auras do not have this set properly
+            if (spell.Rank == 5)
+                spell.Rank = 2;
+            if (spell.Rank == 10)
+                spell.Rank = 3;
             spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[211]);
             spell.OutOfCombat = !ParseBool(fields[214]);
             spell.MaxTargets = ParseInt(fields[218]);
@@ -2062,7 +2106,8 @@ namespace Everquest
             }
 
             // debug stuff
-            //if (spell.ID == 25411) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
+            //if (spell.ID == 30084) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
+
 
             spell.Clean();
 
