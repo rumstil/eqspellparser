@@ -1420,6 +1420,7 @@ namespace Everquest
                     if (ID == 8925) aura = 8938;
                     if (ID == 8926) aura = 8939;
                     if (ID == 8654) aura = 8649;
+                    if (ID == 8928) aura = 8940;
                     if (ID == 8929) aura = 8943;
                     if (ID == 8930) aura = 8945;
                     if (ID == 8931) aura = 8946;
@@ -1430,9 +1431,13 @@ namespace Everquest
                     if (ID == 11520) aura = 11538;
                     if (ID == 11521) aura = 11551;
                     if (ID == 11523) aura = 11540;
-                    if (ID == 32271) aura = 32257;
+                    if (ID == 21827) aura = 21848;
                     if (ID == 32007) aura = 31993;
+                    if (ID == 32271) aura = 32257;
+                    if (ID == 22510) aura = 22574;
+                    if (ID == 22511) aura = 22575;
 
+                    if (Extra.StartsWith("IOQuicksandTrap85")) aura = 22655;
                     if (Extra.StartsWith("IOAuraCantataRk")) aura = 19713 + Rank;
                     if (Extra.StartsWith("IOEncEchoProc95Rk")) aura = 30179 + Rank;
                     if (Extra.StartsWith("IORogTrapAggro92Rk")) aura = 26111 + Rank;
@@ -1953,7 +1958,7 @@ namespace Everquest
 
 
             // load spell definition file
-            
+
             if (File.Exists(spellPath))
                 using (StreamReader text = File.OpenText(spellPath))
                     while (!text.EndOfStream)
