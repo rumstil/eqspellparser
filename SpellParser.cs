@@ -815,8 +815,7 @@ namespace Everquest
                 return null;
 
             // many SPAs use a scaled value based on either current tick or caster level
-            // decaying/growing spells are shown at their average strength (i.e. ticks / 2)
-            int value = CalcValue(calc, base1, max, DurationTicks / 2, level);
+            int value = CalcValue(calc, base1, max, 1, level);
             string range = CalcValueRange(calc, base1, max, DurationTicks, level);
             //Func<int> base1_or_value = delegate() { Debug.WriteLineIf(base1 != value, "SPA " + spa + " value uncertain"); return base1; };
 
@@ -837,24 +836,24 @@ namespace Everquest
                 case 1:
                     return Spell.FormatCount("AC", (int)(value / (10f / 3f)));
                 case 2:
-                    return Spell.FormatCount("ATK", value);
+                    return Spell.FormatCount("ATK", value) + range;
                 case 3:
                     return Spell.FormatPercent("Movement Speed", value);
                 case 4:
-                    return Spell.FormatCount("STR", value);
+                    return Spell.FormatCount("STR", value) + range;
                 case 5:
-                    return Spell.FormatCount("DEX", value);
+                    return Spell.FormatCount("DEX", value) + range;
                 case 6:
-                    return Spell.FormatCount("AGI", value);
+                    return Spell.FormatCount("AGI", value) + range;
                 case 7:
-                    return Spell.FormatCount("STA", value);
+                    return Spell.FormatCount("STA", value) + range;
                 case 8:
-                    return Spell.FormatCount("INT", value);
+                    return Spell.FormatCount("INT", value) + range;
                 case 9:
-                    return Spell.FormatCount("WIS", value);
+                    return Spell.FormatCount("WIS", value) + range;
                 case 10:
                     // 10 is often used as a filler
-                    return Spell.FormatCount("CHA", value);
+                    return Spell.FormatCount("CHA", value) + range;
                 case 11:
                     // base attack speed is 100. so 85 = 15% slow, 130 = 30% haste 
                     return Spell.FormatPercent("Melee Haste", value - 100);
@@ -1060,7 +1059,7 @@ namespace Everquest
                 case 113:
                     return String.Format("Summon Mount: {0}", Extra);
                 case 114:
-                    return Spell.FormatPercent("Aggro Multiplier", value);
+                    return Spell.FormatPercent("Hate Generated", value);
                 case 115:
                     return "Feed Hunger";
                 case 116:
@@ -1402,7 +1401,9 @@ namespace Everquest
                 case 342:
                     return "Inhibit Low Health Fleeing";
                 case 343:
-                    return String.Format("Interrupt Casting Chance: {0}%", value);
+                    if (base1 < 100)
+                        return String.Format("Interrupt Casting (Success: {0}%)", base1);
+                    return "Interrupt Casting";
                 case 348:
                     return String.Format("Limit Min Mana Cost: {0}", base1);
                 case 350:
@@ -1849,19 +1850,28 @@ namespace Everquest
         /// </summary>
         static public string CalcValueRange(int calc, int base1, int max, int duration, int level)
         {
-            int start = CalcValue(calc, base1, max, 1, 1);
-            int finish = CalcValue(calc, base1, max, duration, level);
+            int start = CalcValue(calc, base1, max, 1, level);
+            int finish = Math.Abs(CalcValue(calc, base1, max, duration, level));
 
             string type = Math.Abs(start) < Math.Abs(finish) ? "Growing" : "Decaying";
 
             if (calc == 123)
                 return String.Format(" (Random: {0} to {1})", base1, max * ((base1 >= 0) ? 1 : -1));
 
-            if (calc == 107 || calc == 108 || calc == 120 || calc == 122)
-                return String.Format(" ({2} {0} to {1})", start, finish, type);
+            if (calc == 107)
+                return String.Format(" ({0} to {1} @ 1/tick)", type, finish);
+
+            if (calc == 108)
+                return String.Format(" ({0} to {1} @ 2/tick)", type, finish);
+
+            if (calc == 120)
+                return String.Format(" ({0} to {1} @ 5/tick)", type, finish);
+
+            if (calc == 122) 
+                return String.Format(" ({0} to {1} @ 12/tick)", type, finish);
 
             if (calc > 1000 && calc < 2000)
-                return String.Format(" ({2} {0} to {1} @ {3}/tick)", start, finish, type, calc - 1000);
+                return String.Format(" ({0} to {1} @ {2}/tick)", type, finish, calc - 1000);
 
             return null;
         }
@@ -2079,7 +2089,7 @@ namespace Everquest
 
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[184]);
+            //spell.Unknown = ParseFloat(fields[234]);
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
