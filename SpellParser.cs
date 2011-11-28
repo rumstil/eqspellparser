@@ -123,6 +123,7 @@ namespace Everquest
         Taunt = 199,
         Proc_Rate = 200,
         Weapon_Damage_Bonus = 220,
+        Lung_Capacity = 246,
         Spell_Damage_Bonus = 286,
         Dispel_Detrimental = 291,
         Critical_DoT_Chance = 273,
@@ -136,6 +137,7 @@ namespace Everquest
         Current_Mana = 358,
         Corruption_Counter = 369,
         Corruption_Resist = 370,
+        Weapon_Delay = 371,
         Push = 379,
         Cast_On_Spell = 383,
         Twincast_Chance = 399,
@@ -415,6 +417,7 @@ namespace Everquest
         Dragorn = 413,
         Rat = 415,
         Gelidran = 417,
+        Girplan = 419,
         Goblin = 433,
         Solusek_Goblin = 433 << 16 + 1,
         Dagnor_Goblin = 433 << 16 + 2,
@@ -1061,9 +1064,12 @@ namespace Everquest
                 case 114:
                     return Spell.FormatPercent("Hate Generated", value);
                 case 115:
-                    return "Feed Hunger";
+                    return "Reset Hunger Counter";
                 case 116:
                     return Spell.FormatCount("Curse Counter", value);
+                case 117:
+                    // fear me now wil o wisps
+                    return "Make Weapon Magical";
                 case 118:
                     return Spell.FormatCount("Singing Skill", value);
                 case 119:
@@ -1197,6 +1203,7 @@ namespace Everquest
                 case 181:
                     return Spell.FormatPercent("Chance to Resist Fear Spell", value);
                 case 182:
+                    // hundred hands effect. how is this different than 371?
                     return Spell.FormatPercent("Weapon Delay", value);
                 case 183:
                     return Spell.FormatPercent("Skill Check for " + Spell.FormatEnum((SpellSkill)base2), value);
@@ -1238,6 +1245,7 @@ namespace Everquest
                 case 199:
                     return String.Format("Taunt ({0})", value);
                 case 200:
+                    // melee/range/defensive?
                     return Spell.FormatPercent("Proc Rate", value);
                 case 201:
                     return String.Format("Add Range Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
@@ -1251,6 +1259,8 @@ namespace Everquest
                     return String.Format("AE Attack ({0})", value);
                 case 206:
                     return String.Format("AE Taunt ({0})", value);
+                case 207:
+                    return "Flesh to Bone";
                 case 209:
                     return String.Format("Dispel Beneficial ({0})", value);
                 case 210:
@@ -1270,6 +1280,8 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Slay Undead", value / 100f);
                 case 220:
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", base1);
+                case 222:
+                    return Spell.FormatPercent("Chance to Block from Back", value);
                 case 225:
                     return Spell.FormatCount("Double Attack Skill", base1);
                 case 227:
@@ -1280,8 +1292,13 @@ namespace Everquest
                     return Spell.FormatPercent("Food Consumption", -value);
                 case 243:
                     return Spell.FormatPercent("Chance of Charm Breaking", -value);
+                case 246:
+                    return Spell.FormatCount("Lung Capacity", value);
                 case 258:
                     return Spell.FormatPercent("Chance to Triple Backstab", value);
+                case 259:
+                    // based on lucy interpretation
+                    return Spell.FormatCount("AC Soft Cap", value);
                 case 262:
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkillCap)base2) + " Cap", value);
                 case 266:
@@ -1339,6 +1356,8 @@ namespace Everquest
                     return Spell.FormatCount("Damage Shield Taken", -Math.Abs(value));
                 case 306:
                     return String.Format("Summon Pet: {0} x {1} for {2}s", Extra, base1, max);
+                case 308:
+                    return "Suspend Minion";
                 case 309:
                     return "Teleport to Bind";
                 case 310:
@@ -1352,8 +1371,10 @@ namespace Everquest
                     return "Invisibility";
                 case 315:
                     return "Invisibility to Undead";
-                // 317 = HP regen cap?
-                // 318 = mana regen cap?
+                case 317:
+                    return Spell.FormatCount("HP Regen Cap", value);
+                case 318:
+                    return Spell.FormatCount("Mana Regen Cap", value);
                 case 319:
                     return Spell.FormatPercent("Chance to Critical HoT", value);
                 case 320:
@@ -1377,6 +1398,8 @@ namespace Everquest
                     return Spell.FormatPercent("Critical " + Spell.FormatEnum((SpellSkill)base2) + " Damage", value);
                 case 331:
                     return Spell.FormatPercent("Chance to Salvage Components", value);
+                case 332:
+                    return "Summon to Corpse";
                 case 333:
                     // so far this is only used on spells that have a rune
                     return String.Format("Cast on Rune Fade: [Spell {0}]", base1);
@@ -1524,11 +1547,10 @@ namespace Everquest
                     Target = SpellTarget.Caster_Group; // total hack but makes sense for current spells
                     return String.Format("Increase Current HP by up to {0} ({1} HP per 1 Mana)", Math.Floor(base1 * base2 / 10f), base2 / 10f);
                 case 401:
-                    // e.g. Drains up to 401 mana from your target. For each point of mana drained, the target will take damage.
                     return String.Format("Decrease Current HP by up to {0} ({1} HP per 1 Target Mana)", Math.Floor(base1 * base2 / -10f), base2 / -10f);
                 case 402:
-                    // e.g. Consumes up to #6 endurance and inflicts damage for each point of endurance consumed.
                     return String.Format("Decrease Current HP by up to {0} ({1} HP per 1 Target End)", Math.Floor(base1 * base2 / -10f), base2 / -10f);
+                // 403 = some sort of casting limit
                 case 404:
                     return String.Format("Limit Skill: {1}{0}", Spell.FormatEnum((SpellSkill)Math.Abs(base1)), base1 >= 0 ? "" : "Exclude ");
                 case 406:
@@ -2089,7 +2111,7 @@ namespace Everquest
 
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[234]);
+            //spell.Unknown = ParseFloat(fields[209]);
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
