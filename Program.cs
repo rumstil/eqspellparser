@@ -219,9 +219,9 @@ namespace parser
                             break;
                         output.Write(buffer, 0, read);
                     }
-
-                    int duration = System.Environment.TickCount - timer;
+              
                     Console.Error.WriteLine("   {0} bytes - {1}", output.Length, web.ResponseHeaders["Last-Modified"]);
+                    Console.Error.WriteLine();
                 }
 
                 DateTime lastMod;
