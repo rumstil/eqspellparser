@@ -76,6 +76,7 @@ namespace Everquest
         Magic_Resist = 50,
         Rune = 55,
         Levitate = 57,
+        Illusion = 58,
         Damage_Shield = 59,
         Memory_Blur = 63,
         Summon_Skeleton_Pet = 71,
@@ -337,7 +338,9 @@ namespace Everquest
         HP_Below_80_Percent = 516,
         HP_Below_85_Percent = 517,
         HP_Below_90_Percent = 518,
-        Undead2 = 603, // vampiric too? Celestial Contravention Strike
+        HP_Below_95_Percent = 519,
+        Mana_Below_X_Percent = 521, // 5?
+        Undead2 = 603, // vampiric too? Celestial Contravention Strike        
         Undead3 = 608,
         Summoned2 = 624,
         Not_Pet = 701,
@@ -388,6 +391,7 @@ namespace Everquest
         Air_Elemental = 75 << 16 + 3,
         Old_Scarecrow = 82,
         Old_Skeleton = 85,
+        Drake = 89,
         Alligator = 91,
         Wolf = 100,
         Spirit_Wolf = 120,
@@ -414,6 +418,7 @@ namespace Everquest
         Golem = 374,
         Ice_Golem = 374 << 16 + 1,
         Crystal_Golem = 374 << 16 + 3,
+        Jester = 384,
         Pyrilen = 411,
         Dragorn = 413,
         Rat = 415,
@@ -424,7 +429,8 @@ namespace Everquest
         Dagnor_Goblin = 433 << 16 + 2,
         Valley_Goblin = 433 << 16 + 3,
         Goblin_King = 433 << 16 + 8,
-        Frost_Goblin = 433 << 16 + 12,
+        Rallosian_Goblin = 433 << 16 + 11,
+        Frost_Goblin = 433 << 16 + 12,        
         Kirin = 434,
         Basilisk = 436,
         Spider = 440,
@@ -992,7 +998,7 @@ namespace Everquest
                         return Spell.FormatCount("Current HP", value) + range + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
                     return Spell.FormatCount("Current HP", value) + range;
                 case 81:
-                    return String.Format("Resurrection: {0}%", value);
+                    return String.Format("Resurrect with {0}% XP", value);
                 case 82:
                     // call of the hero
                     return "Summon Player";
@@ -1129,10 +1135,10 @@ namespace Everquest
                 case 147:
                     return String.Format("Increase Current HP by {1} Max: {0}% ", value, max);
                 case 148:
-                    //if (max > 1000) max -= 1000;                    
+                    //if (max > 1000) max -= 1000;
                     return String.Format("Stacking: Block new spell if slot {0} is '{1}' and < {2}", calc % 100, Spell.FormatEnum((SpellEffect)base1), max);
                 case 149:
-                    //if (max > 1000) max -= 1000;                    
+                    //if (max > 1000) max -= 1000;
                     return String.Format("Stacking: Overwrite existing spell if slot {0} is '{1}' and < {2}", calc % 100, Spell.FormatEnum((SpellEffect)base1), max);
                 case 150:
                     return String.Format("Divine Intervention with {0} Heal", max);
@@ -1408,7 +1414,9 @@ namespace Everquest
                     // only used by a few bard songs. how is this different than 1/100
                     return Spell.FormatCount("Current HP", value) + repeating + range;
                 case 335:
-                    return String.Format("Block Spell Chance: {0}%", base1);
+                    if (base1 < 100)
+                        return String.Format("Block Spell (Success: {0}%)", base1);
+                    return "Block Spell";
                 case 337:
                     return Spell.FormatPercent("Experience Gain", value);
                 case 338:
@@ -1552,8 +1560,9 @@ namespace Everquest
                 case 402:
                     return String.Format("Decrease Current HP by up to {0} ({1} HP per 1 Target End)", Math.Floor(base1 * base2 / -10f), base2 / -10f);
                 // 403 = some sort of casting limit
-                case 404:
-                    return String.Format("Limit Skill: {1}{0}", Spell.FormatEnum((SpellSkill)Math.Abs(base1)), base1 >= 0 ? "" : "Exclude ");
+                // 404 = seems to be a limit based on field 222
+                //case 404:
+                //    return String.Format("Limit Skill: {1}{0}", Spell.FormatEnum((SpellSkill)Math.Abs(base1)), base1 >= 0 ? "" : "Exclude ");
                 case 406:
                     return String.Format("Cast on Max Hits: [Spell {0}]", base1);
                 case 407:
@@ -1991,7 +2000,6 @@ namespace Everquest
 
 
             // load spell definition file
-
             if (File.Exists(spellPath))
                 using (StreamReader text = File.OpenText(spellPath))
                     while (!text.EndOfStream)
@@ -2029,10 +2037,6 @@ namespace Everquest
 
             spell.ID = Convert.ToInt32(fields[0]);
             spell.Name = fields[1];
-            //spell.NameRank = 0;
-            //if (spell.Name.EndsWith("III")) spell.NameRank = 3;
-            //else if (spell.Name.EndsWith("II")) spell.NameRank = 2;
-            //else if (spell.Name.EndsWith("I")) spell.NameRank = 1;
 
             spell.Extra = fields[3];
             spell.LandOnSelf = fields[6];
@@ -2112,7 +2116,7 @@ namespace Everquest
 
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[209]);
+            //spell.Unknown = ParseFloat(fields[222]);
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
