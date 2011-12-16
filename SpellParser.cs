@@ -2130,7 +2130,7 @@ namespace Everquest
 
 
             // debug stuff
-            spell.Unknown = ParseFloat(fields[231]);
+            //spell.Unknown = ParseFloat(fields[231]);
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
@@ -2162,7 +2162,7 @@ namespace Everquest
             }
 
             // debug stuff
-            //if (spell.ID == 30084) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
+            //if (spell.ID == 31123) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
 
 
             spell.Clean();
