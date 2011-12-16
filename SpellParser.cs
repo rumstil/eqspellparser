@@ -217,8 +217,8 @@ namespace Everquest
         INT = 5,
         CHA = 6,
         Magic_Resist = 7,
-        Fire_Resist = 8,
-        Cold_Resist = 9,
+        Cold_Resist = 8,
+        Fire_Resist = 9,
         Poison_Resist = 10,
         Disease_Resist = 11
     }
@@ -1132,6 +1132,9 @@ namespace Everquest
                     return String.Format("Limit Max Casting Time: {0}s", base1 / 1000f);
                 case 145:
                     return String.Format("Teleport to {0}", Extra);
+                case 146:
+                    // has not been implemented in the game
+                    return Spell.FormatCount("Electricity Resist", value);
                 case 147:
                     return String.Format("Increase Current HP by {1} Max: {0}% ", value, max);
                 case 148:
@@ -1267,7 +1270,7 @@ namespace Everquest
                 case 206:
                     return String.Format("AE Taunt ({0})", value);
                 case 207:
-                    return "Flesh to Bone";
+                    return "Flesh to Bone Chips";
                 case 209:
                     return String.Format("Dispel Beneficial ({0})", value);
                 case 210:
@@ -1300,14 +1303,21 @@ namespace Everquest
                 case 243:
                     return Spell.FormatPercent("Chance of Charm Breaking", -value);
                 case 246:
-                    return Spell.FormatCount("Lung Capacity", value);
+                    return Spell.FormatCount("Lung Capacity", -value);
+                case 250:
+                    // not sure about this one
+                    return Spell.FormatPercent("Defensive Proc Rate", value);
                 case 258:
                     return Spell.FormatPercent("Chance to Triple Backstab", value);
                 case 259:
                     // based on lucy interpretation
                     return Spell.FormatCount("AC Soft Cap", value);
                 case 262:
+                    // affects worn cap
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkillCap)base2) + " Cap", value);
+                case 265:
+                    // value of zero should negate effects of Mastery of the Past
+                    return String.Format("No Fizzle on spells up to level {0}", value);
                 case 266:
                     // both double and triple attack? why not just use 177, 364?
                     return Spell.FormatPercent("Chance of Additional Attack", value);
@@ -1441,9 +1451,8 @@ namespace Everquest
                 case 350:
                     return String.Format("Mana Burn: {0}", value);
                 case 351:
-                    // the actual aura spell effect reference doesn't seem to be stored in the spell file so we have to handle this SPA with guesses/hardcoding
-                    // guess at the aura effect. most of the time it is placed right after the aura in the spell file
-                    //int rank = 
+                    // the actual aura spell effect reference doesn't seem to be stored in the spell file so we have to handle this SPA 
+                    // with guesses and some hardcoding. most of the time the effect is placed right after the aura in the spell file
                     int aura = (Rank >= 1) || Extra.Contains("Rk") ? ID + 3 : ID + 1;
                     // hardcoded fixes for failed guesses
                     if (ID == 8921) aura = 8935;
@@ -1534,8 +1543,13 @@ namespace Everquest
                     return String.Format("Cast on Curer: [Spell {0}]", base1);
                 case 387:
                     return String.Format("Cast if Cured: [Spell {0}]", base1);
+                case 388:
+                    return "Summon Corpse (From Any Zone)";
                 case 389:
                     return "Reset Recast Timers";
+                case 390:
+                    // what unit? seconds?
+                    return String.Format("Set Recast Timers to {0}", value);
                 case 392:
                     return Spell.FormatCount("Healing Bonus", base1);
                 case 393:
@@ -2116,7 +2130,7 @@ namespace Everquest
 
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[222]);
+            spell.Unknown = ParseFloat(fields[231]);
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
