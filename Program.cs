@@ -79,7 +79,7 @@ namespace parser
 
             // search by effect type
             if (type == "type" || type == "spa")
-                results = list.Where(x => x.HasEffect(param1));
+                results = list.Where(x => x.HasEffect(param1) >= 0);
 
             // search by id
             if (type == "id")
