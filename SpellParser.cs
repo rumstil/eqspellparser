@@ -410,6 +410,7 @@ namespace Everquest
         Drybone_Skeleton = 367 << 16 + 1,
         Frostbone_Skeleton = 367 << 16 + 2,
         Firebone_Skeleton = 367 << 16 + 3,
+        Scorched_Skeleton = 367 << 16 + 4,
         Mummy = 368,
         Ikaav = 394,
         Aneuk = 395,
@@ -479,6 +480,7 @@ namespace Everquest
         Worg = 580,
         Wyvern = 581,
         Raptor = 609,
+        Plague_Fly = 612,
         Crystal_Hydra = 615,
         Crystal_Sphere = 616,
         Vitrik = 620,
@@ -791,30 +793,51 @@ namespace Everquest
                 Zone = SpellZoneRestrict.None;
         }
 
-        public bool HasEffect(int spa)
+        /// <summary>
+        /// Search all spell slots for a certain effect
+        /// </summary>
+        /// <returns>Index of slot with the effect or -1 if not found</returns>
+        public int HasEffect(int spa)
         {
-            return Array.IndexOf(SlotEffects, spa) >= 0;
+            return Array.IndexOf(SlotEffects, spa);
         }
 
-        public bool HasEffect(string text)
+        /// <summary>
+        /// Search all spell slots for a certain effect using a string match
+        /// </summary>
+        // <returns>Index of slot with the effect or -1 if not found</returns>
+        public int HasEffect(string text)
         {
             int spa;
             if (Int32.TryParse(text, out spa))
                 return HasEffect(spa);
 
             for (int i = 0; i < Slots.Length; i++)
-                if (Slots[i] != null && Slots[i].IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0)
-                    return true;
+                if (Slots[i] != null && Slots[i].IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0)        
+                    return i;
 
-            return false;
+            return -1;
         }
 
         /// <summary>
-        /// Parse a spell effect slot. Each spell has 12 effect slots. Devs refer to these as SPAs.
+        /// Search all spell slots for a certain effect using a RegEx
+        /// </summary>
+        /// <returns>Index of slot with the effect or -1 if not found</returns>
+        public int HasEffectRegex(string text)
+        {
+            for (int i = 0; i < Slots.Length; i++)
+                if (Slots[i] != null && Regex.IsMatch(Slots[i], text, RegexOptions.IgnoreCase))
+                    return i;
+
+            return -1;
+        }
+
+        /// <summary>
+        /// Parse a spell effect. Each spell has 12 effect slots. Devs refer to these as SPAs.
         /// Attributes like ID, Skill, Extra, DurationTicks are referenced and should be set before
         /// calling this function.
         /// </summary>        
-        public string ParseSlot(int spa, int base1, int base2, int max, int calc, int level)
+        public string ParseEffect(int spa, int base1, int base2, int max, int calc, int level)
         {
             // type 254 indicates an unused slot
             if (spa == 254)
@@ -1455,6 +1478,7 @@ namespace Everquest
                     // with guesses and some hardcoding. most of the time the effect is placed right after the aura in the spell file
                     int aura = (Rank >= 1) || Extra.Contains("Rk") ? ID + 3 : ID + 1;
                     // hardcoded fixes for failed guesses
+                    if (ID == 8629) aura = 8628;
                     if (ID == 8921) aura = 8935;
                     if (ID == 8922) aura = 8936;
                     if (ID == 8923) aura = 8937;
@@ -2151,7 +2175,7 @@ namespace Everquest
                 int base2 = ParseInt(fields[32 + i]);
 
                 spell.SlotEffects[i] = spa;
-                spell.Slots[i] = spell.ParseSlot(spa, base1, base2, max, calc, MaxLevel);
+                spell.Slots[i] = spell.ParseEffect(spa, base1, base2, max, calc, MaxLevel);
 
                 // debug stuff: detect difference in value/base1 for spells where i'm not sure which one should be used and have chosen one arbitrarily
                 //int[] uses_value = new int[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 15, 21, 24, 35, 36, 46, 47, 48, 49, 50, 55, 58, 59, 69, 79, 92, 97, 100, 111, 116, 158, 159, 164, 165, 166, 169, 184, 189, 190, 192, 262, 334, 417};
