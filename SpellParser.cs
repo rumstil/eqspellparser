@@ -2023,6 +2023,9 @@ namespace Everquest
                     {
                         string line = text.ReadLine();
                         string[] fields = line.Split('^');
+                        if (fields.Length < 3)
+                            continue;
+
                         // 0 = id in type
                         // 1 = type
                         // 2 = description
