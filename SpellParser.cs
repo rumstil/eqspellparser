@@ -1368,12 +1368,13 @@ namespace Everquest
                 case 291:
                     return String.Format("Dispel Detrimental ({0})", value);
                 case 294:
+                    // additive with innate crit multiplier
                     if (base1 > 0 && base2 > 100)
-                        return Spell.FormatPercent("Chance to Critical Nuke", base1) + " and " + Spell.FormatPercent("Critical Nuke Damage", base2 - 100);
+                        return Spell.FormatPercent("Chance to Critical Nuke", base1) + " and " + Spell.FormatPercent("Critical Nuke Damage", base2 - 100) + " of Base Damage";
                     else if (base1 > 0)
                         return Spell.FormatPercent("Chance to Critical Nuke", base1);
-                    else
-                        return Spell.FormatPercent("Critical Nuke Damage", base2 - 100);
+                    else                        
+                        return Spell.FormatPercent("Critical Nuke Damage", base2 - 100) + " of Base Damage";
                 case 296:
                     return Spell.FormatPercent("Spell Damage Taken", base2, base1);
                 case 297:
@@ -1435,7 +1436,8 @@ namespace Everquest
                 case 329:
                     return String.Format("Absorb Damage using Mana: {0}%", value);
                 case 330:
-                    return Spell.FormatPercent("Critical " + Spell.FormatEnum((SpellSkill)base2) + " Damage", value);
+                    // additive with innate crit multiplier
+                    return Spell.FormatPercent("Critical " + Spell.FormatEnum((SpellSkill)base2) + " Damage", value) + " of Base Damage";
                 case 331:
                     return Spell.FormatPercent("Chance to Salvage Components", value);
                 case 332:
@@ -1542,7 +1544,8 @@ namespace Everquest
                         return String.Format("Cast: [Spell {0}] Chance: {1}%", base2, base1);
                     return String.Format("Cast: [Spell {0}]", base2);
                 case 375:
-                    return Spell.FormatPercent("Critical DoT Damage", value);
+                    // additive with innate crit multiplier and same effect in other slots 
+                    return Spell.FormatPercent("Critical DoT Damage", base1) + " of Base Damage";
                 case 377:
                     return String.Format("Cast if Not Cured: [Spell {0}]", base1);
                 case 378:
