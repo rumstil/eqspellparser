@@ -319,6 +319,7 @@ namespace Everquest
         HP_Between_35_and_45_Percent = 402,
         HP_Between_45_and_55_Percent = 403,
         HP_Between_55_and_65_Percent = 404,
+        HP_Above_99_Percent = 412,
         //Has_Mana = 412, // guess based on Suppressive Strike
         HP_Below_5_Percent = 501,
         HP_Below_10_Percent = 502,
@@ -456,6 +457,7 @@ namespace Everquest
         Spectre = 485,
         Banshee = 487,
         Scrykin = 495,
+        Treant = 496, // or izon
         Totem = 514,
         Bixie_Drone = 520,
         Bixie_Queen = 520 << 16 + 2,
@@ -471,6 +473,7 @@ namespace Everquest
         Shissar = 563,
         Siren = 564,
         Plaguebringer = 566,
+        Hooded_Plaguebringer = 566 << 16 + 7,
         Brownie = 568,
         Brownie_Noble = 568 << 16 + 2,
         Steam_Suit = 570,
@@ -481,6 +484,7 @@ namespace Everquest
         Wyvern = 581,
         Raptor = 609,
         Plague_Fly = 612,
+        Burning_Nekhon = 614,
         Crystal_Hydra = 615,
         Crystal_Sphere = 616,
         Vitrik = 620,
@@ -489,6 +493,7 @@ namespace Everquest
         Crystal_Sessiloid = 647,
         Flame_Telmira = 653,
         Amygdalan = 663,
+        Gingerbread_Man = 666,
         Royal_Guardian = 667,
         Bunny = 668,
         Polka_Dot_Bunny = 668 << 16 + 5,
@@ -497,7 +502,7 @@ namespace Everquest
         Swinetaur = 696,
         Hadal = 698,
         Hadal_Templar = 698 << 16 + 2,
-        Revenant_Thelasa = 708
+        Alaran_Ghost = 708
     }
 
     public enum SpellFaction
