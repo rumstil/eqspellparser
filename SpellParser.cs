@@ -195,16 +195,46 @@ namespace Everquest
         Sense_Heading = 40,
         Singing = 41,
         Sneak = 42,
+        Specialize_Abjure = 43,
+        Specialize_Alteration = 44,
+        Specialize_Conjuration = 45,
+        Specialize_Divination = 46,
+        Specialize_Evocation = 47,
+        Pick_Pockets = 48,
         Stringed_Instruments = 49,
+        Swimming = 50,
         Throwing = 51,
         Tiger_Claw = 52,
         Tracking = 53,
         Wind_Instruments = 54,
+        Fishing = 55,
+        Make_Poison = 56,
+        Tinkering = 57,
+        Research = 58,
+        Alchemy = 59,
+        Baking = 60,
+        Tailoring = 61,
+        Sense_Traps = 62,
+        Blacksmithing = 63,
+        Fletching = 64,
+        Brewing = 65,
         Alcohol_Tolerance = 66,
+        Begging = 67,
+        Jewelry_Making = 68,
+        Pottery = 69,
         Percusion_Instruments = 70,
+        Intimidation = 71,
         Berserking = 72,
         Taunt = 73,
-        Frenzy = 74
+        Frenzy = 74,
+        Remove_Trap = 75,
+        Triple_Attack = 76,
+        Harm_Touch = 105,
+        Lay_Hands = 107,
+        Slam = 111,
+        Inspect_Chest = 114,
+        Open_Chest = 115,
+        Reveal_Trap_Chest = 116
     }
 
     public enum SpellSkillCap
@@ -421,9 +451,11 @@ namespace Everquest
         Ice_Golem = 374 << 16 + 1,
         Crystal_Golem = 374 << 16 + 3,
         Jester = 384,
+        Lightning_Warrior = 407,
         Pyrilen = 411,
         Dragorn = 413,
         Rat = 415,
+        Bat = 416,
         Gelidran = 417,
         Girplan = 419,
         Goblin = 433,
@@ -479,6 +511,7 @@ namespace Everquest
         Steam_Suit = 570,
         Embattled_Minotaur = 574,
         Scarecrow = 575,
+        Steamwork = 577,
         Tyranont = 578,
         Worg = 580,
         Wyvern = 581,
@@ -1323,11 +1356,12 @@ namespace Everquest
                 case 225:
                     return Spell.FormatCount("Double Attack Skill", base1);
                 case 227:
-                    return String.Format("Reduce {0} Timer by {1}s", Spell.FormatEnum((SpellSkill)base2), base1);
+                    return String.Format("Reduce {0} Timer by {1}s", Spell.FormatEnum((SpellSkill)base2), base1);                
                 case 232:
                     return String.Format("Cast on Death Save: [Spell {0}] Chance: {1}%", base2, base1);
                 case 233:
                     return Spell.FormatPercent("Food Consumption", -value);
+                //case 238: // probably buff extension AA
                 case 243:
                     return Spell.FormatPercent("Chance of Charm Breaking", -value);
                 case 246:
@@ -1417,6 +1451,8 @@ namespace Everquest
                     return "Invisibility";
                 case 315:
                     return "Invisibility to Undead";
+                case 316:
+                    return "Invisibility to Animals";
                 case 317:
                     return Spell.FormatCount("HP Regen Cap", value);
                 case 318:
@@ -1436,6 +1472,8 @@ namespace Everquest
                 case 324:
                     // blood magic. uses HP as mana
                     return String.Format("Cast from HP with {0}% Penalty", value);
+                case 327:
+                    return Spell.FormatCount("Buff Slots", base1);
                 case 328:
                     return Spell.FormatCount("Max Negative HP", value);
                 case 329:
@@ -1517,7 +1555,7 @@ namespace Everquest
 
                     return String.Format("Aura Effect: [Spell {0}] ({1})", aura, Extra);
                 case 353:
-                    return Spell.FormatCount("Aura Slots", value);
+                    return Spell.FormatCount("Aura Slots", base1);
                 case 357:
                     // similar to 383, but i think this prevents casting of spells matching limits
                     return "Inhibit Casting";

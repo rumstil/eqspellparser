@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Xml;
 using Everquest;
+
 
 namespace parser
 {
@@ -20,47 +19,55 @@ namespace parser
 
         static void Main(string[] args)
         {
-            int timer = System.Environment.TickCount;
-
-            int dec = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalDigits;
-            if (dec < 2)
-                Console.Error.WriteLine("Your system is set to display {0} decimal digits. Some values will be rounded.", dec);
-
-            if (args.Length == 0)
+            
+            try
             {
-                Console.Error.WriteLine("No search parameters specified!");
-                Thread.Sleep(2000);
-                return;
+                int dec = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalDigits;
+                if (dec < 2)
+                    Console.Error.WriteLine("Your system has been configured to display {0} decimal digits. Some values will be rounded.", dec);
+
+                if (args.Length == 0)
+                {
+                    Console.Error.WriteLine("You must include a search parameter on the command line.");
+                    Thread.Sleep(2000);
+                    return;
+                }
+
+                if (args[0] == "update")
+                {
+                    DownloadPatchFiles(args.Length >= 2 ? args[1] : null);
+                    return;
+                }
+
+                if (File.Exists(args[0]))
+                {
+                    SpellFilename = args[0];
+                    args[0] = "all";
+                }
+
+                if (!File.Exists(SpellFilename) || !File.Exists(DescFilename))
+                    DownloadPatchFiles(null);
+
+                var spells = SpellParser.LoadFromFile(SpellFilename, DescFilename).ToList();
+
+                Func<int, Spell> lookup = id => spells.FirstOrDefault(x => x.ID == id);
+
+                var results = Search(spells, args);
+                results = Expand(results, lookup);
+
+                if (results != null)
+                {
+                    Show(results);
+                    Console.Error.WriteLine();
+                    Console.Error.WriteLine("{0} results", results.Count());
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine(ex);
             }
 
-            if (args[0] == "update")
-            {
-                DownloadPatchFiles(args.Length >= 2 ? args[1] : null);
-                return;
-            }
-
-            if (File.Exists(args[0]))
-            {
-                SpellFilename = args[0];
-                args[0] = "all";
-            }
-
-            if (!File.Exists(SpellFilename) || !File.Exists(DescFilename))
-                DownloadPatchFiles(null);
-
-            var spells = SpellParser.LoadFromFile(SpellFilename, DescFilename).ToList();
-
-            Func<int, Spell> lookup = id => spells.FirstOrDefault(x => x.ID == id);
-
-            var results = Search(spells, args);
-            results = Expand(results, lookup);
-
-            if (results != null)
-            {
-                Show(results);
-                Console.Error.WriteLine();
-                Console.Error.WriteLine("{0} results in {1}s", results.Count(), (System.Environment.TickCount - timer) / 1000);
-            }
         }
 
         /// <summary>
@@ -183,51 +190,7 @@ namespace parser
         /// <param name="server">Null for the live server.</param>
         static void DownloadPatchFiles(string server)
         {
-            string host = "http://eq.patch.station.sony.com";
-
-            string path = host + "/patch/everquest/en" + server + "/everquest-update.xml.gz";
-            DownloadFile(path, "update.xml");
-
-            XmlDocument doc = new XmlDocument();
-            doc.Load("update.xml");
-            path = host + "/" + doc.SelectSingleNode("//Product[@Name='EverQuest']/Distribution[@Name='Main Distribution']/Directory[@LocalPath='::HomeDirectory::']/@RemotePath").Value + "/";
-            DownloadFile(path + SpellFilename + ".gz", SpellFilename);
-            DownloadFile(path + DescFilename + ".gz", DescFilename);
-        }
-
-        /// <summary>
-        /// Download a file.
-        /// </summary>
-        static void DownloadFile(string url, string path)
-        {
-            Console.Error.WriteLine("=> " + url);
-            int timer = System.Environment.TickCount;
-
-            using (WebClient web = new WebClient())
-            {
-                byte[] data = web.DownloadData(url);
-
-                Stream datastream = new MemoryStream(data);
-                GZipStream input = new GZipStream(datastream, CompressionMode.Decompress);
-                using (FileStream output = new FileStream(path, FileMode.Create))
-                {
-                    byte[] buffer = new byte[32768];
-                    while (true)
-                    {
-                        int read = input.Read(buffer, 0, buffer.Length);
-                        if (read <= 0)
-                            break;
-                        output.Write(buffer, 0, read);
-                    }
-              
-                    Console.Error.WriteLine("   {0} bytes - {1}", output.Length, web.ResponseHeaders["Last-Modified"]);
-                    Console.Error.WriteLine();
-                }
-
-                DateTime lastMod;
-                if (DateTime.TryParse(web.ResponseHeaders["Last-Modified"], out lastMod))
-                    File.SetLastWriteTimeUtc(path, lastMod);
-            }
+            throw new NotImplementedException(String.Format("Patch update is currently broken. Please copy the {0} and {1} files from the EQ folder manually. ", SpellFilename, DescFilename));
         }
 
     }
