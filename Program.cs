@@ -49,10 +49,14 @@ namespace parser
                     DownloadPatchFiles(null);
 
                 var spells = SpellParser.LoadFromFile(SpellFilename, DescFilename).ToList();
+                
+                // perform search based on command line parameters
+                string type = args.Length >= 1 ? args[0].ToLower() : null;
+                string value = args.Length >= 2 ? args[1] : null;
+                var results = Search(spells , type, value);
 
-                Func<int, Spell> lookup = id => spells.FirstOrDefault(x => x.ID == id);
-
-                var results = Search(spells, args);
+                // expand results to include referenced spells 
+                var lookup = spells.ToDictionary(x => x.ID);                
                 results = Expand(results, lookup);
 
                 if (results != null)
@@ -73,46 +77,43 @@ namespace parser
         /// <summary>
         /// Search the spell list for matching spells.
         /// </summary>
-        static IEnumerable<Spell> Search(IEnumerable<Spell> list, string[] args)
+        static IEnumerable<Spell> Search(IEnumerable<Spell> list, string field, string value)
         {
             IEnumerable<Spell> results = null;
 
-            string type = args.Length >= 1 ? args[0].ToLower() : null;
-            string param1 = args.Length >= 2 ? args[1] : null;
-
-            if (type == "all")
+            if (field == "all")
                 results = list;
             //results = list.Where(x => (int)x.TargetRestrict > 0).OrderBy(x => x.TargetRestrict);
 
             // search by effect type
-            if (type == "type" || type == "spa")
-                results = list.Where(x => x.HasEffect(param1) >= 0);
+            if (field == "type" || field == "spa")
+                results = list.Where(x => x.HasEffect(value) >= 0);
 
             // search by id
-            if (type == "id")
-                results = list.Where(x => x.ID.ToString() == param1);
+            if (field == "id")
+                results = list.Where(x => x.ID.ToString() == value);
 
             // search by group
-            if (type == "group")
-                results = list.Where(x => x.GroupID.ToString() == param1);
+            if (field == "group")
+                results = list.Where(x => x.GroupID.ToString() == value);
 
             // search by name
-            if (type == "name")
-                results = list.Where(x => x.Name.ToLower().Contains(param1.ToLower())).OrderBy(x => x.Name);
+            if (field == "name")
+                results = list.Where(x => x.Name.ToLower().Contains(value.ToLower())).OrderBy(x => x.Name);
 
             // search by class
-            if (type == "class")
+            if (field == "class")
             {
-                int i = (int)Enum.Parse(typeof(SpellClasses), param1.ToUpper()) - 1;
+                int i = (int)Enum.Parse(typeof(SpellClasses), value.ToUpper()) - 1;
                 results = list.Where(x => x.Levels[i] > 0 && x.Levels[i] < 255).OrderBy(x => x.Levels[i]).ThenBy(x => x.ID);
             }
 
             // search by target
-            if (type == "target")
-                results = list.Where(x => x.Target.ToString().ToLower() == param1.ToLower());
+            if (field == "target")
+                results = list.Where(x => x.Target.ToString().ToLower() == value.ToLower());
 
             // debugging: search the unknown field 
-            if (type == "unknown")
+            if (field == "unknown")
                 results = list.Where(x => x.Unknown != 0).OrderBy(x => x.Unknown);
 
 
@@ -122,24 +123,24 @@ namespace parser
         /// <summary>
         /// Recursively expand the spell list to include referenced spells.
         /// </summary>                
-        static IEnumerable<Spell> Expand(IEnumerable<Spell> list, Func<int, Spell> lookup)
+        static IEnumerable<Spell> Expand(IEnumerable<Spell> list, IDictionary<int, Spell> lookup)
         {
             List<Spell> results = list.ToList();
 
-            // keep a hash based indx of existing results to avoid doing a linear search on results
-            HashSet<int> resultsIndex = new HashSet<int>();
+            // keep a hash based index of existing results to avoid doing a linear search on results
+            // when checking if a spell is already included
+            HashSet<int> included = new HashSet<int>();
             foreach (Spell spell in results)
-                resultsIndex.Add(spell.ID);
-
+                included.Add(spell.ID);
 
             Func<string, string> expand = text => Spell.SpellRefExpr.Replace(text, delegate(Match m)
                 {
-                    Spell spellref = lookup(Int32.Parse(m.Groups[1].Value));
+                    Spell spellref = lookup[Int32.Parse(m.Groups[1].Value)];
                     if (spellref != null)
                     {
-                        if (!resultsIndex.Contains(spellref.ID))
+                        if (!included.Contains(spellref.ID))
                         {
-                            resultsIndex.Add(spellref.ID);
+                            included.Add(spellref.ID);
                             results.Add(spellref);
                         }
                         //return spellref.Name;
