@@ -77,7 +77,7 @@ namespace parser
         /// <summary>
         /// Search the spell list for matching spells.
         /// </summary>
-        static IEnumerable<Spell> Search(IEnumerable<Spell> list, string field, string value)
+        static IList<Spell> Search(IEnumerable<Spell> list, string field, string value)
         {
             IEnumerable<Spell> results = null;
 
@@ -117,13 +117,13 @@ namespace parser
                 results = list.Where(x => x.Unknown != 0).OrderBy(x => x.Unknown);
 
 
-            return results;
+            return results.ToList();
         }
 
         /// <summary>
         /// Recursively expand the spell list to include referenced spells.
         /// </summary>                
-        static IEnumerable<Spell> Expand(IEnumerable<Spell> list, IDictionary<int, Spell> lookup)
+        static IList<Spell> Expand(IEnumerable<Spell> list, IDictionary<int, Spell> lookup)
         {
             List<Spell> results = list.ToList();
 
@@ -135,8 +135,8 @@ namespace parser
 
             Func<string, string> expand = text => Spell.SpellRefExpr.Replace(text, delegate(Match m)
                 {
-                    Spell spellref = lookup[Int32.Parse(m.Groups[1].Value)];
-                    if (spellref != null)
+                    Spell spellref;
+                    if (lookup.TryGetValue(Int32.Parse(m.Groups[1].Value), out spellref))
                     {
                         if (!included.Contains(spellref.ID))
                         {
@@ -192,6 +192,7 @@ namespace parser
         static void DownloadPatchFiles(string server)
         {
             throw new NotImplementedException(String.Format("Patch update is currently broken. Please copy the {0} and {1} files from the EQ folder manually. ", SpellFilename, DescFilename));
+
         }
 
     }
