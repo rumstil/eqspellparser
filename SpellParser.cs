@@ -1937,6 +1937,12 @@ namespace Everquest
                 case 141:
                     if (level > 30) change = 3 * (level - 30) / 2;
                     break;
+                case 142:
+                    if (level > 30) change = 2 * (level - 60);
+                    break;
+                case 143:
+                    change = 3 * level / 4;
+                    break;
 
                 default:
                     if (calc > 0 && calc < 1000)
