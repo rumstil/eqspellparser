@@ -8,8 +8,8 @@ using System.Diagnostics;
 
 
 
-/* 
- * 
+/*
+ *
  * http://code.google.com/p/projecteqemu/source/browse/trunk/EQEmuServer/zone/spdat.h
  * http://forums.station.sony.com/eq/posts/list.m?start=150&topic_id=162971
  * http://forums.station.sony.com/eq/posts/list.m?start=50&topic_id=165000 - resists
@@ -379,7 +379,7 @@ namespace Everquest
         HP_Below_90_Percent = 518,
         HP_Below_95_Percent = 519,
         Mana_Below_X_Percent = 521, // 5?
-        Undead2 = 603, // vampiric too? Celestial Contravention Strike        
+        Undead2 = 603, // vampiric too? Celestial Contravention Strike
         Undead3 = 608,
         Summoned2 = 624,
         Not_Pet = 701,
@@ -472,7 +472,7 @@ namespace Everquest
         Valley_Goblin = 433 << 16 + 3,
         Goblin_King = 433 << 16 + 8,
         Rallosian_Goblin = 433 << 16 + 11,
-        Frost_Goblin = 433 << 16 + 12,        
+        Frost_Goblin = 433 << 16 + 12,
         Kirin = 434,
         Basilisk = 436,
         Spider = 440,
@@ -672,7 +672,7 @@ namespace Everquest
 
         /// <summary>
         /// Get a full description of the spell. This is mostly useful as a debug dump.
-        /// </summary>        
+        /// </summary>
         public IEnumerable<string> Details()
         {
             List<string> result = new List<string>(20);
@@ -860,7 +860,7 @@ namespace Everquest
                 return HasEffect(spa);
 
             for (int i = 0; i < Slots.Length; i++)
-                if (Slots[i] != null && Slots[i].IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0)        
+                if (Slots[i] != null && Slots[i].IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0)
                     return i;
 
             return -1;
@@ -883,7 +883,7 @@ namespace Everquest
         /// Parse a spell effect. Each spell has 12 effect slots. Devs refer to these as SPAs.
         /// Attributes like ID, Skill, Extra, DurationTicks are referenced and should be set before
         /// calling this function.
-        /// </summary>        
+        /// </summary>
         public string ParseEffect(int spa, int base1, int base2, int max, int calc, int level)
         {
             // type 254 indicates an unused slot
@@ -935,7 +935,7 @@ namespace Everquest
                     // 10 is often used as a filler
                     return Spell.FormatCount("CHA", value) + range;
                 case 11:
-                    // base attack speed is 100. so 85 = 15% slow, 130 = 30% haste 
+                    // base attack speed is 100. so 85 = 15% slow, 130 = 30% haste
                     return Spell.FormatPercent("Melee Haste", value - 100);
                 case 12:
                     if (base1 > 1)
@@ -1152,8 +1152,7 @@ namespace Everquest
                 case 119:
                     return Spell.FormatPercent("Melee Haste v3", value);
                 case 120:
-                    // TODO: confirm this is a range
-                    return Spell.FormatPercent("Healing Taken", base2, base1);
+                    return Spell.FormatPercent("Healing Taken", base1); // not range
                 case 121:
                     // damages the target whenever it hits something
                     return Spell.FormatCount("Reverse Damage Shield", -value);
@@ -1365,7 +1364,7 @@ namespace Everquest
                 case 225:
                     return Spell.FormatCount("Double Attack Skill", base1);
                 case 227:
-                    return String.Format("Reduce {0} Timer by {1}s", Spell.FormatEnum((SpellSkill)base2), base1);                
+                    return String.Format("Reduce {0} Timer by {1}s", Spell.FormatEnum((SpellSkill)base2), base1);
                 case 232:
                     return String.Format("Cast on Death Save: [Spell {0}] Chance: {1}%", base2, base1);
                 case 233:
@@ -1421,7 +1420,7 @@ namespace Everquest
                         return Spell.FormatPercent("Chance to Critical Nuke", base1) + " and " + Spell.FormatPercent("Critical Nuke Damage", base2 - 100) + " of Base Damage";
                     else if (base1 > 0)
                         return Spell.FormatPercent("Chance to Critical Nuke", base1);
-                    else                        
+                    else
                         return Spell.FormatPercent("Critical Nuke Damage", base2 - 100) + " of Base Damage";
                 case 296:
                     return Spell.FormatPercent("Spell Damage Taken", base2, base1);
@@ -1438,7 +1437,7 @@ namespace Everquest
                     return Spell.FormatPercent("Spell Damage", base1);
                 case 303:
                     // used on type 3 augments
-                    // is added before crit multipliers, but after SPA 296 and 302 (and maybe 124). 
+                    // is added before crit multipliers, but after SPA 296 and 302 (and maybe 124).
                     // for DoTs it adds base1/ticks to each tick.
                     return Spell.FormatCount("Spell Damage", base1);
                 case 305:
@@ -1528,7 +1527,7 @@ namespace Everquest
                 case 350:
                     return String.Format("Mana Burn: {0}", value);
                 case 351:
-                    // the actual aura spell effect reference doesn't seem to be stored in the spell file so we have to handle this SPA 
+                    // the actual aura spell effect reference doesn't seem to be stored in the spell file so we have to handle this SPA
                     // with guesses and some hardcoding. most of the time the effect is placed right after the aura in the spell file
                     int aura = (Rank >= 1) || Extra.Contains("Rk") ? ID + 3 : ID + 1;
                     // hardcoded fixes for failed guesses
@@ -1596,7 +1595,7 @@ namespace Everquest
                         return String.Format("Cast: [Spell {0}] Chance: {1}%", base2, base1);
                     return String.Format("Cast: [Spell {0}]", base2);
                 case 375:
-                    // additive with innate crit multiplier and same effect in other slots 
+                    // additive with innate crit multiplier and same effect in other slots
                     return Spell.FormatPercent("Critical DoT Damage", base1) + " of Base Damage";
                 case 377:
                     return String.Format("Cast if Not Cured: [Spell {0}]", base1);
@@ -1686,7 +1685,7 @@ namespace Everquest
                     // how is this different than 15?
                     return Spell.FormatCount("Current Mana", value) + repeating + range;
                 case 418:
-                    // how is this different than 220 bonus? 
+                    // how is this different than 220 bonus?
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", base1);
                 case 419:
                     // this is used for potions. how is it different than 85? maybe proc rate?
@@ -1735,7 +1734,7 @@ namespace Everquest
         /// <summary>
         /// Calculate a duration.
         /// </summary>
-        /// <returns>Numbers of ticks (6 second units)</returns>        
+        /// <returns>Numbers of ticks (6 second units)</returns>
         static public int CalcDuration(int calc, int max, int level)
         {
             int value = 0;
@@ -1814,7 +1813,7 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Calculate a level/tick scaled value. 
+        /// Calculate a level/tick scaled value.
         /// </summary>
         static public int CalcValue(int calc, int base1, int max, int tick, int level)
         {
@@ -1949,13 +1948,13 @@ namespace Everquest
                         change = level * calc;
 
                     // 1000..1999 variable by tick
-                    // e.g. splort (growing): Effect=0 Base1=1 Base2=0 Max=0 Calc=1035 
-                    //      34 - 69 - 104 - 139 - 174 - 209 - 244 - 279 - 314 - 349 - 384 - 419 - 454 - 489 - 524 - 559 - 594 - 629 - 664 - 699 - 699 
-                    // e.g. venonscale (decaying): Effect=0 Base1=-822 Base2=0 Max=822 Calc=1018 
-                    // 
+                    // e.g. splort (growing): Effect=0 Base1=1 Base2=0 Max=0 Calc=1035
+                    //      34 - 69 - 104 - 139 - 174 - 209 - 244 - 279 - 314 - 349 - 384 - 419 - 454 - 489 - 524 - 559 - 594 - 629 - 664 - 699 - 699
+                    // e.g. venonscale (decaying): Effect=0 Base1=-822 Base2=0 Max=822 Calc=1018
+                    //
                     // e.g. Deathcloth Spore: Base1=-1000 Base2=0 Max=0 Calc=1999
                     // e.g. Bleeding Bite: Base1=-1000 Base2=0 Max=0 Calc=1100 (The damage done will decrease in severity over time.)
-                    // e.g. Blood Rites: Base1=-1500 Base2=0 Max=0 Calc=1999 
+                    // e.g. Blood Rites: Base1=-1500 Base2=0 Max=0 Calc=1999
                     if (calc >= 1000 && calc < 2000)
                         change = tick * (calc - 1000) * -1;
 
@@ -1998,7 +1997,7 @@ namespace Everquest
             if (calc == 120)
                 return String.Format(" ({0} to {1} @ 5/tick)", type, finish);
 
-            if (calc == 122) 
+            if (calc == 122)
                 return String.Format(" ({0} to {1} @ 12/tick)", type, finish);
 
             if (calc > 1000 && calc < 2000)
@@ -2129,8 +2128,8 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Parse a spell from a set of spell fields. 
-        /// </summary>        
+        /// Parse a spell from a set of spell fields.
+        /// </summary>
         static Spell LoadSpell(string[] fields)
         {
             int MaxLevel = 95;
@@ -2224,11 +2223,11 @@ namespace Everquest
             for (int i = 0; i < spell.Levels.Length; i++)
                 spell.Levels[i] = (byte)ParseInt(fields[104 + i]);
 
-            // each spell has 12 effect slots which have 5 attributes each            
+            // each spell has 12 effect slots which have 5 attributes each
             // 20..31 - slot 1..12 base1 effect
             // 32..43 - slot 1..12 base2 effect
             // 44..55 - slot 1..12 max effect
-            // 70..81 - slot 1..12 calc forumla data 
+            // 70..81 - slot 1..12 calc forumla data
             // 86..97 - slot 1..12 spa/type
             for (int i = 0; i < spell.Slots.Length; i++)
             {
@@ -2243,7 +2242,7 @@ namespace Everquest
 
                 // debug stuff: detect difference in value/base1 for spells where i'm not sure which one should be used and have chosen one arbitrarily
                 //int[] uses_value = new int[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 15, 21, 24, 35, 36, 46, 47, 48, 49, 50, 55, 58, 59, 69, 79, 92, 97, 100, 111, 116, 158, 159, 164, 165, 166, 169, 184, 189, 190, 192, 262, 334, 417};
-                //int[] uses_base1 = new int[] { 32, 64, 109, 148, 149, 193, 254, 323, 360, 374, 414 }; 
+                //int[] uses_base1 = new int[] { 32, 64, 109, 148, 149, 193, 254, 323, 360, 374, 414 };
                 //int value = Spell.CalcValue(calc, base1, max, 0, 90);
                 //if (value != base1 && Array.IndexOf(uses_value, spa) < 0 && Array.IndexOf(uses_base1, spa) < 0)
                 //    Console.Error.WriteLine(String.Format("SPA {1} {0} has diff value/base1: {2}/{3} calc: {4}", spell.Name, spa, value, base1, calc));
