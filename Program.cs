@@ -191,8 +191,10 @@ namespace parser
         /// <param name="server">Null for the live server.</param>
         static void DownloadPatchFiles(string server)
         {
-            throw new NotImplementedException(String.Format("Patch update is currently broken. Please copy the {0} and {1} files from the EQ folder manually. ", SpellFilename, DescFilename));
+            var files = LaunchpadPatcher.DownloadManifest(server);
 
+            LaunchpadPatcher.DownloadFile(files[SpellFilename].Url, SpellFilename);
+            LaunchpadPatcher.DownloadFile(files[DescFilename].Url, DescFilename);
         }
 
     }
