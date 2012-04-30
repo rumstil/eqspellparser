@@ -29,6 +29,11 @@ namespace Everquest
             }
         }
 
+        /// <summary>
+        /// The manifest is basically a binary directory structure with some meta data. 
+        /// The URL for this is static. We need to download this to find the dynamic URLs for all other patch files.
+        /// </summary>
+        /// <param name="server">null for the live servers. "-test" for test server.</param>
         public static Dictionary<string, FileInfo> DownloadManifest(string server)
         {
             string url = String.Format("http://manifest.patch.station.sony.com/patch/sha/manifest/eq/eq-en{0}/live/eq-en{0}.sha.soe", server);
@@ -37,11 +42,6 @@ namespace Everquest
             return LoadManifest(path);
         }
 
-        /// <summary>
-        /// The manifest is basically a binary directory structure with some meta data.
-        /// This function extracts the URL for each file from the meta data.       
-        /// </summary>
-        /// <param name="server">null for the live servers. "-test" for test server.</param>
         public static Dictionary<string, FileInfo> LoadManifest(string path)
         {
             string root = "http://eq.patch.station.sony.com/patch/sha/eq/eq.sha.zs";
