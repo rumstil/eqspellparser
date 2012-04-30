@@ -440,7 +440,7 @@ namespace Everquest
         Kunark_Goblin = 137,
         Nearby_Object = 142,
         Tree = 143,
-        Iksar_Skeleton = 161,
+        Old_Iksar_Skeleton = 161,
         Guktan = 330,
         Gnome_Pirate = 338,
         Ogre_Pirate = 340,
@@ -459,6 +459,7 @@ namespace Everquest
         Ice_Golem = 374 << 16 + 1,
         Crystal_Golem = 374 << 16 + 3,
         Jester = 384,
+        Mastruq = 402,
         Lightning_Warrior = 407,
         Pyrilen = 411,
         Dragorn = 413,
@@ -524,7 +525,9 @@ namespace Everquest
         Tyranont = 578,
         Worg = 580,
         Wyvern = 581,
+        Iksar_Skeleton = 606,
         Raptor = 609,
+        Sarnak = 610,
         Plague_Fly = 612,
         Burning_Nekhon = 614,
         Crystal_Hydra = 615,
@@ -1501,8 +1504,8 @@ namespace Everquest
                     return Spell.FormatCount("Current HP", value) + repeating + range;
                 case 335:
                     if (base1 < 100)
-                        return String.Format("Block Spell (Success: {0}%)", base1);
-                    return "Block Spell";
+                        return String.Format("Block Matching Spell (Success: {0}%)", base1);
+                    return "Block Matching Spell";
                 case 337:
                     return Spell.FormatPercent("Experience Gain", value);
                 case 338:
