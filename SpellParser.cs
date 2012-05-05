@@ -293,12 +293,17 @@ namespace Everquest
         Plant = 16,
         Old_Giants = 17,
         Old_Dragons = 18,
+        Target_AE_Lifetap = 20,
         Undead_AE = 24,
         Summoned_AE = 25,
-        Hatelist = 33,
+        Hatelist = 32,
+        Hatelist2 = 33,
         Chest = 34,
-        Caster_PB_Players = 36, // only PCs? originally used for GM mass illusions
+        Special_Muramites = 35, // bane for Ingenuity group trial in MPG
+        Caster_PB_Players = 36, 
+        Caster_PB_NPC = 37,
         Pet2 = 38,
+        No_Pets = 39, // single/group/ae ?
         Nearby_Players = 40, // bard AE hits all players
         Target_Group = 41,
         Directional_AE = 42,
@@ -651,7 +656,11 @@ namespace Everquest
         public bool CancelOnSit;
         public bool Sneaking;
         public int[] CategoryDescID; // AAs don't have these set
+        public string Deity;
+       
+        #if LargeMemory
         public string Category;
+        #endif
 
 
         public float Unknown;
@@ -694,6 +703,9 @@ namespace Everquest
 
             if (!String.IsNullOrEmpty(ClassesLevels))
                 result.Add("Classes: " + ClassesLevels);
+
+            if (!String.IsNullOrEmpty(Deity))
+                result.Add("Deity: " + Deity);
 
             if (Mana > 0)
                 result.Add("Mana: " + Mana);
@@ -2122,6 +2134,7 @@ namespace Everquest
                         string[] fields = line.Split('^');
                         Spell spell = LoadSpell(fields);
 
+                        #if LargeMemory
                         string s;
                         if (desc.TryGetValue("5/" + spell.CategoryDescID[0], out s))
                         {
@@ -2131,6 +2144,7 @@ namespace Everquest
                             if (desc.TryGetValue("5/" + spell.CategoryDescID[2], out s))
                                 spell.Category += "/" + s;
                         }
+                        #endif
 
                         if (!desc.TryGetValue("6/" + spell.DescID, out spell.Desc))
                             spell.Desc = null;
@@ -2228,7 +2242,6 @@ namespace Everquest
             spell.ProcRestrict = (SpellTargetRestrict)ParseInt(fields[220]);  // field 206/216 seems to be related
             spell.PersistAfterDeath = ParseBool(fields[224]);
 
-
             // debug stuff
             //spell.Unknown = ParseFloat(fields[231]);
 
@@ -2260,6 +2273,12 @@ namespace Everquest
                 //if (value != base1 && Array.IndexOf(uses_value, spa) < 0 && Array.IndexOf(uses_base1, spa) < 0)
                 //    Console.Error.WriteLine(String.Format("SPA {1} {0} has diff value/base1: {2}/{3} calc: {4}", spell.Name, spa, value, base1, calc));
             }
+
+            // 125..141 deity casting restrictions
+            string[] gods = new string[] { "Agnostic", "Bertox", "Brell", "Cazic", "Erollisi", "Bristlebane", "Innoruuk", "Karana", "Mithanial", "Prexus", "Quellious", "Rallos", "Rodcet", "Solusek", "Tribunal", "Tunare", "Veeshan" };
+            for (int i = 0; i < gods.Length; i++)
+                if (ParseBool(fields[125 + i]))
+                    spell.Deity += gods[i] + " ";
 
             // debug stuff
             //if (spell.ID == 31123) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
