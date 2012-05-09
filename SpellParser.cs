@@ -316,6 +316,8 @@ namespace Everquest
 
     public enum SpellTargetRestrict
     {
+        Caster = 3, // (any NPC with mana) guess
+        Not_On_Horse = 5, // guess
         Animal_or_Humanoid = 100,
         Dragon = 101,
         Animal_or_Insect = 102,
@@ -400,6 +402,9 @@ namespace Everquest
         Not_Pet = 701,
         Undead4 = 818,
         Not_Undead4 = 819,
+        End_Below_21_Percent = 825,
+        End_Below_25_Percent = 826,
+        End_Below_29_Percent = 827,
         Regular_Server = 836,
         Progression_Server = 837
     }
@@ -637,7 +642,7 @@ namespace Everquest
         public int ViralRange;
         public int ViralTargets;
         public SpellTargetRestrict TargetRestrict;
-        public SpellTargetRestrict ProcRestrict;
+        public SpellTargetRestrict CasterRestrict;
         public int[] RegID;
         public int[] RegCount;
         public int[] FocusID;
@@ -736,6 +741,9 @@ namespace Everquest
 
             if (CancelOnSit)
                 result.Add("Restriction: Cancel on Sit");
+
+            if ((int)CasterRestrict > 100)
+                result.Add("Restriction: " + FormatEnum(CasterRestrict));
 
             if (Target == SpellTarget.Directional_AE)
                 result.Add("Target: " + FormatEnum(Target) + " (" + StartDegree + " to " + EndDegree + " Degrees)");
@@ -1142,7 +1150,7 @@ namespace Everquest
                     return Spell.FormatCount("Current HP", value) + repeating + range;
                 case 101:
                     // only castable via Donal's BP. creates a buf that blocks recasting
-                    return "Donal's Heal";
+                    return "Increase Current HP by 7500";
                 case 102:
                     return "Fear Immunity";
                 case 103:
@@ -2229,6 +2237,7 @@ namespace Everquest
             spell.ViralRange = ParseInt(fields[201]);
             // 202 = bard related
             // 203 = melee specials
+            // 206/216 seem to be related
             spell.BeneficialBlockable = !ParseBool(fields[205]); // for beneficial spells
             spell.GroupID = ParseInt(fields[207]);
             spell.Rank = ParseInt(fields[208]); // rank 1/5/10. a few auras do not have this set properly
@@ -2239,11 +2248,11 @@ namespace Everquest
             spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[211]);
             spell.OutOfCombat = !ParseBool(fields[214]);
             spell.MaxTargets = ParseInt(fields[218]);
-            spell.ProcRestrict = (SpellTargetRestrict)ParseInt(fields[220]);  // field 206/216 seems to be related
+            spell.CasterRestrict = (SpellTargetRestrict)ParseInt(fields[220]); 
             spell.PersistAfterDeath = ParseBool(fields[224]);
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[231]);
+            //spell.Unknown = ParseFloat(fields[223]);
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
