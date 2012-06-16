@@ -1664,8 +1664,7 @@ namespace Everquest
                 case 392:
                     return Spell.FormatCount("Healing Bonus", base1);
                 case 393:
-                    // TODO: confirm this isn't a range
-                    return Spell.FormatPercent("Healing Taken", base1);
+                    return Spell.FormatPercent("Healing Taken", base1, base2); // ranged
                 case 394:
                     return Spell.FormatCount("Healing Taken", base1);
                 case 396:
