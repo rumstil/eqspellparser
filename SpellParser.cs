@@ -338,9 +338,9 @@ namespace Everquest
         Living = 121,
         Fairy = 122,
         Humanoid = 123,
-        HP_Less_Than_10_Percent = 124, // dupe of 502
-        Clockwork = 125,
-        Wisp = 126,
+        Undead_HP_Less_Than_10_Percent = 124,
+        Clockwork_HP_Less_Than_45_Percent = 125,
+        Wisp_HP_Less_Than_10_Percent = 126,
         Not_Raid_Boss = 190,
         Raid_Boss = 191,
         HP_Above_75_Percent = 201,
@@ -406,7 +406,10 @@ namespace Everquest
         End_Below_25_Percent = 826,
         End_Below_29_Percent = 827,
         Regular_Server = 836,
-        Progression_Server = 837
+        Progression_Server = 837,
+        Humanoid_Level_84_Max = 842,
+        Humanoid_Level_86_Max = 843,
+        Humanoid_Level_88_Max = 844,
     }
 
     public enum SpellZoneRestrict
@@ -1727,6 +1730,7 @@ namespace Everquest
                 case 424:
                     // base1 is probably velocity. base2 might be range?
                     return String.Format("Gradual {0}: Base1={1} Base2={2}", base1 > 0 ? "Push" : "Pull", Math.Abs(base1), base2);
+                //case 425: jump or antigravity?
                 case 427:
                     return String.Format("Cast on Skill Use: [Spell {0}] Chance: {1}%", base1, base2 / 10);
                 case 428:
@@ -1743,8 +1747,9 @@ namespace Everquest
                     if (base1 < 0)
                         return String.Format("Tint Vision: Red={0} Green={1} Blue={2}", base1 >> 16 & 0xff, base1 >> 8 & 0xff, base1 & 0xff);
                     return String.Format("Alter Vision: Base1={0} Base2={1} Max={2}", base1, base2, max);
+                //case 433: another chance to crit dots?
                 case 434:
-                    return Spell.FormatPercent("Chance to Critical Heal v2", base1);
+                    return Spell.FormatPercent("Chance to Critical Heal v2", base1); 
                 case 435:
                     return Spell.FormatPercent("Chance to Critical HoT v2", base1);
                 case 437:
