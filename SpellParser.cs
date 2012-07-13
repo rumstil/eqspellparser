@@ -1762,6 +1762,8 @@ namespace Everquest
                     return String.Format("Cast on {1}: [Spell {0}]", base1, Spell.FormatEnum((SpellTargetRestrict)base2));
                 case 444:
                     return "Lock Aggro on Caster and " + Spell.FormatPercent("Other Aggro", base2 - 100) + String.Format(" up to level {0}", base1);
+                case 445:
+                    return String.Format("Grant {0} Mercenary Slots", base1);
 
             }
 
