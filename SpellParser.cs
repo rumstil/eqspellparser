@@ -172,7 +172,7 @@ namespace Everquest
         Bind_Wound = 9,
         Bash = 10,
         Block = 11,
-        Brass_Instruments = 12,
+        Brass = 12,
         Channeling = 13,
         Conjuration = 14,
         Defense = 15,
@@ -209,12 +209,12 @@ namespace Everquest
         Specialize_Divination = 46,
         Specialize_Evocation = 47,
         Pick_Pockets = 48,
-        Stringed_Instruments = 49,
+        Stringed = 49,
         Swimming = 50,
         Throwing = 51,
         Tiger_Claw = 52,
         Tracking = 53,
-        Wind_Instruments = 54,
+        Wind = 54,
         Fishing = 55,
         Make_Poison = 56,
         Tinkering = 57,
@@ -230,7 +230,7 @@ namespace Everquest
         Begging = 67,
         Jewelry_Making = 68,
         Pottery = 69,
-        Percusion_Instruments = 70,
+        Percusion = 70,
         Intimidation = 71,
         Berserking = 72,
         Taunt = 73,
@@ -597,6 +597,13 @@ namespace Everquest
         Offensive_Proc_Casts = 11
     }
 
+    public enum SpellTeleport
+    {
+        Primary_Anchor = 52584,
+        Secondary_Anchor = 52585,
+        Guild_Anchor = 50874
+    }
+
     public sealed class Spell
     {
         public int ID;
@@ -665,6 +672,7 @@ namespace Everquest
         public bool Sneaking;
         public int[] CategoryDescID; // AAs don't have these set
         public string Deity;
+        public int SongCap;
        
         #if LargeMemory
         public string Category;
@@ -710,14 +718,20 @@ namespace Everquest
 
 
             if (!String.IsNullOrEmpty(ClassesLevels))
+            {
                 result.Add("Classes: " + ClassesLevels);
+                if (SongCap > 0)
+                    result.Add("Skill: " + FormatEnum(Skill) + ", Cap: " + SongCap);
+                else if ((int)Skill != 98) // 98 might be for AA only
+                    result.Add("Skill: " + FormatEnum(Skill));
+            }
 
             if (!String.IsNullOrEmpty(Deity))
                 result.Add("Deity: " + Deity);
 
             if (Mana > 0)
                 result.Add("Mana: " + Mana);
-
+           
             if (EnduranceUpkeep > 0)
                 result.Add("Endurance: " + Endurance + ", Upkeep: " + EnduranceUpkeep + " per tick");
             else if (Endurance > 0)
@@ -730,8 +744,6 @@ namespace Everquest
             for (int i = 0; i < FocusID.Length; i++)
                 if (FocusID[i] > 0)
                     result.Add("Focus: [Item " + FocusID[i] + "]");
-
-            //result.Add("Skill: " + Skill);
 
             if (OutOfCombat)
                 result.Add("Restriction: Out of Combat");
@@ -1016,7 +1028,7 @@ namespace Everquest
                 case 31:
                     return "Mesmerize" + maxlevel;
                 case 32:
-                    // calc 100 = stack size for the item? Pouch of Quellious, Quiver of Marr
+                    // calc 100 = summon a stack? (based on item stack size) Pouch of Quellious, Quiver of Marr
                     //return String.Format("Summon: [Item {0}] x {1} {2} {3}", base1, calc, max, base2);
                     return String.Format("Summon: [Item {0}]", base1);
                 case 33:
@@ -1269,13 +1281,9 @@ namespace Everquest
                 case 160:
                     return String.Format("Intoxicate if Tolerance < {0}", value);
                 case 161:
-                    if (max > 0)
-                        return String.Format("Absorb Spell Damage: {0}% Total: {1}", value, max);
-                    return String.Format("Absorb Spell Damage: {0}%", value);
+                    return String.Format("Absorb Spell Damage: {0}%", value) + (base2 > 0 ? String.Format(" Per Hit: {0}", base2) : "") + (max > 0 ? String.Format(" Total: {0}", max) : "");
                 case 162:
-                    if (max > 0)
-                        return String.Format("Absorb Melee Damage: {0}% Total: {1}", value, max);
-                    return String.Format("Absorb Melee Damage: {0}%", value);
+                    return String.Format("Absorb Melee Damage: {0}%", value) + (base2 > 0 ? String.Format(" Per Hit: {0}", base2) : "") + (max > 0 ? String.Format(" Total: {0}", max) : "");
                 case 163:
                     return String.Format("Absorb {0} Hits or Spells", value);
                 case 164:
@@ -1753,9 +1761,9 @@ namespace Everquest
                 case 435:
                     return Spell.FormatPercent("Chance to Critical HoT v2", base1);
                 case 437:
-                    return "Teleport to your " + (base1 == 52584 ? "Primary Anchor" : "Secondary Anchor");
+                    return "Teleport to your " + FormatEnum((SpellTeleport)base1);
                 case 438:
-                    return "Teleport to their " + (base1 == 52584 ? "Primary Anchor" : "Secondary Anchor");
+                    return "Teleport to their " + FormatEnum((SpellTeleport)base1);
                 case 441:
                     return String.Format("Cancel if Moved {0}", base1);
                 case 442:
@@ -2241,7 +2249,7 @@ namespace Everquest
             spell.DurationExtendable = !ParseBool(fields[197]);
             spell.DurationFrozen = ParseBool(fields[200]);
             spell.ViralRange = ParseInt(fields[201]);
-            // 202 = bard related
+            spell.SongCap = ParseInt(fields[202]);
             // 203 = melee specials
             // 206/216 seem to be related
             spell.BeneficialBlockable = !ParseBool(fields[205]); // for beneficial spells
@@ -2256,9 +2264,11 @@ namespace Everquest
             spell.MaxTargets = ParseInt(fields[218]);
             spell.CasterRestrict = (SpellTargetRestrict)ParseInt(fields[220]); 
             spell.PersistAfterDeath = ParseBool(fields[224]);
+            // 225 = song slope?
+            // 226 = song offset?
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[223]);
+            //spell.Unknown = ParseFloat(fields[202]);
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
