@@ -677,10 +677,10 @@ namespace Everquest
         Grandfather_Clock = 665,
         Gingerbread_Man = 666,
         Royal_Guardian = 667,
-        Cazic_Thule = 670,
         Rabbit = 668,
         Gouzah_Rabbit = 668 << 16 + 3,
         Polka_Dot_Rabbit = 668 << 16 + 5,
+        Cazic_Thule = 670,
         Selyrah = 686,
         Goral = 687,
         Braxi = 688,
@@ -917,17 +917,14 @@ namespace Everquest
                 result.Add("Casting: " + CastingTime.ToString() + "s");
 
             if (DurationTicks > 0 && Beneficial && ClassesMask != SpellClassesMask.BRD)
-                result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)" + ", Extend: " + (DurationExtendable ? "Yes" : "No"));
+                result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)" + ", Extend: " + (DurationExtendable ? "Yes" : "No") + (PersistAfterDeath ? ", Keep On Death: Yes" : ""));
             else if (DurationTicks > 0)
-                result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)");
+                result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)" + (PersistAfterDeath ? ", Keep On Death: Yes" : ""));
             else if (AEDuration >= 2500)
                 result.Add("AE Waves: " + AEDuration / 2500);
 
             if (DurationTicks > 0 && !Dispellable)
                 result.Add("Dispellable: " + (Dispellable ? "Yes" : "No"));
-
-            if (DurationTicks > 0 && PersistAfterDeath)
-                result.Add("Persist After Death: Yes");
 
             if (PushUp != 0)
                 result.Add("Push: " + PushBack + ", Up: " + PushUp);
@@ -2264,6 +2261,7 @@ namespace Everquest
                         // type 5 = spell categories
                         // type 6 = spell desc
                         // type 7 = lore groups
+                        // type 11 = illusions
                         // type 16 = aug slot desc
                         // type 18 = currency
                         desc[fields[1] + "/" + fields[0]] = fields[2].Trim();
