@@ -114,33 +114,48 @@ namespace Everquest
         Melee_Mitigation = 168,
         Critical_Hit_Chance = 169,
         Crippling_Blow_Chance = 171,
-        Avoid_Melee_Chance = 172,
+        Avoid_Melee_Chance = 172, // combat agility AA?
         Riposte_Chance = 173,
         Dodge_Chance = 174,
         Parry_Chance = 175,
         Lifetap_From_Weapon = 178,
         Weapon_Delay = 182,
+        Hit_Chance = 184,
         Block_Chance = 188,
         Endurance_Repeating = 189,
         Hate_Repeating = 192,
         Skill_Attack = 193,
         Cancel_All_Aggro = 194,
+        Stun_Resist_Chance = 195,
         Taunt = 199,
         Proc_Rate = 200,
         Slay_Undead = 219,
         Weapon_Damage_Bonus = 220,
         Lung_Capacity = 246,
-        Frontal_Backstab = 252,
+        Frontal_Backstab_Chance = 252,
+        Frontal_Backstab_Min_Damage = 253,
+        Shroud_Of_Stealth = 256,
+        Triple_Backstab_Chance = 258,
+        Combat_Stability = 259, // ac soft cap. AA and a few shaman spells
         Song_Range = 270,
         Flurry = 279,
         Spell_Damage_Bonus = 286,
         Dispel_Detrimental = 291,
         Movement_Speed_AA = 271,
         Critical_DoT_Chance = 273,
+        Critical_Heal_Chance = 274,
+        Double_Special_Attack_Chance = 283, // monk specials
+        Movement_Speed_Cap = 290,
+        Frontal_Stun_Resist_Chance = 293, // AA
         Critical_Nuke_Chance = 294,
+        Archery_Damage = 301, // AA, not sure which
+        Damage_Shield_Taken = 305,
+        Teleport_To_Bind = 309,
         Invis = 314,
         Targets_Target_Hate = 321,
         Gate_to_Home_City = 322,
+        Crit_Hit_Damage = 330,
+        Summon_To_Corpse = 332,
         XP_Gain = 337,
         Casting_Trigger = 339,
         Mana_Burn = 350,
@@ -149,8 +164,12 @@ namespace Everquest
         Corruption_Counter = 369,
         Corruption_Resist = 370,
         Melee_Delay = 371,
+        Crit_DoT_Damage = 375,
         Push = 379,
         Cast_On_Spell = 383,
+        Healing_Taken = 393,
+        Healing_Taken2 = 394,
+        Crit_DoT_Chance = 395,
         Pet_Duration = 398,
         Twincast_Chance = 399,
         Heal_From_Mana = 400,
@@ -1544,7 +1563,7 @@ namespace Everquest
                 case 258:
                     return Spell.FormatPercent("Chance to Triple Backstab", value);
                 case 259:
-                    // based on lucy interpretation
+                    // i.e. Combat Stability
                     return Spell.FormatCount("AC Soft Cap", value);
                 case 262:
                     // affects worn cap
