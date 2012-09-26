@@ -595,6 +595,7 @@ namespace Everquest
         Solusek_Goblin = 433 << 16 + 1,
         Dagnor_Goblin = 433 << 16 + 2,
         Valley_Goblin = 433 << 16 + 3,
+        Aqua_Goblin = 433 << 16 + 7,
         Goblin_King = 433 << 16 + 8,
         Rallosian_Goblin = 433 << 16 + 11,
         Frost_Goblin = 433 << 16 + 12,
@@ -1011,7 +1012,6 @@ namespace Everquest
                 Range = 0;
                 AERange = 0;
                 MaxTargets = 0;
-                HateOverride = 0; // a bunch of self only AAs have 1 hate
             }
 
             if (Target == SpellTarget.Single)
@@ -1834,7 +1834,7 @@ namespace Everquest
                     return String.Format("Decrease Current HP by up to {0} ({1} HP per 1 Target Mana)", Math.Floor(base1 * base2 / -10f), base2 / -10f);
                 case 402:
                     return String.Format("Decrease Current HP by up to {0} ({1} HP per 1 Target End)", Math.Floor(base1 * base2 / -10f), base2 / -10f);
-                // 403 = some sort of casting limit
+                // 403 = some sort of casting limit. base1=3 might indicate lifetap spells
                 // 404 = seems to be a limit based on field 222
                 //case 404:
                 //    return String.Format("Limit Skill: {1}{0}", Spell.FormatEnum((SpellSkill)Math.Abs(base1)), base1 >= 0 ? "" : "Exclude ");
