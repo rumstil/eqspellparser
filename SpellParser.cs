@@ -1126,11 +1126,11 @@ namespace Everquest
                     return Spell.FormatPercent("Melee Haste", value - 100);
                 case 12:
                     if (base1 > 1)
-                        return "Invisibility (Enhanced)";
+                        return String.Format("Invisibility (Enhanced {0})", base1);
                     return "Invisibility (Unstable)";
                 case 13:
                     if (base1 > 1)
-                        return "See Invisible (Enhanced)";
+                        return String.Format("See Invisible (Enhanced {0})", base1);
                     return "See Invisible";
                 case 14:
                     return "Enduring Breath";
@@ -1486,6 +1486,7 @@ namespace Everquest
                 case 190:
                     return Spell.FormatCount("Max Endurance", value);
                 case 191:
+                    // melee and special skills
                     return "Inhibit Combat";
                 case 192:
                     return Spell.FormatCount("Hate", value) + repeating + range;
@@ -1748,8 +1749,8 @@ namespace Everquest
                 case 353:
                     return Spell.FormatCount("Aura Slots", base1);
                 case 357:
-                    // similar to 383, but i think this prevents casting of spells matching limits
-                    return "Inhibit Casting";
+                    // similar to 96, but i think this prevents casting of spells matching limits
+                    return "Inhibit Spell Casting";
                 case 358:
                     return Spell.FormatCount("Current Mana", value) + range;
                 case 360:
