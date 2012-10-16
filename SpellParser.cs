@@ -345,6 +345,7 @@ namespace Everquest
         Animal = 104,
         Plant = 105,
         Giant = 106,
+        Not_Animal_or_Humanoid = 108,
         Bixie = 109,
         Harpy = 110,
         Gnoll = 111,
@@ -2322,7 +2323,7 @@ namespace Everquest
         /// </summary>
         static Spell LoadSpell(string[] fields)
         {
-            int MaxLevel = 95;
+            int MaxLevel = 100;
 
             Spell spell = new Spell();
 
