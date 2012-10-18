@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Results</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+<style type='text/css'> 
+html, body { font: 9pt 'Segoe UI'; }
+table { border-collapse: collapse; border-spacing: 0; margin: 1em 0; }
+th { text-align: left; padding: 5px; background: #eee; border: solid 1px #eee; border-top: solid 1px #ccc; border-bottom: solid 1px #ccc; font-weight: normal; color: #444; }
+td { padding: 2px 6px; border: solid 1px #eee; }
+.mana { color: #00d; } 
+.end { color: orange; }
+.high { background: #f8f8f8;  }
+</style>
+<script type='text/javascript'>
+//$(document).on('click', 'a.spell', function(e) {
+//    alert(this.rel);
+//});
+function showSpell(id, here) {
+    var target = document.getElementById('spell' + id);
+    target.className += ' high';
+	while (!here.id || here.id.substr(0, 5) != 'spell')
+		here = here.parentNode;    
+    here.parentNode.insertBefore(target, here.nextSibling);
+}
+</script>
+</head>
+
+
