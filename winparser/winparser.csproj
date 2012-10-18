@@ -15,7 +15,6 @@
     <ApplicationIcon>mainicon.ico</ApplicationIcon>
     <TargetZone>LocalIntranet</TargetZone>
     <GenerateManifests>false</GenerateManifests>
-    <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -118,7 +117,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Properties\app.manifest" />
     <None Include="Resources\HtmlTemplate.txt" />
   </ItemGroup>
   <ItemGroup>
