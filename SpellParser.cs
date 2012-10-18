@@ -855,7 +855,7 @@ namespace Everquest
         /// <summary>
         /// Get a full description of the spell. This is mostly useful as a debug dump.
         /// </summary>
-        public IEnumerable<string> Details()
+        public string[] Details()
         {
             List<string> result = new List<string>(20);
             //Action<string> Add = delegate(string s) { result.Add(s); };
@@ -980,7 +980,7 @@ namespace Everquest
             if (!String.IsNullOrEmpty(LandOnSelf))
                 result.Add("Text: " + LandOnSelf);
 
-            return result;
+            return result.ToArray();
         }
 
         /// <summary>
