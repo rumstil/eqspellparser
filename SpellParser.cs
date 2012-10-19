@@ -18,7 +18,7 @@ using System.Diagnostics;
 
 namespace Everquest
 {
-    #region Enums    
+    #region Enums
 
     public enum SpellClasses
     {
@@ -321,7 +321,7 @@ namespace Everquest
         Hatelist2 = 33,
         Chest = 34,
         Special_Muramites = 35, // bane for Ingenuity group trial in MPG
-        Caster_PB_Players = 36, 
+        Caster_PB_Players = 36,
         Caster_PB_NPC = 37,
         Pet2 = 38,
         No_Pets = 39, // single/group/ae ?
@@ -817,10 +817,10 @@ namespace Everquest
         public int[] CategoryDescID; // AAs don't have these set
         public string Deity;
         public int SongCap;
-       
-        #if LargeMemory
+
+#if LargeMemory
         public string Category;
-        #endif
+#endif
 
 
         public float Unknown;
@@ -875,7 +875,7 @@ namespace Everquest
 
             if (Mana > 0)
                 result.Add("Mana: " + Mana);
-           
+
             if (EnduranceUpkeep > 0)
                 result.Add("Endurance: " + Endurance + ", Upkeep: " + EnduranceUpkeep + " per tick");
             else if (Endurance > 0)
@@ -1058,13 +1058,31 @@ namespace Everquest
         /// Search all spell slots for a certain effect using a RegEx
         /// </summary>
         /// <returns>Index of slot with the effect or -1 if not found</returns>
-        public int HasEffectRegex(string text)
+        public int HasEffect(Regex re)
         {
             for (int i = 0; i < Slots.Length; i++)
-                if (Slots[i] != null && Regex.IsMatch(Slots[i], text, RegexOptions.IgnoreCase))
+                if (Slots[i] != null && re.IsMatch(Slots[i]))
                     return i;
 
             return -1;
+        }
+
+        /// <summary>
+        /// Sum all the spell slots effects that match a regex. The regex must have a capturing group for an integer value.
+        /// e.g. Increase Current HP by (\d+)
+        /// </summary>
+        public int ScoreEffect(Regex re)
+        {
+            int score = 0;
+            for (int i = 0; i < Slots.Length; i++)
+                if (Slots[i] != null)
+                {
+                    Match m = re.Match(Slots[i]);
+                    if (m.Success)
+                        score += Int32.Parse(m.Groups[1].Value);
+                }
+
+            return score;
         }
 
         /// <summary>
@@ -1898,7 +1916,7 @@ namespace Everquest
                     return String.Format("Alter Vision: Base1={0} Base2={1} Max={2}", base1, base2, max);
                 //case 433: another chance to crit dots?
                 case 434:
-                    return Spell.FormatPercent("Chance to Critical Heal v2", base1); 
+                    return Spell.FormatPercent("Chance to Critical Heal v2", base1);
                 case 435:
                     return Spell.FormatPercent("Chance to Critical HoT v2", base1);
                 case 437:
@@ -2298,7 +2316,7 @@ namespace Everquest
                         string[] fields = line.Split('^');
                         Spell spell = LoadSpell(fields);
 
-                        #if LargeMemory
+#if LargeMemory
                         string s;
                         if (desc.TryGetValue("5/" + spell.CategoryDescID[0], out s))
                         {
@@ -2308,7 +2326,7 @@ namespace Everquest
                             if (desc.TryGetValue("5/" + spell.CategoryDescID[2], out s))
                                 spell.Category += "/" + s;
                         }
-                        #endif
+#endif
 
                         if (!desc.TryGetValue("6/" + spell.DescID, out spell.Desc))
                             spell.Desc = null;
@@ -2404,7 +2422,7 @@ namespace Everquest
             spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[211]);
             spell.OutOfCombat = !ParseBool(fields[214]);
             spell.MaxTargets = ParseInt(fields[218]);
-            spell.CasterRestrict = (SpellTargetRestrict)ParseInt(fields[220]); 
+            spell.CasterRestrict = (SpellTargetRestrict)ParseInt(fields[220]);
             spell.PersistAfterDeath = ParseBool(fields[224]);
             // 225 = song slope?
             // 226 = song offset?
@@ -2477,14 +2495,5 @@ namespace Everquest
 
     }
 
-    /*
-    public static class SpellExtensions
-    {
-        public static IEnumerable<Spell> Expand(this IEnumerable<Spell> source)
-        {
-            return source;
-        }
-    }
-     */
 
 }

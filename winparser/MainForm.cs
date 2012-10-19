@@ -14,47 +14,50 @@ using System.Runtime.InteropServices;
 
 namespace winparser
 {
-
-    [ComVisible(true)]
+    //[ComVisible(true)] // for SearchBrowser.ObjectForScripting
     public partial class MainForm : Form
     {
-        //static string SpellFilename = "spells_us.txt";
-        //static string DescFilename = "dbstr_us.txt";
+        private Dictionary<string, string> Effects;
 
-        static Dictionary<string, string> Effects;
+        private List<Spell> Spells;
+        private Dictionary<int, Spell> SpellsById;
 
-        static List<Spell> Spells;
-        static Dictionary<int, Spell> SpellsById;
+        public string SpellPath;
+        public List<Spell> Results;
 
 
         public MainForm()
         {
-            InitializeComponent();            
+            InitializeComponent();
 
             SearchClass.Items.AddRange(Enum.GetNames(typeof(SpellClassesLong)));
 
+            // literal text suggestions
+            SearchEffect.Items.Add("Charm");
+            SearchEffect.Items.Add("Mesmerize");
+            SearchEffect.Items.Add("Memory Blur");
+            SearchEffect.Items.Add("Root");
+
             Effects = new Dictionary<string, string>();
-            Effects.Add("Heal", @"Increase Current HP");
-            Effects.Add("Cure", @"Decrease \w+ Counter");
-            Effects.Add("Nuke", @"Decrease Current HP");
-            Effects.Add("DoT", @"Decrease Current HP by \d+ per tick");
-            Effects.Add("Haste", @"Increase Melee Haste");
-            Effects.Add("Slow", @"Decrease Melee Haste");
+            Effects.Add("Cure", @"Decrease \w+ Counter by (\d+)");
+            Effects.Add("Heal", @"Increase Current HP by (\d+)");
+            Effects.Add("HoT", @"Increase Current HP by (\d+) per tick");
+            Effects.Add("Nuke", @"Decrease Current HP by (\d+)");
+            Effects.Add("DoT", @"Decrease Current HP by (\d+) per tick");
+            Effects.Add("Haste", @"Increase Melee Haste .*?by (\d+)"); // .* for v3 haste
+            Effects.Add("Slow", @"Decrease Melee Haste by (\d+)");
             Effects.Add("Snare", @"Decrease Movement Speed");
             Effects.Add("Shrink", @"Decrease Player Size");
             Effects.Add("Rune", "@Absorb");
             Effects.Add("Pacify", @"Decrease Social Radius");
-            // literal text suggestions
-            SearchEffect.Items.Add("Mesmerize");
-            SearchEffect.Items.Add("Memory Blur");            
             SearchEffect.Items.AddRange(Effects.Keys.ToArray());
 
             //SearchBrowser.ObjectForScripting = this;
-
         }
 
         public new void Load(string spellPath, string descPath)
         {
+            SpellPath = spellPath;
             Text += " - " + spellPath;
 
             Cursor.Current = Cursors.WaitCursor;
@@ -63,58 +66,140 @@ namespace winparser
             SpellsById = Spells.ToDictionary(x => x.ID, x => x);
 
             Cursor.Current = Cursors.Default;
+
+            var html = InitHtml();
+            html.AppendFormat("<p>Loaded <strong>{0}</strong> spells from {1}.</p></html>", Spells.Count, SpellPath);
+            html.Append("<p>Use the search button to perform a search on this spell file. Only the first 2000 search results are shown.");
+            html.Append("<p>Use the compare button to perform a search on both spell files and show the differences (this only works if you have opened two spell files).");
+            SearchBrowser.DocumentText = html.ToString();
         }
 
         /// <summary>
         /// Search spell database based on form filter settings
         /// </summary>
-        private void Search()
+        public void Search()
         {
             var query = Spells.AsQueryable();
 
             // exclude spammy breath of AA
             query = query.Where(x => !x.Name.StartsWith("Breath of"));
 
+            //  spell name and description are checked for literal text
             var text = SearchText.Text;
             int id;
             if (Int32.TryParse(text, out id))
                 query = query.Where(x => x.ID == id);
             else if (!String.IsNullOrEmpty(text))
-                query = query.Where(x => x.ID.ToString() == text || x.Name.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0 || x.Desc != null && x.Desc.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0);
+                query = query.Where(x => x.ID.ToString() == text || x.Name.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0 || (x.Desc != null && x.Desc.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0));
+            //query = query.Where(x => x.ID.ToString() == text || x.Name.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0);
 
-            var cls = SearchClass.Text;
-            if (!String.IsNullOrEmpty(cls))
+            // levels can be either a single "level" or a range "min-max"
+            // they are only used when a class is selected            
+            int min = 1;
+            int max = 254;
+            var levels = SearchLevel.Text.Replace(" ", "").Split('-');
+            if (levels.Length == 2)
             {
-                int i = (int)Enum.Parse(typeof(SpellClassesLong), cls) - 1;
-                if (i >= 0)
-                    query = query.Where(x => x.Levels[i] > 0 && x.Levels[i] < 255);
+                min = Int32.Parse(levels[0]);
+                if (min == 0)
+                    min = 1; // zero would include spells the class can't cast
+                max = Int32.Parse(levels[1]);
+            }
+            else if (levels.Length == 1 && levels[0].Length > 0)
+            {
+                min = max = Int32.Parse(levels[0]);
             }
 
-            var effect = SearchEffect.Text;
+            var _class = Enum.IsDefined(typeof(SpellClassesLong), SearchClass.Text) ? (int)Enum.Parse(typeof(SpellClassesLong), SearchClass.Text) - 1 : -1;
+            if (_class >= 0)
+            {
+                query = query.Where(x => x.Levels[_class] >= min && x.Levels[_class] <= max);
+            }
+
+            string effect = SearchEffect.Text;
             if (!String.IsNullOrEmpty(effect))
             {
-                if (Effects.ContainsKey(effect) && Effects[effect] != effect)
-                    query = query.Where(x => x.HasEffectRegex(Effects[effect]) >= 0);
-                else                    
+                if (Effects.ContainsKey(effect))
+                    effect = Effects[effect];                
+                if (Regex.Escape(effect) != effect)
+                {
+                    var re = new Regex(effect, RegexOptions.IgnoreCase);
+                    query = query.Where(x => x.HasEffect(re) >= 0);
+                }
+                else
                     query = query.Where(x => x.HasEffect(effect) >= 0);
             }
 
+            Results = query.ToList();
+            //int visible = Results.Count;
+            string Sorting = null;
+            Expand(Results);
 
-            // limit results to 2000 spells to keep the webbrowser responsive
-            var list = query.Take(2000).ToList();
-            Expand(list);
-            SearchNotes.Text = String.Format("{0} results", list.Count);
+            // 1. if an effect is selected then sort by the effect strength
+            // this is problematic since many spells have conditional effects 
+            //if (effect.Contains(@"(\d+)"))
+            //{
+            //    Sorting = "Results have been sorted by descending " + SearchEffect.Text + " strength.";
+            //    var re = new Regex(effect, RegexOptions.IgnoreCase);
+            //    Results.Sort((a, b) =>
+            //    {
+            //        int comp = b.ScoreEffect(re) - a.ScoreEffect(re);
+            //        if (comp == 0)
+            //            comp = a.ID - b.ID;
+            //        return comp;
+            //    });
+            //}
+            // 2. if a class is selected then sort by the casting levels for that class first
+            // place castable spells before non castable effects (level == 0)
+            if (_class >= 0)
+            {
+                Sorting = String.Format("{0} results - sorted by {1} level.", Results.Count, SearchClass.Text);
+                Results.Sort((a, b) =>
+                {
+                    if (a.Levels[_class] > 0 && b.Levels[_class] == 0)
+                        return -1;
+                    if (b.Levels[_class] > 0 && a.Levels[_class] == 0)
+                        return 1;
+                    int comp = a.Levels[_class] - b.Levels[_class];
+                    if (comp == 0)
+                        comp = String.Compare(a.Name, b.Name);
+                    if (comp == 0)
+                        comp = a.ID - b.ID;
+                    return comp;
+                });
+            }
+            // 3. finally sort by name if no better method is found
+            else
+            {
+                Sorting = String.Format("{0} results - sorted by name.", Results.Count);
+                Results.Sort((a, b) =>
+                {
+                    int comp = String.Compare(a.Name, b.Name);
+                    if (comp == 0)
+                        comp = a.ID - b.ID;
+                    return comp;
+                });
+            }
+
+
+            SearchNotes.Text = String.Format("{0} results", Results.Count);
+
+            var html = InitHtml();
+            html.Append("<p>" + Sorting + "</p>");
 
             if (DisplayTable.Checked)
-                ShowAsTable(list);
+                ShowAsTable(Results, html);
             else
-                ShowAsText(list);
+                ShowAsText(Results, html);
+
+            html.Append("</html>");
+            SearchBrowser.DocumentText = html.ToString();
         }
 
         /// <summary>
         /// Recursively expand the spell list to include referenced spells.
         /// </summary>                
-        static void Expand(IList<Spell> list)
+        private void Expand(IList<Spell> list)
         {
             // keep a hash based index of existing results to avoid doing a linear search on results
             // when checking if a spell is already included
@@ -122,40 +207,41 @@ namespace winparser
             foreach (Spell spell in list)
                 included.Add(spell.ID);
 
-            Func<string, string> expand = text => Spell.SpellRefExpr.Replace(text, delegate(Match m)
-            {
-                Spell spellref;
-                if (SpellsById.TryGetValue(Int32.Parse(m.Groups[1].Value), out spellref))
-                {
-                    if (!included.Contains(spellref.ID))
-                    {
-                        included.Add(spellref.ID);
-                        list.Add(spellref);
-                    }
-                    //return spellref.Name;
-                    return String.Format("{1} [Spell {0}]", spellref.ID, spellref.Name);
-                }
-                return m.Groups[0].Value;
-            });
-
-
-            // scan each spell in the queue for spell references. if a new reference is found
-            // then add it to the queue so that it can also be checked
             int i = 0;
             while (i < list.Count)
             {
                 Spell spell = list[i++];
 
-                if (spell.Recourse != null)
-                    spell.Recourse = expand(spell.Recourse);
+                if (spell.RecourseID != 0)
+                {
+                    if (!included.Contains(spell.RecourseID))
+                    {
+                        included.Add(spell.RecourseID);
+                        Spell spellref;
+                        if (SpellsById.TryGetValue(spell.RecourseID, out spellref))
+                            list.Add(spellref);
+                    }
+                }
 
                 // check effects slots for the [Spell 1234] references
-                for (int j = 0; j < spell.Slots.Length; j++)
-                    if (spell.Slots[j] != null)
-                        spell.Slots[j] = expand(spell.Slots[j]);
+                foreach (string s in spell.Slots)
+                    if (s != null)
+                    {
+                        Match match = Spell.SpellRefExpr.Match(s);
+                        if (match.Success)
+                        {
+                            int id = Int32.Parse(match.Groups[1].Value);
+                            if (!included.Contains(id))
+                            {
+                                included.Add(id);
+                                Spell spellref;
+                                if (SpellsById.TryGetValue(id, out spellref))
+                                    list.Add(spellref);
+                            }
+                        }
+                    }
             }
-
-         }
+        }
 
         private StringBuilder InitHtml()
         {
@@ -167,37 +253,32 @@ namespace winparser
 
         private void ShowHtml(StringBuilder html)
         {
-            SearchBrowser.DocumentText = html.ToString(); 
+            SearchBrowser.DocumentText = html.ToString();
 
             //var path = Directory.GetCurrentDirectory() + "\\results.htm";
             //File.WriteAllText(path, html.ToString());
             //SearchBrowser.Navigate("file:///" + path);
         }
 
-        private void ShowAsText(IList<Spell> list)
+        private void ShowAsText(IList<Spell> list, StringBuilder html)
         {
-            var html = InitHtml();
-
-            foreach (var spell in list)
+            foreach (var spell in list.Take(2000))
             {
                 html.AppendFormat("<p id='spell{0}'><strong>{1}</strong><br/>", spell.ID, spell.ToString());
                 foreach (var line in spell.Details())
                     html.Append(GetSpellLink(line) + "<br/>");
+                if (spell.Desc != null)
+                    html.Append(spell.Desc);
                 html.Append("</p>");
             }
-
-            html.Append("</html>");
-            ShowHtml(html);
         }
 
-        private void ShowAsTable(IList<Spell> list)
+        private void ShowAsTable(IList<Spell> list, StringBuilder html)
         {
-            var html = InitHtml();
-
             html.Append("<table>");
-            html.Append("<tr><th>ID</th><th>Name</th><th>Classes</th><th>Mana</th><th>Cast</th><th>Recast</th><th>Duration</th><th>Resist</th><th>Target</th><th>Effects</th></tr>");
+            html.Append("<thead><tr><th>ID</th><th>Name</th><th>Classes</th><th>Mana</th><th>Cast</th><th>Recast</th><th>Duration</th><th>Resist</th><th>Target</th><th>Effects</th></tr></thead>");
 
-            foreach (var spell in list)
+            foreach (var spell in list.Take(2000))
             {
                 html.AppendFormat("<tr id='spell{0}'><td>{0}</td><td>{1}</td>", spell.ID, spell.Name);
 
@@ -212,7 +293,7 @@ namespace winparser
 
                 html.AppendFormat("<td>{0} {1}</td>", FormatTime(spell.RecastTime), spell.RecastTime > 0 && spell.TimerID > 0 ? " T" + spell.TimerID : "");
 
-                html.AppendFormat("<td>{0}</td>", spell.DurationTicks);
+                html.AppendFormat("<td>{0}</td>", FormatTime(spell.DurationTicks * 6));
 
                 if (!spell.Beneficial)
                     html.AppendFormat("<td>{0} {1}</td>", spell.ResistType, spell.ResistMod != 0 ? spell.ResistMod.ToString() : "");
@@ -238,7 +319,7 @@ namespace winparser
                 for (int i = 0; i < spell.Slots.Length; i++)
                     if (!String.IsNullOrEmpty(spell.Slots[i]))
                         html.AppendFormat("{0}: {1}<br/>", i + 1, GetSpellLink(spell.Slots[i]));
-                        
+
                 html.Append("</td>");
 
                 html.Append("</tr>");
@@ -247,17 +328,15 @@ namespace winparser
 
 
             html.Append("</table>");
-            html.Append("</html>");
-            ShowHtml(html);
         }
 
-        public string GetSpellInfo(int id)
-        {
-            Spell spell;
-            if (SpellsById.TryGetValue(id, out spell))
-                return String.Join("<br/>", spell.Details());
-            return "Not Found";
-        }
+        //public string GetSpellInfo(int id)
+        //{
+        //    Spell spell;
+        //    if (SpellsById.TryGetValue(id, out spell))
+        //        return String.Join("<br/>", spell.Details());
+        //    return "Not Found";
+        //}
 
         private string GetSpellLink(string text)
         {
@@ -292,8 +371,8 @@ namespace winparser
 
         private string HtmlEncode(string text)
         {
-            // no &amp; encoding. i don't think .net has a html encoder outside of the system.web assembly
-            return text.Replace("<", "&lt;").Replace(">", "&gt;");
+            // i don't think .net has a html encoder outside of the system.web assembly
+            return text.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
         }
 
         private string FormatTime(float seconds)
@@ -301,10 +380,12 @@ namespace winparser
             if (seconds < 120)
                 return seconds.ToString("0.#") + "s";
 
-            if (seconds < 7200)
+            if (seconds <= 7200)
                 return (seconds / 60f).ToString("0.#") + "m";
 
-            return new TimeSpan(0, 0, (int)seconds).ToString();
+            var ts = new TimeSpan(0, 0, (int)seconds);
+            return ts.Hours + "h" + ts.Minutes + "m";
+            //return new TimeSpan(0, 0, (int)seconds).ToString().TrimStart('0');
         }
 
         private string FormatEnum(object o)
@@ -324,12 +405,74 @@ namespace winparser
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            Application.Exit();
+            // <= 1 because the FileOpenForm is never closed
+            if (Application.OpenForms.Count <= 1)
+                Application.Exit();
         }
 
         private void SearchBrowser_Navigating(object sender, WebBrowserNavigatingEventArgs e)
         {
             //Text = e.Url.ToString();
+        }
+
+        private void CompareBtn_Click(object sender, EventArgs e)
+        {
+            MainForm other = null;
+            foreach (var f in Application.OpenForms)
+                if (f is MainForm && f != this)
+                    other = (MainForm)f;
+
+            if (other == null) // || other.Results == null || Results == null)
+            {
+                MessageBox.Show("You must have one other spell file open to compare with. This is done by selecting two spell files when the program starts.");
+                return;
+            }
+
+            Search();
+            other.SearchText.Text = SearchText.Text;
+            other.SearchClass.Text = SearchClass.Text;
+            other.SearchLevel.Text = SearchLevel.Text;
+            other.SearchEffect.Text = SearchEffect.Text;
+            other.Search();
+
+            // method 1: show unchanged spells
+            //var ver1 = new StringBuilder();
+            //foreach (var s in Results)
+            //    ver1.AppendLine(s.ToString() + "\n" + String.Join("\n", s.Details()) + "\n");
+
+            //var ver2 = new StringBuilder();
+            //foreach (var s in other.Results)
+            //    ver2.AppendLine(s.ToString() + "\n" + String.Join("\n", s.Details()) + "\n");
+
+            // method 2: show only changed spells
+            var master1 = new List<string>();
+            foreach (var s in Results)
+                master1.Add(s.ToString() + "\n" + String.Join("\n", s.Details()) + "\n\n");
+
+            var master2 = new List<string>();
+            foreach (var s in other.Results)
+                master2.Add(s.ToString() + "\n" + String.Join("\n", s.Details()) + "\n\n");
+
+            var ver1 = String.Join("", master1.Except(master2).ToArray());
+            var ver2 = String.Join("", master2.Except(master1).ToArray());
+
+            var dmp = new DiffMatchPatch.diff_match_patch();
+            //var diff = dmp.diff_main(ver1.ToString(), ver2.ToString());
+            var diff = dmp.diff_main(ver1, ver2);
+            //CompareNotes.Text = String.Format("{0} differences", diff.Count); 
+            //dmp.diff_cleanupEfficiency(diff);
+
+            var html = InitHtml();
+            html.AppendFormat("<p>Differences are shown as a series of <ins>additions</ins> and <del>deletions</del> to convert {0} to {1}.</p>", SpellPath, other.SpellPath);
+
+            html.Append(dmp.diff_prettyHtml(diff));
+            html.Append("</html>");
+
+            SearchBrowser.DocumentText = html.ToString();
+
+            html = InitHtml();
+            html.AppendFormat("<p>See other window for comparison.</p></html>");
+            other.SearchBrowser.DocumentText = html.ToString();
         }
 
 
