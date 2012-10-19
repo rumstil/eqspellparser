@@ -12,7 +12,8 @@
     <AssemblyName>winparser</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <ApplicationIcon>mainicon.ico</ApplicationIcon>
+    <ApplicationIcon>
+    </ApplicationIcon>
     <TargetZone>LocalIntranet</TargetZone>
     <GenerateManifests>false</GenerateManifests>
     <PublishUrl>publish\</PublishUrl>
@@ -54,6 +55,7 @@
       <HintPath>..\lzma.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.configuration" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
@@ -76,6 +78,7 @@
     <Compile Include="..\SpellParser.cs">
       <Link>SpellParser.cs</Link>
     </Compile>
+    <Compile Include="DiffMatchPatch.cs" />
     <Compile Include="FileOpenForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -118,9 +121,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\HtmlTemplate.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="mainicon.ico" />
+    <None Include="winparser.config" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
