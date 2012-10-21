@@ -30,10 +30,13 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.panel1 = new System.Windows.Forms.Panel();
+            this.SearchCategory = new System.Windows.Forms.ComboBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.CompareNotes = new System.Windows.Forms.Label();
             this.SearchLevel = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.CompareBtn = new System.Windows.Forms.Button();
-            this.DisplayDetails = new System.Windows.Forms.RadioButton();
+            this.DisplayText = new System.Windows.Forms.RadioButton();
             this.DisplayTable = new System.Windows.Forms.RadioButton();
             this.label4 = new System.Windows.Forms.Label();
             this.SearchNotes = new System.Windows.Forms.Label();
@@ -45,17 +48,18 @@
             this.label1 = new System.Windows.Forms.Label();
             this.SearchText = new System.Windows.Forms.TextBox();
             this.SearchBrowser = new System.Windows.Forms.WebBrowser();
-            this.CompareNotes = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.SearchCategory);
+            this.panel1.Controls.Add(this.label6);
             this.panel1.Controls.Add(this.CompareNotes);
             this.panel1.Controls.Add(this.SearchLevel);
             this.panel1.Controls.Add(this.label5);
             this.panel1.Controls.Add(this.CompareBtn);
-            this.panel1.Controls.Add(this.DisplayDetails);
+            this.panel1.Controls.Add(this.DisplayText);
             this.panel1.Controls.Add(this.DisplayTable);
             this.panel1.Controls.Add(this.label4);
             this.panel1.Controls.Add(this.SearchNotes);
@@ -72,8 +76,39 @@
             this.panel1.Size = new System.Drawing.Size(247, 730);
             this.panel1.TabIndex = 0;
             // 
+            // SearchCategory
+            // 
+            this.SearchCategory.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            this.SearchCategory.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            this.SearchCategory.FormattingEnabled = true;
+            this.SearchCategory.Location = new System.Drawing.Point(12, 203);
+            this.SearchCategory.Name = "SearchCategory";
+            this.SearchCategory.Size = new System.Drawing.Size(222, 23);
+            this.SearchCategory.Sorted = true;
+            this.SearchCategory.TabIndex = 9;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(9, 175);
+            this.label6.Name = "label6";
+            this.label6.Padding = new System.Windows.Forms.Padding(0, 10, 0, 0);
+            this.label6.Size = new System.Drawing.Size(55, 25);
+            this.label6.TabIndex = 8;
+            this.label6.Text = "Category";
+            // 
+            // CompareNotes
+            // 
+            this.CompareNotes.AutoSize = true;
+            this.CompareNotes.Location = new System.Drawing.Point(92, 416);
+            this.CompareNotes.Name = "CompareNotes";
+            this.CompareNotes.Size = new System.Drawing.Size(16, 15);
+            this.CompareNotes.TabIndex = 16;
+            this.CompareNotes.Text = "...";
+            // 
             // SearchLevel
             // 
+            this.SearchLevel.Enabled = false;
             this.SearchLevel.Location = new System.Drawing.Point(159, 95);
             this.SearchLevel.Name = "SearchLevel";
             this.SearchLevel.Size = new System.Drawing.Size(75, 23);
@@ -92,32 +127,32 @@
             // 
             // CompareBtn
             // 
-            this.CompareBtn.Location = new System.Drawing.Point(12, 337);
+            this.CompareBtn.Location = new System.Drawing.Point(11, 412);
             this.CompareBtn.Name = "CompareBtn";
             this.CompareBtn.Size = new System.Drawing.Size(75, 23);
-            this.CompareBtn.TabIndex = 13;
+            this.CompareBtn.TabIndex = 15;
             this.CompareBtn.Text = "Compare";
             this.CompareBtn.UseVisualStyleBackColor = true;
             this.CompareBtn.Click += new System.EventHandler(this.CompareBtn_Click);
             // 
-            // DisplayDetails
+            // DisplayText
             // 
-            this.DisplayDetails.AutoSize = true;
-            this.DisplayDetails.Location = new System.Drawing.Point(137, 236);
-            this.DisplayDetails.Name = "DisplayDetails";
-            this.DisplayDetails.Size = new System.Drawing.Size(60, 19);
-            this.DisplayDetails.TabIndex = 10;
-            this.DisplayDetails.Text = "Details";
-            this.DisplayDetails.UseVisualStyleBackColor = true;
+            this.DisplayText.AutoSize = true;
+            this.DisplayText.Location = new System.Drawing.Point(12, 284);
+            this.DisplayText.Name = "DisplayText";
+            this.DisplayText.Size = new System.Drawing.Size(60, 19);
+            this.DisplayText.TabIndex = 11;
+            this.DisplayText.Text = "Details";
+            this.DisplayText.UseVisualStyleBackColor = true;
             // 
             // DisplayTable
             // 
             this.DisplayTable.AutoSize = true;
             this.DisplayTable.Checked = true;
-            this.DisplayTable.Location = new System.Drawing.Point(77, 236);
+            this.DisplayTable.Location = new System.Drawing.Point(12, 309);
             this.DisplayTable.Name = "DisplayTable";
             this.DisplayTable.Size = new System.Drawing.Size(54, 19);
-            this.DisplayTable.TabIndex = 9;
+            this.DisplayTable.TabIndex = 12;
             this.DisplayTable.TabStop = true;
             this.DisplayTable.Text = "Table";
             this.DisplayTable.UseVisualStyleBackColor = true;
@@ -125,20 +160,21 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(10, 228);
+            this.label4.Location = new System.Drawing.Point(9, 253);
+            this.label4.Margin = new System.Windows.Forms.Padding(3, 0, 3, 3);
             this.label4.Name = "label4";
             this.label4.Padding = new System.Windows.Forms.Padding(0, 10, 0, 0);
             this.label4.Size = new System.Drawing.Size(61, 25);
-            this.label4.TabIndex = 8;
+            this.label4.TabIndex = 10;
             this.label4.Text = "Display As";
             // 
             // SearchNotes
             // 
             this.SearchNotes.AutoSize = true;
-            this.SearchNotes.Location = new System.Drawing.Point(93, 289);
+            this.SearchNotes.Location = new System.Drawing.Point(92, 363);
             this.SearchNotes.Name = "SearchNotes";
             this.SearchNotes.Size = new System.Drawing.Size(16, 15);
-            this.SearchNotes.TabIndex = 12;
+            this.SearchNotes.TabIndex = 14;
             this.SearchNotes.Text = "...";
             // 
             // SearchEffect
@@ -155,19 +191,19 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(10, 121);
+            this.label3.Location = new System.Drawing.Point(9, 121);
             this.label3.Name = "label3";
             this.label3.Padding = new System.Windows.Forms.Padding(0, 10, 0, 0);
-            this.label3.Size = new System.Drawing.Size(37, 25);
+            this.label3.Size = new System.Drawing.Size(60, 25);
             this.label3.TabIndex = 6;
-            this.label3.Text = "Effect";
+            this.label3.Text = "Has Effect";
             // 
             // SearchBtn
             // 
-            this.SearchBtn.Location = new System.Drawing.Point(12, 285);
+            this.SearchBtn.Location = new System.Drawing.Point(11, 359);
             this.SearchBtn.Name = "SearchBtn";
             this.SearchBtn.Size = new System.Drawing.Size(75, 23);
-            this.SearchBtn.TabIndex = 11;
+            this.SearchBtn.TabIndex = 13;
             this.SearchBtn.Text = "Search";
             this.SearchBtn.UseVisualStyleBackColor = true;
             this.SearchBtn.Click += new System.EventHandler(this.SearchBtn_Click);
@@ -182,6 +218,7 @@
             this.SearchClass.Size = new System.Drawing.Size(141, 23);
             this.SearchClass.Sorted = true;
             this.SearchClass.TabIndex = 3;
+            this.SearchClass.TextChanged += new System.EventHandler(this.SearchClass_TextChanged);
             // 
             // label2
             // 
@@ -222,15 +259,6 @@
             this.SearchBrowser.TabIndex = 1;
             this.SearchBrowser.Navigating += new System.Windows.Forms.WebBrowserNavigatingEventHandler(this.SearchBrowser_Navigating);
             // 
-            // CompareNotes
-            // 
-            this.CompareNotes.AutoSize = true;
-            this.CompareNotes.Location = new System.Drawing.Point(93, 341);
-            this.CompareNotes.Name = "CompareNotes";
-            this.CompareNotes.Size = new System.Drawing.Size(16, 15);
-            this.CompareNotes.TabIndex = 14;
-            this.CompareNotes.Text = "...";
-            // 
             // MainForm
             // 
             this.AcceptButton = this.SearchBtn;
@@ -264,12 +292,14 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label SearchNotes;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.RadioButton DisplayDetails;
+        private System.Windows.Forms.RadioButton DisplayText;
         private System.Windows.Forms.RadioButton DisplayTable;
         private System.Windows.Forms.Button CompareBtn;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.TextBox SearchLevel;
         private System.Windows.Forms.Label CompareNotes;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.ComboBox SearchCategory;
 
     }
 }
