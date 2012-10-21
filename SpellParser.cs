@@ -822,7 +822,6 @@ namespace Everquest
         public string Category;
 #endif
 
-
         public float Unknown;
 
 
@@ -992,6 +991,7 @@ namespace Everquest
             ClassesLevels = String.Empty;
             ClassesMask = 0;
             Level = 0;
+            bool All254 = true;
             for (int i = 0; i < Levels.Length; i++)
             {
                 if (Levels[i] == 255)
@@ -1002,8 +1002,13 @@ namespace Everquest
                     ClassesMask |= (SpellClassesMask)(1 << i);
                     ClassesLevels += " " + (SpellClasses)(i + 1) + "/" + Levels[i];
                 }
+                // bard AA i=7 are marked as 255 even though are usable
+                if (Levels[i] != 254 && i != 7)
+                    All254 = false;
             }
             ClassesLevels = ClassesLevels.TrimStart();
+            if (All254)
+                ClassesLevels = "ALL/254";
 
             if (MaxHitsType == SpellMaxHits.None || DurationTicks == 0)
                 MaxHits = 0;
@@ -2317,6 +2322,7 @@ namespace Everquest
                         Spell spell = LoadSpell(fields);
 
 #if LargeMemory
+                        // these categories are a little to specific. e.g. nukes split into resists
                         string s;
                         if (desc.TryGetValue("5/" + spell.CategoryDescID[0], out s))
                         {
@@ -2464,6 +2470,11 @@ namespace Everquest
             for (int i = 0; i < gods.Length; i++)
                 if (ParseBool(fields[125 + i]))
                     spell.Deity += gods[i] + " ";
+
+            //var sig = spell.Target.ToString();
+            //foreach (int slot in spell.SlotEffects)
+            //    sig += "," + slot.ToString();
+            
 
             // debug stuff
             //if (spell.ID == 31123) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);

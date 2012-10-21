@@ -30,6 +30,8 @@ namespace winparser
         {
             InitializeComponent();
 
+            Width = Screen.PrimaryScreen.WorkingArea.Width - 100;
+
             SearchClass.Items.AddRange(Enum.GetNames(typeof(SpellClassesLong)));
 
             // literal text suggestions
@@ -50,6 +52,7 @@ namespace winparser
             Effects.Add("Shrink", @"Decrease Player Size");
             Effects.Add("Rune", "@Absorb");
             Effects.Add("Pacify", @"Decrease Social Radius");
+            Effects.Add("Damage Shield", @"Increase Damage Shield by (\d+)");
             SearchEffect.Items.AddRange(Effects.Keys.ToArray());
 
             //SearchBrowser.ObjectForScripting = this;
@@ -64,14 +67,20 @@ namespace winparser
 
             Spells = SpellParser.LoadFromFile(spellPath, descPath).ToList();
             SpellsById = Spells.ToDictionary(x => x.ID, x => x);
+            SearchClass_TextChanged(this, null);
 
             Cursor.Current = Cursors.Default;
 
             var html = InitHtml();
             html.AppendFormat("<p>Loaded <strong>{0}</strong> spells from {1}.</p></html>", Spells.Count, SpellPath);
-            html.Append("<p>Use the search button to perform a search on this spell file. Only the first 2000 search results are shown.");
-            html.Append("<p>Use the compare button to perform a search on both spell files and show the differences (this only works if you have opened two spell files).");
+            html.Append("<p>Use the search button to perform a search on this spell file based on the criteria on the left. Only the first 2000 search results are shown.");
+            html.Append("<p>Use the compare button to compare two different spell files and show the differences. e.g. test server vs live server spells.");
             SearchBrowser.DocumentText = html.ToString();
+        }
+
+        public int GetSearchClass()
+        {
+            return Enum.IsDefined(typeof(SpellClassesLong), SearchClass.Text) ? (int)Enum.Parse(typeof(SpellClassesLong), SearchClass.Text) - 1 : -1;
         }
 
         /// <summary>
@@ -100,27 +109,32 @@ namespace winparser
             var levels = SearchLevel.Text.Replace(" ", "").Split('-');
             if (levels.Length == 2)
             {
-                min = Int32.Parse(levels[0]);
+                if (!Int32.TryParse(levels[0], out min))
+                    min = 1;
                 if (min == 0)
                     min = 1; // zero would include spells the class can't cast
-                max = Int32.Parse(levels[1]);
+                if (!Int32.TryParse(levels[1], out max))
+                    max = 254;
             }
             else if (levels.Length == 1 && levels[0].Length > 0)
             {
-                min = max = Int32.Parse(levels[0]);
+                if (!Int32.TryParse(levels[0], out min))
+                    min = 1;
+                max = min;
             }
 
-            var _class = Enum.IsDefined(typeof(SpellClassesLong), SearchClass.Text) ? (int)Enum.Parse(typeof(SpellClassesLong), SearchClass.Text) - 1 : -1;
+            var _class = GetSearchClass();
             if (_class >= 0)
             {
                 query = query.Where(x => x.Levels[_class] >= min && x.Levels[_class] <= max);
             }
 
+            // effect filter  can be a literal string or a regex
             string effect = SearchEffect.Text;
             if (!String.IsNullOrEmpty(effect))
             {
                 if (Effects.ContainsKey(effect))
-                    effect = Effects[effect];                
+                    effect = Effects[effect];
                 if (Regex.Escape(effect) != effect)
                 {
                     var re = new Regex(effect, RegexOptions.IgnoreCase);
@@ -130,10 +144,19 @@ namespace winparser
                     query = query.Where(x => x.HasEffect(effect) >= 0);
             }
 
+            string category = SearchCategory.Text;
+            if (!String.IsNullOrEmpty(category))
+            {
+                if (category == "AA")
+                    query = query.Where(x => String.IsNullOrEmpty(x.Category));
+                else
+                    query = query.Where(x => x.Category != null && x.Category.IndexOf(category, StringComparison.InvariantCultureIgnoreCase) >= 0);
+            }
+
             Results = query.ToList();
-            //int visible = Results.Count;
             string Sorting = null;
             Expand(Results);
+
 
             // 1. if an effect is selected then sort by the effect strength
             // this is problematic since many spells have conditional effects 
@@ -153,7 +176,7 @@ namespace winparser
             // place castable spells before non castable effects (level == 0)
             if (_class >= 0)
             {
-                Sorting = String.Format("{0} results - sorted by {1} level.", Results.Count, SearchClass.Text);
+                Sorting = String.Format("Results sorted by {1} level.", Results.Count, SearchClass.Text);
                 Results.Sort((a, b) =>
                 {
                     if (a.Levels[_class] > 0 && b.Levels[_class] == 0)
@@ -171,7 +194,7 @@ namespace winparser
             // 3. finally sort by name if no better method is found
             else
             {
-                Sorting = String.Format("{0} results - sorted by name.", Results.Count);
+                Sorting = String.Format("Results sorted by name.", Results.Count);
                 Results.Sort((a, b) =>
                 {
                     int comp = String.Compare(a.Name, b.Name);
@@ -183,14 +206,18 @@ namespace winparser
 
 
             SearchNotes.Text = String.Format("{0} results", Results.Count);
+            if (Results.Count > 2000)
+                Sorting += " Only the first 2000 are shown.";
 
             var html = InitHtml();
             html.Append("<p>" + Sorting + "</p>");
 
-            if (DisplayTable.Checked)
-                ShowAsTable(Results, html);
+            if (DisplayText.Checked)
+                ShowAsText(Results.Take(2000), html);
             else
-                ShowAsText(Results, html);
+                ShowAsTable(Results.Take(2000), html);
+
+
 
             html.Append("</html>");
             SearchBrowser.DocumentText = html.ToString();
@@ -260,9 +287,9 @@ namespace winparser
             //SearchBrowser.Navigate("file:///" + path);
         }
 
-        private void ShowAsText(IList<Spell> list, StringBuilder html)
+        private void ShowAsText(IEnumerable<Spell> list, StringBuilder html)
         {
-            foreach (var spell in list.Take(2000))
+            foreach (var spell in list)
             {
                 html.AppendFormat("<p id='spell{0}'><strong>{1}</strong><br/>", spell.ID, spell.ToString());
                 foreach (var line in spell.Details())
@@ -273,12 +300,23 @@ namespace winparser
             }
         }
 
-        private void ShowAsTable(IList<Spell> list, StringBuilder html)
+        private void ShowAsTable(IEnumerable<Spell> list, StringBuilder html)
         {
-            html.Append("<table>");
-            html.Append("<thead><tr><th>ID</th><th>Name</th><th>Classes</th><th>Mana</th><th>Cast</th><th>Recast</th><th>Duration</th><th>Resist</th><th>Target</th><th>Effects</th></tr></thead>");
+            html.Append("<table style='table-layout: fixed; width: 83em;'>");
+            html.Append("<thead><tr>");
+            html.Append("<th style='width: 4em;'>ID</th>");
+            html.Append("<th style='width: 18em;'>Name</th>");
+            html.Append("<th style='width: 10em;'>Classes</th>");
+            html.Append("<th style='width: 4em;'>Mana</th>");
+            html.Append("<th style='width: 4em;'>Cast</th>");
+            html.Append("<th style='width: 4em;'>Recast</th>");
+            html.Append("<th style='width: 4em;'>Duration</th>");
+            html.Append("<th style='width: 6em;'>Resist</th>");
+            html.Append("<th style='width: 5em;'>Target</th>");
+            html.Append("<th style='width: 24em;'>Effects</th>");
+            html.Append("</tr></thead>");
 
-            foreach (var spell in list.Take(2000))
+            foreach (var spell in list)
             {
                 html.AppendFormat("<tr id='spell{0}'><td>{0}</td><td>{1}</td>", spell.ID, spell.Name);
 
@@ -433,6 +471,7 @@ namespace winparser
             other.SearchClass.Text = SearchClass.Text;
             other.SearchLevel.Text = SearchLevel.Text;
             other.SearchEffect.Text = SearchEffect.Text;
+            other.SearchCategory.Text = SearchCategory.Text;
             other.Search();
 
             // method 1: show unchanged spells
@@ -474,6 +513,39 @@ namespace winparser
             html.AppendFormat("<p>See other window for comparison.</p></html>");
             other.SearchBrowser.DocumentText = html.ToString();
         }
+
+        private void SearchClass_TextChanged(object sender, EventArgs e)
+        {
+            int _cls = GetSearchClass();
+            if (_cls != -1)
+            {
+                SearchLevel.Enabled = true;
+
+                var cat = Spells.Where(x => x.Levels[_cls] > 0).Select(x => x.Category).Where(x => x != null).Distinct().ToList();
+
+                // add the root categories. e.g. for "Utility Beneficial/Combat Innates/Illusion: Other" add "Utility Beneficial"
+                int i = 0;
+                while (i < cat.Count)
+                {
+                    var parts = cat[i].Split('/');
+                    if (!cat.Contains(parts[0]))
+                        cat.Add(parts[0]);
+                    i++;
+                }
+
+                SearchCategory.Items.Clear();
+                SearchCategory.Items.AddRange(cat.ToArray());
+                
+            }
+            else
+            {
+                SearchLevel.Enabled = false;
+                SearchCategory.Items.Clear();
+                SearchCategory.Items.AddRange(Spells.Select(x => x.Category).Where(x => x != null).Distinct().ToArray());
+            }
+            SearchCategory.Items.Add("AA");
+        }
+
 
 
 

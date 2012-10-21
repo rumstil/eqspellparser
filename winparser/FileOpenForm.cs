@@ -70,9 +70,13 @@ namespace winparser
             spell.Name = spell.Name.Replace(".txt", "-" + spell.LastModified.ToString("yyyy-MM-dd") + server + ".txt");
             LaunchpadPatcher.DownloadFile(spell.Url, spell.Name);
 
+            // the desc file can sometimes be older than the spell file. we need to save it with the spell file timestamp 
+            // so that there is always a corresponding copy
             var desc = files["dbstr_us.txt"];
-            desc.Name = desc.Name.Replace(".txt", "-" + desc.LastModified.ToString("yyyy-MM-dd") + server + ".txt");
+            desc.Name = desc.Name.Replace(".txt", "-" + spell.LastModified.ToString("yyyy-MM-dd") + server + ".txt");
             LaunchpadPatcher.DownloadFile(desc.Url, desc.Name);
+
+            Status.Text = String.Format("Downloaded {0} {1}", spell.Name, spell.LastModified.ToString());
 
             Cursor.Current = Cursors.Default;
 
@@ -81,7 +85,7 @@ namespace winparser
                 var item = new ListViewItem(spell.Name);
                 item.SubItems.Add(spell.UncompressedSize.ToString());
                 listView1.Items.Add(item);
-                //listView1.FocusedItem = item;
+                //listView1.FocusedItem = item;                
             }
 
             //Open(spell.Name);
@@ -106,7 +110,10 @@ namespace winparser
             Download((sender as Button).AccessibleName);
         }
 
-
+        private void FileOpenForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            Application.Exit();
+        }
 
     }
 }
