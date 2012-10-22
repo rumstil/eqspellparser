@@ -118,9 +118,9 @@
             this.Status.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Status.Location = new System.Drawing.Point(12, 9);
             this.Status.Name = "Status";
-            this.Status.Size = new System.Drawing.Size(175, 15);
+            this.Status.Size = new System.Drawing.Size(232, 15);
             this.Status.TabIndex = 0;
-            this.Status.Text = "Please select a spell file to open.";
+            this.Status.Text = "Please select at least one spell file to open. ";
             // 
             // panel3
             // 

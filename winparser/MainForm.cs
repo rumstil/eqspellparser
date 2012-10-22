@@ -68,6 +68,7 @@ namespace winparser
             Spells = SpellParser.LoadFromFile(spellPath, descPath).ToList();
             SpellsById = Spells.ToDictionary(x => x.ID, x => x);
             SearchClass_TextChanged(this, null);
+            AutoSearch.Enabled = false;
 
             Cursor.Current = Cursors.Default;
 
@@ -75,6 +76,7 @@ namespace winparser
             html.AppendFormat("<p>Loaded <strong>{0}</strong> spells from {1}.</p></html>", Spells.Count, SpellPath);
             html.Append("<p>Use the search button to perform a search on this spell file based on the criteria on the left. Only the first 2000 search results are shown.");
             html.Append("<p>Use the compare button to compare two different spell files and show the differences. e.g. test server vs live server spells.");
+            html.Append("<p>Tip: You can use the up/down arrow keys when the cursor is in the Class/Has Effect/Category fields to quickly try different searches.");
             SearchBrowser.DocumentText = html.ToString();
         }
 
@@ -88,6 +90,8 @@ namespace winparser
         /// </summary>
         public void Search()
         {
+            AutoSearch.Enabled = false;
+
             var query = Spells.AsQueryable();
 
             // exclude spammy breath of AA
@@ -206,18 +210,24 @@ namespace winparser
 
 
             SearchNotes.Text = String.Format("{0} results", Results.Count);
-            if (Results.Count > 2000)
-                Sorting += " Only the first 2000 are shown.";
 
             var html = InitHtml();
-            html.Append("<p>" + Sorting + "</p>");
 
-            if (DisplayText.Checked)
-                ShowAsText(Results.Take(2000), html);
+            if (Results.Count == 0)
+            {
+                html.Append("<p><strong>Sorry, no matching spells were found.</strong></p><p>You may have made the filters too restrictive (including levels), accidentally defined conflicting filters, or left one of the filters filled in from a previous search. Try filtering by just one or two criteria.</p>");
+            }
             else
-                ShowAsTable(Results.Take(2000), html);
+            {
+                if (Results.Count > 2000)
+                    Sorting += " Only the first 2000 are shown.";
+                html.Append("<p>" + Sorting + "</p>");
 
-
+                if (DisplayText.Checked)
+                    ShowAsText(Results.Take(2000), html);
+                else
+                    ShowAsTable(Results.Take(2000), html);
+            }
 
             html.Append("</html>");
             SearchBrowser.DocumentText = html.ToString();
@@ -302,7 +312,7 @@ namespace winparser
 
         private void ShowAsTable(IEnumerable<Spell> list, StringBuilder html)
         {
-            html.Append("<table style='table-layout: fixed; width: 83em;'>");
+            html.Append("<table style='table-layout: fixed; width: 85em;'>");
             html.Append("<thead><tr>");
             html.Append("<th style='width: 4em;'>ID</th>");
             html.Append("<th style='width: 18em;'>Name</th>");
@@ -313,7 +323,7 @@ namespace winparser
             html.Append("<th style='width: 4em;'>Duration</th>");
             html.Append("<th style='width: 6em;'>Resist</th>");
             html.Append("<th style='width: 5em;'>Target</th>");
-            html.Append("<th style='width: 24em;'>Effects</th>");
+            html.Append("<th style='width: 26em;'>Effects</th>");
             html.Append("</tr></thead>");
 
             foreach (var spell in list)
@@ -443,8 +453,8 @@ namespace winparser
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            // <= 1 because the FileOpenForm is never closed
-            if (Application.OpenForms.Count <= 1)
+            // quit if no other windows are open (+1 for FileOpenForm which is hidden)
+            if (Application.OpenForms.Count <= 2)
                 Application.Exit();
         }
 
@@ -466,6 +476,7 @@ namespace winparser
                 return;
             }
 
+            // perform the same search on both spell files
             Search();
             other.SearchText.Text = SearchText.Text;
             other.SearchClass.Text = SearchClass.Text;
@@ -474,7 +485,7 @@ namespace winparser
             other.SearchCategory.Text = SearchCategory.Text;
             other.Search();
 
-            // method 1: show unchanged spells
+            // method 1: show changed and unchanged spells
             //var ver1 = new StringBuilder();
             //foreach (var s in Results)
             //    ver1.AppendLine(s.ToString() + "\n" + String.Join("\n", s.Details()) + "\n");
@@ -502,7 +513,7 @@ namespace winparser
             //dmp.diff_cleanupEfficiency(diff);
 
             var html = InitHtml();
-            html.AppendFormat("<p>Differences are shown as a series of <ins>additions</ins> and <del>deletions</del> to convert {0} to {1}.</p>", SpellPath, other.SpellPath);
+            html.AppendFormat("<p>Differences are shown as a series of <ins>additions</ins> and <del>deletions</del> that are needed to convert {0} to {1}.</p>", SpellPath, other.SpellPath);
 
             html.Append(dmp.diff_prettyHtml(diff));
             html.Append("</html>");
@@ -534,8 +545,7 @@ namespace winparser
                 }
 
                 SearchCategory.Items.Clear();
-                SearchCategory.Items.AddRange(cat.ToArray());
-                
+                SearchCategory.Items.AddRange(cat.ToArray());                
             }
             else
             {
@@ -544,6 +554,15 @@ namespace winparser
                 SearchCategory.Items.AddRange(Spells.Select(x => x.Category).Where(x => x != null).Distinct().ToArray());
             }
             SearchCategory.Items.Add("AA");
+            SearchText_TextChanged(sender, e);
+        }
+
+        private void SearchText_TextChanged(object sender, EventArgs e)
+        {
+            // reset timer so that we don't query on every single character the user types
+            AutoSearch.Interval = (sender is TextBox) ? 800 : 200;
+            AutoSearch.Enabled = false;
+            AutoSearch.Enabled = true;
         }
 
 
