@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.panel1 = new System.Windows.Forms.Panel();
             this.SearchCategory = new System.Windows.Forms.ComboBox();
@@ -48,6 +49,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.SearchText = new System.Windows.Forms.TextBox();
             this.SearchBrowser = new System.Windows.Forms.WebBrowser();
+            this.AutoSearch = new System.Windows.Forms.Timer(this.components);
             this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -86,6 +88,7 @@
             this.SearchCategory.Size = new System.Drawing.Size(222, 23);
             this.SearchCategory.Sorted = true;
             this.SearchCategory.TabIndex = 9;
+            this.SearchCategory.TextChanged += new System.EventHandler(this.SearchText_TextChanged);
             // 
             // label6
             // 
@@ -114,6 +117,7 @@
             this.SearchLevel.Size = new System.Drawing.Size(75, 23);
             this.SearchLevel.TabIndex = 5;
             this.SearchLevel.Text = "80-254";
+            this.SearchLevel.TextChanged += new System.EventHandler(this.SearchText_TextChanged);
             // 
             // label5
             // 
@@ -144,6 +148,7 @@
             this.DisplayText.TabIndex = 11;
             this.DisplayText.Text = "Details";
             this.DisplayText.UseVisualStyleBackColor = true;
+            this.DisplayText.Click += new System.EventHandler(this.SearchText_TextChanged);
             // 
             // DisplayTable
             // 
@@ -156,6 +161,7 @@
             this.DisplayTable.TabStop = true;
             this.DisplayTable.Text = "Table";
             this.DisplayTable.UseVisualStyleBackColor = true;
+            this.DisplayTable.Click += new System.EventHandler(this.SearchText_TextChanged);
             // 
             // label4
             // 
@@ -187,6 +193,7 @@
             this.SearchEffect.Size = new System.Drawing.Size(222, 23);
             this.SearchEffect.Sorted = true;
             this.SearchEffect.TabIndex = 7;
+            this.SearchEffect.TextChanged += new System.EventHandler(this.SearchText_TextChanged);
             // 
             // label3
             // 
@@ -246,6 +253,7 @@
             this.SearchText.Name = "SearchText";
             this.SearchText.Size = new System.Drawing.Size(222, 23);
             this.SearchText.TabIndex = 1;
+            this.SearchText.TextChanged += new System.EventHandler(this.SearchText_TextChanged);
             // 
             // SearchBrowser
             // 
@@ -258,6 +266,11 @@
             this.SearchBrowser.Size = new System.Drawing.Size(761, 730);
             this.SearchBrowser.TabIndex = 1;
             this.SearchBrowser.Navigating += new System.Windows.Forms.WebBrowserNavigatingEventHandler(this.SearchBrowser_Navigating);
+            // 
+            // AutoSearch
+            // 
+            this.AutoSearch.Interval = 500;
+            this.AutoSearch.Tick += new System.EventHandler(this.SearchBtn_Click);
             // 
             // MainForm
             // 
@@ -300,6 +313,7 @@
         private System.Windows.Forms.Label CompareNotes;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.ComboBox SearchCategory;
+        private System.Windows.Forms.Timer AutoSearch;
 
     }
 }
