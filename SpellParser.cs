@@ -2325,16 +2325,18 @@ namespace Everquest
                         Spell spell = LoadSpell(fields);
 
 #if LargeMemory
-                        // these categories are a little to specific. e.g. nukes split into resists
+                        // all spells are organized into a hierarchical classification system up to 3 levels deep
+                        // the 3rd level is too specific so it will be ignored
                         string s;
                         if (desc.TryGetValue("5/" + spell.CategoryDescID[0], out s))
                         {
                             spell.Category = s;
                             if (desc.TryGetValue("5/" + spell.CategoryDescID[1], out s))
                                 spell.Category += "/" + s;
-                            if (desc.TryGetValue("5/" + spell.CategoryDescID[2], out s))
-                                spell.Category += "/" + s;
-                        }
+                            //if (desc.TryGetValue("5/" + spell.CategoryDescID[2], out s))
+                            //    spell.Category += "/" + s;
+                        }                       
+
 #endif
 
                         if (!desc.TryGetValue("6/" + spell.DescID, out spell.Desc))

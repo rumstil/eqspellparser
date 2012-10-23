@@ -39,6 +39,9 @@ namespace winparser
             SearchEffect.Items.Add("Mesmerize");
             SearchEffect.Items.Add("Memory Blur");
             SearchEffect.Items.Add("Root");
+            SearchEffect.Items.Add("Stun");
+            SearchEffect.Items.Add("Hate");
+            SearchEffect.Items.Add("Invisibility");
 
             Effects = new Dictionary<string, string>();
             Effects.Add("Cure", @"Decrease \w+ Counter by (\d+)");
@@ -48,11 +51,13 @@ namespace winparser
             Effects.Add("DoT", @"Decrease Current HP by (\d+) per tick");
             Effects.Add("Haste", @"Increase Melee Haste .*?by (\d+)"); // .* for v3 haste
             Effects.Add("Slow", @"Decrease Melee Haste by (\d+)");
-            Effects.Add("Snare", @"Decrease Movement Speed");
+            Effects.Add("Snare", @"Decrease Movement Speed by (\d+)");
             Effects.Add("Shrink", @"Decrease Player Size");
             Effects.Add("Rune", "@Absorb");
             Effects.Add("Pacify", @"Decrease Social Radius");
             Effects.Add("Damage Shield", @"Increase Damage Shield by (\d+)");
+            Effects.Add("Mana Regen", @"Increase Current Mana by (\d+)");
+
             SearchEffect.Items.AddRange(Effects.Keys.ToArray());
 
             //SearchBrowser.ObjectForScripting = this;
