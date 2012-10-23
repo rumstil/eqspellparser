@@ -19,7 +19,6 @@ namespace parser
 
         static void Main(string[] args)
         {
-            
             try
             {
                 int dec = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalDigits;
@@ -45,14 +44,17 @@ namespace parser
                     args[0] = "all";
                 }
 
-                if (!File.Exists(SpellFilename) || !File.Exists(DescFilename))
+                if (!File.Exists(SpellFilename))
                     DownloadPatchFiles(null);
 
-                var spells = SpellParser.LoadFromFile(SpellFilename, DescFilename).ToList();
+                Console.Error.Write("Loading {0}... ", SpellFilename);
+                var spells = SpellParser.LoadFromFile(SpellFilename, SpellFilename.Replace("spells_us", "dbstr_us")).ToList();
+                Console.Error.WriteLine("{0} spells", spells.Count);
                 
-                // perform search based on command line parameters
+                // perform search based on command line parameters                
                 string type = args.Length >= 1 ? args[0].ToLower() : null;
                 string value = args.Length >= 2 ? args[1] : null;
+                Console.Error.Write("Searching for {0} {1}... ", type, value);
                 var results = Search(spells , type, value);
 
                 // expand results to include referenced spells 
@@ -61,9 +63,8 @@ namespace parser
 
                 if (results != null)
                 {
+                    Console.Error.WriteLine("{0} results", results.Count);
                     Show(results);
-                    Console.Error.WriteLine();
-                    Console.Error.WriteLine("{0} results", results.Count());
                 }
 
             }
@@ -114,7 +115,7 @@ namespace parser
 
             // debugging: search the unknown field 
             if (field == "unknown")
-                results = list.Where(x => x.Unknown != 0).OrderBy(x => x.Unknown);
+                results = list.Where(x => x.Unknown > 0).OrderBy(x => x.Unknown);
 
 
             return results.ToList();

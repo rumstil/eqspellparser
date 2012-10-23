@@ -239,7 +239,7 @@ namespace winparser
             }
 
             html.Append("</html>");
-            SearchBrowser.DocumentText = html.ToString();
+            SearchBrowser.DocumentText = html.ToString();            
         }
 
         /// <summary>
@@ -455,11 +455,6 @@ namespace winparser
             return type;
         }
 
-        private void SearchBtn_Click(object sender, EventArgs e)
-        {
-            Search();
-        }
-
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
             // quit if no other windows are open (+1 for FileOpenForm which is hidden)
@@ -472,8 +467,17 @@ namespace winparser
             //Text = e.Url.ToString();
         }
 
+        private void SearchBtn_Click(object sender, EventArgs e)
+        {
+            Cursor.Current = Cursors.WaitCursor;
+            Search();
+            Cursor.Current = Cursors.Default;
+        }
+
         private void CompareBtn_Click(object sender, EventArgs e)
         {
+            Cursor.Current = Cursors.WaitCursor;
+
             FileOpenForm open = null;
             MainForm other = null;
             foreach (var f in Application.OpenForms)
@@ -523,10 +527,9 @@ namespace winparser
             var ver2 = String.Join("", master2.Except(master1).ToArray());
 
             var dmp = new DiffMatchPatch.diff_match_patch();
-            //var diff = dmp.diff_main(ver1.ToString(), ver2.ToString());
-            var diff = dmp.diff_main(ver1, ver2);
-            //CompareNotes.Text = String.Format("{0} differences", diff.Count); 
-            //dmp.diff_cleanupEfficiency(diff);
+            //var diff = dmp.diff_main(ver1.ToString(), ver2.ToString()); // method 1
+            //var diff = dmp.diff_main(ver1, ver2); // method 2
+            var diff = dmp.diff_lineMode(ver1, ver2);  // method 2
 
             var html = InitHtml();
 
@@ -545,6 +548,8 @@ namespace winparser
             //html = InitHtml();
             //html.AppendFormat("<p>See other window for comparison.</p></html>");
             //other.SearchBrowser.DocumentText = html.ToString();
+
+            Cursor.Current = Cursors.Default;
         }
 
         private void SearchClass_TextChanged(object sender, EventArgs e)
