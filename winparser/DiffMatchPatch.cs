@@ -377,6 +377,24 @@ namespace DiffMatchPatch {
 
       return diff_bisect(text1, text2, deadline);
     }
+    
+    /// <summary>
+    /// line-level diff as described here http://code.google.com/p/google-diff-match-patch/wiki/LineOrWordDiffs
+    /// </summary>
+    public List<Diff> diff_lineMode(string text1, string text2)
+    {
+      // Scan the text on a line-by-line basis first.
+      Object[] b = diff_linesToChars(text1, text2);
+      text1 = (string)b[0];
+      text2 = (string)b[1];
+      List<string> linearray = (List<string>)b[2];
+
+      List<Diff> diffs = diff_main(text1, text2, false);
+
+      // Convert the diff back to original text.
+      diff_charsToLines(diffs, linearray);
+      return diffs;
+    }
 
     /**
      * Do a quick line-level diff on both strings, then rediff the parts for
