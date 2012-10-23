@@ -33,8 +33,8 @@
             this.OpenBtn = new System.Windows.Forms.Button();
             this.DownloadBtn = new System.Windows.Forms.Button();
             this.listView1 = new System.Windows.Forms.ListView();
-            this.columnHeader1 = new System.Windows.Forms.ColumnHeader();
-            this.columnHeader2 = new System.Windows.Forms.ColumnHeader();
+            this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.panel2 = new System.Windows.Forms.Panel();
             this.Status = new System.Windows.Forms.Label();
             this.panel3 = new System.Windows.Forms.Panel();
@@ -146,7 +146,7 @@
             this.Name = "FileOpenForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "EQ Spell Parser";
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.FileOpenForm_FormClosed);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FileOpenForm_FormClosing);
             this.panel1.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();

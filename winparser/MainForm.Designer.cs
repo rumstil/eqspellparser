@@ -50,6 +50,7 @@
             this.SearchText = new System.Windows.Forms.TextBox();
             this.SearchBrowser = new System.Windows.Forms.WebBrowser();
             this.AutoSearch = new System.Windows.Forms.Timer(this.components);
+            this.ToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -116,7 +117,8 @@
             this.SearchLevel.Name = "SearchLevel";
             this.SearchLevel.Size = new System.Drawing.Size(75, 23);
             this.SearchLevel.TabIndex = 5;
-            this.SearchLevel.Text = "80-254";
+            this.SearchLevel.Text = "81-254";
+            this.ToolTip.SetToolTip(this.SearchLevel, "Enter a single level or a level range.  AA are level 254.");
             this.SearchLevel.TextChanged += new System.EventHandler(this.SearchText_TextChanged);
             // 
             // label5
@@ -136,6 +138,7 @@
             this.CompareBtn.Size = new System.Drawing.Size(75, 23);
             this.CompareBtn.TabIndex = 15;
             this.CompareBtn.Text = "Compare";
+            this.ToolTip.SetToolTip(this.CompareBtn, "Perform the same search on two spell files and compare the results. ");
             this.CompareBtn.UseVisualStyleBackColor = true;
             this.CompareBtn.Click += new System.EventHandler(this.CompareBtn_Click);
             // 
@@ -193,6 +196,8 @@
             this.SearchEffect.Size = new System.Drawing.Size(222, 23);
             this.SearchEffect.Sorted = true;
             this.SearchEffect.TabIndex = 7;
+            this.ToolTip.SetToolTip(this.SearchEffect, "Select a spell effect type from the list, enter an SPA number, or type some text " +
+        "that appears in the effect description.");
             this.SearchEffect.TextChanged += new System.EventHandler(this.SearchText_TextChanged);
             // 
             // label3
@@ -314,6 +319,7 @@
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.ComboBox SearchCategory;
         private System.Windows.Forms.Timer AutoSearch;
+        private System.Windows.Forms.ToolTip ToolTip;
 
     }
 }

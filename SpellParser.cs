@@ -1244,7 +1244,10 @@ namespace Everquest
                     return "Identify Item";
                 case 63:
                     // +25 if over level 53, +(cha - 150)/10 max:15. so base is 40 + whatever the value is
-                    return String.Format("Memory Blur ({0})", value);
+                    //return String.Format("Memory Blur ({0})", value);
+                    if (value + 40 < 100)
+                        return String.Format("Memory Blur ({0}% Chance)", value + 40);
+                    return "Memory Blur";
                 case 64:
                     return String.Format("Stun and Spin for {0}s", base1 / 1000f) + maxlevel;
                 case 65:
@@ -1263,7 +1266,7 @@ namespace Everquest
                     return "Bind Sight";
                 case 74:
                     if (value < 100)
-                        return String.Format("Feign Death (Success: {0}%)", value);
+                        return String.Format("Feign Death ({0}% Chance)", value);
                     return "Feign Death";
                 case 75:
                     return "Voice Graft";
@@ -1518,7 +1521,7 @@ namespace Everquest
                     return String.Format("{0} Attack for {1} with {2}% Accuracy Mod", Spell.FormatEnum(Skill), base1, base2);
                 case 194:
                     if (value < 100)
-                        return String.Format("Cancel All Aggro (Success: {0}%)", value);
+                        return String.Format("Cancel All Aggro ({0}% Chance)", value);
                     return "Cancel All Aggro";
                 case 195:
                     // 100 is full resist. not sure why some spells have more
@@ -1574,7 +1577,7 @@ namespace Everquest
                 case 227:
                     return String.Format("Reduce {0} Timer by {1}s", Spell.FormatEnum((SpellSkill)base2), base1);
                 case 232:
-                    return String.Format("Cast on Death Save: [Spell {0}] Chance: {1}%", base2, base1);
+                    return String.Format("Cast on Death Save: [Spell {0}] ({1}% Chance)", base2, base1);
                 case 233:
                     return Spell.FormatPercent("Food Consumption", -value);
                 //case 238: // probably buff extension AA
@@ -1709,7 +1712,7 @@ namespace Everquest
                     return Spell.FormatCount("Current HP", value) + repeating + range;
                 case 335:
                     if (base1 < 100)
-                        return String.Format("Block Matching Spell (Success: {0}%)", base1);
+                        return String.Format("Block Matching Spell ({0}% Chance)", base1);
                     return "Block Matching Spell";
                 case 337:
                     return Spell.FormatPercent("Experience Gain", value);
@@ -1717,10 +1720,10 @@ namespace Everquest
                     return "Summon and Resurrect All Corpses";
                 case 339:
                     // how is this different than 383? (besides chance)
-                    return String.Format("Cast on Spell Use: [Spell {0}] Chance: {1}%", base2, base1);
+                    return String.Format("Cast on Spell Use: [Spell {0}] ({1}% Chance)", base2, base1);
                 case 340:
                     if (base1 < 100)
-                        return String.Format("Cast: [Spell {0}] Chance: {1}%", base2, base1);
+                        return String.Format("Cast: [Spell {0}] ({1}% Chance)", base2, base1);
                     return String.Format("Cast: [Spell {0}]", base2);
                 case 341:
                     return Spell.FormatCount("ATK Cap", base1);
@@ -1728,7 +1731,7 @@ namespace Everquest
                     return "Inhibit Low Health Fleeing";
                 case 343:
                     if (base1 < 100)
-                        return String.Format("Interrupt Casting (Success: {0}%)", base1);
+                        return String.Format("Interrupt Casting ({0}% Chance)", base1);
                     return "Interrupt Casting";
                 case 348:
                     return String.Format("Limit Min Mana Cost: {0}", base1);
@@ -1778,13 +1781,13 @@ namespace Everquest
                 case 358:
                     return Spell.FormatCount("Current Mana", value) + range;
                 case 360:
-                    return String.Format("Add Killshot Proc: [Spell {0}] Chance: {1}%", base2, base1);
+                    return String.Format("Add Killshot Proc: [Spell {0}] ({1}% Chance)", base2, base1);
                 case 361:
-                    return String.Format("Cast on Death: [Spell {0}] Chance: {1}%", base2, base1);
+                    return String.Format("Cast on Death: [Spell {0}] ({1}% Chance)", base2, base1);
                 case 364:
                     return Spell.FormatPercent("Chance to Triple Attack", value);
                 case 365:
-                    return String.Format("Cast on Killshot: [Spell {0}] Chance: {1}%", base2, base1);
+                    return String.Format("Cast on Killshot: [Spell {0}] ({1}% Chance)", base2, base1);
                 case 367:
                     return String.Format("Transform Body Type ({0})", value);
                 case 368:
@@ -1800,7 +1803,7 @@ namespace Everquest
                     return String.Format("Cast on Fade: [Spell {0}]", base1);
                 case 374:
                     if (base1 < 100)
-                        return String.Format("Cast: [Spell {0}] Chance: {1}%", base2, base1);
+                        return String.Format("Cast: [Spell {0}] ({1}% Chance)", base2, base1);
                     return String.Format("Cast: [Spell {0}]", base2);
                 case 375:
                     // additive with innate crit multiplier and same effect in other slots
@@ -1820,7 +1823,7 @@ namespace Everquest
                 case 382:
                     return String.Format("Inhibit Effect: {0}", Spell.FormatEnum((SpellEffect)base2));
                 case 383:
-                    return String.Format("Cast on Spell Use: [Spell {0}] Chance: {1}%", base2, base1 / 10);
+                    return String.Format("Cast on Spell Use: [Spell {0}] ({1}% Chance)", base2, base1 / 10);
                 case 384:
                     return "Leap";
                 case 385:
@@ -1904,7 +1907,7 @@ namespace Everquest
                     return String.Format("Gradual {0}: Base1={1} Base2={2}", base1 > 0 ? "Push" : "Pull", Math.Abs(base1), base2);
                 //case 425: jump or antigravity?
                 case 427:
-                    return String.Format("Cast on Skill Use: [Spell {0}] Chance: {1}%", base1, base2 / 10);
+                    return String.Format("Cast on Skill Use: [Spell {0}] ({1}% Chance)", base1, base2 / 10);
                 case 428:
                     return String.Format("Limit Skill: {0}", Spell.FormatEnum((SpellSkill)value));
                 case 429:
@@ -2474,7 +2477,7 @@ namespace Everquest
             //var sig = spell.Target.ToString();
             //foreach (int slot in spell.SlotEffects)
             //    sig += "," + slot.ToString();
-            
+
 
             // debug stuff
             //if (spell.ID == 31123) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
