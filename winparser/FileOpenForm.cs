@@ -45,6 +45,9 @@ namespace winparser
                 listView1.Items.Add(item);
                 listView1.FocusedItem = item;
             }
+
+            if (listView1.Items.Count == 0)
+                Status.Text = "spells_us.txt was not found. Use the download button or copy a file into " + Directory.GetCurrentDirectory();
         }
 
         /// <summary>
@@ -76,9 +79,9 @@ namespace winparser
             desc.Name = desc.Name.Replace(".txt", "-" + spell.LastModified.ToString("yyyy-MM-dd") + server + ".txt");
             LaunchpadPatcher.DownloadFile(desc.Url, desc.Name);
 
-            Status.Text = String.Format("Downloaded {0} {1}", spell.Name, spell.LastModified.ToString());
-
             Cursor.Current = Cursors.Default;
+
+            Status.Text = String.Format("Downloaded {0} {1}", spell.Name, spell.LastModified.ToString());
 
             if (listView1.FindItemWithText(spell.Name) == null)
             {
@@ -87,8 +90,11 @@ namespace winparser
                 listView1.Items.Add(item);
                 //listView1.FocusedItem = item;                
             }
+        }
 
-            //Open(spell.Name);
+        public void SetStatus(string text)
+        {
+            Status.Text = text;
         }
 
         private void listView1_DoubleClick(object sender, EventArgs e)
@@ -110,9 +116,13 @@ namespace winparser
             Download((sender as Button).AccessibleName);
         }
 
-        private void FileOpenForm_FormClosed(object sender, FormClosedEventArgs e)
+        private void FileOpenForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Application.Exit();
+            if (Application.OpenForms.Count > 1)
+            {
+                Hide();
+                e.Cancel = true;
+            }            
         }
 
     }

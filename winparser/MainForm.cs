@@ -73,10 +73,14 @@ namespace winparser
             Cursor.Current = Cursors.Default;
 
             var html = InitHtml();
+
             html.AppendFormat("<p>Loaded <strong>{0}</strong> spells from {1}.</p></html>", Spells.Count, SpellPath);
-            html.Append("<p>Use the search button to perform a search on this spell file based on the criteria on the left. Only the first 2000 search results are shown.");
+            html.Append("<p>Use the search button to perform a search on this spell file based on the criteria on the left.");
             html.Append("<p>Use the compare button to compare two different spell files and show the differences. e.g. test server vs live server spells.");
             html.Append("<p>Tip: You can use the up/down arrow keys when the cursor is in the Class/Has Effect/Category fields to quickly try different searches.");
+            html.Append("<p>Tip: This parser is an open source application and accepts updates and corrections here: <a class='ext' href='http://code.google.com/p/eqspellparser/'>http://code.google.com/p/eqspellparser/</a>");
+
+
             SearchBrowser.DocumentText = html.ToString();
         }
 
@@ -215,7 +219,7 @@ namespace winparser
 
             if (Results.Count == 0)
             {
-                html.Append("<p><strong>Sorry, no matching spells were found.</strong></p><p>You may have made the filters too restrictive (including levels), accidentally defined conflicting filters, or left one of the filters filled in from a previous search. Try filtering by just one or two criteria.</p>");
+                html.Append("<p><strong>Sorry, no matching spells were found.</strong></p><p>You may have made the filters too restrictive (including levels), accidentally defined conflicting filters, or left one of the filters filled in from a previous search. Try filtering by just one or two filters.</p>");
             }
             else
             {
@@ -312,7 +316,7 @@ namespace winparser
 
         private void ShowAsTable(IEnumerable<Spell> list, StringBuilder html)
         {
-            html.Append("<table style='table-layout: fixed; width: 85em;'>");
+            html.Append("<table style='table-layout: fixed; width: 89em;'>");
             html.Append("<thead><tr>");
             html.Append("<th style='width: 4em;'>ID</th>");
             html.Append("<th style='width: 18em;'>Name</th>");
@@ -323,7 +327,7 @@ namespace winparser
             html.Append("<th style='width: 4em;'>Duration</th>");
             html.Append("<th style='width: 6em;'>Resist</th>");
             html.Append("<th style='width: 5em;'>Target</th>");
-            html.Append("<th style='width: 26em;'>Effects</th>");
+            html.Append("<th style='width: 30em;'>Effects</th>");
             html.Append("</tr></thead>");
 
             foreach (var spell in list)
@@ -411,7 +415,7 @@ namespace winparser
 
             text = Spell.ItemRefExpr.Replace(text, delegate(Match m)
             {
-                return String.Format("<a href='http://lucy.allakhazam.com/item.html?id={0}'>Item {0}</a>", m.Groups[1].Value);
+                return String.Format("<a class='ext' href='http://lucy.allakhazam.com/item.html?id={0}'>Item {0}</a>", m.Groups[1].Value);
             });
 
             return text;
@@ -465,14 +469,21 @@ namespace winparser
 
         private void CompareBtn_Click(object sender, EventArgs e)
         {
+            FileOpenForm open = null;
             MainForm other = null;
             foreach (var f in Application.OpenForms)
+            {
                 if (f is MainForm && f != this)
                     other = (MainForm)f;
+                if (f is FileOpenForm)
+                    open = (FileOpenForm)f;
+            }
 
             if (other == null) // || other.Results == null || Results == null)
             {
-                MessageBox.Show("You must have one other spell file open to compare with. This is done by selecting two spell files when the program starts.");
+                open.Show();
+                open.WindowState = FormWindowState.Normal;
+                open.SetStatus("Please open another spell file to compare with " + SpellPath);
                 return;
             }
 
@@ -513,16 +524,22 @@ namespace winparser
             //dmp.diff_cleanupEfficiency(diff);
 
             var html = InitHtml();
-            html.AppendFormat("<p>Differences are shown as a series of <ins>additions</ins> and <del>deletions</del> that are needed to convert {0} to {1}.</p>", SpellPath, other.SpellPath);
 
-            html.Append(dmp.diff_prettyHtml(diff));
+            if (diff.Count == 0)
+                html.AppendFormat("<p>No differences were found between {0} and {1} based on the search filters.</p>", SpellPath, other.SpellPath);
+            else
+            {
+                html.AppendFormat("<p>Differences are shown as a series of <ins>additions</ins> and <del>deletions</del> that are needed to convert {0} to {1}.</p>", SpellPath, other.SpellPath);
+                html.Append(dmp.diff_prettyHtml(diff));
+            }
+
             html.Append("</html>");
 
             SearchBrowser.DocumentText = html.ToString();
 
-            html = InitHtml();
-            html.AppendFormat("<p>See other window for comparison.</p></html>");
-            other.SearchBrowser.DocumentText = html.ToString();
+            //html = InitHtml();
+            //html.AppendFormat("<p>See other window for comparison.</p></html>");
+            //other.SearchBrowser.DocumentText = html.ToString();
         }
 
         private void SearchClass_TextChanged(object sender, EventArgs e)
@@ -545,7 +562,7 @@ namespace winparser
                 }
 
                 SearchCategory.Items.Clear();
-                SearchCategory.Items.AddRange(cat.ToArray());                
+                SearchCategory.Items.AddRange(cat.ToArray());
             }
             else
             {
@@ -560,12 +577,10 @@ namespace winparser
         private void SearchText_TextChanged(object sender, EventArgs e)
         {
             // reset timer so that we don't query on every single character the user types
-            AutoSearch.Interval = (sender is TextBox) ? 800 : 200;
+            AutoSearch.Interval = (sender is TextBox) ? 800 : 400;
             AutoSearch.Enabled = false;
             AutoSearch.Enabled = true;
         }
-
-
 
 
     }
