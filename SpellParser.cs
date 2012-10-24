@@ -761,8 +761,9 @@ namespace Everquest
         public bool DurationExtendable;
         public string[] Slots;
         public int[] SlotEffects;
-        public byte Level;
+        //public byte Level;
         public byte[] Levels;
+        public byte[] ExtLevels; // similar to levels but assigns levels for side effect spells that don't have levels defined (e.g. a proc effect will get the level of it's proc buff)
         public string ClassesLevels;
         public SpellClassesMask ClassesMask;
         public SpellSkill Skill;
@@ -840,6 +841,7 @@ namespace Everquest
             Slots = new string[12];
             SlotEffects = new int[12];
             Levels = new byte[16];
+            ExtLevels = new byte[16];
             ConsumeItemID = new int[4];
             ConsumeItemCount = new int[4];
             FocusID = new int[4];
@@ -982,57 +984,6 @@ namespace Everquest
                 result.Add("Text: " + LandOnSelf);
 
             return result.ToArray();
-        }
-
-        /// <summary>
-        /// Fix fields that do not make sense in the current context.
-        /// This may happen when spells are not properly zeroed by the EQ spell editor
-        /// </summary>
-        public void Clean()
-        {
-            ClassesLevels = String.Empty;
-            ClassesMask = 0;
-            Level = 0;
-            bool All254 = true;
-            for (int i = 0; i < Levels.Length; i++)
-            {
-                if (Levels[i] == 255)
-                    Levels[i] = 0;
-                if (Levels[i] != 0)
-                {
-                    Level = Levels[i];
-                    ClassesMask |= (SpellClassesMask)(1 << i);
-                    ClassesLevels += " " + (SpellClasses)(i + 1) + "/" + Levels[i];
-                }
-                // bard AA i=7 are marked as 255 even though are usable
-                if (Levels[i] != 254 && i != 7)
-                    All254 = false;
-            }
-            ClassesLevels = ClassesLevels.TrimStart();
-            if (All254)
-                ClassesLevels = "ALL/254";
-
-            if (MaxHitsType == SpellMaxHits.None || DurationTicks == 0)
-                MaxHits = 0;
-
-            if (Target == SpellTarget.Self)
-            {
-                Range = 0;
-                AERange = 0;
-                MaxTargets = 0;
-            }
-
-            if (Target == SpellTarget.Single)
-            {
-                AERange = 0;
-                MaxTargets = 0;
-            }
-
-            if (ResistType == SpellResist.Unresistable)
-                ResistMod = 0;
-
-            if (Zone != SpellZoneRestrict.Indoors && Zone != SpellZoneRestrict.Outdoors)
-                Zone = SpellZoneRestrict.None;
         }
 
         /*
@@ -2370,14 +2321,28 @@ namespace Everquest
                         lookup[spell.ID] = spell;
                     }
 
-            // count references to each spell
-            foreach (var spell in list)
+            // second pass fixes that require the entire spell list to be loaded already
+            foreach (Spell spell in list)
             {
-                foreach (var id in spell.LinksTo)
+                foreach (int id in spell.LinksTo)
                 {
                     Spell target = null;
                     if (lookup.TryGetValue(id, out target))
+                    {
+                        // count references to each spell
                         target.RefCount++;
+
+                        // a lot of side effect spells do not have a level on them. this will copy the level of the referring spell 
+                        // onto the side effect spell so that the spell will be searchable.
+                        // e.g. Jolting Swings Strike has no level so it won't show up in a ranger search even though Jolting Swings will
+                        // note that the levels array are not modified because the devs seem to omit levels on these spells to exclude them from being focused
+                        for (int i = 0; i < spell.Levels.Length; i++)
+                        {
+                            if (target.ExtLevels[i] == 0 && spell.Levels[i] != 0)
+                                target.ExtLevels[i] = spell.Levels[i];
+                        }                        
+                    }
+                        
                 }
             }
 
@@ -2482,6 +2447,28 @@ namespace Everquest
             for (int i = 0; i < spell.Levels.Length; i++)
                 spell.Levels[i] = (byte)ParseInt(fields[104 + i]);
 
+            spell.ClassesLevels = String.Empty;
+            spell.ClassesMask = 0;
+            bool All254 = true;
+            for (int i = 0; i < spell.Levels.Length; i++)
+            {
+                if (spell.Levels[i] == 255)
+                    spell.Levels[i] = 0;
+                if (spell.Levels[i] != 0)
+                {
+                    //spell.Level = spell.Levels[i];
+                    spell.ClassesMask |= (SpellClassesMask)(1 << i);
+                    spell.ClassesLevels += " " + (SpellClasses)(i + 1) + "/" + spell.Levels[i];
+                }
+                // bard AA i=7 are marked as 255 even though are usable
+                if (spell.Levels[i] != 254 && i != 7)
+                    All254 = false;
+            }
+            Array.Copy(spell.Levels, spell.ExtLevels, spell.Levels.Length);
+            spell.ClassesLevels = spell.ClassesLevels.TrimStart();
+            if (All254)
+                spell.ClassesLevels = "ALL/254";
+
             // each spell has 12 effect slots which have 5 attributes each
             // 20..31 - slot 1..12 base1 effect
             // 32..43 - slot 1..12 base2 effect
@@ -2528,18 +2515,40 @@ namespace Everquest
 
             spell.LinksTo = linked.ToArray();
 
-            //var sig = spell.Target.ToString();
-            //foreach (int slot in spell.SlotEffects)
-            //    sig += "," + slot.ToString();
-
-
             // debug stuff
             //if (spell.ID == 31123) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
 
 
-            spell.Clean();
-
+            Prepare(spell);
             return spell;
+        }
+
+        /// <summary>
+        /// Correct spell definition bugs.
+        /// </summary>
+        private static void Prepare(Spell spell)
+        {
+            if (spell.MaxHitsType == SpellMaxHits.None || spell.DurationTicks == 0)
+                spell.MaxHits = 0;
+
+            if (spell.Target == SpellTarget.Self)
+            {
+                spell.Range = 0;
+                spell.AERange = 0;
+                spell.MaxTargets = 0;
+            }
+
+            if (spell.Target == SpellTarget.Single)
+            {
+                spell.AERange = 0;
+                spell.MaxTargets = 0;
+            }
+
+            if (spell.ResistType == SpellResist.Unresistable)
+                spell.ResistMod = 0;
+
+            if (spell.Zone != SpellZoneRestrict.Indoors && spell.Zone != SpellZoneRestrict.Outdoors)
+                spell.Zone = SpellZoneRestrict.None;
         }
 
         static float ParseFloat(string s)
