@@ -48,7 +48,8 @@ namespace parser
                     DownloadPatchFiles(null);
 
                 Console.Error.Write("Loading {0}... ", SpellFilename);
-                var spells = SpellParser.LoadFromFile(SpellFilename, SpellFilename.Replace("spells_us", "dbstr_us")).ToList();
+                var spells = SpellParser.LoadFromFile(SpellFilename, SpellFilename.Replace("spells_us", "dbstr_us"));
+                var lookup = spells.ToDictionary(x => x.ID);     
                 Console.Error.WriteLine("{0} spells", spells.Count);
                 
                 // perform search based on command line parameters                
@@ -58,9 +59,7 @@ namespace parser
                 var results = Search(spells , type, value);
 
                 // expand results to include referenced spells 
-                var lookup = spells.ToDictionary(x => x.ID);                
                 results = Expand(results, lookup);
-
                 if (results != null)
                 {
                     Console.Error.WriteLine("{0} results", results.Count);
@@ -106,7 +105,7 @@ namespace parser
             if (field == "class")
             {
                 int i = (int)Enum.Parse(typeof(SpellClasses), value.ToUpper()) - 1;
-                results = list.Where(x => x.Levels[i] > 0 && x.Levels[i] < 255).OrderBy(x => x.Levels[i]).ThenBy(x => x.ID);
+                results = list.Where(x => x.ExtLevels[i] > 0 && x.ExtLevels[i] < 255).OrderBy(x => x.Levels[i]).ThenBy(x => x.ID);
             }
 
             // search by target

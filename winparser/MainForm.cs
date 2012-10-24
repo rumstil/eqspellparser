@@ -139,7 +139,7 @@ namespace winparser
             var _class = GetSearchClass();
             if (_class >= 0)
             {
-                query = query.Where(x => x.Levels[_class] >= min && x.Levels[_class] <= max);
+                query = query.Where(x => x.ExtLevels[_class] >= min && x.ExtLevels[_class] <= max);
             }
 
             // effect filter  can be a literal string or a regex
