@@ -10,7 +10,7 @@ using SevenZip;
 namespace Everquest
 {
     // .net 2.0 doesn't include the standard Func() delegates
-    public delegate TResult Func<TResult>();
+    //public delegate TResult Func<TResult>();
 
     public class LaunchpadPatcher
     {

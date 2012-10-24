@@ -167,10 +167,10 @@ namespace winparser
             }
 
             Results = query.ToList();
-            string Sorting = null;
             Expand(Results);
 
 
+            string Sorting = null;
             // 1. if an effect is selected then sort by the effect strength
             // this is problematic since many spells have conditional effects 
             //if (effect.Contains(@"(\d+)"))
@@ -198,7 +198,7 @@ namespace winparser
                         return 1;
                     int comp = a.Levels[_class] - b.Levels[_class];
                     if (comp == 0)
-                        comp = String.Compare(a.Name, b.Name);
+                        comp = String.Compare(TrimNumerals(a.Name), TrimNumerals(b.Name));
                     if (comp == 0)
                         comp = a.ID - b.ID;
                     return comp;
@@ -210,7 +210,7 @@ namespace winparser
                 Sorting = String.Format("Results sorted by name.", Results.Count);
                 Results.Sort((a, b) =>
                 {
-                    int comp = String.Compare(a.Name, b.Name);
+                    int comp = String.Compare(TrimNumerals(a.Name), TrimNumerals(b.Name));
                     if (comp == 0)
                         comp = a.ID - b.ID;
                     return comp;
@@ -239,52 +239,45 @@ namespace winparser
             }
 
             html.Append("</html>");
-            SearchBrowser.DocumentText = html.ToString();            
+            SearchBrowser.DocumentText = html.ToString();
         }
 
         /// <summary>
-        /// Recursively expand the spell list to include referenced spells.
+        /// Expand the spell list to include associated spells.
         /// </summary>                
         private void Expand(IList<Spell> list)
         {
-            // keep a hash based index of existing results to avoid doing a linear search on results
-            // when checking if a spell is already included
+            // keep track of all spells in the results so that we don't enter into a loop
             HashSet<int> included = new HashSet<int>();
             foreach (Spell spell in list)
                 included.Add(spell.ID);
 
+            // search the full spell list to find spells that link to the current results (reverse links)
+            // but do not do this for spells that are heavily referenced. e.g. complete heal is referenced by hundreds of focus spells
+            var ignore = list.Where(x => x.RefCount > 10).Select(x => x.ID).ToList();
+            foreach (var spell in Spells)
+            {
+                foreach (int id in spell.LinksTo)
+                    if (!ignore.Contains(id) && included.Contains(id) && !included.Contains(spell.ID))
+                    {
+                        included.Add(spell.ID);
+                        list.Add(spell);
+                    }
+            }
+
+            // search the result to find other spells that they link to (forward links)
             int i = 0;
             while (i < list.Count)
             {
                 Spell spell = list[i++];
 
-                if (spell.RecourseID != 0)
-                {
-                    if (!included.Contains(spell.RecourseID))
+                foreach (int id in spell.LinksTo)
+                    if (!included.Contains(id))
                     {
-                        included.Add(spell.RecourseID);
-                        Spell spellref;
-                        if (SpellsById.TryGetValue(spell.RecourseID, out spellref))
-                            list.Add(spellref);
-                    }
-                }
-
-                // check effects slots for the [Spell 1234] references
-                foreach (string s in spell.Slots)
-                    if (s != null)
-                    {
-                        Match match = Spell.SpellRefExpr.Match(s);
-                        if (match.Success)
-                        {
-                            int id = Int32.Parse(match.Groups[1].Value);
-                            if (!included.Contains(id))
-                            {
-                                included.Add(id);
-                                Spell spellref;
-                                if (SpellsById.TryGetValue(id, out spellref))
-                                    list.Add(spellref);
-                            }
-                        }
+                        included.Add(id);
+                        Spell linked;
+                        if (SpellsById.TryGetValue(id, out linked))
+                            list.Add(linked);
                     }
             }
         }
@@ -432,6 +425,19 @@ namespace winparser
             return text.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
         }
 
+        private string TrimNumerals(string name)
+        {
+            // trim rank
+            int i = name.IndexOf("Rk.");
+            if (i > 0)
+                name = name.Substring(0, i - 1);
+
+            // trim numerals
+            name = name.TrimEnd(' ', 'X', 'V', 'I');
+
+            return name;
+        }
+
         private string FormatTime(float seconds)
         {
             if (seconds < 120)
@@ -516,11 +522,11 @@ namespace winparser
 
             // method 2: show only changed spells
             var master1 = new List<string>();
-            foreach (var s in Results)
+            foreach (var s in Results.OrderBy(x => x.ID))
                 master1.Add(s.ToString() + "\n" + String.Join("\n", s.Details()) + "\n\n");
 
             var master2 = new List<string>();
-            foreach (var s in other.Results)
+            foreach (var s in other.Results.OrderBy(x => x.ID))
                 master2.Add(s.ToString() + "\n" + String.Join("\n", s.Details()) + "\n\n");
 
             var ver1 = String.Join("", master1.Except(master2).ToArray());

@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "parser", "parser.csproj", "{4A089EA1-E6DB-478F-8D00-24BD4BF8CC9B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "winparser", "winparser\winparser.csproj", "{9A9EA13B-9C47-42E8-9614-EF6F17AB4EB6}"
