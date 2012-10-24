@@ -797,8 +797,8 @@ namespace Everquest
         public int ViralTargets;
         public SpellTargetRestrict TargetRestrict;
         public SpellTargetRestrict CasterRestrict;
-        public int[] RegID;
-        public int[] RegCount;
+        public int[] ConsumeItemID;
+        public int[] ConsumeItemCount;
         public int[] FocusID;
         public string LandOnSelf;
         //public string LandOnOther;
@@ -817,6 +817,8 @@ namespace Everquest
         public int[] CategoryDescID; // AAs don't have these set
         public string Deity;
         public int SongCap;
+        public int[] LinksTo;
+        public int RefCount; // number of spells that link to this
 
 #if LargeMemory
         public string Category;
@@ -838,8 +840,8 @@ namespace Everquest
             Slots = new string[12];
             SlotEffects = new int[12];
             Levels = new byte[16];
-            RegID = new int[4];
-            RegCount = new int[4];
+            ConsumeItemID = new int[4];
+            ConsumeItemCount = new int[4];
             FocusID = new int[4];
             CategoryDescID = new int[3];
         }
@@ -880,9 +882,9 @@ namespace Everquest
             else if (Endurance > 0)
                 result.Add("Endurance: " + Endurance);
 
-            for (int i = 0; i < RegID.Length; i++)
-                if (RegID[i] > 0)
-                    result.Add("Regeant: [Item " + RegID[i] + "] x " + RegCount[i]);
+            for (int i = 0; i < ConsumeItemID.Length; i++)
+                if (ConsumeItemID[i] > 0)
+                    result.Add("Regeant: [Item " + ConsumeItemID[i] + "] x " + ConsumeItemCount[i]);
 
             for (int i = 0; i < FocusID.Length; i++)
                 if (FocusID[i] > 0)
@@ -1032,6 +1034,25 @@ namespace Everquest
             if (Zone != SpellZoneRestrict.Indoors && Zone != SpellZoneRestrict.Outdoors)
                 Zone = SpellZoneRestrict.None;
         }
+
+        /*
+        /// <summary>
+        /// Return a list of spells that this spell references.
+        /// </summary>
+        public IEnumerable<int> LinkedSpells()
+        {
+            if (RecourseID != 0)
+                yield return RecourseID;
+
+            foreach (string s in Slots)
+                if (s != null)
+                {
+                    Match match = Spell.SpellRefExpr.Match(s);
+                    if (match.Success)
+                        yield return Int32.Parse(match.Groups[1].Value);
+                }
+        }
+        */
 
         /// <summary>
         /// Search all spell slots for a certain effect
@@ -2285,10 +2306,13 @@ namespace Everquest
         private static readonly CultureInfo culture = new CultureInfo("en-US", false);
 
         /// <summary>
-        /// Load spell list from the comma delimitted EQ spell definition files.
+        /// Load spell list from the EQ spell definition files.
         /// </summary>
-        static public IEnumerable<Spell> LoadFromFile(string spellPath, string descPath)
+        static public List<Spell> LoadFromFile(string spellPath, string descPath)
         {
+            List<Spell> list = new List<Spell>(30000);
+            Dictionary<int, Spell> lookup = new Dictionary<int, Spell>(30000);
+
             // load description text file
             Dictionary<string, string> desc = new Dictionary<string, string>(30000);
             if (File.Exists(descPath))
@@ -2342,9 +2366,22 @@ namespace Everquest
                         if (!desc.TryGetValue("6/" + spell.DescID, out spell.Desc))
                             spell.Desc = null;
 
-                        yield return spell;
+                        list.Add(spell);
+                        lookup[spell.ID] = spell;
                     }
 
+            // count references to each spell
+            foreach (var spell in list)
+            {
+                foreach (var id in spell.LinksTo)
+                {
+                    Spell target = null;
+                    if (lookup.TryGetValue(id, out target))
+                        target.RefCount++;
+                }
+            }
+
+            return list;
         }
 
         /// <summary>
@@ -2379,8 +2416,8 @@ namespace Everquest
 
             for (int i = 0; i < 3; i++)
             {
-                spell.RegID[i] = ParseInt(fields[58 + i]);
-                spell.RegCount[i] = ParseInt(fields[62 + i]);
+                spell.ConsumeItemID[i] = ParseInt(fields[58 + i]);
+                spell.ConsumeItemCount[i] = ParseInt(fields[62 + i]);
                 spell.FocusID[i] = ParseInt(fields[66 + i]);
             }
 
@@ -2475,6 +2512,21 @@ namespace Everquest
             for (int i = 0; i < gods.Length; i++)
                 if (ParseBool(fields[125 + i]))
                     spell.Deity += gods[i] + " ";
+
+            // get list of linked spells
+            List<int> linked = new List<int>(10);
+            if (spell.RecourseID != 0)
+                linked.Add(spell.RecourseID);
+
+            foreach (string s in spell.Slots)
+                if (s != null)
+                {
+                    Match match = Spell.SpellRefExpr.Match(s);
+                    if (match.Success)
+                        linked.Add(Int32.Parse(match.Groups[1].Value));
+                }
+
+            spell.LinksTo = linked.ToArray();
 
             //var sig = spell.Target.ToString();
             //foreach (int slot in spell.SlotEffects)
