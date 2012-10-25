@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using Everquest;
-using System.Text.RegularExpressions;
-using System.Reflection;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Windows.Forms;
+using DiffMatchPatch;
+using Everquest;
 
 namespace winparser
 {
@@ -511,40 +512,84 @@ namespace winparser
             other.SearchCategory.Text = SearchCategory.Text;
             other.Search();
 
-            // method 1: show changed and unchanged spells
-            //var ver1 = new StringBuilder();
-            //foreach (var s in Results)
-            //    ver1.AppendLine(s.ToString() + "\n" + String.Join("\n", s.Details()) + "\n");
-
-            //var ver2 = new StringBuilder();
-            //foreach (var s in other.Results)
-            //    ver2.AppendLine(s.ToString() + "\n" + String.Join("\n", s.Details()) + "\n");
-
-            // method 2: show only changed spells
-            var master1 = new List<string>();
-            foreach (var s in Results.OrderBy(x => x.ID))
-                master1.Add(s.ToString() + "\n" + String.Join("\n", s.Details()) + "\n\n");
-
-            var master2 = new List<string>();
-            foreach (var s in other.Results.OrderBy(x => x.ID))
-                master2.Add(s.ToString() + "\n" + String.Join("\n", s.Details()) + "\n\n");
-
-            var ver1 = String.Join("", master1.Except(master2).ToArray());
-            var ver2 = String.Join("", master2.Except(master1).ToArray());
+            // this function generates the comparison text for each spell
+            Func<Spell, string> getText = x => x.ToString() + "\n" + String.Join("\n", x.Details()) + "\n\n";
 
             var dmp = new DiffMatchPatch.diff_match_patch();
-            //var diff = dmp.diff_main(ver1.ToString(), ver2.ToString()); // method 1
-            //var diff = dmp.diff_main(ver1, ver2); // method 2
-            var diff = dmp.diff_lineMode(ver1, ver2);  // method 2
+            var diffs = new List<Diff>();
+
+            // compare the same spell ID in each list one by one, then each line by line
+            var A = Results.Where(x => x.ID > 0).OrderBy(x => x.ID).ToList();
+            var B = other.Results.Where(x => x.ID > 0).OrderBy(x => x.ID).ToList();
+            int a = 0; // current index in list A
+            int b = 0; // current index in list B
+
+            int id = 0;
+            while (true) 
+            {
+                id++;
+
+                if (a >= A.Count && b >= B.Count)
+                    break;
+
+                // reached end of list A, treat remainder of list B as inserts
+                if (a >= A.Count)
+                {
+                    while (b < B.Count)
+                        diffs.Add(new Diff(Operation.INSERT, getText(B[b++])));
+                    break;
+                }
+
+                // reached end of list B, treat remainder of list A as deletes
+                if (b >= B.Count)
+                {
+                    while (a < A.Count)
+                        diffs.Add(new Diff(Operation.DELETE, getText(A[a++])));
+                    break;
+                }
+
+                // id doesn't exist in either list
+                if (A[a].ID > id && B[b].ID > id)
+                    continue;
+
+                // id exists in both lists
+                if (A[a].ID == id && B[b].ID == id)
+                {
+                    var textA = getText(A[a++]);
+                    var textB = getText(B[b++]);
+                    // ignore equal spells
+                    if (textA == textB)
+                        continue;
+                    diffs.AddRange(dmp.diff_lineMode(textA, textB));
+                    continue;
+                }
+
+                // id exist only in list A
+                if (A[a].ID == id)
+                {
+                    diffs.Add(new Diff(Operation.DELETE, getText(A[a++])));
+                    continue;
+                }
+
+                // id exists only in list B
+                if (B[b].ID == id)
+                {
+                    diffs.Add(new Diff(Operation.INSERT, getText(B[b++])));
+                    continue;
+                }
+
+                throw new NotImplementedException(); // should never get here
+            }
+             
 
             var html = InitHtml();
 
-            if (diff.Count == 0)
+            if (diffs.Count == 0)
                 html.AppendFormat("<p>No differences were found between {0} and {1} based on the search filters.</p>", SpellPath, other.SpellPath);
             else
             {
                 html.AppendFormat("<p>Differences are shown as a series of <ins>additions</ins> and <del>deletions</del> that are needed to convert {0} to {1}.</p>", SpellPath, other.SpellPath);
-                html.Append(dmp.diff_prettyHtml(diff));
+                html.Append(dmp.diff_prettyHtml(diffs));
             }
 
             html.Append("</html>");
