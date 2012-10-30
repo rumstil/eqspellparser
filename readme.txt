@@ -1,20 +1,21 @@
 
 REQUIREMENTS
 ============
-You need to have Microsoft .NET Framework 3.5 installed to run this application. 
-If you run the parser and get the error: "This application failed to initialize properly", 
-then you don't have the .NET framework installed.
-
-You can download .NET 3.5 from here:
+You will need to have Microsoft .NET Framework 3.5 installed to run this application.
+If you are running Windows 7 or 8 then you already have it installed.
+For older versions of windows you may need to install it from:
 
 http://www.microsoft.com/downloads/details.aspx?FamilyId=333325FD-AE52-4E35-B531-508D977D32A6&displaylang=en
 
+If you run the parser and get the error: "This application failed to initialize properly"
+then you will need to install the framework.
 
 
-HOW TO USE
-=====================
-The parser is a command line program. To search the database you supply the search parameters 
-when you start the parser. The parser displays all matching results and quits. 
+
+HOW TO USE FROM THE COMMAND LINE
+================================================
+parser.exe is the command line version of the parser.
+It should be started from a command prompt with parameters to indicate what type of search you want to run.
 
 You can search using 5 different methods:
 
@@ -47,7 +48,7 @@ This shows ranger spells
 
 UPDATING THE SPELL DATABASE
 ============================
-If you run the parser from a folder other than the EQ folder you will need to manually update spell 
+If you run the parser from a folder other than the EQ folder you will need to manually update spell
 files after a patch. This can be done using the "update" command:
 
 
