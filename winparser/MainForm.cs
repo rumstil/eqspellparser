@@ -35,22 +35,24 @@ namespace winparser
 
             SearchClass.Items.AddRange(Enum.GetNames(typeof(SpellClassesLong)));
 
-            // literal text suggestions
+            // literal text suggestions (these words appear in parsed text)
             SearchEffect.Items.Add("Charm");
             SearchEffect.Items.Add("Mesmerize");
             SearchEffect.Items.Add("Memory Blur");
             SearchEffect.Items.Add("Root");
             SearchEffect.Items.Add("Stun");
             SearchEffect.Items.Add("Hate");
-            SearchEffect.Items.Add("Invisibility");
+            SearchEffect.Items.Add("Invisibility");            
+            SearchEffect.Items.Add("Add Defensive Proc");
 
+            // regex suggestions
             Effects = new Dictionary<string, string>();
             Effects.Add("Cure", @"Decrease \w+ Counter by (\d+)");
             Effects.Add("Heal", @"Increase Current HP by (\d+)");
             Effects.Add("HoT", @"Increase Current HP by (\d+) per tick");
             Effects.Add("Nuke", @"Decrease Current HP by (\d+)");
             Effects.Add("DoT", @"Decrease Current HP by (\d+) per tick");
-            Effects.Add("Haste", @"Increase Melee Haste .*?by (\d+)"); // .* for v3 haste
+            Effects.Add("Haste", @"Increase Melee Haste (?:v3 )?by (\d+)");
             Effects.Add("Slow", @"Decrease Melee Haste by (\d+)");
             Effects.Add("Snare", @"Decrease Movement Speed by (\d+)");
             Effects.Add("Shrink", @"Decrease Player Size");
@@ -58,7 +60,7 @@ namespace winparser
             Effects.Add("Pacify", @"Decrease Social Radius");
             Effects.Add("Damage Shield", @"Increase Damage Shield by (\d+)");
             Effects.Add("Mana Regen", @"Increase Current Mana by (\d+)");
-
+            Effects.Add("Add Proc", @"Add (?:Skill )?Proc");
             SearchEffect.Items.AddRange(Effects.Keys.ToArray());
 
             //SearchBrowser.ObjectForScripting = this;
@@ -71,7 +73,7 @@ namespace winparser
 
             Cursor.Current = Cursors.WaitCursor;
 
-            Spells = SpellParser.LoadFromFile(spellPath, descPath).ToList();
+            Spells = SpellParser.LoadFromFile(spellPath, descPath);
             SpellsById = Spells.ToDictionary(x => x.ID, x => x);
             SearchClass_TextChanged(this, null);
             AutoSearch.Enabled = false;
@@ -90,11 +92,6 @@ namespace winparser
             SearchBrowser.DocumentText = html.ToString();
         }
 
-        public int GetSearchClass()
-        {
-            return Enum.IsDefined(typeof(SpellClassesLong), SearchClass.Text) ? (int)Enum.Parse(typeof(SpellClassesLong), SearchClass.Text) - 1 : -1;
-        }
-
         /// <summary>
         /// Search spell database based on form filter settings
         /// </summary>
@@ -104,9 +101,6 @@ namespace winparser
 
             var query = Spells.AsQueryable();
 
-            // exclude spammy breath of AA
-            query = query.Where(x => !x.Name.StartsWith("Breath of"));
-
             //  spell name and description are checked for literal text
             var text = SearchText.Text;
             int id;
@@ -115,6 +109,9 @@ namespace winparser
             else if (!String.IsNullOrEmpty(text))
                 query = query.Where(x => x.ID.ToString() == text || x.Name.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0 || (x.Desc != null && x.Desc.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0));
             //query = query.Where(x => x.ID.ToString() == text || x.Name.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0);
+
+            // exclude dragorn breath AA because they spam the results
+            query = query.Where(x => !x.Name.StartsWith("Breath of"));
 
             // levels can be either a single "level" or a range "min-max"
             // they are only used when a class is selected            
@@ -137,7 +134,7 @@ namespace winparser
                 max = min;
             }
 
-            var _class = GetSearchClass();
+            var _class = ParseClass(SearchClass.Text);
             if (_class >= 0)
             {
                 query = query.Where(x => x.ExtLevels[_class] >= min && x.ExtLevels[_class] <= max);
@@ -420,23 +417,28 @@ namespace winparser
             return text;
         }
 
+        private int ParseClass(string text)
+        {
+            return Enum.IsDefined(typeof(SpellClassesLong), text) ? (int)Enum.Parse(typeof(SpellClassesLong), text) - 1 : -1;
+        }
+
         private string HtmlEncode(string text)
         {
             // i don't think .net has a html encoder outside of the system.web assembly
             return text.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
         }
 
-        private string TrimNumerals(string name)
+        private string TrimNumerals(string text)
         {
             // trim rank
-            int i = name.IndexOf("Rk.");
+            int i = text.IndexOf("Rk.");
             if (i > 0)
-                name = name.Substring(0, i - 1);
+                text = text.Substring(0, i - 1);
 
             // trim numerals
-            name = name.TrimEnd(' ', 'X', 'V', 'I');
+            text = text.TrimEnd(' ', 'X', 'V', 'I');
 
-            return name;
+            return text;
         }
 
         private string FormatTime(float seconds)
@@ -495,7 +497,7 @@ namespace winparser
                     open = (FileOpenForm)f;
             }
 
-            if (other == null) // || other.Results == null || Results == null)
+            if (other == null)
             {
                 open.Show();
                 open.WindowState = FormWindowState.Normal;
@@ -525,7 +527,7 @@ namespace winparser
             int b = 0; // current index in list B
 
             int id = 0;
-            while (true) 
+            while (true)
             {
                 id++;
 
@@ -580,7 +582,7 @@ namespace winparser
 
                 throw new NotImplementedException(); // should never get here
             }
-             
+
 
             var html = InitHtml();
 
@@ -605,7 +607,7 @@ namespace winparser
 
         private void SearchClass_TextChanged(object sender, EventArgs e)
         {
-            int _cls = GetSearchClass();
+            int _cls = ParseClass(SearchClass.Text);
             if (_cls != -1)
             {
                 SearchLevel.Enabled = true;
@@ -637,7 +639,7 @@ namespace winparser
 
         private void SearchText_TextChanged(object sender, EventArgs e)
         {
-            // reset timer so that we don't query on every single character the user types
+            // reset timer every time the user presses a key
             AutoSearch.Interval = (sender is TextBox) ? 800 : 400;
             AutoSearch.Enabled = false;
             AutoSearch.Enabled = true;

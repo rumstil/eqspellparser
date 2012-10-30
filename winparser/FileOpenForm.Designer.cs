@@ -33,11 +33,12 @@
             this.OpenBtn = new System.Windows.Forms.Button();
             this.DownloadBtn = new System.Windows.Forms.Button();
             this.listView1 = new System.Windows.Forms.ListView();
-            this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader1 = new System.Windows.Forms.ColumnHeader();
+            this.columnHeader2 = new System.Windows.Forms.ColumnHeader();
             this.panel2 = new System.Windows.Forms.Panel();
             this.Status = new System.Windows.Forms.Label();
             this.panel3 = new System.Windows.Forms.Panel();
+            this.columnHeader3 = new System.Windows.Forms.ColumnHeader();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.SuspendLayout();
@@ -78,7 +79,8 @@
             this.listView1.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader1,
-            this.columnHeader2});
+            this.columnHeader2,
+            this.columnHeader3});
             this.listView1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.listView1.FullRowSelect = true;
             this.listView1.HideSelection = false;
@@ -99,6 +101,7 @@
             // columnHeader2
             // 
             this.columnHeader2.Text = "Size";
+            this.columnHeader2.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.columnHeader2.Width = 80;
             // 
             // panel2
@@ -130,6 +133,12 @@
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(660, 1);
             this.panel3.TabIndex = 3;
+            // 
+            // columnHeader3
+            // 
+            this.columnHeader3.Text = "Fields";
+            this.columnHeader3.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.columnHeader3.Width = 80;
             // 
             // FileOpenForm
             // 
@@ -165,5 +174,6 @@
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.Label Status;
         private System.Windows.Forms.Panel panel3;
+        private System.Windows.Forms.ColumnHeader columnHeader3;
     }
 }

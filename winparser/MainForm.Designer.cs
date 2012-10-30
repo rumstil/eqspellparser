@@ -118,7 +118,8 @@
             this.SearchLevel.Size = new System.Drawing.Size(75, 23);
             this.SearchLevel.TabIndex = 5;
             this.SearchLevel.Text = "81-254";
-            this.ToolTip.SetToolTip(this.SearchLevel, "Enter a single level or a level range.  AA are level 254.");
+            this.ToolTip.SetToolTip(this.SearchLevel, "Enter a single level (e.g. 81) or a level range (e.g. 81 - 85).  This filter is o" +
+                    "nly applied when a class is selected. AA are level 254.");
             this.SearchLevel.TextChanged += new System.EventHandler(this.SearchText_TextChanged);
             // 
             // label5
@@ -197,7 +198,7 @@
             this.SearchEffect.Sorted = true;
             this.SearchEffect.TabIndex = 7;
             this.ToolTip.SetToolTip(this.SearchEffect, "Select a spell effect type from the list, enter an SPA number, or type some text " +
-        "that appears in the effect description.");
+                    "that appears in the effect description.");
             this.SearchEffect.TextChanged += new System.EventHandler(this.SearchText_TextChanged);
             // 
             // label3

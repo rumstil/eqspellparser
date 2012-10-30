@@ -42,6 +42,7 @@ namespace winparser
             {
                 var item = new ListViewItem(f.Name);
                 item.SubItems.Add(f.Length.ToString());
+                item.SubItems.Add(CountFields(f.Name).ToString());
                 listView1.Items.Add(item);
                 listView1.FocusedItem = item;
             }
@@ -87,14 +88,20 @@ namespace winparser
             {
                 var item = new ListViewItem(spell.Name);
                 item.SubItems.Add(spell.UncompressedSize.ToString());
+                item.SubItems.Add(CountFields(spell.Name).ToString());
                 listView1.Items.Add(item);
-                //listView1.FocusedItem = item;                
             }
         }
 
         public void SetStatus(string text)
         {
             Status.Text = text;
+        }
+
+        private int CountFields(string path)
+        {
+            var f = File.OpenText(path);
+            return f.ReadLine().Split('^').Length;
         }
 
         private void listView1_DoubleClick(object sender, EventArgs e)
