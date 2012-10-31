@@ -296,6 +296,24 @@ namespace Everquest
         Corruption = 9
     }
 
+    public enum SpellBodyType
+    {
+        Humanoid = 1,
+        Undead = 3,
+        Extraplanar = 6,
+        Vampyre = 12,
+        Greater_Akheva = 14,
+        Draz_Nurakk = 18,
+        Zek = 19,
+        Luggald = 20,        
+        Animal = 21,
+        Elemental = 24,
+        Plant = 25,
+        Dragonkin = 26,
+        Summoned = 28,
+        Muramite = 34
+    }
+
     public enum SpellTarget
     {
         Line_of_Sight = 1,
@@ -1761,7 +1779,7 @@ namespace Everquest
                 case 365:
                     return String.Format("Cast on Killshot: [Spell {0}] ({1}% Chance)", base2, base1);
                 case 367:
-                    return String.Format("Transform Body Type ({0})", value);
+                    return String.Format("Transform Body Type to {0}", FormatEnum((SpellBodyType)base1));
                 case 368:
                     return Spell.FormatCount("Faction with " + FormatEnum((SpellFaction)base1), base2);
                 case 369:
@@ -2241,6 +2259,7 @@ namespace Everquest
             return String.Format("{0} {1} by {2}% to {3}%", max < 0 ? "Decrease" : "Increase", name, Math.Abs(min), Math.Abs(max));
         }
 
+        /*
         static private string FormatDesc()
         {
             // Spell descriptions include references to 12 spell attributes. e.g.
@@ -2249,6 +2268,7 @@ namespace Everquest
             // $7 - base2 for slot 7
             return null;
         }
+        */
     }
 
     public static class SpellParser
@@ -2310,7 +2330,7 @@ namespace Everquest
                                 spell.Category += "/" + s;
                             //if (desc.TryGetValue("5/" + spell.CategoryDescID[2], out s))
                             //    spell.Category += "/" + s;
-                        }                       
+                        }
 
 #endif
 
@@ -2340,9 +2360,9 @@ namespace Everquest
                         {
                             if (target.ExtLevels[i] == 0 && spell.Levels[i] != 0)
                                 target.ExtLevels[i] = spell.Levels[i];
-                        }                        
+                        }
                     }
-                        
+
                 }
             }
 
@@ -2571,6 +2591,5 @@ namespace Everquest
         }
 
     }
-
 
 }
