@@ -473,7 +473,13 @@ namespace winparser
 
         private void SearchBrowser_Navigating(object sender, WebBrowserNavigatingEventArgs e)
         {
-            //Text = e.Url.ToString();
+            // start external links in an external window
+            // internal links will all be "about:blank"
+            if (e.Url.Scheme.StartsWith("http"))
+            {
+                e.Cancel = true;
+                System.Diagnostics.Process.Start(e.Url.ToString());
+            }
         }
 
         private void SearchBtn_Click(object sender, EventArgs e)
