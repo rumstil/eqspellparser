@@ -1357,7 +1357,7 @@ namespace DiffMatchPatch {
      * @param diffs List of Diff objects.
      * @return HTML representation.
      */
-    public string diff_prettyHtml(List<Diff> diffs) {
+    public static string diff_prettyHtml(List<Diff> diffs) {
       StringBuilder html = new StringBuilder();
       foreach (Diff aDiff in diffs) {
         string text = aDiff.text.Replace("&", "&amp;").Replace("<", "&lt;")

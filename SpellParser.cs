@@ -2597,6 +2597,20 @@ namespace Everquest
             return !String.IsNullOrEmpty(s) && (s != "0");
         }
 
+        public static int ParseClass(string text)
+        {
+            if (String.IsNullOrEmpty(text))
+                return 0;
+
+            if (text.Length == 3 && Enum.IsDefined(typeof(SpellClasses), text.ToUpper()))
+                return (int)Enum.Parse(typeof(SpellClasses), text.ToUpper());
+
+            if (Enum.IsDefined(typeof(SpellClassesLong), text))
+                return (int)Enum.Parse(typeof(SpellClassesLong), text);
+
+            return 0;
+        }
+
     }
 
 }
