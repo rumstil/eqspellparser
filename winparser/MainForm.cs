@@ -88,8 +88,7 @@ namespace winparser
             html.Append("<p>Tip: You can use the up/down arrow keys when the cursor is in the Class/Has Effect/Category fields to quickly try different searches.");
             html.Append("<p>Tip: This parser is an open source application and accepts updates and corrections here: <a class='ext' href='http://code.google.com/p/eqspellparser/'>http://code.google.com/p/eqspellparser/</a>");
 
-
-            SearchBrowser.DocumentText = html.ToString();
+            ShowHtml(html);
         }
 
         /// <summary>
@@ -99,72 +98,16 @@ namespace winparser
         {
             AutoSearch.Enabled = false;
 
-            var query = Spells.AsQueryable();
-
-            //  spell name and description are checked for literal text
+            var cls = SpellParser.ParseClass(SearchClass.Text) - 1;
             var text = SearchText.Text;
-            int id;
-            if (Int32.TryParse(text, out id))
-                query = query.Where(x => x.ID == id);
-            else if (!String.IsNullOrEmpty(text))
-                query = query.Where(x => x.ID.ToString() == text || x.Name.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0 || (x.Desc != null && x.Desc.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0));
-            //query = query.Where(x => x.ID.ToString() == text || x.Name.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0);
+            var effect = SearchEffect.Text;
+            var category = SearchCategory.Text;
+            int min;
+            int max;
+            ParseRange(SearchLevel.Text, out min, out max);
 
-            // exclude dragorn breath AA because they spam the results
-            query = query.Where(x => !x.Name.StartsWith("Breath of"));
+            Results = Search(text, cls, min, max, effect, category);
 
-            // levels can be either a single "level" or a range "min-max"
-            // they are only used when a class is selected            
-            int min = 1;
-            int max = 254;
-            var levels = SearchLevel.Text.Replace(" ", "").Split('-');
-            if (levels.Length == 2)
-            {
-                if (!Int32.TryParse(levels[0], out min))
-                    min = 1;
-                if (min == 0)
-                    min = 1; // zero would include spells the class can't cast
-                if (!Int32.TryParse(levels[1], out max))
-                    max = 254;
-            }
-            else if (levels.Length == 1 && levels[0].Length > 0)
-            {
-                if (!Int32.TryParse(levels[0], out min))
-                    min = 1;
-                max = min;
-            }
-
-            var _class = ParseClass(SearchClass.Text);
-            if (_class >= 0)
-            {
-                query = query.Where(x => x.ExtLevels[_class] >= min && x.ExtLevels[_class] <= max);
-            }
-
-            // effect filter  can be a literal string or a regex
-            string effect = SearchEffect.Text;
-            if (!String.IsNullOrEmpty(effect))
-            {
-                if (Effects.ContainsKey(effect))
-                    effect = Effects[effect];
-                if (Regex.Escape(effect) != effect)
-                {
-                    var re = new Regex(effect, RegexOptions.IgnoreCase);
-                    query = query.Where(x => x.HasEffect(re) >= 0);
-                }
-                else
-                    query = query.Where(x => x.HasEffect(effect) >= 0);
-            }
-
-            string category = SearchCategory.Text;
-            if (!String.IsNullOrEmpty(category))
-            {
-                if (category == "AA")
-                    query = query.Where(x => String.IsNullOrEmpty(x.Category));
-                else
-                    query = query.Where(x => x.Category != null && x.Category.IndexOf(category, StringComparison.InvariantCultureIgnoreCase) >= 0);
-            }
-
-            Results = query.ToList();
             Expand(Results);
 
 
@@ -185,16 +128,16 @@ namespace winparser
             //}
             // 2. if a class is selected then sort by the casting levels for that class first
             // place castable spells before non castable effects (level == 0)
-            if (_class >= 0)
+            if (cls >= 0)
             {
                 Sorting = String.Format("Results sorted by {1} level.", Results.Count, SearchClass.Text);
                 Results.Sort((a, b) =>
                 {
-                    if (a.Levels[_class] > 0 && b.Levels[_class] == 0)
+                    if (a.Levels[cls] > 0 && b.Levels[cls] == 0)
                         return -1;
-                    if (b.Levels[_class] > 0 && a.Levels[_class] == 0)
+                    if (b.Levels[cls] > 0 && a.Levels[cls] == 0)
                         return 1;
-                    int comp = a.Levels[_class] - b.Levels[_class];
+                    int comp = a.Levels[cls] - b.Levels[cls];
                     if (comp == 0)
                         comp = String.Compare(TrimNumerals(a.Name), TrimNumerals(b.Name));
                     if (comp == 0)
@@ -237,13 +180,60 @@ namespace winparser
             }
 
             html.Append("</html>");
-            SearchBrowser.DocumentText = html.ToString();
+            ShowHtml(html);
+        }
+
+        private List<Spell> Search(string text, int cls, int min, int max, string effect, string category)
+        {
+            var query = Spells.AsQueryable();
+
+            //  spell name and description are checked for literal text           
+            int id;
+            if (Int32.TryParse(text, out id))
+                query = query.Where(x => x.ID == id);
+            else if (!String.IsNullOrEmpty(text))
+                query = query.Where(x => x.ID.ToString() == text || x.Name.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0 || (x.Desc != null && x.Desc.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0));
+
+            // exclude dragorn breath AA because they spam the results
+            query = query.Where(x => !x.Name.StartsWith("Breath of"));
+
+            // level filter is only used when a class is selected
+            if (cls >= 0)
+            {
+                query = query.Where(x => x.ExtLevels[cls] >= min && x.ExtLevels[cls] <= max);
+            }
+
+            // effect filter  can be a literal string or a regex
+            if (!String.IsNullOrEmpty(effect))
+            {
+                if (Effects.ContainsKey(effect))
+                    effect = Effects[effect];
+
+                if (Regex.Escape(effect) != effect)
+                {
+                    var re = new Regex(effect, RegexOptions.IgnoreCase);
+                    query = query.Where(x => x.HasEffect(re) >= 0);
+                }
+                else
+                    query = query.Where(x => x.HasEffect(effect) >= 0);
+            }
+
+            
+            if (!String.IsNullOrEmpty(category))
+            {
+                if (category == "AA")
+                    query = query.Where(x => String.IsNullOrEmpty(x.Category));
+                else
+                    query = query.Where(x => x.Category != null && x.Category.IndexOf(category, StringComparison.InvariantCultureIgnoreCase) >= 0);
+            }
+
+            return query.ToList();
         }
 
         /// <summary>
         /// Expand the spell list to include associated spells.
         /// </summary>                
-        private void Expand(IList<Spell> list)
+        private void Expand(List<Spell> list)
         {
             // keep track of all spells in the results so that we don't enter into a loop
             HashSet<int> included = new HashSet<int>();
@@ -417,9 +407,29 @@ namespace winparser
             return text;
         }
 
-        private int ParseClass(string text)
+        private void ParseRange(string text, out int min, out int max)
         {
-            return Enum.IsDefined(typeof(SpellClassesLong), text) ? (int)Enum.Parse(typeof(SpellClassesLong), text) - 1 : -1;
+            min = 1;
+            max = 254;
+            if (String.IsNullOrEmpty(text))
+                return;
+
+            var parts = text.Replace(" ", "").Split('-');
+            if (parts.Length == 2)
+            {
+                if (!Int32.TryParse(parts[0], out min))
+                    min = 1;
+                if (min == 0)
+                    min = 1; // zero would include spells the class can't cast
+                if (!Int32.TryParse(parts[1], out max))
+                    max = 254;
+            }
+            else if (parts.Length == 1 && parts[0].Length > 0)
+            {
+                if (!Int32.TryParse(parts[0], out min))
+                    min = 1;
+                max = min;
+            }
         }
 
         private string HtmlEncode(string text)
@@ -520,6 +530,32 @@ namespace winparser
             other.SearchCategory.Text = SearchCategory.Text;
             other.Search();
 
+           
+            var diffs = Compare(Results, other.Results);
+
+            var html = InitHtml();
+
+            if (diffs.Count == 0)
+                html.AppendFormat("<p>No differences were found between {0} and {1} based on the search filters.</p>", SpellPath, other.SpellPath);
+            else
+            {
+                html.AppendFormat("<p>Differences are shown as a series of <ins>additions</ins> and <del>deletions</del> that are needed to convert {0} to {1}.</p>", SpellPath, other.SpellPath);
+                html.Append(diff_match_patch.diff_prettyHtml(diffs));
+            }
+
+            html.Append("</html>");
+
+            SearchBrowser.DocumentText = html.ToString();
+
+            //html = InitHtml();
+            //html.AppendFormat("<p>See other window for comparison.</p></html>");
+            //other.SearchBrowser.DocumentText = html.ToString();
+
+            Cursor.Current = Cursors.Default;
+        }
+
+        private List<Diff> Compare(IEnumerable<Spell> setA, IEnumerable<Spell> setB)
+        {
             // this function generates the comparison text for each spell
             Func<Spell, string> getText = x => x.ToString() + "\n" + String.Join("\n", x.Details()) + "\n\n";
 
@@ -527,8 +563,8 @@ namespace winparser
             var diffs = new List<Diff>();
 
             // compare the same spell ID in each list one by one, then each line by line
-            var A = Results.Where(x => x.ID > 0).OrderBy(x => x.ID).ToList();
-            var B = other.Results.Where(x => x.ID > 0).OrderBy(x => x.ID).ToList();
+            var A = setA.Where(x => x.ID > 0).OrderBy(x => x.ID).ToList();
+            var B = setB.Where(x => x.ID > 0).OrderBy(x => x.ID).ToList();
             int a = 0; // current index in list A
             int b = 0; // current index in list B
 
@@ -589,36 +625,17 @@ namespace winparser
                 throw new NotImplementedException(); // should never get here
             }
 
-
-            var html = InitHtml();
-
-            if (diffs.Count == 0)
-                html.AppendFormat("<p>No differences were found between {0} and {1} based on the search filters.</p>", SpellPath, other.SpellPath);
-            else
-            {
-                html.AppendFormat("<p>Differences are shown as a series of <ins>additions</ins> and <del>deletions</del> that are needed to convert {0} to {1}.</p>", SpellPath, other.SpellPath);
-                html.Append(dmp.diff_prettyHtml(diffs));
-            }
-
-            html.Append("</html>");
-
-            SearchBrowser.DocumentText = html.ToString();
-
-            //html = InitHtml();
-            //html.AppendFormat("<p>See other window for comparison.</p></html>");
-            //other.SearchBrowser.DocumentText = html.ToString();
-
-            Cursor.Current = Cursors.Default;
+            return diffs;
         }
 
         private void SearchClass_TextChanged(object sender, EventArgs e)
         {
-            int _cls = ParseClass(SearchClass.Text);
-            if (_cls != -1)
+            int cls = SpellParser.ParseClass(SearchClass.Text) - 1;
+            if (cls >= 0)
             {
                 SearchLevel.Enabled = true;
 
-                var cat = Spells.Where(x => x.Levels[_cls] > 0).Select(x => x.Category).Where(x => x != null).Distinct().ToList();
+                var cat = Spells.Where(x => x.Levels[cls] > 0).Select(x => x.Category).Where(x => x != null).Distinct().ToList();
 
                 // add the root categories. e.g. for "Utility Beneficial/Combat Innates/Illusion: Other" add "Utility Beneficial"
                 int i = 0;

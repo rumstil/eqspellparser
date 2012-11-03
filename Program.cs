@@ -104,7 +104,9 @@ namespace parser
             // search by class
             if (field == "class")
             {
-                int i = (int)Enum.Parse(typeof(SpellClasses), value.ToUpper()) - 1;
+                int i = SpellParser.ParseClass(value) - 1;
+                if (i < 0)
+                    throw new Exception("Unknown class: " + value);
                 results = list.Where(x => x.ExtLevels[i] > 0 && x.ExtLevels[i] < 255).OrderBy(x => x.Levels[i]).ThenBy(x => x.ID);
             }
 
