@@ -481,6 +481,7 @@ namespace Everquest
         Venril_Sathir = 20,
         Froglok = 27,
         Old_Gargoyle = 29,
+        Gelatinous_Cube = 31,
         Old_Wolf = 42,
         Black_Spirit_Wolf = (42 << 16) + 1,
         White_Spirit_Wolf = (42 << 16) + 2,
@@ -2230,7 +2231,7 @@ namespace Everquest
         static private string FormatTime(float seconds)
         {
             if (seconds < 120)
-                return seconds.ToString("0.#") + "s";
+                return seconds.ToString("0.##") + "s";
 
             if (seconds < 7200)
                 return (seconds / 60f).ToString("0.#") + "m";

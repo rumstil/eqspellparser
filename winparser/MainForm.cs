@@ -221,8 +221,10 @@ namespace winparser
             
             if (!String.IsNullOrEmpty(category))
             {
-                if (category == "AA")
-                    query = query.Where(x => String.IsNullOrEmpty(x.Category));
+                if (category == "AA" && cls >= 0)
+                    query = query.Where(x => x.ExtLevels[cls] == 254);
+                else if (category == "AA")
+                    query = query.Where(x => x.ExtLevels.Any(y => y == 254));
                 else
                     query = query.Where(x => x.Category != null && x.Category.IndexOf(category, StringComparison.InvariantCultureIgnoreCase) >= 0);
             }
@@ -454,7 +456,7 @@ namespace winparser
         private string FormatTime(float seconds)
         {
             if (seconds < 120)
-                return seconds.ToString("0.#") + "s";
+                return seconds.ToString("0.##") + "s";
 
             if (seconds <= 7200)
                 return (seconds / 60f).ToString("0.#") + "m";
@@ -630,6 +632,7 @@ namespace winparser
 
         private void SearchClass_TextChanged(object sender, EventArgs e)
         {
+            // whenever the class is changed refresh the list of categories so that it only shows categories that class can cast
             int cls = SpellParser.ParseClass(SearchClass.Text) - 1;
             if (cls >= 0)
             {
