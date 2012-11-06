@@ -198,7 +198,7 @@ namespace winparser
             query = query.Where(x => !x.Name.StartsWith("Breath of"));
 
             // level filter is only used when a class is selected
-            if (cls >= 0)
+            if (cls >= 0 && category != "AA")
             {
                 query = query.Where(x => x.ExtLevels[cls] >= min && x.ExtLevels[cls] <= max);
             }
