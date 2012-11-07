@@ -17,6 +17,8 @@ namespace parser
         static string SpellFilename = "spells_us.txt";
         static string DescFilename = "dbstr_us.txt";
 
+        static SpellCache spells;
+
         static void Main(string[] args)
         {
             try
@@ -48,21 +50,19 @@ namespace parser
                     DownloadPatchFiles(null);
 
                 Console.Error.Write("Loading {0}... ", SpellFilename);
-                var spells = SpellParser.LoadFromFile(SpellFilename, SpellFilename.Replace("spells_us", "dbstr_us"));
-                var lookup = spells.ToDictionary(x => x.ID);     
+                spells = new SpellCache(SpellParser.LoadFromFile(SpellFilename, SpellFilename.Replace("spells_us", "dbstr_us")));
                 Console.Error.WriteLine("{0} spells", spells.Count);
-                
+
                 // perform search based on command line parameters                
                 string type = args.Length >= 1 ? args[0].ToLower() : null;
                 string value = args.Length >= 2 ? args[1] : null;
                 Console.Error.Write("Searching for {0} {1}... ", type, value);
-                var results = Search(spells , type, value);
+                var results = Search(type, value);
 
-                // expand results to include referenced spells 
-                results = Expand(results, lookup);
                 if (results != null)
                 {
                     Console.Error.WriteLine("{0} results", results.Count);
+                    spells.Expand(results);
                     Show(results);
                 }
 
@@ -77,29 +77,29 @@ namespace parser
         /// <summary>
         /// Search the spell list for matching spells.
         /// </summary>
-        static IList<Spell> Search(IEnumerable<Spell> list, string field, string value)
+        static List<Spell> Search(string field, string value)
         {
             IEnumerable<Spell> results = null;
 
             if (field == "all")
-                results = list;
+                results = spells;
             //results = list.Where(x => (int)x.TargetRestrict > 0).OrderBy(x => x.TargetRestrict);
 
             // search by effect type
             if (field == "type" || field == "spa")
-                results = list.Where(x => x.HasEffect(value) >= 0);
+                results = spells.Where(x => x.HasEffect(value) >= 0);
 
             // search by id
             if (field == "id")
-                results = list.Where(x => x.ID.ToString() == value);
+                results = spells.Where(x => x.ID.ToString() == value);
 
             // search by group
             if (field == "group")
-                results = list.Where(x => x.GroupID.ToString() == value);
+                results = spells.Where(x => x.GroupID.ToString() == value);
 
             // search by name
             if (field == "name")
-                results = list.Where(x => x.Name.ToLower().Contains(value.ToLower())).OrderBy(x => x.Name);
+                results = spells.Where(x => x.Name.IndexOf(value, StringComparison.CurrentCultureIgnoreCase) >= 0).OrderBy(x => x.Name);
 
             // search by class
             if (field == "class")
@@ -107,72 +107,37 @@ namespace parser
                 int i = SpellParser.ParseClass(value) - 1;
                 if (i < 0)
                     throw new Exception("Unknown class: " + value);
-                results = list.Where(x => x.ExtLevels[i] > 0 && x.ExtLevels[i] < 255).OrderBy(x => x.Levels[i]).ThenBy(x => x.ID);
+                results = spells.Where(x => x.ExtLevels[i] > 0 && x.ExtLevels[i] < 255).OrderBy(x => x.Levels[i]).ThenBy(x => x.ID);
             }
 
             // search by target
             if (field == "target")
-                results = list.Where(x => x.Target.ToString().ToLower() == value.ToLower());
+                results = spells.Where(x => x.Target.ToString().Equals(value, StringComparison.CurrentCultureIgnoreCase));
 
             // debugging: search the unknown field 
             if (field == "unknown")
-                results = list.Where(x => x.Unknown > 0).OrderBy(x => x.Unknown);
+                results = spells.Where(x => x.Unknown > 0).OrderBy(x => x.Unknown);
 
 
             return results.ToList();
         }
 
         /// <summary>
-        /// Recursively expand the spell list to include referenced spells.
-        /// </summary>                
-        static IList<Spell> Expand(IEnumerable<Spell> list, IDictionary<int, Spell> lookup)
+        /// Insert spell names. e.g. [Spell 13] -> Complete Heal [Spell 13]
+        /// </summary>
+        static string InsertSpellRefName(string text)
         {
-            List<Spell> results = list.ToList();
-
-            // keep a hash based index of existing results to avoid doing a linear search on results
-            // when checking if a spell is already included
-            HashSet<int> included = new HashSet<int>();
-            foreach (Spell spell in results)
-                included.Add(spell.ID);
-
-            Func<string, string> expand = text => Spell.SpellRefExpr.Replace(text, delegate(Match m)
-                {
-                    Spell spellref;
-                    if (lookup.TryGetValue(Int32.Parse(m.Groups[1].Value), out spellref))
-                    {
-                        if (!included.Contains(spellref.ID))
-                        {
-                            included.Add(spellref.ID);
-                            results.Add(spellref);
-                        }
-                        //return spellref.Name;
-                        return String.Format("{1} [Spell {0}]", spellref.ID, spellref.Name);
-                    }
-                    return m.Groups[0].Value;
-                });
-
-
-            // scan each spell in the queue for spell references. if a new reference is found
-            // then add it to the queue so that it can also be checked
-            int i = 0;
-            while (i < results.Count)
+            text = Spell.SpellRefExpr.Replace(text, m =>
             {
-                Spell spell = results[i++];
- 
-                if (spell.Recourse != null)
-                    spell.Recourse = expand(spell.Recourse);
+                int id = Int32.Parse(m.Groups[1].Value);
+                return String.Format("{1} [Spell {0}]", id, spells.GetSpellName(id));
+            });
 
-                // check effects slots for the [Spell 1234] references
-                for (int j = 0; j < spell.Slots.Length; j++)
-                    if (spell.Slots[j] != null)
-                        spell.Slots[j] = expand(spell.Slots[j]);
-            }
-
-            return results;
+            return text;
         }
 
         /// <summary>
-        /// Show list on console.
+        /// Show list to console.
         /// </summary>
         static void Show(IEnumerable<Spell> list)
         {
@@ -180,7 +145,7 @@ namespace parser
             {
                 Console.WriteLine(spell);
                 foreach (string s in spell.Details())
-                    Console.WriteLine(s);
+                    Console.WriteLine(InsertSpellRefName(s));
                 if (!String.IsNullOrEmpty(spell.Desc))
                     Console.WriteLine(spell.Desc);
                 Console.WriteLine();
