@@ -19,12 +19,57 @@ ins { background:#e6ffe6; text-decoration: none; }
 del { background:#ffe6e6; text-decoration: none; }
 </style>
 <script type='text/javascript'>
-function showSpell(id, here) {
+var lastAnchor;
+
+function getElementsByClassName(name) {
+    if (document.querySelectorAll)
+        return document.querySelectorAll('.' + name);
+
+    // backwards compatibility
+    var targets = [];
+    var nodes = document.getElementsByTagName('*');
+    for (var i = 0; i < nodes.length; i++)
+        if (nodes[i].className.indexOf(name) >= 0) // will trigger on substring match!
+            targets.push(nodes[i]);
+    return targets;
+}
+
+function clearHighlights() {
+    var targets = getElementsByClassName('high');
+    for (var i = 0; i < targets.length; i++)
+        targets[i].className = targets[i].className.replace(' high', '');      
+}
+
+function showSpell(id, here) {    
+    // 'here' is the clicked link. navigate up to the spell container div/tr
+    while (!here.id || here.id.substr(0, 5) != 'spell')
+    	here = here.parentNode;
+
+    // clear previous highlights
+    clearHighlights();  //if (here != lastAnchor) { clearHighlights(); lastAnchor = here; }
+
+    // move the referenced spell just below 'here'
     var target = document.getElementById('spell' + id);
-    target.className += ' high';
-	while (!here.id || here.id.substr(0, 5) != 'spell')
-		here = here.parentNode;    
+    if (target.className.indexOf('high') < 0)
+        target.className += ' high';
     here.parentNode.insertBefore(target, here.nextSibling);
+}
+
+function showGroup(id, here) {
+    // 'here' is the clicked link. navigate up to the spell container div/tr
+    while (!here.id || here.id.substr(0, 5) != 'spell')
+    here = here.parentNode;
+		
+    // clear previous highlights
+    clearHighlights();  //if (here != lastAnchor) { clearHighlights(); lastAnchor = here; }
+		
+    // move the referenced spell group just below 'here'    
+    var targets = getElementsByClassName('group' + id);
+    for (var i = targets.length - 1; i >= 0; i--) {
+        if (targets[i].className.indexOf('high') < 0)
+            targets[i].className += ' high';
+        here.parentNode.insertBefore(targets[i], here.nextSibling);
+    }
 }
 </script>
 </head>

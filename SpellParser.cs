@@ -2536,9 +2536,14 @@ namespace Everquest
             foreach (string s in spell.Slots)
                 if (s != null)
                 {
+                    // match spell refs
                     Match match = Spell.SpellRefExpr.Match(s);
                     if (match.Success)
                         linked.Add(Int32.Parse(match.Groups[1].Value));
+                    // match spell groups (save these as a negative number)
+                    match = Spell.GroupRefExpr.Match(s);
+                    if (match.Success)
+                        linked.Add(-Int32.Parse(match.Groups[1].Value));
                 }
 
             spell.LinksTo = linked.ToArray();

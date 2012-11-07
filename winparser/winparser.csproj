@@ -74,6 +74,9 @@
     <Compile Include="..\Patcher.cs">
       <Link>Patcher.cs</Link>
     </Compile>
+    <Compile Include="..\SpellCache.cs">
+      <Link>SpellCache.cs</Link>
+    </Compile>
     <Compile Include="..\SpellParser.cs">
       <Link>SpellParser.cs</Link>
     </Compile>

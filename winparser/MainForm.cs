@@ -20,8 +20,7 @@ namespace winparser
     {
         private Dictionary<string, string> Effects;
 
-        private List<Spell> Spells;
-        private Dictionary<int, Spell> SpellsById;
+        private SpellCache Spells;
 
         public string SpellPath;
         public List<Spell> Results;
@@ -34,6 +33,7 @@ namespace winparser
             Width = Screen.PrimaryScreen.WorkingArea.Width - 100;
 
             SearchClass.Items.AddRange(Enum.GetNames(typeof(SpellClassesLong)));
+            SearchClass.Items.Add("");
 
             // literal text suggestions (these words appear in parsed text)
             SearchEffect.Items.Add("Charm");
@@ -62,6 +62,7 @@ namespace winparser
             Effects.Add("Mana Regen", @"Increase Current Mana by (\d+)");
             Effects.Add("Add Proc", @"Add (?:Skill )?Proc");
             SearchEffect.Items.AddRange(Effects.Keys.ToArray());
+            SearchEffect.Items.Add("");
 
             //SearchBrowser.ObjectForScripting = this;
         }
@@ -69,12 +70,11 @@ namespace winparser
         public new void Load(string spellPath, string descPath)
         {
             SpellPath = spellPath;
-            Text += " - " + spellPath;
+            Text = spellPath;
 
             Cursor.Current = Cursors.WaitCursor;
 
-            Spells = SpellParser.LoadFromFile(spellPath, descPath);
-            SpellsById = Spells.ToDictionary(x => x.ID, x => x);
+            Spells = new SpellCache(SpellParser.LoadFromFile(spellPath, descPath));
             SearchClass_TextChanged(this, null);
             AutoSearch.Enabled = false;
 
@@ -106,9 +106,9 @@ namespace winparser
             int max;
             ParseRange(SearchLevel.Text, out min, out max);
 
-            Results = Search(text, cls, min, max, effect, category);
+            Results = Search(text, cls, min, max, effect, category).ToList();
 
-            Expand(Results);
+            Spells.Expand(Results);
 
 
             string Sorting = null;
@@ -183,7 +183,7 @@ namespace winparser
             ShowHtml(html);
         }
 
-        private List<Spell> Search(string text, int cls, int min, int max, string effect, string category)
+        private IQueryable<Spell> Search(string text, int cls, int min, int max, string effect, string category)
         {
             var query = Spells.AsQueryable();
 
@@ -229,47 +229,7 @@ namespace winparser
                     query = query.Where(x => x.Category != null && x.Category.IndexOf(category, StringComparison.InvariantCultureIgnoreCase) >= 0);
             }
 
-            return query.ToList();
-        }
-
-        /// <summary>
-        /// Expand the spell list to include associated spells.
-        /// </summary>                
-        private void Expand(List<Spell> list)
-        {
-            // keep track of all spells in the results so that we don't enter into a loop
-            HashSet<int> included = new HashSet<int>();
-            foreach (Spell spell in list)
-                included.Add(spell.ID);
-
-            // search the full spell list to find spells that link to the current results (reverse links)
-            // but do not do this for spells that are heavily referenced. e.g. complete heal is referenced by hundreds of focus spells
-            var ignore = list.Where(x => x.RefCount > 10).Select(x => x.ID).ToList();
-            foreach (var spell in Spells)
-            {
-                foreach (int id in spell.LinksTo)
-                    if (!ignore.Contains(id) && included.Contains(id) && !included.Contains(spell.ID))
-                    {
-                        included.Add(spell.ID);
-                        list.Add(spell);
-                    }
-            }
-
-            // search the result to find other spells that they link to (forward links)
-            int i = 0;
-            while (i < list.Count)
-            {
-                Spell spell = list[i++];
-
-                foreach (int id in spell.LinksTo)
-                    if (!included.Contains(id))
-                    {
-                        included.Add(id);
-                        Spell linked;
-                        if (SpellsById.TryGetValue(id, out linked))
-                            list.Add(linked);
-                    }
-            }
+            return query;
         }
 
         private StringBuilder InitHtml()
@@ -293,9 +253,9 @@ namespace winparser
         {
             foreach (var spell in list)
             {
-                html.AppendFormat("<p id='spell{0}'><strong>{1}</strong><br/>", spell.ID, spell.ToString());
+                html.AppendFormat("<p id='spell{0}' class='group{1}'><strong>{2}</strong><br/>", spell.ID, spell.GroupID, spell.ToString());
                 foreach (var line in spell.Details())
-                    html.Append(GetSpellLink(line) + "<br/>");
+                    html.Append(InsertSpellRefLinks(line) + "<br/>");
                 if (spell.Desc != null)
                     html.Append(spell.Desc);
                 html.Append("</p>");
@@ -320,7 +280,7 @@ namespace winparser
 
             foreach (var spell in list)
             {
-                html.AppendFormat("<tr id='spell{0}'><td>{0}</td><td>{1}</td>", spell.ID, spell.Name);
+                html.AppendFormat("<tr id='spell{0}' class='group{1}'><td>{0}</td><td>{2}</td>", spell.ID, spell.GroupID, spell.Name);
 
                 html.AppendFormat("<td style='max-width: 12em'>{0}</td>", spell.ClassesLevels);
 
@@ -354,11 +314,11 @@ namespace winparser
                     html.AppendFormat("Push: {0}<br/>", spell.PushBack);
 
                 if (spell.RecourseID != 0)
-                    html.AppendFormat("Recourse: {0}<br/>", GetSpellLink(String.Format("[Spell {0}]", spell.RecourseID)));
+                    html.AppendFormat("Recourse: {0}<br/>", InsertSpellRefLinks(String.Format("[Spell {0}]", spell.RecourseID)));
 
                 for (int i = 0; i < spell.Slots.Length; i++)
                     if (!String.IsNullOrEmpty(spell.Slots[i]))
-                        html.AppendFormat("{0}: {1}<br/>", i + 1, GetSpellLink(spell.Slots[i]));
+                        html.AppendFormat("{0}: {1}<br/>", i + 1, InsertSpellRefLinks(spell.Slots[i]));
 
                 html.Append("</td>");
 
@@ -370,40 +330,28 @@ namespace winparser
             html.Append("</table>");
         }
 
-        //public string GetSpellInfo(int id)
-        //{
-        //    Spell spell;
-        //    if (SpellsById.TryGetValue(id, out spell))
-        //        return String.Join("<br/>", spell.Details());
-        //    return "Not Found";
-        //}
-
-        private string GetSpellLink(string text)
+        private string InsertSpellRefLinks(string text)
         {
             text = HtmlEncode(text);
 
-            text = Spell.SpellRefExpr.Replace(text, delegate(Match m)
+            text = Spell.SpellRefExpr.Replace(text, m =>
             {
                 int id = Int32.Parse(m.Groups[1].Value);
-                string name = String.Format("[Spell {0}]", id);
-                if (SpellsById.ContainsKey(id))
-                    name = SpellsById[id].Name;
+                string name = Spells.GetSpellName(id) ?? String.Format("[Spell {0}]", id);
                 return String.Format("<a href='#spell{0}' onclick='showSpell({0}, this); return false;'>{1}</a>", id, name);
-                //return String.Format("<a class='spell' href='#spell{0}'>{1}</a>", id, name);
-                //return String.Format("<a class='spell' href='#' onclick='alert(window.external.GetSpellInfo({0})); return false;'>{1}</a>", id, name);
             });
 
-            //text = Spell.GroupRefExpr.Replace(text, delegate(Match m)
-            //{
-            //    int id = Int32.Parse(m.Groups[1].Value);
-            //    string name = SpellCache.GetGroupName(id) ?? String.Format("[Group {0}]", id);
-
-            //    return String.Format("<a href='#' onclick=\"$('.group{0}').insertAfter($(this).closest('tr')).show().addClass('linked'); return false; \">{1}</a>", id, name);
-            //});
-
-            text = Spell.ItemRefExpr.Replace(text, delegate(Match m)
+            text = Spell.GroupRefExpr.Replace(text, m =>
             {
-                return String.Format("<a class='ext' href='http://lucy.allakhazam.com/item.html?id={0}'>Item {0}</a>", m.Groups[1].Value);
+                int id = Int32.Parse(m.Groups[1].Value);
+                string name = Spells.GetSpellGroupName(id) ?? String.Format("[Group {0}]", id);
+                return String.Format("<a href='#group{0}' onclick='showGroup({0}, this); return false;'>{1}</a>", id, name);
+            });
+
+            text = Spell.ItemRefExpr.Replace(text, m =>
+            {
+                //return String.Format("<a href='http://lucy.allakhazam.com/item.html?id={0}' class='ext'>Item {0}</a>", m.Groups[1].Value);
+                return String.Format("<a href='http://everquest.allakhazam.com/db/item.html?item={0};source=lucy' class='ext'>Item {0}</a>", m.Groups[1].Value);
             });
 
             return text;
@@ -660,6 +608,7 @@ namespace winparser
                 SearchCategory.Items.AddRange(Spells.Select(x => x.Category).Where(x => x != null).Distinct().ToArray());
             }
             SearchCategory.Items.Add("AA");
+            SearchCategory.Items.Add("");
             SearchText_TextChanged(sender, e);
         }
 
