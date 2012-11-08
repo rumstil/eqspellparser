@@ -55,11 +55,23 @@ namespace Everquest
             foreach (var spell in spells)
             {
                 foreach (int id in spell.LinksTo)
-                    if (!ignore.Contains(id) && included.Contains(id) && !included.Contains(spell.ID))
+                {
+                    if (id < 0)
+                    {
+                        foreach (var target in spellsByGroup[-id])
+                            if (!ignore.Contains(target.ID) && included.Contains(target.ID) && !included.Contains(spell.ID))
+                            {
+                                included.Add(spell.ID);
+                                list.Add(spell);
+                            }
+                    }
+                    else if (id > 0 && !ignore.Contains(id) && included.Contains(id) && !included.Contains(spell.ID))
                     {
                         included.Add(spell.ID);
                         list.Add(spell);
                     }
+
+                }
             }
 
             // search the result to find other spells that they link to (forward links)
