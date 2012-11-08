@@ -42,7 +42,7 @@ namespace winparser
             SearchEffect.Items.Add("Root");
             SearchEffect.Items.Add("Stun");
             SearchEffect.Items.Add("Hate");
-            SearchEffect.Items.Add("Invisibility");            
+            SearchEffect.Items.Add("Invisibility");
             SearchEffect.Items.Add("Add Defensive Proc");
 
             // regex suggestions
@@ -86,7 +86,7 @@ namespace winparser
             html.Append("<p>Use the search button to perform a search on this spell file based on the criteria on the left.");
             html.Append("<p>Use the compare button to compare two different spell files and show the differences. e.g. test server vs live server spells.");
             html.Append("<p>Tip: You can use the up/down arrow keys when the cursor is in the Class/Has Effect/Category fields to quickly try different searches.");
-            html.Append("<p>Tip: This parser is an open source application and accepts updates and corrections here: <a class='ext' href='http://code.google.com/p/eqspellparser/'>http://code.google.com/p/eqspellparser/</a>");
+            html.Append("<p>Tip: This parser is an open source application and accepts updates and corrections here: <a href='http://code.google.com/p/eqspellparser/' class='ext' target='home'>http://code.google.com/p/eqspellparser/</a>");
 
             ShowHtml(html);
         }
@@ -156,6 +156,18 @@ namespace winparser
                         comp = a.ID - b.ID;
                     return comp;
                 });
+
+            }
+
+            // move entries that begin with the search text to the front of the results
+            if (!String.IsNullOrEmpty(text))
+            {
+                var move = Results.FindAll(x => x.Name.StartsWith(text, StringComparison.CurrentCultureIgnoreCase));
+                if (move.Count > 0)
+                { 
+                    Results.RemoveAll(x => x.Name.StartsWith(text, StringComparison.CurrentCultureIgnoreCase));
+                    Results.InsertRange(0, move);
+                }
             }
 
 
@@ -218,7 +230,7 @@ namespace winparser
                     query = query.Where(x => x.HasEffect(effect) >= 0);
             }
 
-            
+
             if (!String.IsNullOrEmpty(category))
             {
                 if (category == "AA" && cls >= 0)
@@ -350,8 +362,8 @@ namespace winparser
 
             text = Spell.ItemRefExpr.Replace(text, m =>
             {
-                //return String.Format("<a href='http://lucy.allakhazam.com/item.html?id={0}' class='ext'>Item {0}</a>", m.Groups[1].Value);
-                return String.Format("<a href='http://everquest.allakhazam.com/db/item.html?item={0};source=lucy' class='ext'>Item {0}</a>", m.Groups[1].Value);
+                //return String.Format("<a href='http://lucy.allakhazam.com/item.html?id={0}' class='ext' target='alla'>Item {0}</a>", m.Groups[1].Value);
+                return String.Format("<a href='http://everquest.allakhazam.com/db/item.html?item={0};source=lucy' class='ext' target='alla'>Item {0}</a>", m.Groups[1].Value);
             });
 
             return text;
@@ -435,7 +447,7 @@ namespace winparser
         {
             // start external links in an external window
             // internal links will all be "about:blank"
-            if (e.Url.Scheme.StartsWith("http"))
+            if (e.Url.Scheme.StartsWith("http") || !String.IsNullOrEmpty(e.TargetFrameName))
             {
                 e.Cancel = true;
                 System.Diagnostics.Process.Start(e.Url.ToString());
@@ -480,7 +492,7 @@ namespace winparser
             other.SearchCategory.Text = SearchCategory.Text;
             other.Search();
 
-           
+
             var diffs = Compare(Results, other.Results);
 
             var html = InitHtml();

@@ -35,20 +35,30 @@ namespace winparser
                     clone = button;
                 }
             }
+        }
+
+        private void FindFiles()
+        {
+            listView1.Items.Clear();
 
             var dir = new DirectoryInfo(".");
             var files = dir.GetFiles("spells_us*.txt");
+            ListViewItem item = null;
             foreach (var f in files)
             {
-                var item = new ListViewItem(f.Name);
+                item = new ListViewItem(f.Name);
                 item.SubItems.Add(f.Length.ToString());
                 item.SubItems.Add(CountFields(f.Name).ToString());
                 listView1.Items.Add(item);
-                listView1.FocusedItem = item;
             }
 
-            if (listView1.Items.Count == 0)
+            if (item == null)
                 Status.Text = "spells_us.txt was not found. Use the download button or copy a file into " + Directory.GetCurrentDirectory();
+            else
+            {
+                item.EnsureVisible();
+                item.Selected = true;
+            }
         }
 
         /// <summary>
@@ -84,13 +94,18 @@ namespace winparser
 
             Status.Text = String.Format("Downloaded {0} {1}", spell.Name, spell.LastModified.ToString());
 
-            if (listView1.FindItemWithText(spell.Name) == null)
+            var item = listView1.FindItemWithText(spell.Name);
+            if (item == null)
             {
-                var item = new ListViewItem(spell.Name);
+                item = new ListViewItem(spell.Name);
                 item.SubItems.Add(spell.UncompressedSize.ToString());
                 item.SubItems.Add(CountFields(spell.Name).ToString());
-                listView1.Items.Add(item);
+                listView1.Items.Add(item);                
             }
+            listView1.MultiSelect = false;
+            item.EnsureVisible();
+            item.Selected = true;
+            listView1.MultiSelect = true;
         }
 
         public void SetStatus(string text)
@@ -107,20 +122,29 @@ namespace winparser
         private void listView1_DoubleClick(object sender, EventArgs e)
         {
             if (listView1.FocusedItem != null)
+            {
                 Open(listView1.FocusedItem.Text);
-            Hide();
+                Hide();
+            }
         }
 
         private void OpenBtn_Click(object sender, EventArgs e)
         {
             for (int i = 0; i < listView1.SelectedItems.Count; i++)
+            {
                 Open(listView1.SelectedItems[i].Text);
-            Hide();
+                Hide();
+            }
         }
 
         private void DownloadLive_Click(object sender, EventArgs e)
         {
             Download((sender as Button).AccessibleName);
+        }
+
+        private void FileOpenForm_Load(object sender, EventArgs e)
+        {
+            FindFiles();
         }
 
         private void FileOpenForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -129,8 +153,10 @@ namespace winparser
             {
                 Hide();
                 e.Cancel = true;
-            }            
+            }
         }
+
+
 
     }
 }

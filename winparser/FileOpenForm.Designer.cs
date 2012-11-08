@@ -33,12 +33,12 @@
             this.OpenBtn = new System.Windows.Forms.Button();
             this.DownloadBtn = new System.Windows.Forms.Button();
             this.listView1 = new System.Windows.Forms.ListView();
-            this.columnHeader1 = new System.Windows.Forms.ColumnHeader();
-            this.columnHeader2 = new System.Windows.Forms.ColumnHeader();
+            this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.panel2 = new System.Windows.Forms.Panel();
             this.Status = new System.Windows.Forms.Label();
             this.panel3 = new System.Windows.Forms.Panel();
-            this.columnHeader3 = new System.Windows.Forms.ColumnHeader();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.SuspendLayout();
@@ -58,7 +58,7 @@
             this.OpenBtn.Location = new System.Drawing.Point(573, 8);
             this.OpenBtn.Name = "OpenBtn";
             this.OpenBtn.Size = new System.Drawing.Size(75, 27);
-            this.OpenBtn.TabIndex = 2;
+            this.OpenBtn.TabIndex = 0;
             this.OpenBtn.Text = "Open";
             this.OpenBtn.UseVisualStyleBackColor = true;
             this.OpenBtn.Click += new System.EventHandler(this.OpenBtn_Click);
@@ -68,7 +68,7 @@
             this.DownloadBtn.Location = new System.Drawing.Point(12, 8);
             this.DownloadBtn.Name = "DownloadBtn";
             this.DownloadBtn.Size = new System.Drawing.Size(104, 27);
-            this.DownloadBtn.TabIndex = 0;
+            this.DownloadBtn.TabIndex = 1;
             this.DownloadBtn.Tag = "";
             this.DownloadBtn.Text = "Download Live";
             this.DownloadBtn.UseVisualStyleBackColor = true;
@@ -104,6 +104,12 @@
             this.columnHeader2.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.columnHeader2.Width = 80;
             // 
+            // columnHeader3
+            // 
+            this.columnHeader3.Text = "Fields";
+            this.columnHeader3.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.columnHeader3.Width = 80;
+            // 
             // panel2
             // 
             this.panel2.BackColor = System.Drawing.SystemColors.Info;
@@ -134,12 +140,6 @@
             this.panel3.Size = new System.Drawing.Size(660, 1);
             this.panel3.TabIndex = 3;
             // 
-            // columnHeader3
-            // 
-            this.columnHeader3.Text = "Fields";
-            this.columnHeader3.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.columnHeader3.Width = 80;
-            // 
             // FileOpenForm
             // 
             this.AcceptButton = this.OpenBtn;
@@ -156,6 +156,7 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "EQ Spell Parser";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FileOpenForm_FormClosing);
+            this.Load += new System.EventHandler(this.FileOpenForm_Load);
             this.panel1.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
