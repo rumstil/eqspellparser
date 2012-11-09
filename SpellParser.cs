@@ -634,6 +634,7 @@ namespace Everquest
         Spider = 440,
         Spider_Queen = 441,
         Animated_Statue = 442,
+        Dragon_Egg = 445,
         Werewolf = 454,
         White_Werewolf = (454 << 16) + 2,
         Kobold = 455,
