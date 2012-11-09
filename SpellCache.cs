@@ -42,7 +42,7 @@ namespace Everquest
         /// <summary>
         /// Expand a spell list to include referenced spells.
         /// </summary>                
-        public void Expand(List<Spell> list)
+        public void Expand(List<Spell> list, bool backwards)
         {
             // keep track of all spells in the results so that we don't enter into a loop
             HashSet<int> included = new HashSet<int>();
@@ -51,26 +51,17 @@ namespace Everquest
 
             // search the full spell list to find spells that link to the current results (reverse links)
             // but do not do this for spells that are heavily referenced. e.g. complete heal is referenced by hundreds of focus spells
-            var ignore = list.Where(x => x.RefCount > 10).Select(x => x.ID).ToList();
-            foreach (var spell in spells)
-            {
-                foreach (int id in spell.LinksTo)
+            if (backwards)
+            { 
+                var ignore = list.Where(x => x.RefCount > 10).Select(x => x.ID).ToList();
+                foreach (var spell in spells)
                 {
-                    if (id < 0)
-                    {
-                        foreach (var target in spellsByGroup[-id])
-                            if (!ignore.Contains(target.ID) && included.Contains(target.ID) && !included.Contains(spell.ID))
-                            {
-                                included.Add(spell.ID);
-                                list.Add(spell);
-                            }
-                    }
-                    else if (id > 0 && !ignore.Contains(id) && included.Contains(id) && !included.Contains(spell.ID))
-                    {
-                        included.Add(spell.ID);
-                        list.Add(spell);
-                    }
-
+                    foreach (int id in spell.LinksTo)
+                        if (!ignore.Contains(id) && included.Contains(id) && !included.Contains(spell.ID))
+                        {
+                            included.Add(spell.ID);
+                            list.Add(spell);
+                        } 
                 }
             }
 
@@ -80,19 +71,8 @@ namespace Everquest
             {
                 Spell spell = list[i++];
 
-                // < 0 = spell group
-                // > 0 = spell id
                 foreach (int id in spell.LinksTo)
-                    if (id < 0)
-                    {
-                        foreach (var linked in spellsByGroup[-id])
-                            if (!included.Contains(linked.ID))
-                            {
-                                included.Add(linked.ID);
-                                list.Add(linked);
-                            }
-                    }
-                    else if (!included.Contains(id))
+                    if (!included.Contains(id))
                     {
                         included.Add(id);
                         Spell linked;
@@ -100,6 +80,7 @@ namespace Everquest
                             list.Add(linked);
                     }
             }
+
         }
 
 

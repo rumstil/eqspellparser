@@ -11,6 +11,7 @@ using System.Diagnostics;
 /*
  *
  * http://code.google.com/p/projecteqemu/source/browse/trunk/EQEmuServer/zone/spdat.h
+ * http://eqitems.13th-floor.org/phpBB2/viewtopic.php?t=23
  * http://forums.station.sony.com/eq/posts/list.m?start=150&topic_id=162971
  * http://forums.station.sony.com/eq/posts/list.m?start=50&topic_id=165000 - resists
  *
@@ -300,17 +301,24 @@ namespace Everquest
     {
         Humanoid = 1,
         Undead = 3,
+        Giant = 4,
+        Golem = 5,
         Extraplanar = 6,
+        UndeadPet = 8,
         Vampyre = 12,
         Greater_Akheva = 14,
+        Seru = 16,
         Draz_Nurakk = 18,
         Zek = 19,
-        Luggald = 20,        
+        Luggald = 20,
         Animal = 21,
+        Insect = 22,
         Elemental = 24,
         Plant = 25,
         Dragonkin = 26,
         Summoned = 28,
+        Dragon = 29,
+        Familiar = 31,
         Muramite = 34
     }
 
@@ -1141,7 +1149,7 @@ namespace Everquest
                 case 9:
                     return Spell.FormatCount("WIS", value) + range;
                 case 10:
-                    // 10 is often used as a filler
+                    // 10 is often used as a filler or to trigger server side scripts
                     return Spell.FormatCount("CHA", value) + range;
                 case 11:
                     // base attack speed is 100. so 85 = 15% slow, 130 = 30% haste
@@ -1710,8 +1718,8 @@ namespace Everquest
                     return Spell.FormatCount("Current HP", value) + repeating + range;
                 case 335:
                     if (base1 < 100)
-                        return String.Format("Block Matching Spell ({0}% Chance)", base1);
-                    return "Block Matching Spell";
+                        return String.Format("Block Next Matching Spell ({0}% Chance)", base1);
+                    return "Block Next Matching Spell";
                 case 337:
                     return Spell.FormatPercent("Experience Gain", value);
                 case 338:
@@ -1842,7 +1850,7 @@ namespace Everquest
                 case 393:
                     return Spell.FormatPercent("Healing Taken", base1, base2); // ranged
                 case 394:
-                    return Spell.FormatCount("Healing Taken", base1);
+                    return Spell.FormatCount("Healing Taken", base1); // affected by limits
                 case 396:
                     // used on type 3 augments
                     return Spell.FormatCount("Healing", base1);
@@ -1866,7 +1874,8 @@ namespace Everquest
                 case 406:
                     return String.Format("Cast on Max Hits: [Spell {0}]", base1);
                 case 407:
-                    return String.Format("Cast on Unknown Condition: [Spell {0}]", base1);
+                    // this is a guess. haven't tested this
+                    return String.Format("Cast on Limit Match: [Spell {0}]", base1);
                 case 408:
                     // unlike 214, this does not show a lower max HP
                     if (base2 > 0)
@@ -1933,6 +1942,8 @@ namespace Everquest
                     return String.Format("Cancel if Moved {0}", base1);
                 case 442:
                     return String.Format("Cast on {1}: [Spell {0}]", base1, Spell.FormatEnum((SpellTargetRestrict)base2));
+                case 443:
+                    return String.Format("Cast: [Spell {0}] If [Spell {1}] Hits", base1, base2);
                 case 444:
                     return "Lock Aggro on Caster and " + Spell.FormatPercent("Other Aggro", base2 - 100) + String.Format(" up to level {0}", base1);
                 case 445:
@@ -2290,7 +2301,8 @@ namespace Everquest
         static public List<Spell> LoadFromFile(string spellPath, string descPath)
         {
             List<Spell> list = new List<Spell>(30000);
-            Dictionary<int, Spell> lookup = new Dictionary<int, Spell>(30000);
+            Dictionary<int, Spell> listById = new Dictionary<int, Spell>(30000);
+            //Dictionary<int, Spell> listByGroup = new Dictionary<int, Spell>(30000);
 
             // load description text file
             Dictionary<string, string> desc = new Dictionary<string, string>(30000);
@@ -2346,31 +2358,69 @@ namespace Everquest
                             spell.Desc = null;
 
                         list.Add(spell);
-                        lookup[spell.ID] = spell;
+                        listById[spell.ID] = spell;
+                        //if (spell.GroupID > 0)
+                        //    listByGroup[spell.GroupID] = spell;
                     }
 
             // second pass fixes that require the entire spell list to be loaded already
+            List<Spell> groups = list.FindAll(x => x.GroupID > 0);
             foreach (Spell spell in list)
             {
+                // get list of linked spells
+                List<int> linked = new List<int>(10);
+                if (spell.RecourseID != 0)
+                    linked.Add(spell.RecourseID);
+
+                foreach (string s in spell.Slots)
+                    if (s != null)
+                    {
+                        // match spell refs
+                        //Match match = Spell.SpellRefExpr.Match(s);
+                        //if (match.Success)
+                        //    linked.Add(Int32.Parse(match.Groups[1].Value));
+                        // effect 443 will references 2 spells. all other effects reference 1 at most
+                        MatchCollection matches = Spell.SpellRefExpr.Matches(s);
+                        foreach (Match m in matches)
+                            if (m.Success)
+                                linked.Add(Int32.Parse(m.Groups[1].Value));
+
+                        // match spell group refs
+                        Match match = Spell.GroupRefExpr.Match(s);
+                        if (match.Success)
+                        { 
+                            int id = Int32.Parse(match.Groups[1].Value);
+                            groups.FindAll(x => x.GroupID == id).ForEach(x => linked.Add(x.ID));                           
+                        }
+                    }
+
+                spell.LinksTo = linked.ToArray();
+
                 foreach (int id in spell.LinksTo)
                 {
                     Spell target = null;
-                    if (lookup.TryGetValue(id, out target))
+                    if (listById.TryGetValue(id, out target))
                     {
-                        // count references to each spell
                         target.RefCount++;
 
                         // a lot of side effect spells do not have a level on them. this will copy the level of the referring spell 
                         // onto the side effect spell so that the spell will be searchable.
                         // e.g. Jolting Swings Strike has no level so it won't show up in a ranger search even though Jolting Swings will
-                        // note that the levels array are not modified because the devs seem to omit levels on these spells to exclude them from being focused
+                        //                       
+                        // the extlevels array is used for searching only and never displayed. it is important that we don't modify the actual
+                        // levels array that is displayed because that would suggest different functionality
+                        // e.g. some spells purposely don't have levels assigned so that they are not affected by focus spells
                         for (int i = 0; i < spell.Levels.Length; i++)
                         {
                             if (target.ExtLevels[i] == 0 && spell.Levels[i] != 0)
                                 target.ExtLevels[i] = spell.Levels[i];
+
+                            // apply in the reverse direction too. this will probably only be useful for including type3 augs 
+                            // todo: check if this includes too many focus spells
+                            //if (spell.ExtLevels[i] == 0 && target.Levels[i] != 0)
+                            //    spell.ExtLevels[i] = target.Levels[i];
                         }
                     }
-
                 }
             }
 
@@ -2528,25 +2578,6 @@ namespace Everquest
                 if (ParseBool(fields[125 + i]))
                     spell.Deity += gods[i] + " ";
 
-            // get list of linked spells
-            List<int> linked = new List<int>(10);
-            if (spell.RecourseID != 0)
-                linked.Add(spell.RecourseID);
-
-            foreach (string s in spell.Slots)
-                if (s != null)
-                {
-                    // match spell refs
-                    Match match = Spell.SpellRefExpr.Match(s);
-                    if (match.Success)
-                        linked.Add(Int32.Parse(match.Groups[1].Value));
-                    // match spell groups (save these as a negative number)
-                    match = Spell.GroupRefExpr.Match(s);
-                    if (match.Success)
-                        linked.Add(-Int32.Parse(match.Groups[1].Value));
-                }
-
-            spell.LinksTo = linked.ToArray();
 
             // debug stuff
             //if (spell.ID == 31123) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);

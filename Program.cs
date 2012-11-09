@@ -62,7 +62,8 @@ namespace parser
                 if (results != null)
                 {
                     Console.Error.WriteLine("{0} results", results.Count);
-                    spells.Expand(results);
+                    Console.Error.WriteLine();
+                    spells.Expand(results, false);
                     Show(results);
                 }
 

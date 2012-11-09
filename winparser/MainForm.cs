@@ -83,23 +83,25 @@ namespace winparser
             var html = InitHtml();
 
             html.AppendFormat("<p>Loaded <strong>{0}</strong> spells from {1}.</p></html>", Spells.Count, SpellPath);
-            html.Append("<p>Use the search button to perform a search on this spell file based on the criteria on the left.");
+            html.Append("<p>Use the search button to perform a search on this spell file based on the filters on the left.");
             html.Append("<p>Use the compare button to compare two different spell files and show the differences. e.g. test server vs live server spells.");
             html.Append("<p>Tip: You can use the up/down arrow keys when the cursor is in the Class/Has Effect/Category fields to quickly try different searches.");
-            html.Append("<p>Tip: This parser is an open source application and accepts updates and corrections here: <a href='http://code.google.com/p/eqspellparser/' class='ext' target='home'>http://code.google.com/p/eqspellparser/</a>");
+            html.Append("<p>Tip: This parser is an open source application and accepts updates and corrections here: <a href='http://code.google.com/p/eqspellparser/' class='ext' target='_top'>http://code.google.com/p/eqspellparser/</a>");
 
             ShowHtml(html);
         }
 
         /// <summary>
-        /// Search spell database based on form filter settings
+        /// Search spell database based on filter settings
         /// </summary>
         public void Search()
         {
             AutoSearch.Enabled = false;
 
-            var cls = SpellParser.ParseClass(SearchClass.Text) - 1;
             var text = SearchText.Text;
+            int id = 0;
+            Int32.TryParse(text, out id);
+            var cls = SpellParser.ParseClass(SearchClass.Text) - 1;
             var effect = SearchEffect.Text;
             var category = SearchCategory.Text;
             int min;
@@ -108,7 +110,7 @@ namespace winparser
 
             Results = Search(text, cls, min, max, effect, category).ToList();
 
-            Spells.Expand(Results);
+            Spells.Expand(Results, Results.Count > 1);
 
 
             string Sorting = null;
@@ -159,40 +161,28 @@ namespace winparser
 
             }
 
+            // if searching by id, move the spell to the top of the results because it may be sorted below it's side effect spells
+            if (id > 0)
+            {
+                var i = Results.FindIndex(x => x.ID == id);
+                if (i > 0)
+                {
+                    var move = Results[i];
+                    Results.RemoveAt(i);
+                    Results.Insert(0, move);
+                }
+            }
             // move entries that begin with the search text to the front of the results
-            if (!String.IsNullOrEmpty(text))
+            else if (!String.IsNullOrEmpty(text))
             {
                 var move = Results.FindAll(x => x.Name.StartsWith(text, StringComparison.CurrentCultureIgnoreCase));
                 if (move.Count > 0)
-                { 
+                {
                     Results.RemoveAll(x => x.Name.StartsWith(text, StringComparison.CurrentCultureIgnoreCase));
                     Results.InsertRange(0, move);
                 }
             }
 
-
-            SearchNotes.Text = String.Format("{0} results", Results.Count);
-
-            var html = InitHtml();
-
-            if (Results.Count == 0)
-            {
-                html.Append("<p><strong>Sorry, no matching spells were found.</strong></p><p>You may have made the filters too restrictive (including levels), accidentally defined conflicting filters, or left one of the filters filled in from a previous search. Try filtering by just one or two filters.</p>");
-            }
-            else
-            {
-                if (Results.Count > 2000)
-                    Sorting += " Only the first 2000 are shown.";
-                html.Append("<p>" + Sorting + "</p>");
-
-                if (DisplayText.Checked)
-                    ShowAsText(Results.Take(2000), html);
-                else
-                    ShowAsTable(Results.Take(2000), html);
-            }
-
-            html.Append("</html>");
-            ShowHtml(html);
         }
 
         private IQueryable<Spell> Search(string text, int cls, int min, int max, string effect, string category)
@@ -202,8 +192,9 @@ namespace winparser
             //  spell name and description are checked for literal text           
             int id;
             if (Int32.TryParse(text, out id))
-                query = query.Where(x => x.ID == id);
-            else if (!String.IsNullOrEmpty(text))
+                return query.Where(x => x.ID == id);
+
+            if (!String.IsNullOrEmpty(text))
                 query = query.Where(x => x.ID.ToString() == text || x.Name.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0 || (x.Desc != null && x.Desc.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0));
 
             // exclude dragorn breath AA because they spam the results
@@ -242,6 +233,34 @@ namespace winparser
             }
 
             return query;
+        }
+
+        /// <summary>
+        /// Display the current search results
+        /// </summary>
+        private void ShowResults()
+        {
+            SearchNotes.Text = String.Format("{0} results", Results.Count);
+
+            var html = InitHtml();
+
+            if (Results.Count == 0)
+            {
+                html.Append("<p><strong>Sorry, no matching spells were found.</strong></p><p>You may have made the filters too restrictive (including levels), accidentally defined conflicting filters, or left one of the filters filled in from a previous search. Try filtering by just one or two filters.</p>");
+            }
+            else
+            {
+                if (Results.Count > 2000)
+                    html.Append("<p>Only the first 2000 are shown.</p>");
+
+                if (DisplayText.Checked)
+                    ShowAsText(Results.Take(2000), html);
+                else
+                    ShowAsTable(Results.Take(2000), html);
+            }
+
+            html.Append("</html>");
+            ShowHtml(html);
         }
 
         private StringBuilder InitHtml()
@@ -362,8 +381,8 @@ namespace winparser
 
             text = Spell.ItemRefExpr.Replace(text, m =>
             {
-                //return String.Format("<a href='http://lucy.allakhazam.com/item.html?id={0}' class='ext' target='alla'>Item {0}</a>", m.Groups[1].Value);
-                return String.Format("<a href='http://everquest.allakhazam.com/db/item.html?item={0};source=lucy' class='ext' target='alla'>Item {0}</a>", m.Groups[1].Value);
+                //return String.Format("<a href='http://lucy.allakhazam.com/item.html?id={0}' class='ext' target='_top'>Item {0}</a>", m.Groups[1].Value);
+                return String.Format("<a href='http://everquest.allakhazam.com/db/item.html?item={0};source=lucy' class='ext' target='_top'>Item {0}</a>", m.Groups[1].Value);
             });
 
             return text;
@@ -447,6 +466,7 @@ namespace winparser
         {
             // start external links in an external window
             // internal links will all be "about:blank"
+            // using a target other than target=_top seems to force IE rather than the default browser on one of my computers 
             if (e.Url.Scheme.StartsWith("http") || !String.IsNullOrEmpty(e.TargetFrameName))
             {
                 e.Cancel = true;
@@ -458,6 +478,7 @@ namespace winparser
         {
             Cursor.Current = Cursors.WaitCursor;
             Search();
+            ShowResults();
             Cursor.Current = Cursors.Default;
         }
 
