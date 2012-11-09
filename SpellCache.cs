@@ -40,6 +40,26 @@ namespace Everquest
         }
 
         /// <summary>
+        /// Insert spell names. e.g. [Spell 13] -> Complete Heal [Spell 13]
+        /// </summary>
+        public string InsertSpellNames(string text)
+        {
+            text = Spell.SpellRefExpr.Replace(text, m =>
+            {
+                int id = Int32.Parse(m.Groups[1].Value);
+                return String.Format("{1} [Spell {0}]", id, GetSpellName(id));
+            });
+
+            text = Spell.GroupRefExpr.Replace(text, m =>
+            {
+                int id = Int32.Parse(m.Groups[1].Value);
+                return String.Format("{1} [Group {0}]", id, GetSpellGroupName(id));
+            });
+
+            return text;
+        }
+
+        /// <summary>
         /// Expand a spell list to include referenced spells.
         /// </summary>                
         public void Expand(List<Spell> list, bool backwards)

@@ -124,20 +124,6 @@ namespace parser
         }
 
         /// <summary>
-        /// Insert spell names. e.g. [Spell 13] -> Complete Heal [Spell 13]
-        /// </summary>
-        static string InsertSpellRefName(string text)
-        {
-            text = Spell.SpellRefExpr.Replace(text, m =>
-            {
-                int id = Int32.Parse(m.Groups[1].Value);
-                return String.Format("{1} [Spell {0}]", id, spells.GetSpellName(id));
-            });
-
-            return text;
-        }
-
-        /// <summary>
         /// Show list to console.
         /// </summary>
         static void Show(IEnumerable<Spell> list)
@@ -146,7 +132,7 @@ namespace parser
             {
                 Console.WriteLine(spell);
                 foreach (string s in spell.Details())
-                    Console.WriteLine(InsertSpellRefName(s));
+                    Console.WriteLine(spells.InsertSpellNames(s));
                 if (!String.IsNullOrEmpty(spell.Desc))
                     Console.WriteLine(spell.Desc);
                 Console.WriteLine();

@@ -540,7 +540,7 @@ namespace winparser
         private List<Diff> Compare(IEnumerable<Spell> setA, IEnumerable<Spell> setB)
         {
             // this function generates the comparison text for each spell
-            Func<Spell, string> getText = x => x.ToString() + "\n" + String.Join("\n", x.Details()) + "\n\n";
+            Func<Spell, string> getText = x => x.ToString() + "\n" +  Spells.InsertSpellNames(String.Join("\n", x.Details())) + "\n\n";
 
             var dmp = new DiffMatchPatch.diff_match_patch();
             var diffs = new List<Diff>();
