@@ -192,7 +192,7 @@ namespace winparser
             //  spell name and description are checked for literal text           
             int id;
             if (Int32.TryParse(text, out id))
-                return query.Where(x => x.ID == id);
+                return query.Where(x => x.ID == id || x.GroupID == id);
 
             if (!String.IsNullOrEmpty(text))
                 query = query.Where(x => x.ID.ToString() == text || x.Name.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0 || (x.Desc != null && x.Desc.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0));
