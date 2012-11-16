@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 
 
-/*
+/* This file is intended to be used as a library and only uses c# 2.0/.net 2.0 features for the widest compatiblity.
  *
  * http://code.google.com/p/projecteqemu/source/browse/trunk/EQEmuServer/zone/spdat.h
  * http://eqitems.13th-floor.org/phpBB2/viewtopic.php?t=23
@@ -510,7 +510,7 @@ namespace Everquest
         Old_Scarecrow = 82,
         Old_Skeleton = 85,
         Old_Drake = 89,
-        Alligator = 91,
+        Old_Alligator = 91,
         Old_Dervish = 100,
         Tadpole = 102,
         Old_Kedge = 103,
@@ -538,6 +538,7 @@ namespace Everquest
         Snow_Rabbit = 176,
         Walrus = 177,
         Geonid = 178,
+        Coldain = 183,
         Hag = 185,
         Othmir = 190,
         Ulthork = 191,
@@ -554,6 +555,7 @@ namespace Everquest
         Air_Elemental2 = 210,
         Water_Elemental2 = 211,
         Fire_Elemental2 = 212,
+        Thought_Horror = 214,
         Shissar = 217,
         Fungal_Fiend = 218,
         Stonegrabber = 220,
@@ -634,6 +636,8 @@ namespace Everquest
         Spider = 440,
         Spider_Queen = 441,
         Animated_Statue = 442,
+        Lava_Spider = 450,
+        Lava_Spider_Queen = 451,
         Dragon_Egg = 445,
         Werewolf = 454,
         White_Werewolf = (454 << 16) + 2,
@@ -646,13 +650,17 @@ namespace Everquest
         Orc = 458,
         Bloodmoon_Orc = (458 << 16) + 4,
         Drachnid = 461,
+        Drachnid_Cocoon = 462,
+        Fungus_Patch = 463,
         Gargoyle = 464,
         Runed_Gargoyle = (464 << 16) + 1,
         Undead_Shiliskin = 467,
         Armored_Shiliskin = (467 << 16) + 5,
+        Snake = 468,
         Evil_Eye = 469,
         Minotaur = 470,
         Zombie = 471,
+        Clockwork_Boar = 472,
         Fairy = 473,
         Tree_Fairy = (473 << 16) + 1,
         Witheran = 474,
@@ -660,6 +668,7 @@ namespace Everquest
         Earth_Elemental3 = 476,
         Fire_Elemental3 = 477,
         Water_Elemental3 = 478,
+        Alligator = 479,
         Bear = 480,
         Wolf = 482,
         Spectre = 485,
@@ -747,7 +756,8 @@ namespace Everquest
         Triumvirate = 697,
         Hadal = 698,
         Hadal_Templar = (698 << 16) + 2,
-        Alaran_Ghost = 708
+        Alaran_Ghost = 708,
+        Ratman = 718
     }
 
     public enum SpellFaction
@@ -816,7 +826,7 @@ namespace Everquest
         public int AERange;
         public int AEDuration; // rain spells
         public float CastingTime;
-        public float QuietTime;
+        public float QuietTime; // refresh time
         public float RecastTime;
         public float PushBack;
         public float PushUp;
@@ -968,17 +978,18 @@ namespace Everquest
             else
                 result.Add("Beneficial: " + (BeneficialBlockable ? "Blockable" : "Not Blockable"));
 
+            string quiet = ClassesMask == 0 || ClassesMask == SpellClassesMask.BRD || QuietTime == 0 ? "" : ", Quiet: " + QuietTime.ToString() + "s";
             if (TimerID > 0)
-                result.Add("Casting: " + CastingTime.ToString() + "s, Recast: " + FormatTime(RecastTime) + ", Timer: " + TimerID);
+                result.Add("Casting: " + CastingTime.ToString() + "s, Recast: " + FormatTime(RecastTime) + ", Timer: " + TimerID + quiet);
             else if (RecastTime > 0)
-                result.Add("Casting: " + CastingTime.ToString() + "s, Recast: " + FormatTime(RecastTime));
+                result.Add("Casting: " + CastingTime.ToString() + "s, Recast: " + FormatTime(RecastTime) + quiet);
             else
-                result.Add("Casting: " + CastingTime.ToString() + "s");
+                result.Add("Casting: " + CastingTime.ToString() + "s" + quiet);
 
             if (DurationTicks > 0 && Beneficial && ClassesMask != SpellClassesMask.BRD)
-                result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)" + ", Extend: " + (DurationExtendable ? "Yes" : "No") + (PersistAfterDeath ? ", Keep On Death: Yes" : ""));
+                result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)" + ", Extend: " + (DurationExtendable ? "Yes" : "No") + (PersistAfterDeath ? ", Persist After Death" : ""));
             else if (DurationTicks > 0)
-                result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)" + (PersistAfterDeath ? ", Keep On Death: Yes" : ""));
+                result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)" + (PersistAfterDeath ? ", Persist After Death" : ""));
             else if (AEDuration >= 2500)
                 result.Add("AE Waves: " + AEDuration / 2500);
 
@@ -1021,24 +1032,56 @@ namespace Everquest
             return result.ToArray();
         }
 
-        /*
         /// <summary>
-        /// Return a list of spells that this spell references.
+        /// Finalize spell after all the attributes have been loaded.
         /// </summary>
-        public IEnumerable<int> LinkedSpells()
+        public void Prepare()
         {
-            if (RecourseID != 0)
-                yield return RecourseID;
-
-            foreach (string s in Slots)
-                if (s != null)
+            ClassesLevels = String.Empty;
+            ClassesMask = 0;
+            bool All254 = true;
+            for (int i = 0; i < Levels.Length; i++)
+            {
+                if (Levels[i] == 255)
+                    Levels[i] = 0;
+                if (Levels[i] != 0)
                 {
-                    Match match = Spell.SpellRefExpr.Match(s);
-                    if (match.Success)
-                        yield return Int32.Parse(match.Groups[1].Value);
+                    ClassesMask |= (SpellClassesMask)(1 << i);
+                    ClassesLevels += " " + (SpellClasses)(i + 1) + "/" + Levels[i];
                 }
+                // bard AA i=7 are marked as 255 even though are usable
+                if (Levels[i] != 254 && i != 7)
+                    All254 = false;
+            }
+            Array.Copy(Levels, ExtLevels, Levels.Length);
+            ClassesLevels = ClassesLevels.TrimStart();
+            if (All254)
+                ClassesLevels = "ALL/254";
+
+            if (MaxHitsType == SpellMaxHits.None || DurationTicks == 0)
+                MaxHits = 0;
+
+            if (Target == SpellTarget.Self)
+            {
+                Range = 0;
+                AERange = 0;
+                MaxTargets = 0;
+            }
+
+            if (Target == SpellTarget.Single)
+            {
+                AERange = 0;
+                MaxTargets = 0;
+            }
+
+            if (ResistType == SpellResist.Unresistable)
+                ResistMod = 0;
+
+            if (Zone != SpellZoneRestrict.Indoors && Zone != SpellZoneRestrict.Outdoors)
+                Zone = SpellZoneRestrict.None;
+
+
         }
-        */
 
         /// <summary>
         /// Search all spell slots for a certain effect
@@ -2325,6 +2368,7 @@ namespace Everquest
                         // type 6 = spell desc
                         // type 7 = lore groups
                         // type 11 = illusions
+                        // type 12 = body type
                         // type 16 = aug slot desc
                         // type 18 = currency
                         desc[fields[1] + "/" + fields[0]] = fields[2].Trim();
@@ -2365,7 +2409,7 @@ namespace Everquest
                     }
 
             // second pass fixes that require the entire spell list to be loaded already
-            List<Spell> groups = list.FindAll(x => x.GroupID > 0);
+            List<Spell> groups = list.FindAll(delegate(Spell x) { return x.GroupID > 0; });
             foreach (Spell spell in list)
             {
                 // get list of linked spells
@@ -2391,7 +2435,7 @@ namespace Everquest
                         if (match.Success)
                         { 
                             int id = Int32.Parse(match.Groups[1].Value);
-                            groups.FindAll(x => x.GroupID == id).ForEach(x => linked.Add(x.ID));                           
+                            groups.FindAll(delegate(Spell x) { return x.GroupID == id; }).ForEach(delegate(Spell x) { linked.Add(x.ID); }); 
                         }
                     }
 
@@ -2526,28 +2570,6 @@ namespace Everquest
             for (int i = 0; i < spell.Levels.Length; i++)
                 spell.Levels[i] = (byte)ParseInt(fields[104 + i]);
 
-            spell.ClassesLevels = String.Empty;
-            spell.ClassesMask = 0;
-            bool All254 = true;
-            for (int i = 0; i < spell.Levels.Length; i++)
-            {
-                if (spell.Levels[i] == 255)
-                    spell.Levels[i] = 0;
-                if (spell.Levels[i] != 0)
-                {
-                    //spell.Level = spell.Levels[i];
-                    spell.ClassesMask |= (SpellClassesMask)(1 << i);
-                    spell.ClassesLevels += " " + (SpellClasses)(i + 1) + "/" + spell.Levels[i];
-                }
-                // bard AA i=7 are marked as 255 even though are usable
-                if (spell.Levels[i] != 254 && i != 7)
-                    All254 = false;
-            }
-            Array.Copy(spell.Levels, spell.ExtLevels, spell.Levels.Length);
-            spell.ClassesLevels = spell.ClassesLevels.TrimStart();
-            if (All254)
-                spell.ClassesLevels = "ALL/254";
-
             // each spell has 12 effect slots which have 5 attributes each
             // 20..31 - slot 1..12 base1 effect
             // 32..43 - slot 1..12 base2 effect
@@ -2579,41 +2601,11 @@ namespace Everquest
                 if (ParseBool(fields[125 + i]))
                     spell.Deity += gods[i] + " ";
 
-
             // debug stuff
             //if (spell.ID == 31123) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
 
-
-            Prepare(spell);
+            spell.Prepare();
             return spell;
-        }
-
-        /// <summary>
-        /// Correct spell definition bugs.
-        /// </summary>
-        private static void Prepare(Spell spell)
-        {
-            if (spell.MaxHitsType == SpellMaxHits.None || spell.DurationTicks == 0)
-                spell.MaxHits = 0;
-
-            if (spell.Target == SpellTarget.Self)
-            {
-                spell.Range = 0;
-                spell.AERange = 0;
-                spell.MaxTargets = 0;
-            }
-
-            if (spell.Target == SpellTarget.Single)
-            {
-                spell.AERange = 0;
-                spell.MaxTargets = 0;
-            }
-
-            if (spell.ResistType == SpellResist.Unresistable)
-                spell.ResistMod = 0;
-
-            if (spell.Zone != SpellZoneRestrict.Indoors && spell.Zone != SpellZoneRestrict.Outdoors)
-                spell.Zone = SpellZoneRestrict.None;
         }
 
         static float ParseFloat(string s)
