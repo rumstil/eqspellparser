@@ -48,9 +48,9 @@ namespace winparser
             // regex suggestions
             Effects = new Dictionary<string, string>();
             Effects.Add("Cure", @"Decrease \w+ Counter by (\d+)");
-            Effects.Add("Heal", @"Increase Current HP by (\d+)");
+            Effects.Add("Heal", @"Increase Current HP by (\d+)(?!.*(?:per tick))");
             Effects.Add("HoT", @"Increase Current HP by (\d+) per tick");
-            Effects.Add("Nuke", @"Decrease Current HP by (\d+)");
+            Effects.Add("Nuke", @"Decrease Current HP by (\d+)(?!.*(?:per tick))");
             Effects.Add("DoT", @"Decrease Current HP by (\d+) per tick");
             Effects.Add("Haste", @"Increase Melee Haste (?:v3 )?by (\d+)");
             Effects.Add("Slow", @"Decrease Melee Haste by (\d+)");
@@ -311,7 +311,10 @@ namespace winparser
 
             foreach (var spell in list)
             {
-                html.AppendFormat("<tr id='spell{0}' class='group{1}'><td>{0}</td><td>{2}</td>", spell.ID, spell.GroupID, spell.Name);
+                html.AppendFormat("<tr id='spell{0}' class='group{1}'><td>{0}</td>", spell.ID, spell.GroupID);
+                //html.AppendFormat("<tr id='spell{0}' class='group{1}'><td>{0}{2}</td>", spell.ID, spell.GroupID, spell.GroupID > 0 ? " / " + spell.GroupID : "");
+
+                html.AppendFormat("<td>{0}</td>", spell.Name);
 
                 html.AppendFormat("<td style='max-width: 12em'>{0}</td>", spell.ClassesLevels);
 
@@ -343,6 +346,9 @@ namespace winparser
 
                 if (spell.PushBack != 0)
                     html.AppendFormat("Push: {0}<br/>", spell.PushBack);
+
+                if (spell.QuietTime > 1.5)
+                    html.AppendFormat("Quiet: {0}s<br/>", spell.QuietTime.ToString());
 
                 if (spell.RecourseID != 0)
                     html.AppendFormat("Recourse: {0}<br/>", InsertSpellRefLinks(String.Format("[Spell {0}]", spell.RecourseID)));
