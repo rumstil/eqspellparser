@@ -103,12 +103,14 @@ namespace winparser
             Int32.TryParse(text, out id);
             var cls = SpellParser.ParseClass(SearchClass.Text) - 1;
             var effect = SearchEffect.Text;
+            int slot = 0;
+            Int32.TryParse(SearchEffectSlot.Text, out slot);
             var category = SearchCategory.Text;
             int min;
             int max;
             ParseRange(SearchLevel.Text, out min, out max);
 
-            Results = Search(text, cls, min, max, effect, category).ToList();
+            Results = Search(text, cls, min, max, effect, slot, category).ToList();
 
             Spells.Expand(Results, Results.Count > 1);
 
@@ -185,7 +187,7 @@ namespace winparser
 
         }
 
-        private IQueryable<Spell> Search(string text, int cls, int min, int max, string effect, string category)
+        private IQueryable<Spell> Search(string text, int cls, int min, int max, string effect, int slot, string category)
         {
             var query = Spells.AsQueryable();
 
@@ -215,10 +217,10 @@ namespace winparser
                 if (Regex.Escape(effect) != effect)
                 {
                     var re = new Regex(effect, RegexOptions.IgnoreCase);
-                    query = query.Where(x => x.HasEffect(re) >= 0);
+                    query = query.Where(x => x.HasEffect(re, slot));
                 }
                 else
-                    query = query.Where(x => x.HasEffect(effect) >= 0);
+                    query = query.Where(x => x.HasEffect(effect, slot));
             }
 
 
@@ -516,6 +518,7 @@ namespace winparser
             other.SearchClass.Text = SearchClass.Text;
             other.SearchLevel.Text = SearchLevel.Text;
             other.SearchEffect.Text = SearchEffect.Text;
+            other.SearchEffectSlot.Text = SearchEffectSlot.Text;
             other.SearchCategory.Text = SearchCategory.Text;
             other.Search();
 
