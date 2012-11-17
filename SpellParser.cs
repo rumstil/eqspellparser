@@ -1033,7 +1033,7 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Finalize spell after all the attributes have been loaded.
+        /// Finalize spell data after all the attributes have been loaded.
         /// </summary>
         public void Prepare()
         {
@@ -1084,42 +1084,54 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Search all spell slots for a certain effect
+        /// Search all spell slots for a certain effect using SPA number.
         /// </summary>
-        /// <returns>Index of slot with the effect or -1 if not found</returns>
-        public int HasEffect(int spa)
+        private bool HasEffect(int spa, int slot)
         {
-            return Array.IndexOf(SlotEffects, spa);
+            if (slot > 0)
+                return SlotEffects[slot - 1] == spa;
+            return Array.IndexOf(SlotEffects, spa) >= 0;
         }
 
         /// <summary>
-        /// Search all spell slots for a certain effect using a string match
+        /// Search all spell slots for a certain effect using a text match.
         /// </summary>
-        // <returns>Index of slot with the effect or -1 if not found</returns>
-        public int HasEffect(string text)
+        /// <param name="text">Effect to search for. Can be text or a integer representing an SPA.</param>
+        /// <param name="slot">0 to check or slots, or a value between 1 and 12.</param>
+        public bool HasEffect(string text, int slot)
         {
             int spa;
             if (Int32.TryParse(text, out spa))
-                return HasEffect(spa);
+                return HasEffect(spa, slot);
+
+            if (slot > 0)
+                return Slots[slot - 1] != null && Slots[slot - 1].IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0;
 
             for (int i = 0; i < Slots.Length; i++)
                 if (Slots[i] != null && Slots[i].IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0)
-                    return i;
+                    return true;            
 
-            return -1;
+            return false;
+        }
+
+        public bool HasEffect(string text)
+        {
+            return HasEffect(text, 0);
         }
 
         /// <summary>
-        /// Search all spell slots for a certain effect using a RegEx
+        /// Search all spell slots for a certain effect using a RegEx.
         /// </summary>
-        /// <returns>Index of slot with the effect or -1 if not found</returns>
-        public int HasEffect(Regex re)
+        public bool HasEffect(Regex re, int slot)
         {
+            if (slot > 0)
+                return Slots[slot - 1] != null && re.IsMatch(Slots[slot - 1]);
+
             for (int i = 0; i < Slots.Length; i++)
                 if (Slots[i] != null && re.IsMatch(Slots[i]))
-                    return i;
+                    return true;
 
-            return -1;
+            return false;
         }
 
         /// <summary>
