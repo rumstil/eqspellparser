@@ -1985,11 +1985,13 @@ namespace Everquest
                     if (base1 < 0)
                         return String.Format("Tint Vision: Red={0} Green={1} Blue={2}", base1 >> 16 & 0xff, base1 >> 8 & 0xff, base1 & 0xff);
                     return String.Format("Alter Vision: Base1={0} Base2={1} Max={2}", base1, base2, max);
-                //case 433: another chance to crit dots?
+                case 433:
+                    return Spell.FormatPercent("Chance to Critical DoT v2", base1) + String.Format(" up to level {0} (lose {1}% per level)", max, base2);
                 case 434:
-                    return Spell.FormatPercent("Chance to Critical Heal v2", base1);
+                    return Spell.FormatPercent("Chance to Critical Heal v2", base1) + String.Format(" up to level {0} (lose {1}% per level)", max, base2);
                 case 435:
-                    return Spell.FormatPercent("Chance to Critical HoT v2", base1);
+                    return Spell.FormatPercent("Chance to Critical HoT v2", base1) + String.Format(" up to level {0} (lose {1}% per level)", max, base2);
+                //case 436: // prevents buff timers from ticking down?
                 case 437:
                     return "Teleport to your " + FormatEnum((SpellTeleport)base1);
                 case 438:
@@ -2285,9 +2287,9 @@ namespace Everquest
             return null;
         }
 
-        static private string FormatEnum(object o)
+        static private string FormatEnum(Enum e)
         {
-            string type = o.ToString().Replace("_", " ").Trim();
+            string type = e.ToString().Replace("_", " ").Trim();
             if (Regex.IsMatch(type, @"^-?\d+$"))
                 type = "Type " + type; // undefined numeric enum
             else
