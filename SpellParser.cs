@@ -931,7 +931,7 @@ namespace Everquest
 
             for (int i = 0; i < ConsumeItemID.Length; i++)
                 if (ConsumeItemID[i] > 0)
-                    result.Add("Regeant: [Item " + ConsumeItemID[i] + "] x " + ConsumeItemCount[i]);
+                    result.Add("Consumes: [Item " + ConsumeItemID[i] + "] x " + ConsumeItemCount[i]);
 
             for (int i = 0; i < FocusID.Length; i++)
                 if (FocusID[i] > 0)

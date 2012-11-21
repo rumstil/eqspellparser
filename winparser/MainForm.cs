@@ -48,7 +48,7 @@ namespace winparser
             // regex suggestions
             Effects = new Dictionary<string, string>();
             Effects.Add("Cure", @"Decrease \w+ Counter by (\d+)");
-            Effects.Add("Heal", @"Increase Current HP by (\d+)(?!.*(?:per tick))");
+            Effects.Add("Heal", @"Increase Current HP by ([1-9]\d+)(?!.*(?:per tick))"); // 1-9 excludes spells with Increase Current HP by 0
             Effects.Add("HoT", @"Increase Current HP by (\d+) per tick");
             Effects.Add("Nuke", @"Decrease Current HP by (\d+)(?!.*(?:per tick))");
             Effects.Add("DoT", @"Decrease Current HP by (\d+) per tick");
