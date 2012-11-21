@@ -2447,15 +2447,16 @@ namespace Everquest
                         // match spell group refs
                         Match match = Spell.GroupRefExpr.Match(s);
                         if (match.Success)
-                        { 
+                        {
                             int id = Int32.Parse(match.Groups[1].Value);
-                            groups.FindAll(delegate(Spell x) { return x.GroupID == id; }).ForEach(delegate(Spell x) { linked.Add(x.ID); }); 
+                            // negate id on excluded spells so that we don't set extlevels on them
+                            if (s.Contains("Exclude"))
+                                id = -id;
+                            groups.FindAll(delegate(Spell x) { return x.GroupID == id; }).ForEach(delegate(Spell x) { linked.Add(x.ID); });
                         }
                     }
 
-                spell.LinksTo = linked.ToArray();
-
-                foreach (int id in spell.LinksTo)
+                foreach (int id in linked)
                 {
                     Spell target = null;
                     if (listById.TryGetValue(id, out target))
@@ -2463,11 +2464,9 @@ namespace Everquest
                         target.RefCount++;
 
                         // a lot of side effect spells do not have a level on them. this will copy the level of the referring spell 
-                        // onto the side effect spell so that the spell will be searchable.
-                        // e.g. Jolting Swings Strike has no level so it won't show up in a ranger search even though Jolting Swings will
-                        //                       
-                        // the extlevels array is used for searching only and never displayed. it is important that we don't modify the actual
-                        // levels array that is displayed because that would suggest different functionality
+                        // onto the side effect spell so that the spell will be searchable when filtering by class.
+                        // e.g. Jolting Swings Strike has no level so it won't show up in a ranger search even though Jolting Swings will show up
+                        // we create this separate array and never display it because modifying the levels array would imply different functionality 
                         // e.g. some spells purposely don't have levels assigned so that they are not affected by focus spells
                         for (int i = 0; i < spell.Levels.Length; i++)
                         {
@@ -2481,6 +2480,13 @@ namespace Everquest
                         }
                     }
                 }
+
+                // IDs for excluded spell links we negated to avoid propogating them to the extlevels array above. revert them back for all future use
+                for (int i = 0; i < linked.Count; i++)
+                    if (linked[i] < 0)
+                        linked[i] = -linked[i];
+
+                spell.LinksTo = linked.ToArray();
             }
 
             return list;

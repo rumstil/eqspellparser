@@ -522,16 +522,26 @@ namespace winparser
             other.SearchCategory.Text = SearchCategory.Text;
             other.Search();
 
+            MainForm oldVer = this;
+            MainForm newVer = other;
+            if (File.GetLastWriteTime(other.SpellPath) < File.GetLastWriteTime(SpellPath))
+            {
+                oldVer = other;
+                newVer = this;
+            }
 
-            var diffs = Compare(Results, other.Results);
+            // these functions generates the comparison text for each spell
+            Func<Spell, string> getOldText = x => x.ToString() + "\n" + oldVer.Spells.InsertSpellNames(String.Join("\n", x.Details())) + "\n\n";
+            Func<Spell, string> getNewText = x => x.ToString() + "\n" + newVer.Spells.InsertSpellNames(String.Join("\n", x.Details())) + "\n\n";
+            var diffs = Compare(oldVer.Results, newVer.Results, getOldText, getNewText);
 
             var html = InitHtml();
 
             if (diffs.Count == 0)
-                html.AppendFormat("<p>No differences were found between {0} and {1} based on the search filters.</p>", SpellPath, other.SpellPath);
+                html.AppendFormat("<p>No differences were found between {0} and {1} based on the search filters.</p>", oldVer.SpellPath, newVer.SpellPath);
             else
-            {
-                html.AppendFormat("<p>Differences are shown as a series of <ins>additions</ins> and <del>deletions</del> that are needed to convert {0} to {1}.</p>", SpellPath, other.SpellPath);
+            {                
+                html.AppendFormat("<p>Found {0} differences between <del>{1}</del> and <ins>{2}</ins>.</p>", diffs.Count(x => x.operation != Operation.EQUAL), oldVer.SpellPath, newVer.SpellPath);
                 html.Append(diff_match_patch.diff_prettyHtml(diffs));
             }
 
@@ -546,11 +556,8 @@ namespace winparser
             Cursor.Current = Cursors.Default;
         }
 
-        private List<Diff> Compare(IEnumerable<Spell> setA, IEnumerable<Spell> setB)
+        private static List<Diff> Compare(IEnumerable<Spell> setA, IEnumerable<Spell> setB, Func<Spell, string> getTextA, Func<Spell, string> getTextB)
         {
-            // this function generates the comparison text for each spell
-            Func<Spell, string> getText = x => x.ToString() + "\n" +  Spells.InsertSpellNames(String.Join("\n", x.Details())) + "\n\n";
-
             var dmp = new DiffMatchPatch.diff_match_patch();
             var diffs = new List<Diff>();
 
@@ -560,6 +567,7 @@ namespace winparser
             int a = 0; // current index in list A
             int b = 0; // current index in list B
 
+            int count = 0;
             int id = 0;
             while (true)
             {
@@ -572,7 +580,7 @@ namespace winparser
                 if (a >= A.Count)
                 {
                     while (b < B.Count)
-                        diffs.Add(new Diff(Operation.INSERT, getText(B[b++])));
+                        diffs.Add(new Diff(Operation.INSERT, getTextB(B[b++])));
                     break;
                 }
 
@@ -580,7 +588,7 @@ namespace winparser
                 if (b >= B.Count)
                 {
                     while (a < A.Count)
-                        diffs.Add(new Diff(Operation.DELETE, getText(A[a++])));
+                        diffs.Add(new Diff(Operation.DELETE, getTextA(A[a++])));
                     break;
                 }
 
@@ -591,26 +599,29 @@ namespace winparser
                 // id exists in both lists
                 if (A[a].ID == id && B[b].ID == id)
                 {
-                    var textA = getText(A[a++]);
-                    var textB = getText(B[b++]);
+                    var textA = getTextA(A[a++]);
+                    var textB = getTextB(B[b++]);
                     // ignore equal spells
                     if (textA == textB)
                         continue;
                     diffs.AddRange(dmp.diff_lineMode(textA, textB));
+                    count++;
                     continue;
                 }
 
                 // id exist only in list A
                 if (A[a].ID == id)
                 {
-                    diffs.Add(new Diff(Operation.DELETE, getText(A[a++])));
+                    diffs.Add(new Diff(Operation.DELETE, getTextA(A[a++])));
+                    count++;
                     continue;
                 }
 
                 // id exists only in list B
                 if (B[b].ID == id)
                 {
-                    diffs.Add(new Diff(Operation.INSERT, getText(B[b++])));
+                    diffs.Add(new Diff(Operation.INSERT, getTextB(B[b++])));
+                    count++;
                     continue;
                 }
 
