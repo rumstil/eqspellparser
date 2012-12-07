@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Diagnostics;
 
 
 
@@ -12,8 +12,8 @@ using System.Diagnostics;
  *
  * http://code.google.com/p/projecteqemu/source/browse/trunk/EQEmuServer/zone/spdat.h
  * http://eqitems.13th-floor.org/phpBB2/viewtopic.php?t=23
- * http://forums.station.sony.com/eq/posts/list.m?start=150&topic_id=162971
- * http://forums.station.sony.com/eq/posts/list.m?start=50&topic_id=165000 - resists
+ * http://forums.station.sony.com/eqold/posts/list.m?start=150&topic_id=162971
+ * http://forums.station.sony.com/eqold/posts/list.m?start=150&topic_id=165000 - resists
  *
  */
 
@@ -863,6 +863,9 @@ namespace Everquest
         public int[] CategoryDescID; // AAs don't have these set
         public string Deity;
         public int SongCap;
+        public int MinRange;
+        public int RangeScalingCap;
+
         public int[] LinksTo;
         public int RefCount; // number of spells that link to this
 
@@ -967,6 +970,12 @@ namespace Everquest
                 result.Add("Range: " + Range + ", AE Range: " + AERange);
             else if (Range > 0)
                 result.Add("Range: " + Range);
+
+            if (MinRange > 0)
+                result.Add("Min Range: " + MinRange);
+
+            if (RangeScalingCap != 0)
+                result.Add("Range Scaling Cap: " + RangeScalingCap); 
 
             if (ViralRange > 0)
                 result.Add("Viral Range: " + ViralRange + ", Recast: " + ViralTimer + "s, Targets: " + ViralTargets);
@@ -1079,6 +1088,9 @@ namespace Everquest
 
             if (Zone != SpellZoneRestrict.Indoors && Zone != SpellZoneRestrict.Outdoors)
                 Zone = SpellZoneRestrict.None;
+
+            if (Range == 0)
+                RangeScalingCap = 0;
 
 
         }
@@ -1439,24 +1451,24 @@ namespace Everquest
                 case 125:
                     return Spell.FormatPercent("Healing", base1, base2);
                 case 126:
-                    return Spell.FormatPercent("Spell Resist Rate", -value);
+                    return Spell.FormatPercent("Spell Resist Rate", -base1);
                 case 127:
-                    return Spell.FormatPercent("Spell Haste", value);
+                    return Spell.FormatPercent("Spell Haste", base1);
                 case 128:
-                    return Spell.FormatPercent("Spell Duration", value);
+                    return Spell.FormatPercent("Spell Duration", base1);
                 case 129:
-                    return Spell.FormatPercent("Spell Range", value);
+                    return Spell.FormatPercent("Spell Range", base1);
                 case 130:
                     // i think this affects all special attacks. bash/kick/frenzy/etc...
                     return Spell.FormatPercent("Spell and Bash Hate", base1, base2);
                 case 131:
-                    return Spell.FormatPercent("Chance of Using Reagent", -value);
+                    return Spell.FormatPercent("Chance of Using Reagent", -base1);
                 case 132:
                     return Spell.FormatPercent("Spell Mana Cost", -base1, -base2);
                 case 134:
                     return String.Format("Limit Max Level: {0} (lose {1}% per level)", base1, base2);
                 case 135:
-                    return String.Format("Limit Resist: {0}", (SpellResist)value);
+                    return String.Format("Limit Resist: {1}{0}", (SpellResist)Math.Abs(base1), base1 >= 0 ? "" : "Exclude ");
                 case 136:
                     return String.Format("Limit Target: {1}{0}", Spell.FormatEnum((SpellTarget)Math.Abs(base1)), base1 >= 0 ? "" : "Exclude ");
                 case 137:
@@ -2555,6 +2567,7 @@ namespace Everquest
             spell.MaxHits = ParseInt(fields[176]);
             spell.MGBable = ParseBool(fields[185]);
             spell.Dispellable = !ParseBool(fields[186]);
+            // 187 = allow partial resist?
             spell.MinResist = ParseInt(fields[189]);
             spell.MaxResist = ParseInt(fields[190]);
             spell.ViralTimer = ParseInt(fields[191]);
@@ -2571,9 +2584,9 @@ namespace Everquest
             spell.BeneficialBlockable = !ParseBool(fields[205]); // for beneficial spells
             spell.GroupID = ParseInt(fields[207]);
             spell.Rank = ParseInt(fields[208]); // rank 1/5/10. a few auras do not have this set properly
-            if (spell.Rank == 5)
+            if (spell.Rank == 5 || spell.Name.EndsWith("II"))
                 spell.Rank = 2;
-            if (spell.Rank == 10)
+            if (spell.Rank == 10 || spell.Name.EndsWith("III"))
                 spell.Rank = 3;
             spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[211]);
             spell.OutOfCombat = !ParseBool(fields[214]);
@@ -2583,8 +2596,14 @@ namespace Everquest
             // 225 = song slope?
             // 226 = song offset?
 
+            // Echoing Screech increases with distance. Queen's Swing decreases with distance. no idea which field indicates type
+            spell.RangeScalingCap = ParseInt(fields[229]);
+
+            // only a few spells have this value set. not sure if this actually functions as a min range
+            spell.MinRange = ParseInt(fields[231]);
+
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[202]);
+            //spell.Unknown = ParseFloat(fields[222]);
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
