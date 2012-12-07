@@ -444,6 +444,9 @@ namespace Everquest
         HP_Below_90_Percent = 518,
         HP_Below_95_Percent = 519,
         Mana_Below_X_Percent = 521, // 5?
+        End_Below_40_Percent = 522,
+        Mana_Below_40_Percent = 523,
+
         Undead2 = 603, // vampiric too? Celestial Contravention Strike
         Undead3 = 608,
         Summoned2 = 624,
@@ -2468,6 +2471,7 @@ namespace Everquest
                         }
                     }
 
+                // process each of the linked spells 
                 foreach (int id in linked)
                 {
                     Spell target = null;
@@ -2493,7 +2497,7 @@ namespace Everquest
                     }
                 }
 
-                // IDs for excluded spell links we negated to avoid propogating them to the extlevels array above. revert them back for all future use
+                // revert negated IDs on excluded spells/groups
                 for (int i = 0; i < linked.Count; i++)
                     if (linked[i] < 0)
                         linked[i] = -linked[i];
@@ -2559,27 +2563,51 @@ namespace Everquest
             spell.CategoryDescID[1] = ParseInt(fields[157]);
             spell.CategoryDescID[2] = ParseInt(fields[158]);
             spell.HateMod = ParseInt(fields[162]);
+            // 163 = 19 values.  looks similar to calc values
+            // 164 = 147 values. mostly negative
+            // 165 = 3 values. 0, 1, -1
             spell.Endurance = ParseInt(fields[166]);
             spell.TimerID = ParseInt(fields[167]);
+            // 166 = 585 values. 0 (35558)
+            // 167 = 19 sequential values. 
+            // 168 = 3 values. 0, -1, 1
+            // 169 = all 0
+            // 170 = all 0
+            // 171 = all 0
+            // 172 = all 0
             spell.HateOverride = ParseInt(fields[173]);
             spell.EnduranceUpkeep = ParseInt(fields[174]);
             spell.MaxHitsType = (SpellMaxHits)ParseInt(fields[175]);
             spell.MaxHits = ParseInt(fields[176]);
+            // 177 = 197 values. 
+            // 178 = 20 values. looks similar to calc values
+            // 179 = 266 values.
+            // 180 = 185 values. 
+            // 181 = 19 values. looks similar to duration calc values
+            // 182 = 115 values. 
+            // 183 = 3 values. 0, 1, 2
+            // 184 = 3 values. 0, -1, 1
             spell.MGBable = ParseBool(fields[185]);
             spell.Dispellable = !ParseBool(fields[186]);
             // 187 = allow partial resist?
+            // 188 = 192 values.
             spell.MinResist = ParseInt(fields[189]);
             spell.MaxResist = ParseInt(fields[190]);
             spell.ViralTimer = ParseInt(fields[191]);
             spell.ViralTargets = ParseInt(fields[192]);
+            // 193 = 124 values. nimbus type effects
             spell.StartDegree = ParseInt(fields[194]);
             spell.EndDegree = ParseInt(fields[195]);
             spell.Sneaking = ParseBool(fields[196]);
             spell.DurationExtendable = !ParseBool(fields[197]);
+            // 198 = 3 values. 0, 1, -1
+            // 199 = 3 values. 0, 1, -1
             spell.DurationFrozen = ParseBool(fields[200]);
             spell.ViralRange = ParseInt(fields[201]);
             spell.SongCap = ParseInt(fields[202]);
             // 203 = melee specials
+            // 204 = 3 values. 0, 1, -1
+            // 205 = 3 values. 0, 1, -1
             // 206/216 seem to be related
             spell.BeneficialBlockable = !ParseBool(fields[205]); // for beneficial spells
             spell.GroupID = ParseInt(fields[207]);
@@ -2588,13 +2616,26 @@ namespace Everquest
                 spell.Rank = 2;
             if (spell.Rank == 10 || spell.Name.EndsWith("III"))
                 spell.Rank = 3;
+            // 209 = 4 values. 0, -1, 1, null.
+            // 210 = 3 values. 1, 0, null.
             spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[211]);
+            // 212 = 3 values. 0, 1, -1.
+            // 213 = 3 values. 1, 0, -1. 
             spell.OutOfCombat = !ParseBool(fields[214]);
+            // 215 = 4 values. 1, 0, -1, null. -1 seems to be related to DoTs
+            // 216 = 3 values. 0, 1, null
+            // 217 = 4 values. -1, 0, null, 1
             spell.MaxTargets = ParseInt(fields[218]);
+            // 219 = 5 values. 0, -1, 4, 1, null
             spell.CasterRestrict = (SpellTargetRestrict)ParseInt(fields[220]);
+            // 221 = 13 sequential values. some category?
+            // 222 = 57 sequential values. some category?
+            // 223 = 9 values. looks like a mask
             spell.PersistAfterDeath = ParseBool(fields[224]);
             // 225 = song slope?
             // 226 = song offset?
+            // 227 = 18 values
+            // 228 = 6 values. 1, 0, 2, 4, 3, 5. seems to be be realted to 229
 
             // Echoing Screech increases with distance. Queen's Swing decreases with distance. no idea which field indicates type
             spell.RangeScalingCap = ParseInt(fields[229]);
@@ -2603,7 +2644,8 @@ namespace Everquest
             spell.MinRange = ParseInt(fields[231]);
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[222]);
+            //spell.Unknown = ParseFloat(fields[221]);
+
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
