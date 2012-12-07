@@ -60,7 +60,8 @@ namespace winparser
             Effects.Add("Pacify", @"Decrease Social Radius");
             Effects.Add("Damage Shield", @"Increase Damage Shield by (\d+)");
             Effects.Add("Mana Regen", @"Increase Current Mana by (\d+)");
-            Effects.Add("Add Proc", @"(?:Add Proc)|(?:Add Skill Proc)|(?:Cast on Spell Use)");
+            Effects.Add("Add Proc", @"(?:Add Proc)|(?:Add Skill Proc)");
+            Effects.Add("Add Spell Proc", @"Cast on Spell Use");
             SearchEffect.Items.AddRange(Effects.Keys.ToArray());
             SearchEffect.Items.Add("");
 
@@ -98,7 +99,7 @@ namespace winparser
         {
             AutoSearch.Enabled = false;
 
-            var text = SearchText.Text;
+            var text = SearchText.Text.Trim();
             int id = 0;
             Int32.TryParse(text, out id);
             var cls = SpellParser.ParseClass(SearchClass.Text) - 1;
