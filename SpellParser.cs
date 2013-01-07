@@ -829,7 +829,7 @@ namespace Everquest
         public int AERange;
         public int AEDuration; // rain spells
         public float CastingTime;
-        public float QuietTime; // refresh time
+        public float RestTime; // refresh time
         public float RecastTime;
         public float PushBack;
         public float PushUp;
@@ -990,13 +990,13 @@ namespace Everquest
             else
                 result.Add("Beneficial: " + (BeneficialBlockable ? "Blockable" : "Not Blockable"));
 
-            string quiet = ClassesMask == 0 || ClassesMask == SpellClassesMask.BRD || QuietTime == 0 ? "" : ", Quiet: " + QuietTime.ToString() + "s";
+            string rest = ClassesMask == 0 || ClassesMask == SpellClassesMask.BRD || RestTime == 0 ? "" : ", Rest: " + RestTime.ToString() + "s";
             if (TimerID > 0)
-                result.Add("Casting: " + CastingTime.ToString() + "s, Recast: " + FormatTime(RecastTime) + ", Timer: " + TimerID + quiet);
+                result.Add("Casting: " + CastingTime.ToString() + "s, Recast: " + FormatTime(RecastTime) + ", Timer: " + TimerID + rest);
             else if (RecastTime > 0)
-                result.Add("Casting: " + CastingTime.ToString() + "s, Recast: " + FormatTime(RecastTime) + quiet);
+                result.Add("Casting: " + CastingTime.ToString() + "s, Recast: " + FormatTime(RecastTime) + rest);
             else
-                result.Add("Casting: " + CastingTime.ToString() + "s" + quiet);
+                result.Add("Casting: " + CastingTime.ToString() + "s" + rest);
 
             if (DurationTicks > 0 && Beneficial && ClassesMask != SpellClassesMask.BRD)
                 result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)" + ", Extend: " + (DurationExtendable ? "Yes" : "No") + (PersistAfterDeath ? ", Persist After Death" : ""));
@@ -1137,6 +1137,7 @@ namespace Everquest
         /// <summary>
         /// Search all spell slots for a certain effect using a RegEx.
         /// </summary>
+        /// <param name="slot">0 to check or slots, or a value between 1 and 12.</param>
         public bool HasEffect(Regex re, int slot)
         {
             if (slot > 0)
@@ -2531,7 +2532,7 @@ namespace Everquest
             spell.PushBack = ParseFloat(fields[11]);
             spell.PushUp = ParseFloat(fields[12]);
             spell.CastingTime = ParseFloat(fields[13]) / 1000f;
-            spell.QuietTime = ParseFloat(fields[14]) / 1000f;
+            spell.RestTime = ParseFloat(fields[14]) / 1000f;
             spell.RecastTime = ParseFloat(fields[15]) / 1000f;
             spell.AEDuration = ParseInt(fields[18]);
 

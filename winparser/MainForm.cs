@@ -350,8 +350,8 @@ namespace winparser
                 if (spell.PushBack != 0)
                     html.AppendFormat("Push: {0}<br/>", spell.PushBack);
 
-                if (spell.QuietTime > 1.5)
-                    html.AppendFormat("Quiet: {0}s<br/>", spell.QuietTime.ToString());
+                if (spell.RestTime > 1.5)
+                    html.AppendFormat("Rest: {0}s<br/>", spell.RestTime.ToString());
 
                 if (spell.RecourseID != 0)
                     html.AppendFormat("Recourse: {0}<br/>", InsertSpellRefLinks(String.Format("[Spell {0}]", spell.RecourseID)));
