@@ -321,8 +321,10 @@ namespace winparser
 
                 html.AppendFormat("<td style='max-width: 12em'>{0}</td>", spell.ClassesLevels);
 
-                if (spell.Endurance > 0 || spell.EnduranceUpkeep > 0)
-                    html.AppendFormat("<td class='end'>{0} + {1}/t</td>", spell.Endurance, spell.EnduranceUpkeep);
+                if (spell.Endurance == 0 && spell.EnduranceUpkeep > 0)
+                    html.AppendFormat("<td class='end'>{0}/tick</td>", spell.EnduranceUpkeep);
+                else if (spell.Endurance > 0 && spell.EnduranceUpkeep > 0)
+                    html.AppendFormat("<td class='end'>{0} + {1}/tick</td>", spell.Endurance, spell.EnduranceUpkeep);
                 else if (spell.Endurance > 0)
                     html.AppendFormat("<td class='end'>{0}</td>", spell.Endurance);
                 else
