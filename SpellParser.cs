@@ -2717,9 +2717,11 @@ namespace Everquest
             if (text.Length == 3 && Enum.IsDefined(typeof(SpellClasses), text.ToUpper()))
                 return (int)Enum.Parse(typeof(SpellClasses), text.ToUpper());
 
-            if (Enum.IsDefined(typeof(SpellClassesLong), text))
-                return (int)Enum.Parse(typeof(SpellClassesLong), text);
-
+            string[] names = Enum.GetNames(typeof(SpellClassesLong));
+            for (int i = 0; i < names.Length; i++)
+                if (String.Compare(names[i], text, true) == 0)
+                    return (int)Enum.Parse(typeof(SpellClassesLong), names[i]);                          
+            
             return 0;
         }
 
