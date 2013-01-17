@@ -10,12 +10,16 @@ namespace Everquest
     /// </summary>
     public class SpellCache : IEnumerable<Spell>
     {
+        private string id;
         private List<Spell> spells;
         private Dictionary<int, Spell> spellsById;
         private ILookup<int, Spell> spellsByGroup;
 
-        public SpellCache(List<Spell> list)
+        public string Id { get { return id; } set { id = value; } }
+
+        public SpellCache(string id, List<Spell> list)
         {
+            Id = id;
             spells = list;
             spellsById = list.ToDictionary(x => x.ID);
             spellsByGroup = list.Where(x => x.GroupID != 0).ToLookup(x => x.GroupID);

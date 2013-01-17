@@ -75,7 +75,7 @@ namespace winparser
 
             Cursor.Current = Cursors.WaitCursor;
 
-            Spells = new SpellCache(SpellParser.LoadFromFile(spellPath, descPath));
+            Spells = new SpellCache(Path.GetFileName(spellPath), SpellParser.LoadFromFile(spellPath, descPath));
             SearchClass_TextChanged(this, null);
             AutoSearch.Enabled = false;
 

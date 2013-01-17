@@ -50,7 +50,7 @@ namespace parser
                     DownloadPatchFiles(null);
 
                 Console.Error.Write("Loading {0}... ", SpellFilename);
-                spells = new SpellCache(SpellParser.LoadFromFile(SpellFilename, SpellFilename.Replace("spells_us", "dbstr_us")));
+                spells = new SpellCache(Path.GetFileName(SpellFilename), SpellParser.LoadFromFile(SpellFilename, SpellFilename.Replace("spells_us", "dbstr_us")));
                 Console.Error.WriteLine("{0} spells", spells.Count);
 
                 // perform search based on command line parameters                
