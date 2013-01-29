@@ -2622,7 +2622,7 @@ namespace Everquest
             spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[211]);
             // 212 = 3 values. 0, 1, -1.
             // 213 = 3 values. 1, 0, -1. 
-            spell.OutOfCombat = !ParseBool(fields[214]);
+            spell.OutOfCombat = !ParseBool(fields[213]);
             // 215 = 4 values. 1, 0, -1, null. -1 seems to be related to DoTs
             // 216 = 3 values. 0, 1, null
             // 217 = 4 values. -1, 0, null, 1
