@@ -968,20 +968,20 @@ namespace Everquest
                 result.Add("Target: " + FormatEnum(Target));
 
             if (AERange > 0 && Range == 0)
-                result.Add("AE Range: " + AERange);
+                result.Add("AE Range: " + AERange + "′");
             else if (AERange > 0)
-                result.Add("Range: " + Range + ", AE Range: " + AERange);
+                result.Add("Range: " + Range + "′, AE Range: " + AERange + "′");
             else if (Range > 0)
-                result.Add("Range: " + Range);
+                result.Add("Range: " + Range + "′");
 
             if (MinRange > 0)
-                result.Add("Min Range: " + MinRange);
+                result.Add("Min Range: " + MinRange + "′");
 
             if (RangeScalingCap != 0)
-                result.Add("Range Scaling Cap: " + RangeScalingCap); 
+                result.Add("Range Scaling Cap: " + RangeScalingCap + "′"); 
 
             if (ViralRange > 0)
-                result.Add("Viral Range: " + ViralRange + ", Recast: " + ViralTimer + "s, Targets: " + ViralTargets);
+                result.Add("Viral Range: " + ViralRange + "′, Recast: " + ViralTimer + "s, Targets: " + ViralTargets);
 
             if (!Beneficial && ResistMod != 0)
                 result.Add("Resist: " + ResistType + " " + ResistMod + (MinResist > 0 ? ", Min: " + MinResist / 2f + "%" : "") + (MaxResist > 0 ? ", Max: " + MaxResist / 2f + "%" : ""));
@@ -1009,9 +1009,9 @@ namespace Everquest
                 result.Add("Dispellable: " + (Dispellable ? "Yes" : "No"));
 
             if (PushUp != 0)
-                result.Add("Push: " + PushBack + ", Up: " + PushUp);
+                result.Add("Push: " + PushBack + "′ Up: " + PushUp + "′");
             else if (PushBack != 0)
-                result.Add("Push: " + PushBack);
+                result.Add("Push: " + PushBack + "′");
 
             if (HateMod != 0)
                 result.Add("Hate Mod: " + (HateMod > 0 ? "+" : "") + HateMod);
@@ -1101,7 +1101,7 @@ namespace Everquest
         /// <summary>
         /// Search all spell slots for a certain effect using SPA number.
         /// </summary>
-        private bool HasEffect(int spa, int slot)
+        public bool HasEffect(int spa, int slot)
         {
             if (slot > 0)
                 return SlotEffects[slot - 1] == spa;
@@ -1892,12 +1892,12 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Resist " + Spell.FormatEnum((SpellEffect)base2), value);
                 case 379:
                     if (base2 > 0)
-                        return String.Format("Push for {0} in Direction: {1}", base1, base2);
-                    return String.Format("Push forward for {0}", value);
+                        return String.Format("Push {0}′ in Direction: {1}", base1, base2);
+                    return String.Format("Push forward {0}′", value);
                 case 380:
-                    return String.Format("Push back for {0} and up for {1}", base2, base1);
+                    return String.Format("Push back {0}′ and up {1}′", base2, base1);
                 case 381:
-                    return String.Format("Summon to {0} in Front", base1);
+                    return String.Format("Summon to {0}′ away", base1);
                 case 382:
                     return String.Format("Inhibit Effect: {0}", Spell.FormatEnum((SpellEffect)base2));
                 case 383:
@@ -1982,8 +1982,7 @@ namespace Everquest
                         return String.Format("Add Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
                     return String.Format("Add Proc: [Spell {0}]", base1);
                 case 424:
-                    // base1 is probably velocity. base2 might be range?
-                    return String.Format("Gradual {0}: Base1={1} Base2={2}", base1 > 0 ? "Push" : "Pull", Math.Abs(base1), base2);
+                    return String.Format("Gradual {0} to {2}′ away (Force={1})", base1 > 0 ? "Push" : "Pull", Math.Abs(base1), base2);
                 //case 425: jump or antigravity?
                 case 427:
                     return String.Format("Cast on Skill Use: [Spell {0}] ({1}% Chance)", base1, base2 / 10);
@@ -2635,17 +2634,20 @@ namespace Everquest
             spell.PersistAfterDeath = ParseBool(fields[224]);
             // 225 = song slope?
             // 226 = song offset?
-            // 227 = 18 values
-            // 228 = 6 values. 1, 0, 2, 4, 3, 5. seems to be be realted to 229
+
+            // sometimes this seems to be an absolute min distance to take effect 
+            // and sometimes this seems to be part of the distance scaling calculation (along with field 229
+            // [32452] Tsunami - doesn't take hold if you're very close to Lord Koi`Doken
+            spell.MinRange = ParseInt(fields[227]);
+
+            // 228 = 6 values. 1, 0, 2, 4, 3, 5. maybe this indicates how the min range/scaling works?
 
             // Echoing Screech increases with distance. Queen's Swing decreases with distance. no idea which field indicates type
             spell.RangeScalingCap = ParseInt(fields[229]);
 
-            // only a few spells have this value set. not sure if this actually functions as a min range
-            spell.MinRange = ParseInt(fields[231]);
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[221]);
+            //spell.Unknown = ParseFloat(fields[227]);
 
 
             // each spell has a different casting level for all 16 classes
