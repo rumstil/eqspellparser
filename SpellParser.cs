@@ -132,6 +132,8 @@ namespace Everquest
         Proc_Rate = 200,
         Slay_Undead = 219,
         Weapon_Damage_Bonus = 220,
+        Double_Riposte_Skill = 224,
+        Double_Attack_Skill = 225,
         Lung_Capacity = 246,
         Frontal_Backstab_Chance = 252,
         Frontal_Backstab_Min_Damage = 253,
@@ -146,6 +148,7 @@ namespace Everquest
         Critical_DoT_Chance = 273,
         Critical_Heal_Chance = 274,
         Double_Special_Attack_Chance = 283, // monk specials
+        Dragon_Punch_Knockback = 288,
         Movement_Speed_Cap = 290,
         Frontal_Stun_Resist_Chance = 293, // AA
         Critical_Nuke_Chance = 294,
@@ -155,6 +158,7 @@ namespace Everquest
         Invis = 314,
         Targets_Target_Hate = 321,
         Gate_to_Home_City = 322,
+        Defensive_Proc = 323,
         Crit_Hit_Damage = 330,
         Summon_To_Corpse = 332,
         XP_Gain = 337,
@@ -300,13 +304,16 @@ namespace Everquest
     public enum SpellBodyType
     {
         Humanoid = 1,
+        Werewolf = 2,
         Undead = 3,
         Giant = 4,
         Golem = 5,
         Extraplanar = 6,
-        UndeadPet = 8,
+        UndeadPet = 8,        
         Vampyre = 12,
+        Atenha_Ra = 13,
         Greater_Akheva = 14,
+        Khati_Sha = 15,
         Seru = 16,
         Draz_Nurakk = 18,
         Zek = 19,
@@ -575,7 +582,10 @@ namespace Everquest
         Arachnid = 326,
         Guktan = 330,
         Gnome_Pirate = 338,
+        Dark_Elf_Pirate = 339,
         Ogre_Pirate = 340,
+        Human_Pirate = 341,
+        Erudite_Pirate = 342,
         Froglok_Skeleton = 349,
         Undead_Froglok = 350,
         Scaled_Wolf = 356,
@@ -723,6 +733,7 @@ namespace Everquest
         Muddite = 608,
         Raptor = 609,
         Sarnak = 610,
+        Scorpion = 611,
         Plague_Fly = 612,
         Burning_Nekhon = 614,
         Shadow_Nekhon = (614 << 16) + 1,
@@ -760,7 +771,8 @@ namespace Everquest
         Hadal = 698,
         Hadal_Templar = (698 << 16) + 2,
         Alaran_Ghost = 708,
-        Ratman = 718
+        Ratman = 718,
+        Fallen_Knight = 719
     }
 
     public enum SpellFaction
@@ -1283,7 +1295,7 @@ namespace Everquest
                 case 41:
                     return "Destroy";
                 case 42:
-                    // TODO: how does this this work for highsun?
+                    // TODO: does shadowstep always gate an NPC? e.g. highsun
                     return "Shadowstep";
                 case 44:
                     return String.Format("Stacking: Delayed Heal Marker ({0})", value);
@@ -1917,6 +1929,10 @@ namespace Everquest
                 case 390:
                     // what unit? seconds?
                     return String.Format("Set Recast Timers to {0}", value);
+                case 391:
+                    // desc says "additional damage from every melee and ranged attack"
+                    // how does this differ from 197 with base2=-1
+                    return Spell.FormatPercent("Hit Damage Taken", base1);
                 case 392:
                     return Spell.FormatCount("Healing Bonus", base1);
                 case 393:
