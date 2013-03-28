@@ -973,7 +973,7 @@ namespace Everquest
             if (Target == SpellTarget.Directional_AE)
                 result.Add("Target: " + FormatEnum(Target) + " (" + StartDegree + " to " + EndDegree + " Degrees)");
             else if (TargetRestrict > 0)
-                result.Add("Target: " + FormatEnum(Target) + " (If " + FormatEnum(TargetRestrict) + ")");
+                result.Add("Target: " + FormatEnum(Target) + " (if " + FormatEnum(TargetRestrict) + ")");
             else if ((Target == SpellTarget.Caster_Group || Target == SpellTarget.Target_Group) && (ClassesMask != 0 && ClassesMask != SpellClassesMask.BRD) && DurationTicks > 0)
                 result.Add("Target: " + FormatEnum(Target) + ", MGB: " + (MGBable ? "Yes" : "No"));
             else
@@ -1212,7 +1212,7 @@ namespace Everquest
             {
                 case 0:
                     if (base2 > 0)
-                        return Spell.FormatCount("Current HP", value) + repeating + range + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
+                        return Spell.FormatCount("Current HP", value) + repeating + range + " (if " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
                     return Spell.FormatCount("Current HP", value) + repeating + range;
                 case 1:
                     return Spell.FormatCount("AC", (int)(value / (10f / 3f)));
@@ -1369,7 +1369,7 @@ namespace Everquest
                 case 79:
                     // delta hp for heal/nuke, non repeating
                     if (base2 > 0)
-                        return Spell.FormatCount("Current HP", value) + range + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
+                        return Spell.FormatCount("Current HP", value) + range + " (if " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
                     return Spell.FormatCount("Current HP", value) + range;
                 case 81:
                     return String.Format("Resurrect with {0}% XP", value);
@@ -1417,7 +1417,7 @@ namespace Everquest
                 case 100:
                     // heal over time
                     if (base2 > 0)
-                        return Spell.FormatCount("Current HP", value) + repeating + range + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
+                        return Spell.FormatCount("Current HP", value) + repeating + range + " (if " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
                     return Spell.FormatCount("Current HP", value) + repeating + range;
                 case 101:
                     // only castable via Donal's BP. creates a buf that blocks recasting
@@ -2032,11 +2032,27 @@ namespace Everquest
                 case 442:
                     return String.Format("Cast on {1}: [Spell {0}]", base1, Spell.FormatEnum((SpellTargetRestrict)base2));
                 case 443:
-                    return String.Format("Cast: [Spell {0}] If [Spell {1}] Hits", base1, base2);
+                    return String.Format("Cast: [Spell {0}] if [Spell {1}] Hits", base1, base2);
                 case 444:
                     return "Lock Aggro on Caster and " + Spell.FormatPercent("Other Aggro", base2 - 100) + String.Format(" up to level {0}", base1);
                 case 445:
                     return String.Format("Grant {0} Mercenary Slots", base1);
+                //case 448 - some kind of buff blocker
+                //case 449 - some kind of buff blocker
+                case 450:
+                    return String.Format("Absorb DoT Damage: {0}% over {1}", base1, base2) + (max > 0 ? String.Format(" Total: {0}", max) : "");
+                case 451:
+                    return String.Format("Absorb Melee Damage: {0}% over {1}", base1, base2) + (max > 0 ? String.Format(" Total: {0}", max) : "");
+                case 452:
+                    return String.Format("Absorb Spell Damage: {0}% over {1}", base1, base2) + (max > 0 ? String.Format(" Total: {0}", max) : "");
+                case 453:
+                    return String.Format("Cast: [Spell {0}] on {1} Melee Damage Taken", base1, base2);
+                case 454:
+                    return String.Format("Cast: [Spell {0}] on {1} Spell Damage Taken", base1, base2);
+
+                //case 455 - add pct hate
+                //case 456 - add pct hate over time
+                //case 457 - return portion of spell damage as Base2 0=hp 1=mana 2=end. why not just use "increase hp by x" spa?
 
             }
 
