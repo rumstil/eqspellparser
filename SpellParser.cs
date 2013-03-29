@@ -1916,8 +1916,8 @@ namespace Everquest
                 case 383:
                     // chance % modified by the cast time of the spell cast that triggers the proc, whereas 339 is not
                     // i'm just going to list a few samples here since the forumula is too much information 
-                    string sample383 = String.Format(" e.g. 2s={0}% 3s={1:F1}% 4s={2:F1}% 5s={3:F1}%", 0.25 * (base1 / 10), 0.334 * (base1 / 10), 0.5 * (base1 / 10), 0.668 * (base1 / 10));
-                    return String.Format("Cast on Spell Use: [Spell {0}] (Up to {1}% Chance)", base2, base1 / 10) + sample383;
+                    string sample383 = String.Format(" e.g. Cast Time 2s={0}% 3s={1:F1}% 4s={2:F1}% 5s={3:F1}%", 0.25 * (base1 / 10), 0.334 * (base1 / 10), 0.5 * (base1 / 10), 0.668 * (base1 / 10));
+                    return String.Format("Cast on Spell Use: [Spell {0}] (Base {1}% Chance)", base2, base1 / 10) + sample383;
                 case 384:
                     return "Leap";
                 case 385:
