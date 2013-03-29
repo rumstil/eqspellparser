@@ -880,6 +880,7 @@ namespace Everquest
         public int SongCap;
         public int MinRange;
         public int RangeScalingCap;
+        public bool Interruptable;
 
         public int[] LinksTo;
         public int RefCount; // number of spells that link to this
@@ -1809,7 +1810,7 @@ namespace Everquest
                 case 338:
                     return "Summon and Resurrect All Corpses";
                 case 339:
-                    // how is this different than 383? (besides chance)
+                    // compare with 383 which is modified by casting time of triggering spell
                     return String.Format("Cast on Spell Use: [Spell {0}] ({1}% Chance)", base2, base1);
                 case 340:
                     if (base1 < 100)
@@ -1913,7 +1914,10 @@ namespace Everquest
                 case 382:
                     return String.Format("Inhibit Effect: {0}", Spell.FormatEnum((SpellEffect)base2));
                 case 383:
-                    return String.Format("Cast on Spell Use: [Spell {0}] ({1}% Chance)", base2, base1 / 10);
+                    // chance % modified by the cast time of the spell cast that triggers the proc, whereas 339 is not
+                    // i'm just going to list a few samples here since the forumula is too much information 
+                    var sample383 = String.Format(" e.g. 2s={0}% 3s={1:F1}% 4s={2:F1}% 5s={3:F1}%", 0.25 * (base1 / 10), 0.334 * (base1 / 10), 0.5 * (base1 / 10), 0.668 * (base1 / 10));
+                    return String.Format("Cast on Spell Use: [Spell {0}] (Up to {1}% Chance)", base2, base1 / 10) + sample383;
                 case 384:
                     return "Leap";
                 case 385:
@@ -2585,6 +2589,7 @@ namespace Everquest
             spell.Zone = (SpellZoneRestrict)ParseInt(fields[101]);
             spell.CancelOnSit = ParseBool(fields[124]);
             spell.Icon = ParseInt(fields[144]);
+            spell.Interruptable = !ParseBool(fields[146]);
             spell.ResistMod = ParseInt(fields[147]);
             spell.RecourseID = ParseInt(fields[150]);
             if (spell.RecourseID != 0)
@@ -2662,13 +2667,13 @@ namespace Everquest
             spell.CasterRestrict = (SpellTargetRestrict)ParseInt(fields[220]);
             // 221 = 13 sequential values. some category?
             // 222 = 57 sequential values. some category?
-            // 223 = 9 values. looks like a mask
+            // 223 = 9 values. looks like a character class mask? 2013-3-13 Hand of Piety can now crit again. 
             spell.PersistAfterDeath = ParseBool(fields[224]);
             // 225 = song slope?
             // 226 = song offset?
 
             // sometimes this seems to be an absolute min distance to take effect 
-            // and sometimes this seems to be part of the distance scaling calculation (along with field 229
+            // and sometimes this seems to be part of the distance scaling calculation (along with field 229)
             // [32452] Tsunami - doesn't take hold if you're very close to Lord Koi`Doken
             spell.MinRange = ParseInt(fields[227]);
 
@@ -2679,7 +2684,7 @@ namespace Everquest
 
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[227]);
+            //spell.Unknown = ParseFloat(fields[223]);
 
 
             // each spell has a different casting level for all 16 classes
@@ -2718,7 +2723,7 @@ namespace Everquest
                     spell.Deity += gods[i] + " ";
 
             // debug stuff
-            //if (spell.ID == 31123) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
+            //if (spell.ID == 23547) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
 
             spell.Prepare();
             return spell;
