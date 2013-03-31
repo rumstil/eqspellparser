@@ -175,10 +175,10 @@ namespace Everquest
 
             using (WebClient web = new WebClient())
             {
-                web.Headers["User-Agent"] = "Quicksilver Player/1.0.3.170";
+                web.Headers["User-Agent"] = "Quicksilver Player/1.0.3.183";
+                web.Proxy = null;
                 byte[] data = web.DownloadData(url);
                 Stream inStream = new MemoryStream(data);
-
                 using (FileStream outStream = new FileStream(path, FileMode.Create))
                 {
                     // Launchpad files are LZMA compressed
