@@ -232,7 +232,7 @@ namespace winparser
                 else if (category == "AA")
                     query = query.Where(x => x.ExtLevels.Any(y => y == 254));
                 else
-                    query = query.Where(x => x.Category != null && x.Category.IndexOf(category, StringComparison.InvariantCultureIgnoreCase) >= 0);
+                    query = query.Where(x => x.Categories.Contains(category, StringComparer.InvariantCultureIgnoreCase));
             }
 
             return query;
@@ -644,7 +644,7 @@ namespace winparser
             {
                 SearchLevel.Enabled = true;
 
-                var cat = Spells.Where(x => x.Levels[cls] > 0).Select(x => x.Category).Where(x => x != null).Distinct().ToList();
+                var cat = Spells.Where(x => x.Levels[cls] > 0).SelectMany(x => x.Categories).Distinct().ToList();
 
                 // add the root categories. e.g. for "Utility Beneficial/Combat Innates/Illusion: Other" add "Utility Beneficial"
                 int i = 0;
@@ -663,7 +663,7 @@ namespace winparser
             {
                 SearchLevel.Enabled = false;
                 SearchCategory.Items.Clear();
-                SearchCategory.Items.AddRange(Spells.Select(x => x.Category).Where(x => x != null).Distinct().ToArray());
+                SearchCategory.Items.AddRange(Spells.SelectMany(x => x.Categories).Distinct().ToArray());
             }
             SearchCategory.Items.Add("AA");
             SearchCategory.Items.Add("");
