@@ -82,6 +82,7 @@ namespace Everquest
         Illusion = 58,
         Damage_Shield = 59,
         Memory_Blur = 63,
+        Stun_Spin = 64,
         Summon_Skeleton_Pet = 71,
         Feign_Death = 74,
         Current_HP_Non_Repeating = 79,
@@ -130,6 +131,7 @@ namespace Everquest
         Stun_Resist_Chance = 195,
         Taunt = 199,
         Proc_Rate = 200,
+        AE_Taunt = 206,
         Slay_Undead = 219,
         Weapon_Damage_Bonus = 220,
         Double_Riposte_Skill = 224,
@@ -180,7 +182,8 @@ namespace Everquest
         Heal_From_Mana = 400,
         Song_Effectiveness = 413,
         Teleport_to_Caster_Anchor = 437,
-        Teleport_to_Player_Anchor = 438
+        Teleport_to_Player_Anchor = 438,
+        Lock_Aggro = 444
     }
 
     public enum SpellSkill
@@ -886,7 +889,7 @@ namespace Everquest
         public int RefCount; // number of spells that link to this
 
 #if LargeMemory
-        public string Category;
+        public string[] Categories;
 #endif
 
         public float Unknown;
@@ -1960,7 +1963,7 @@ namespace Everquest
                 case 402:
                     return String.Format("Decrease Current HP by up to {0} ({1} HP per 1 Target End)", Math.Floor(base1 * base2 / -10f), base2 / -10f);
                 // 403 = some sort of casting limit. base1=3 might indicate lifetap spells
-                // 404 = seems to be a limit based on field 222
+                // 404 = seems to be a limit based on field 222 (some sort of sub category)
                 //case 404:
                 //    return String.Format("Limit Skill: {1}{0}", Spell.FormatEnum((SpellSkill)Math.Abs(base1)), base1 >= 0 ? "" : "Exclude ");
                 case 406:
@@ -2450,18 +2453,20 @@ namespace Everquest
                         Spell spell = LoadSpell(fields);
 
 #if LargeMemory
-                        // all spells are organized into a hierarchical classification system up to 3 levels deep
-                        // the 3rd level is too specific so it will be ignored
-                        string s;
-                        if (desc.TryGetValue("5/" + spell.CategoryDescID[0], out s))
-                        {
-                            spell.Category = s;
-                            if (desc.TryGetValue("5/" + spell.CategoryDescID[1], out s))
-                                spell.Category += "/" + s;
-                            //if (desc.TryGetValue("5/" + spell.CategoryDescID[2], out s))
-                            //    spell.Category += "/" + s;
+                        // all spells can be grouped into up to 2 categories (type 5 in db_str)
+                        List<string> cat = new List<string>();
+                        string c1;
+                        string c2;
+                        if (desc.TryGetValue("5/" + spell.CategoryDescID[0], out c1))
+                        {                            
+                            if (desc.TryGetValue("5/" + spell.CategoryDescID[1], out c2))
+                                cat.Add(c1 + "/" + c2);
+                            if (desc.TryGetValue("5/" + spell.CategoryDescID[2], out c2))
+                                cat.Add(c1 + "/" + c2);
+                            if (cat.Count == 0)
+                                cat.Add(c1);
                         }
-
+                        spell.Categories = cat.ToArray();
 #endif
 
                         if (!desc.TryGetValue("6/" + spell.DescID, out spell.Desc))
