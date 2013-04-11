@@ -225,7 +225,7 @@ namespace Everquest
         Offense = 33,
         Parry = 34,
         Pick_Lock = 35,
-        Piercing = 36,
+        _1H_Piercing = 36, // no longer both 1H and 2H?
         Riposte = 37,
         Round_Kick = 38,
         Safe_Fall = 39,
@@ -266,6 +266,7 @@ namespace Everquest
         Frenzy = 74,
         Remove_Trap = 75,
         Triple_Attack = 76,
+        _2H_Pierce = 77, // guess
         Harm_Touch = 105,
         Lay_Hands = 107,
         Slam = 111,
@@ -835,6 +836,7 @@ namespace Everquest
         public SpellTarget Target;
         public SpellResist ResistType;
         public int ResistMod;
+        public bool PartialResist;
         public int MinResist;
         public int MaxResist;
         public string Extra;
@@ -856,9 +858,9 @@ namespace Everquest
         public int RecourseID;
         public string Recourse;
         public int TimerID;
-        public int ViralTimer;
         public int ViralRange;
-        public int ViralTargets;
+        public int MinViralTime;
+        public int MaxViralTime;
         public SpellTargetRestrict TargetRestrict;
         public SpellTargetRestrict CasterRestrict;
         public int[] ConsumeItemID;
@@ -866,11 +868,12 @@ namespace Everquest
         public int[] FocusID;
         public string LandOnSelf;
         //public string LandOnOther;
-        public int StartDegree;
-        public int EndDegree;
+        public int ConeStartAngle;
+        public int ConeEndAngle;
         public bool MGBable;
         public int Rank;
-        public bool OutOfCombat;
+        public bool CastInCombat;
+        public bool CastOutOfCombat;
         public SpellZoneRestrict Zone;
         public bool DurationFrozen; // in guildhall/lobby
         public bool Dispellable;
@@ -884,6 +887,9 @@ namespace Everquest
         public int MinRange;
         public int RangeScalingCap;
         public bool Interruptable;
+        public bool Reflectable;
+        public int SpellClass;
+        public int SpellSubclass;
 
         public int[] LinksTo;
         public int RefCount; // number of spells that link to this
@@ -959,7 +965,7 @@ namespace Everquest
                 if (FocusID[i] > 0)
                     result.Add("Focus: [Item " + FocusID[i] + "]");
 
-            if (OutOfCombat)
+            if (CastOutOfCombat)
                 result.Add("Restriction: Out of Combat");
 
             if (Zone != SpellZoneRestrict.None)
@@ -975,7 +981,7 @@ namespace Everquest
                 result.Add("Restriction: " + FormatEnum(CasterRestrict));
 
             if (Target == SpellTarget.Directional_AE)
-                result.Add("Target: " + FormatEnum(Target) + " (" + StartDegree + " to " + EndDegree + " Degrees)");
+                result.Add("Target: " + FormatEnum(Target) + " (" + ConeStartAngle + " to " + ConeEndAngle + " Degrees)");
             else if (TargetRestrict > 0)
                 result.Add("Target: " + FormatEnum(Target) + " (if " + FormatEnum(TargetRestrict) + ")");
             else if ((Target == SpellTarget.Caster_Group || Target == SpellTarget.Target_Group) && (ClassesMask != 0 && ClassesMask != SpellClassesMask.BRD) && DurationTicks > 0)
@@ -997,12 +1003,10 @@ namespace Everquest
                 result.Add("Range Scaling Cap: " + RangeScalingCap + "′"); 
 
             if (ViralRange > 0)
-                result.Add("Viral Range: " + ViralRange + "′, Recast: " + ViralTimer + "s, Targets: " + ViralTargets);
+                result.Add("Viral Range: " + ViralRange + "′, Recast: " + MinViralTime + "s to " + MaxViralTime + "s");
 
-            if (!Beneficial && ResistMod != 0)
-                result.Add("Resist: " + ResistType + " " + ResistMod + (MinResist > 0 ? ", Min: " + MinResist / 2f + "%" : "") + (MaxResist > 0 ? ", Max: " + MaxResist / 2f + "%" : ""));
-            else if (!Beneficial)
-                result.Add("Resist: " + ResistType);
+            if (!Beneficial)
+                result.Add("Resist: " + ResistType + (ResistMod != 0 ? " " + ResistMod: "") + (MinResist > 0 ? ", Min: " + MinResist / 2f + "%" : "") + (MaxResist > 0 ? ", Max: " + MaxResist / 2f + "%" : "") + (!PartialResist ? ", No Partials" : ""));
             else
                 result.Add("Beneficial: " + (BeneficialBlockable ? "Blockable" : "Not Blockable"));
 
@@ -2564,8 +2568,6 @@ namespace Everquest
             spell.Extra = fields[3];
             spell.LandOnSelf = fields[6];
             //spell.LandOnOther = fields[7];
-            spell.DurationTicks = Spell.CalcDuration(ParseInt(fields[16]), ParseInt(fields[17]), MaxLevel);
-            spell.Mana = ParseInt(fields[19]);
 
             spell.Range = ParseInt(fields[9]);
             spell.AERange = ParseInt(fields[10]);
@@ -2574,7 +2576,9 @@ namespace Everquest
             spell.CastingTime = ParseFloat(fields[13]) / 1000f;
             spell.RestTime = ParseFloat(fields[14]) / 1000f;
             spell.RecastTime = ParseFloat(fields[15]) / 1000f;
+            spell.DurationTicks = Spell.CalcDuration(ParseInt(fields[16]), ParseInt(fields[17]), MaxLevel);
             spell.AEDuration = ParseInt(fields[18]);
+            spell.Mana = ParseInt(fields[19]);
 
             // 56 = icon
             // 57 = icon
@@ -2592,11 +2596,26 @@ namespace Everquest
             // 99 =  base difficulty fizzle adjustment?
             spell.Skill = (SpellSkill)ParseInt(fields[100]);
             spell.Zone = (SpellZoneRestrict)ParseInt(fields[101]);
+
+            // each spell has a different casting level for all 16 classes
+            for (int i = 0; i < spell.Levels.Length; i++)
+                spell.Levels[i] = (byte)ParseInt(fields[104 + i]);
+
             spell.CancelOnSit = ParseBool(fields[124]);
+
+            // 125..141 deity casting restrictions
+            string[] gods = new string[] { "Agnostic", "Bertox", "Brell", "Cazic", "Erollisi", "Bristlebane", "Innoruuk", "Karana", "Mithanial", "Prexus", "Quellious", "Rallos", "Rodcet", "Solusek", "Tribunal", "Tunare", "Veeshan" };
+            for (int i = 0; i < gods.Length; i++)
+                if (ParseBool(fields[125 + i]))
+                    spell.Deity += gods[i] + " ";
+
             spell.Icon = ParseInt(fields[144]);
             spell.Interruptable = !ParseBool(fields[146]);
             spell.ResistMod = ParseInt(fields[147]);
+            // 148 = non stackable DoT
+            // 149 = deletable
             spell.RecourseID = ParseInt(fields[150]);
+            spell.PartialResist = ParseBool(fields[151]);
             if (spell.RecourseID != 0)
                 spell.Recourse = String.Format("[Spell {0}]", spell.RecourseID);
             spell.ShortDuration = ParseBool(fields[154]);
@@ -2604,6 +2623,7 @@ namespace Everquest
             spell.CategoryDescID[0] = ParseInt(fields[156]);
             spell.CategoryDescID[1] = ParseInt(fields[157]);
             spell.CategoryDescID[2] = ParseInt(fields[158]);
+            spell.Reflectable = ParseBool(fields[161]);
             spell.HateMod = ParseInt(fields[162]);
             // 163 = 19 values.  looks similar to calc values
             // 164 = 147 values. mostly negative
@@ -2635,11 +2655,11 @@ namespace Everquest
             // 188 = 192 values.
             spell.MinResist = ParseInt(fields[189]);
             spell.MaxResist = ParseInt(fields[190]);
-            spell.ViralTimer = ParseInt(fields[191]);
-            spell.ViralTargets = ParseInt(fields[192]);
+            spell.MinViralTime = ParseInt(fields[191]);
+            spell.MaxViralTime = ParseInt(fields[192]);
             // 193 = 124 values. nimbus type effects
-            spell.StartDegree = ParseInt(fields[194]);
-            spell.EndDegree = ParseInt(fields[195]);
+            spell.ConeStartAngle = ParseInt(fields[194]);
+            spell.ConeEndAngle = ParseInt(fields[195]);
             spell.Sneaking = ParseBool(fields[196]);
             spell.DurationExtendable = !ParseBool(fields[197]);
             // 198 = 3 values. 0, 1, -1
@@ -2649,8 +2669,6 @@ namespace Everquest
             spell.SongCap = ParseInt(fields[202]);
             // 203 = melee specials
             // 204 = 3 values. 0, 1, -1
-            // 205 = 3 values. 0, 1, -1
-            // 206/216 seem to be related
             spell.BeneficialBlockable = !ParseBool(fields[205]); // for beneficial spells
             spell.GroupID = ParseInt(fields[207]);
             spell.Rank = ParseInt(fields[208]); // rank 1/5/10. a few auras do not have this set properly
@@ -2661,40 +2679,36 @@ namespace Everquest
             // 209 = 4 values. 0, -1, 1, null.
             // 210 = 3 values. 1, 0, null.
             spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[211]);
-            // 212 = 3 values. 0, 1, -1.
-            // 213 = 3 values. 1, 0, -1. 
-            spell.OutOfCombat = !ParseBool(fields[213]);
+            //spell.InCombat = ParseBool(fields[212]);
+            spell.CastOutOfCombat = !ParseBool(fields[213]);
             // 215 = 4 values. 1, 0, -1, null. -1 seems to be related to DoTs
             // 216 = 3 values. 0, 1, null
             // 217 = 4 values. -1, 0, null, 1
             spell.MaxTargets = ParseInt(fields[218]);
             // 219 = 5 values. 0, -1, 4, 1, null
             spell.CasterRestrict = (SpellTargetRestrict)ParseInt(fields[220]);
-            // 221 = 13 sequential values. some category?
-            // 222 = 57 sequential values. some category?
+            // 221 = spell class. 13 sequential values.
+            // 222 = spell subclass. 57 sequential values. 
             // 223 = 9 values. looks like a character class mask? 2013-3-13 Hand of Piety can now crit again. 
             spell.PersistAfterDeath = ParseBool(fields[224]);
             // 225 = song slope?
             // 226 = song offset?
 
+            // 228 = 6 values. 1, 0, 2, 4, 3, 5. maybe this indicates how the min range/scaling works?
             // sometimes this seems to be an absolute min distance to take effect 
             // and sometimes this seems to be part of the distance scaling calculation (along with field 229)
-            // [32452] Tsunami - doesn't take hold if you're very close to Lord Koi`Doken
-            spell.MinRange = ParseInt(fields[227]);
-
-            // 228 = 6 values. 1, 0, 2, 4, 3, 5. maybe this indicates how the min range/scaling works?
-
             // Echoing Screech increases with distance. Queen's Swing decreases with distance. no idea which field indicates type
             spell.RangeScalingCap = ParseInt(fields[229]);
 
+            // [32452] Tsunami - doesn't take hold if you're very close to Lord Koi`Doken
+            spell.MinRange = ParseInt(fields[231]);
+
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[223]);
+            //spell.Unknown = ParseFloat(fields[217]);
 
 
-            // each spell has a different casting level for all 16 classes
-            for (int i = 0; i < spell.Levels.Length; i++)
-                spell.Levels[i] = (byte)ParseInt(fields[104 + i]);
+
 
             // each spell has 12 effect slots which have 5 attributes each
             // 20..31 - slot 1..12 base1 effect
@@ -2721,11 +2735,6 @@ namespace Everquest
                 //    Console.Error.WriteLine(String.Format("SPA {1} {0} has diff value/base1: {2}/{3} calc: {4}", spell.Name, spa, value, base1, calc));
             }
 
-            // 125..141 deity casting restrictions
-            string[] gods = new string[] { "Agnostic", "Bertox", "Brell", "Cazic", "Erollisi", "Bristlebane", "Innoruuk", "Karana", "Mithanial", "Prexus", "Quellious", "Rallos", "Rodcet", "Solusek", "Tribunal", "Tunare", "Veeshan" };
-            for (int i = 0; i < gods.Length; i++)
-                if (ParseBool(fields[125 + i]))
-                    spell.Deity += gods[i] + " ";
 
             // debug stuff
             //if (spell.ID == 23547) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
