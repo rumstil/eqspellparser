@@ -885,7 +885,10 @@ namespace Everquest
         public string Deity;
         public int SongCap;
         public int MinRange;
-        public int RangeScalingCap;
+        public int RangeModCloseDist;
+        public int RangeModCloseMult;
+        public int RangeModFarDist;
+        public int RangeModFarMult;        
         public bool Interruptable;
         public bool Reflectable;
         public int SpellClass;
@@ -990,23 +993,20 @@ namespace Everquest
                 result.Add("Target: " + FormatEnum(Target));
 
             if (AERange > 0 && Range == 0)
-                result.Add("AE Range: " + AERange + "′");
+                result.Add("AE Range: " + (MinRange > 0 ? MinRange + "′ to " : "") + AERange + "′");
             else if (AERange > 0)
-                result.Add("Range: " + Range + "′, AE Range: " + AERange + "′");
+                result.Add("Range: " + Range + "′, AE Range: " + (MinRange > 0 ? MinRange + "′ to " : "") + AERange + "′"); // unsure where the min range should be applied
             else if (Range > 0)
-                result.Add("Range: " + Range + "′");
+                result.Add("Range: " + (MinRange > 0 ? MinRange + "′ to " : "") + Range + "′");
 
-            if (MinRange > 0)
-                result.Add("Min Range: " + MinRange + "′");
-
-            if (RangeScalingCap != 0)
-                result.Add("Range Scaling Cap: " + RangeScalingCap + "′"); 
+            if (RangeModFarDist != 0)
+                result.Add("Effect Mod: " + RangeModCloseMult + "x at " + RangeModCloseDist + "′ to " + RangeModFarMult + "x at " + RangeModFarDist + "′"); 
 
             if (ViralRange > 0)
                 result.Add("Viral Range: " + ViralRange + "′, Recast: " + MinViralTime + "s to " + MaxViralTime + "s");
 
             if (!Beneficial)
-                result.Add("Resist: " + ResistType + (ResistMod != 0 ? " " + ResistMod: "") + (MinResist > 0 ? ", Min: " + MinResist / 2f + "%" : "") + (MaxResist > 0 ? ", Max: " + MaxResist / 2f + "%" : "") + (!PartialResist ? ", No Partials" : ""));
+                result.Add("Resist: " + ResistType + (ResistMod != 0 ? " " + ResistMod: "") + (MinResist > 0 ? ", Min: " + MinResist / 2f + "%" : "") + (MaxResist > 0 ? ", Max: " + MaxResist / 2f + "%" : "")); // + (!PartialResist ? ", No Partials" : ""));
             else
                 result.Add("Beneficial: " + (BeneficialBlockable ? "Blockable" : "Not Blockable"));
 
@@ -1111,9 +1111,6 @@ namespace Everquest
 
             if (Zone != SpellZoneRestrict.Indoors && Zone != SpellZoneRestrict.Outdoors)
                 Zone = SpellZoneRestrict.None;
-
-            if (Range == 0)
-                RangeScalingCap = 0;
 
 
         }
@@ -2693,14 +2690,11 @@ namespace Everquest
             spell.PersistAfterDeath = ParseBool(fields[224]);
             // 225 = song slope?
             // 226 = song offset?
-
-            // 228 = 6 values. 1, 0, 2, 4, 3, 5. maybe this indicates how the min range/scaling works?
-            // sometimes this seems to be an absolute min distance to take effect 
-            // and sometimes this seems to be part of the distance scaling calculation (along with field 229)
-            // Echoing Screech increases with distance. Queen's Swing decreases with distance. no idea which field indicates type
-            spell.RangeScalingCap = ParseInt(fields[229]);
-
-            // [32452] Tsunami - doesn't take hold if you're very close to Lord Koi`Doken
+            // range multiplier seems to be an integer so far
+            spell.RangeModCloseDist = ParseInt(fields[227]);
+            spell.RangeModCloseMult = ParseInt(fields[228]);
+            spell.RangeModFarDist = ParseInt(fields[229]);
+            spell.RangeModFarMult = ParseInt(fields[230]);
             spell.MinRange = ParseInt(fields[231]);
 
 
@@ -2737,7 +2731,7 @@ namespace Everquest
 
 
             // debug stuff
-            //if (spell.ID == 23547) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
+            //if (spell.ID == 32452) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
 
             spell.Prepare();
             return spell;
@@ -2752,7 +2746,7 @@ namespace Everquest
 
         static int ParseInt(string s)
         {
-            if (String.IsNullOrEmpty(s))
+            if (s == "" || s == "0" || s[0] == '.')
                 return 0;
             return (int)Single.Parse(s, culture);
         }
