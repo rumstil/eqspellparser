@@ -224,7 +224,7 @@ namespace Everquest
         Offense = 33,
         Parry = 34,
         Pick_Lock = 35,
-        _1H_Piercing = 36, // no longer both 1H and 2H?
+        _1H_Pierce = 36, // no longer both 1H and 2H?
         Riposte = 37,
         Round_Kick = 38,
         Safe_Fall = 39,
@@ -902,7 +902,8 @@ namespace Everquest
         public bool Reflectable;
         public int SpellClass;
         public int SpellSubclass;
-        public bool CastInRegen;
+        public bool CastInFastRegen;
+        public bool AllowFastRegen;
 
         public int[] LinksTo;
         public int RefCount; // number of spells that link to this
@@ -981,7 +982,7 @@ namespace Everquest
             if (CastOutOfCombat) 
                 result.Add("Restriction: Out of Combat"); // i.e. no aggro
 
-            if (CastInRegen)
+            if (CastInFastRegen)
                 result.Add("Restriction: In Fast Regen");
 
             if (Zone != SpellZoneRestrict.None)
@@ -1038,8 +1039,8 @@ namespace Everquest
             else if (AEDuration >= 2500)
                 result.Add("AE Waves: " + AEDuration / 2500);
 
-            if (DurationTicks > 0 && !Dispellable)
-                result.Add("Dispellable: " + (Dispellable ? "Yes" : "No"));
+            if (DurationTicks > 0 && !Beneficial)
+                result.Add("Dispellable: " + (Dispellable ? "Yes" : "No") + ", Allow Fast Regen: " + (AllowFastRegen ? "Yes" : "No"));
 
             if (PushUp != 0)
                 result.Add("Push: " + PushBack + "′ Up: " + PushUp + "′");
@@ -1276,6 +1277,8 @@ namespace Everquest
                 case 20:
                     return "Blind";
                 case 21:
+                    if (base2 != base1 && base2 != 0)
+                        return String.Format("Stun for {1:F1}s ({0:F1}s when cast by NPC)", base1 / 1000f, base2 / 1000f) + maxlevel;
                     return String.Format("Stun for {0}s", base1 / 1000f) + maxlevel;
                 case 22:
                     return "Charm" + maxlevel;
@@ -2674,7 +2677,7 @@ namespace Everquest
             // 184 = 3 values. 0, -1, 1
             spell.MGBable = ParseBool(fields[185]);
             spell.Dispellable = !ParseBool(fields[186]);
-            // 187 = allow partial resist?
+            // 187 = npc stuff
             // 188 = 192 values.
             spell.MinResist = ParseInt(fields[189]);
             spell.MaxResist = ParseInt(fields[190]);
@@ -2702,6 +2705,7 @@ namespace Everquest
             // 209 = 4 values. 0, -1, 1, null.
             // 210 = 3 values. 1, 0, null.
             spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[211]);
+            spell.AllowFastRegen = ParseBool(fields[212]);  
             spell.CastOutOfCombat = !ParseBool(fields[213]);
             // 215 = 4 values. 1, 0, -1, null. -1 seems to be related to DoTs
             // 216 = 3 values. 0, 1, null
@@ -2721,7 +2725,7 @@ namespace Everquest
             spell.RangeModFarDist = ParseInt(fields[229]);
             spell.RangeModFarMult = ParseInt(fields[230]);
             spell.MinRange = ParseInt(fields[231]);
-            spell.CastInRegen = ParseBool(fields[234]);
+            spell.CastInFastRegen = ParseBool(fields[234]);
 
 
             // debug stuff
