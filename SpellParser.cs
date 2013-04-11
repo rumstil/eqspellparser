@@ -12,7 +12,6 @@ using System.Text.RegularExpressions;
  *
  * http://code.google.com/p/projecteqemu/source/browse/trunk/EQEmuServer/zone/spdat.h
  * http://eqitems.13th-floor.org/phpBB2/viewtopic.php?t=23
- * http://forums.station.sony.com/eqold/posts/list.m?start=150&topic_id=162971
  * http://forums.station.sony.com/eqold/posts/list.m?start=150&topic_id=165000 - resists
  *
  */
@@ -810,6 +809,17 @@ namespace Everquest
         Guild_Anchor = 50874
     }
 
+    // it's hard to stick many spells into a single category, but i think this is only used by SPA 403
+    public enum SpellCategory
+    {
+        Cures = 2,
+        Offensive_Damage = 3, // nukes, DoT, AA discs, and spells that cast nukes as a side effect
+        Heals = 5,
+        Lifetap = 6,
+        Transport = 8
+    }
+
+
     #endregion
 
     public sealed class Spell
@@ -872,7 +882,6 @@ namespace Everquest
         public int ConeEndAngle;
         public bool MGBable;
         public int Rank;
-        public bool CastInCombat;
         public bool CastOutOfCombat;
         public SpellZoneRestrict Zone;
         public bool DurationFrozen; // in guildhall/lobby
@@ -893,6 +902,7 @@ namespace Everquest
         public bool Reflectable;
         public int SpellClass;
         public int SpellSubclass;
+        public bool CastInRegen;
 
         public int[] LinksTo;
         public int RefCount; // number of spells that link to this
@@ -968,8 +978,11 @@ namespace Everquest
                 if (FocusID[i] > 0)
                     result.Add("Focus: [Item " + FocusID[i] + "]");
 
-            if (CastOutOfCombat)
-                result.Add("Restriction: Out of Combat");
+            if (CastOutOfCombat) 
+                result.Add("Restriction: Out of Combat"); // i.e. no aggro
+
+            if (CastInRegen)
+                result.Add("Restriction: In Fast Regen");
 
             if (Zone != SpellZoneRestrict.None)
                 result.Add("Restriction: " + Zone + " Only");
@@ -1112,7 +1125,8 @@ namespace Everquest
             if (Zone != SpellZoneRestrict.Indoors && Zone != SpellZoneRestrict.Outdoors)
                 Zone = SpellZoneRestrict.None;
 
-
+            if (RangeModCloseDist == RangeModFarDist)
+                RangeModCloseDist = RangeModFarDist = 0;
         }
 
         /// <summary>
@@ -1963,10 +1977,10 @@ namespace Everquest
                     return String.Format("Decrease Current HP by up to {0} ({1} HP per 1 Target Mana)", Math.Floor(base1 * base2 / -10f), base2 / -10f);
                 case 402:
                     return String.Format("Decrease Current HP by up to {0} ({1} HP per 1 Target End)", Math.Floor(base1 * base2 / -10f), base2 / -10f);
-                // 403 = some sort of casting limit. base1=3 might indicate lifetap spells
-                // 404 = seems to be a limit based on field 222 (some sort of sub category)
-                //case 404:
-                //    return String.Format("Limit Skill: {1}{0}", Spell.FormatEnum((SpellSkill)Math.Abs(base1)), base1 >= 0 ? "" : "Exclude ");
+                case 403:
+                    return String.Format("Limit Spell Category: {0}{1}", base1 >= 0 ? "" : "Exclude ", Spell.FormatEnum((SpellCategory)Math.Abs(base1)));
+                case 404:
+                    return String.Format("Limit Spell Subcategory: {0}{1}", base1 >= 0 ? "" : "Exclude ", Math.Abs(base1));
                 case 406:
                     return String.Format("Cast on Max Hits: [Spell {0}]", base1);
                 case 407:
@@ -2612,6 +2626,8 @@ namespace Everquest
             // 148 = non stackable DoT
             // 149 = deletable
             spell.RecourseID = ParseInt(fields[150]);
+            // 151 = used to prevent a nuke from being partially resisted.  
+            // also, it prevents or allows a player to resist a spell fully if they resist "part" of its components.
             spell.PartialResist = ParseBool(fields[151]);
             if (spell.RecourseID != 0)
                 spell.Recourse = String.Format("[Spell {0}]", spell.RecourseID);
@@ -2676,7 +2692,6 @@ namespace Everquest
             // 209 = 4 values. 0, -1, 1, null.
             // 210 = 3 values. 1, 0, null.
             spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[211]);
-            //spell.InCombat = ParseBool(fields[212]);
             spell.CastOutOfCombat = !ParseBool(fields[213]);
             // 215 = 4 values. 1, 0, -1, null. -1 seems to be related to DoTs
             // 216 = 3 values. 0, 1, null
@@ -2696,6 +2711,7 @@ namespace Everquest
             spell.RangeModFarDist = ParseInt(fields[229]);
             spell.RangeModFarMult = ParseInt(fields[230]);
             spell.MinRange = ParseInt(fields[231]);
+            spell.CastInRegen = ParseBool(fields[234]);
 
 
             // debug stuff
@@ -2731,7 +2747,7 @@ namespace Everquest
 
 
             // debug stuff
-            //if (spell.ID == 32452) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
+            //if (spell.ID == 17106) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
 
             spell.Prepare();
             return spell;
