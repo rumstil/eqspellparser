@@ -1556,11 +1556,11 @@ namespace Everquest
                 case 160:
                     return String.Format("Intoxicate if Tolerance < {0}", value);
                 case 161:
-                    return String.Format("Absorb Spell Damage: {0}%", value) + (base2 > 0 ? String.Format(" Per Hit: {0}", base2) : "") + (max > 0 ? String.Format(" Total: {0}", max) : "");
+                    return String.Format("Absorb Spell Damage: {0}%", value) + (base2 > 0 ? String.Format(", Max Per Hit: {0}", base2) : "") + (max > 0 ? String.Format(", Total: {0}", max) : "");
                 case 162:
-                    return String.Format("Absorb Melee Damage: {0}%", value) + (base2 > 0 ? String.Format(" Per Hit: {0}", base2) : "") + (max > 0 ? String.Format(" Total: {0}", max) : "");
+                    return String.Format("Absorb Melee Damage: {0}%", value) + (base2 > 0 ? String.Format(", Max Per Hit: {0}", base2) : "") + (max > 0 ? String.Format(", Total: {0}", max) : "");
                 case 163:
-                    return String.Format("Absorb {0} Hits or Spells", value);
+                    return String.Format("Absorb {0} Hits or Spells", value) + (max > 0 ? String.Format(", Max Per Hit: {0}", max) : "");
                 case 164:
                     return String.Format("Appraise Chest ({0})", value);
                 case 165:
@@ -1845,7 +1845,8 @@ namespace Everquest
                 case 348:
                     return String.Format("Limit Min Mana Cost: {0}", base1);
                 case 350:
-                    return String.Format("Mana Burn: {0}", value);
+                    Mana = base1; // hack
+                    return String.Format("Mana Burn: up to {0} damage", base1 * -base2 / 10);
                 case 351:
                     // the actual aura spell effect reference doesn't seem to be stored in the spell file so we have to handle this SPA
                     // with guesses and some hardcoding. most of the time the effect is placed right after the aura in the spell file
@@ -2071,11 +2072,20 @@ namespace Everquest
                     return String.Format("Cast: [Spell {0}] on {1} Melee Damage Taken", base1, base2);
                 case 454:
                     return String.Format("Cast: [Spell {0}] on {1} Spell Damage Taken", base1, base2);
-
-                //case 455 - add pct hate
-                //case 456 - add pct hate over time
-                //case 457 - return portion of spell damage as Base2 0=hp 1=mana 2=end. why not just use "increase hp by x" spa?
-
+                case 455:
+                    // adds a % of your own hate using base1. Example: 1000 hate base1 = 50. Means you will be 1500 hate. 
+                    return Spell.FormatPercent("Current Hate", base1);
+                case 456:
+                    // adds a % of your own hate using base1, per tick, scalable. Example: 1000 hate base1 = 50. Means you will be 1500 hate @ 1 tick, 2250 @ 2 ticks. 
+                    return Spell.FormatPercent("Current Hate", base1) + " per tick";
+                case 457:
+                    // offical name is "Resource Tap." Formula is base1 / 1000 * damage value. Example: 88001 damage, base1 = 100. 100 / 1000 = .1 * 88001. 
+                    // simply dividing by 10 gives the same result.
+                    if (base2 == 2)
+                        return string.Format("Return {0}% of Damage as Endurance", base1 / 10);
+                    if (base2 == 1)
+                        return string.Format("Return {0}% of Damage as Mana", base1 / 10);
+                    return string.Format("Return {0}% of Damage as HP", base1 / 10);
             }
 
             return String.Format("Unknown Effect: {0} Base1={1} Base2={2} Max={3} Calc={4} Value={5}", spa, base1, base2, max, calc, value);
