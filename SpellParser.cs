@@ -1278,7 +1278,7 @@ namespace Everquest
                     return "Blind";
                 case 21:
                     if (base2 != base1 && base2 != 0)
-                        return String.Format("Stun NPC for {1:0.##}s (PC for {0:0.##}s)", base1 / 1000f, base2 / 1000f) + maxlevel;
+                        return String.Format("Stun NPC for {0:0.##}s (PC for {1:0.##}s)", base1 / 1000f, base2 / 1000f) + maxlevel;
                     return String.Format("Stun for {0:0.##}s", base1 / 1000f) + maxlevel;
                 case 22:
                     return "Charm" + maxlevel;
@@ -1362,7 +1362,7 @@ namespace Everquest
                     return "Memory Blur";
                 case 64:
                     if (base2 != base1 && base2 != 0)
-                        return String.Format("Stun and Spin NPC for {1:0.##}s (PC for {0:0.##}s)", base1 / 1000f, base2 / 1000f) + maxlevel;
+                        return String.Format("Stun and Spin NPC for {0:0.##}s (PC for {1:0.##}s)", base1 / 1000f, base2 / 1000f) + maxlevel;
                     return String.Format("Stun and Spin for {0:0.##}s", base1 / 1000f) + maxlevel;
                 case 65:
                     return "Infravision";
