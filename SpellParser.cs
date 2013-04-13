@@ -1602,6 +1602,7 @@ namespace Everquest
                 case 179:
                     return String.Format("Instrument Modifier: {0} {1}", Skill, value);
                 case 180:
+                    // mystical shielding is 5%, fervor of the dark reign / sanctity of the keepers is 2%.
                     return Spell.FormatPercent("Chance to Resist Spell", value);
                 case 181:
                     return Spell.FormatPercent("Chance to Resist Fear Spell", value);
@@ -1742,11 +1743,11 @@ namespace Everquest
                 case 294:
                     // additive with innate crit multiplier
                     if (base1 > 0 && base2 > 100)
-                        return Spell.FormatPercent("Chance to Critical Nuke", base1) + " and " + Spell.FormatPercent("Critical Nuke Damage", base2 - 100) + " of Base Damage";
+                        return Spell.FormatPercent("Chance to Critical Nuke", base1) + " and " + Spell.FormatPercent("Critical Nuke Damage", base2) + " of Base Damage";
                     else if (base1 > 0)
                         return Spell.FormatPercent("Chance to Critical Nuke", base1);
                     else
-                        return Spell.FormatPercent("Critical Nuke Damage", base2 - 100) + " of Base Damage";
+                        return Spell.FormatPercent("Critical Nuke Damage", base2) + " of Base Damage";
                 case 296:
                     return Spell.FormatPercent("Spell Damage Taken", base2, base1);
                 case 297:
@@ -2704,7 +2705,7 @@ namespace Everquest
                 spell.Rank = 2;
             if (spell.Rank == 10 || spell.Name.EndsWith("III"))
                 spell.Rank = 3;
-            // 209 = 4 values. 0, -1, 1, null.
+            // 209 = ignore SPA 180 resist?
             // 210 = 3 values. 1, 0, null.
             spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[211]);
             spell.AllowFastRegen = ParseBool(fields[212]);  
