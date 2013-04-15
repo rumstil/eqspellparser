@@ -1104,7 +1104,7 @@ namespace Everquest
             if (All254)
                 ClassesLevels = "ALL/254";
 
-            if (MaxHitsType == SpellMaxHits.None || DurationTicks == 0)
+            if (MaxHitsType == SpellMaxHits.None || (DurationTicks == 0 && !Name.Contains("Aura")))
                 MaxHits = 0;
 
             if (Target == SpellTarget.Self)
@@ -2764,7 +2764,7 @@ namespace Everquest
 
 
             // debug stuff
-            //if (spell.ID == 17106) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
+            //if (spell.ID == 36293) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
 
             spell.Prepare();
             return spell;
