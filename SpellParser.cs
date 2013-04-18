@@ -1,4 +1,4 @@
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -904,6 +904,9 @@ namespace Everquest
         public int SpellSubclass;
         public bool CastInFastRegen;
         public bool AllowFastRegen;
+        public bool BetaOnly;
+        public bool CannotRemove;
+
 
         public int[] LinksTo;
         public int RefCount; // number of spells that link to this
@@ -977,7 +980,13 @@ namespace Everquest
 
             for (int i = 0; i < FocusID.Length; i++)
                 if (FocusID[i] > 0)
-                    result.Add("Focus: [Item " + FocusID[i] + "]");
+                	result.Add("Focus: [Item " + FocusID[i] + "]");
+
+            if (BetaOnly)
+                result.Add("Restriction: Beta Only");
+
+            if (CannotRemove)
+                result.Add("Restriction: Cannot Remove");
 
             if (CastOutOfCombat) 
                 result.Add("Restriction: Out of Combat"); // i.e. no aggro
@@ -1742,7 +1751,7 @@ namespace Everquest
                     return String.Format("Dispel Detrimental ({0})", value);
                 case 294:
                     // additive with innate crit multiplier
-                    if (base1 > 0 && base2 > 100)
+                    if (base1 > 0 && base2 > 0)
                         return Spell.FormatPercent("Chance to Critical Nuke", base1) + " and " + Spell.FormatPercent("Critical Nuke Damage", base2) + " of Base Damage";
                     else if (base1 > 0)
                         return Spell.FormatPercent("Chance to Critical Nuke", base1);
@@ -2591,11 +2600,11 @@ namespace Everquest
 
             spell.ID = Convert.ToInt32(fields[0]);
             spell.Name = fields[1];
-
+            //Target = fields[2];
             spell.Extra = fields[3];
             spell.LandOnSelf = fields[6];
             //spell.LandOnOther = fields[7];
-
+            //Wear Off Message = fields[8];
             spell.Range = ParseInt(fields[9]);
             spell.AERange = ParseInt(fields[10]);
             spell.PushBack = ParseFloat(fields[11]);
@@ -2615,28 +2624,40 @@ namespace Everquest
                 spell.ConsumeItemID[i] = ParseInt(fields[58 + i]);
                 spell.ConsumeItemCount[i] = ParseInt(fields[62 + i]);
                 spell.FocusID[i] = ParseInt(fields[66 + i]);
-            }
+                }            
 
+            //Light_Type = fields[82];
             spell.Beneficial = ParseBool(fields[83]);
+            //Activated (AAs?) = fields[84]; 
             spell.ResistType = (SpellResist)ParseInt(fields[85]);
             spell.Target = (SpellTarget)ParseInt(fields[98]);
             // 99 =  base difficulty fizzle adjustment?
             spell.Skill = (SpellSkill)ParseInt(fields[100]);
             spell.Zone = (SpellZoneRestrict)ParseInt(fields[101]);
+            //Environment Type = fields[102];
+            //Time of Day = fields[103]; Day, Night, Both
+
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
-                spell.Levels[i] = (byte)ParseInt(fields[104 + i]);
+            spell.Levels[i] = (byte)ParseInt(fields[104 + i]);
 
+            //Casting Animation = fields[120];
+            //Target Animation = fields[121];
+            //Travel Type = fields[122];
+            //SPA ID = fields[123];
             spell.CancelOnSit = ParseBool(fields[124]);
 
             // 125..141 deity casting restrictions
             string[] gods = new string[] { "Agnostic", "Bertox", "Brell", "Cazic", "Erollisi", "Bristlebane", "Innoruuk", "Karana", "Mithanial", "Prexus", "Quellious", "Rallos", "Rodcet", "Solusek", "Tribunal", "Tunare", "Veeshan" };
             for (int i = 0; i < gods.Length; i++)
                 if (ParseBool(fields[125 + i]))
-                    spell.Deity += gods[i] + " ";
+                spell.Deity += gods[i] + " ";
 
+            //NPC Do Not Cast = fields[142];
+            //AI PT Bonus = fields[143];
             spell.Icon = ParseInt(fields[144]);
+            //Spell Effect ID
             spell.Interruptable = !ParseBool(fields[146]);
             spell.ResistMod = ParseInt(fields[147]);
             // 148 = non stackable DoT
@@ -2646,79 +2667,83 @@ namespace Everquest
             // also, it prevents or allows a player to resist a spell fully if they resist "part" of its components.
             spell.PartialResist = ParseBool(fields[151]);
             if (spell.RecourseID != 0)
-                spell.Recourse = String.Format("[Spell {0}]", spell.RecourseID);
+            spell.Recourse = String.Format("[Spell {0}]", spell.RecourseID);
+            //Small Targets Only = fields[152];
+            //Persistent particle effects = fields [153];
             spell.ShortDuration = ParseBool(fields[154]);
             spell.DescID = ParseInt(fields[155]);
             spell.CategoryDescID[0] = ParseInt(fields[156]);
             spell.CategoryDescID[1] = ParseInt(fields[157]);
             spell.CategoryDescID[2] = ParseInt(fields[158]);
+            // 159 NPC Does not Require LoS
+            // 160 Feedbackable (Triggers spell damage shield)
             spell.Reflectable = ParseBool(fields[161]);
             spell.HateMod = ParseInt(fields[162]);
-            // 163 = 19 values.  looks similar to calc values
-            // 164 = 147 values. mostly negative
-            // 165 = 3 values. 0, 1, -1
+            // 163 Resist Level = 19 values.  looks similar to calc values
+            // 164 Resist Cap = 147 values. mostly negative
+            // 165 Useable On Objects Boolean
             spell.Endurance = ParseInt(fields[166]);
             spell.TimerID = ParseInt(fields[167]);
-            // 166 = 585 values. 0 (35558)
-            // 167 = 19 sequential values. 
-            // 168 = 3 values. 0, -1, 1
-            // 169 = all 0
-            // 170 = all 0
-            // 171 = all 0
-            // 172 = all 0
+            // 168 Skill = 3 values. 0, -1, 1
+            // 169 Attack Open = all 0
+            // 170 Defense Open = all 0
+            // 171 Skill Open = all 0
+            // 172 NPC Error Open= all 0
             spell.HateOverride = ParseInt(fields[173]);
             spell.EnduranceUpkeep = ParseInt(fields[174]);
             spell.MaxHitsType = (SpellMaxHits)ParseInt(fields[175]);
             spell.MaxHits = ParseInt(fields[176]);
-            // 177 = 197 values. 
-            // 178 = 20 values. looks similar to calc values
-            // 179 = 266 values.
-            // 180 = 185 values. 
-            // 181 = 19 values. looks similar to duration calc values
-            // 182 = 115 values. 
-            // 183 = 3 values. 0, 1, 2
-            // 184 = 3 values. 0, -1, 1
+            // 177 PVP Resist Mod = 197 values. 
+            // 178 PVP Resist Level = 20 values. looks similar to calc values
+            // 179 PVP Resist Cap = 266 values.
+            // 180 Spell Category = 185 values. 
+            // 181 PVP Duration= 19 values. looks similar to duration calc values
+            // 182 PVP Duration = 115 values. 
+            // 183 No Pet = 3 values. 0, 1, 2
+            // 184 Cast While Sitting Boolean
             spell.MGBable = ParseBool(fields[185]);
             spell.Dispellable = !ParseBool(fields[186]);
-            // 187 = npc stuff
-            // 188 = 192 values.
+            // 187 NPC Mem Category = npc stuff
+            // 188 NPC Usefulness = 192 values.
             spell.MinResist = ParseInt(fields[189]);
             spell.MaxResist = ParseInt(fields[190]);
             spell.MinViralTime = ParseInt(fields[191]);
             spell.MaxViralTime = ParseInt(fields[192]);
-            // 193 = 124 values. nimbus type effects
+            // 193 Particle Duration Time = 124 values. nimbus type effects
             spell.ConeStartAngle = ParseInt(fields[194]);
             spell.ConeEndAngle = ParseInt(fields[195]);
             spell.Sneaking = ParseBool(fields[196]);
             spell.DurationExtendable = !ParseBool(fields[197]);
-            // 198 = 3 values. 0, 1, -1
-            // 199 = 3 values. 0, 1, -1
+            // 198 No Detrimental Spell Aggro Boolean
+            // 199 Show Wear Off Message Boolean
             spell.DurationFrozen = ParseBool(fields[200]);
             spell.ViralRange = ParseInt(fields[201]);
             spell.SongCap = ParseInt(fields[202]);
-            // 203 = melee specials
-            // 204 = 3 values. 0, 1, -1
+            // 203 Stacks With Self = melee specials
+            // 204 Not Shown To Player Boolean 
             spell.BeneficialBlockable = !ParseBool(fields[205]); // for beneficial spells
+            //Animation Variation = fields[206];
             spell.GroupID = ParseInt(fields[207]);
             spell.Rank = ParseInt(fields[208]); // rank 1/5/10. a few auras do not have this set properly
             if (spell.Rank == 5 || spell.Name.EndsWith("II"))
                 spell.Rank = 2;
             if (spell.Rank == 10 || spell.Name.EndsWith("III"))
                 spell.Rank = 3;
-            // 209 = ignore SPA 180 resist?
-            // 210 = 3 values. 1, 0, null.
+            // 209 No Resist Boolean = ignore SPA 180 resist?
+            // 210 SpellBook Scribable Boolean
             spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[211]);
             spell.AllowFastRegen = ParseBool(fields[212]);  
-            spell.CastOutOfCombat = !ParseBool(fields[213]);
-            // 215 = 4 values. 1, 0, -1, null. -1 seems to be related to DoTs
-            // 216 = 3 values. 0, 1, null
-            // 217 = 4 values. -1, 0, null, 1
+            spell.CastOutOfCombat = !ParseBool(fields[213]); //Cast in Combat
+            // 214 Cast Out of Combat Boolean
+            // 215 Show DoT Message Boolean
+            // 216 Invalid Boolean
+            // 217 Override Crit chance Boolean
             spell.MaxTargets = ParseInt(fields[218]);
-            // 219 = 5 values. 0, -1, 4, 1, null
+            // 219 No Effect from Spell Damage / Heal Amount on Items Boolean
             spell.CasterRestrict = (SpellTargetRestrict)ParseInt(fields[220]);
             // 221 = spell class. 13 sequential values.
             // 222 = spell subclass. 57 sequential values. 
-            // 223 = 9 values. looks like a character class mask? 2013-3-13 Hand of Piety can now crit again. 
+            // 223 AI Valid Targets = 9 values. looks like a character class mask? 2013-3-13 Hand of Piety can now crit again. 
             spell.PersistAfterDeath = ParseBool(fields[224]);
             // 225 = song slope?
             // 226 = song offset?
@@ -2728,7 +2753,11 @@ namespace Everquest
             spell.RangeModFarDist = ParseInt(fields[229]);
             spell.RangeModFarMult = ParseInt(fields[230]);
             spell.MinRange = ParseInt(fields[231]);
+            spell.CannotRemove = ParseBool(fields[232]);
+            //spell.Recourse Type = fields[233];
             spell.CastInFastRegen = ParseBool(fields[234]);
+            spell.BetaOnly = ParseBool(fields[235]);
+            //Spell Subgoup = fields[236];
 
 
             // debug stuff
