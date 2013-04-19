@@ -1,4 +1,4 @@
- using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -224,7 +224,7 @@ namespace Everquest
         Offense = 33,
         Parry = 34,
         Pick_Lock = 35,
-        _1H_Pierce = 36, // no longer both 1H and 2H?
+        _1H_Pierce = 36,
         Riposte = 37,
         Round_Kick = 38,
         Safe_Fall = 39,
@@ -265,7 +265,7 @@ namespace Everquest
         Frenzy = 74,
         Remove_Trap = 75,
         Triple_Attack = 76,
-        _2H_Pierce = 77, // guess
+        _2H_Pierce = 77,
         Harm_Touch = 105,
         Lay_Hands = 107,
         Slam = 111,
@@ -312,7 +312,7 @@ namespace Everquest
         Giant = 4,
         Golem = 5,
         Extraplanar = 6,
-        UndeadPet = 8,        
+        UndeadPet = 8,
         Vampyre = 12,
         Atenha_Ra = 13,
         Greater_Akheva = 14,
@@ -897,7 +897,7 @@ namespace Everquest
         public int RangeModCloseDist;
         public int RangeModCloseMult;
         public int RangeModFarDist;
-        public int RangeModFarMult;        
+        public int RangeModFarMult;
         public bool Interruptable;
         public bool Reflectable;
         public int SpellClass;
@@ -980,7 +980,7 @@ namespace Everquest
 
             for (int i = 0; i < FocusID.Length; i++)
                 if (FocusID[i] > 0)
-                	result.Add("Focus: [Item " + FocusID[i] + "]");
+                    result.Add("Focus: [Item " + FocusID[i] + "]");
 
             if (BetaOnly)
                 result.Add("Restriction: Beta Only");
@@ -988,7 +988,7 @@ namespace Everquest
             if (CannotRemove)
                 result.Add("Restriction: Cannot Remove");
 
-            if (CastOutOfCombat) 
+            if (CastOutOfCombat)
                 result.Add("Restriction: Out of Combat"); // i.e. no aggro
 
             if (CastInFastRegen)
@@ -1016,20 +1016,20 @@ namespace Everquest
                 result.Add("Target: " + FormatEnum(Target));
 
             if (AERange > 0 && Range == 0)
-                result.Add("AE Range: " + (MinRange > 0 ? MinRange + "′ to " : "") + AERange + "′");
+                result.Add("AE Range: " + (MinRange > 0 ? MinRange + "' to " : "") + AERange + "'");
             else if (AERange > 0)
-                result.Add("Range: " + Range + "′, AE Range: " + (MinRange > 0 ? MinRange + "′ to " : "") + AERange + "′"); // unsure where the min range should be applied
+                result.Add("Range: " + Range + "', AE Range: " + (MinRange > 0 ? MinRange + "' to " : "") + AERange + "'"); // unsure where the min range should be applied
             else if (Range > 0)
-                result.Add("Range: " + (MinRange > 0 ? MinRange + "′ to " : "") + Range + "′");
+                result.Add("Range: " + (MinRange > 0 ? MinRange + "' to " : "") + Range + "'");
 
             if (RangeModFarDist != 0)
-                result.Add("Effect Mod: " + RangeModCloseMult + "x at " + RangeModCloseDist + "′ to " + RangeModFarMult + "x at " + RangeModFarDist + "′"); 
+                result.Add("Effect Mod: " + RangeModCloseMult + "x at " + RangeModCloseDist + "' to " + RangeModFarMult + "x at " + RangeModFarDist + "'");
 
             if (ViralRange > 0)
-                result.Add("Viral Range: " + ViralRange + "′, Recast: " + MinViralTime + "s to " + MaxViralTime + "s");
+                result.Add("Viral Range: " + ViralRange + "', Recast: " + MinViralTime + "s to " + MaxViralTime + "s");
 
             if (!Beneficial)
-                result.Add("Resist: " + ResistType + (ResistMod != 0 ? " " + ResistMod: "") + (MinResist > 0 ? ", Min: " + MinResist / 2f + "%" : "") + (MaxResist > 0 ? ", Max: " + MaxResist / 2f + "%" : "")); // + (!PartialResist ? ", No Partials" : ""));
+                result.Add("Resist: " + ResistType + (ResistMod != 0 ? " " + ResistMod : "") + (MinResist > 0 ? ", Min: " + MinResist / 2f + "%" : "") + (MaxResist > 0 ? ", Max: " + MaxResist / 2f + "%" : "")); // + (!PartialResist ? ", No Partials" : ""));
             else
                 result.Add("Beneficial: " + (BeneficialBlockable ? "Blockable" : "Not Blockable"));
 
@@ -1052,9 +1052,9 @@ namespace Everquest
                 result.Add("Dispellable: " + (Dispellable ? "Yes" : "No") + ", Allow Fast Regen: " + (AllowFastRegen ? "Yes" : "No"));
 
             if (PushUp != 0)
-                result.Add("Push: " + PushBack + "′ Up: " + PushUp + "′");
+                result.Add("Push: " + PushBack + "' Up: " + PushUp + "'");
             else if (PushBack != 0)
-                result.Add("Push: " + PushBack + "′");
+                result.Add("Push: " + PushBack + "'");
 
             if (HateMod != 0)
                 result.Add("Hate Mod: " + (HateMod > 0 ? "+" : "") + HateMod);
@@ -1165,7 +1165,7 @@ namespace Everquest
 
             for (int i = 0; i < Slots.Length; i++)
                 if (Slots[i] != null && Slots[i].IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0)
-                    return true;            
+                    return true;
 
             return false;
         }
@@ -1939,17 +1939,17 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Resist " + Spell.FormatEnum((SpellEffect)base2), value);
                 case 379:
                     if (base2 > 0)
-                        return String.Format("Push {0}′ in Direction: {1}", base1, base2);
-                    return String.Format("Push forward {0}′", value);
+                        return String.Format("Push {0}' in Direction: {1}", base1, base2);
+                    return String.Format("Push forward {0}'", value);
                 case 380:
-                    return String.Format("Push back {0}′ and up {1}′", base2, base1);
+                    return String.Format("Push back {0}' and up {1}'", base2, base1);
                 case 381:
-                    return String.Format("Summon to {0}′ away", base1);
+                    return String.Format("Summon to {0}' away", base1);
                 case 382:
                     return String.Format("Inhibit Effect: {0}", Spell.FormatEnum((SpellEffect)base2));
                 case 383:
                     // chance % modified by the cast time of the spell cast that triggers the proc, whereas 339 is not
-                    // i'm just going to list a few samples here since the forumula is too much information 
+                    // i'm just going to list a few samples here since the forumula is too much information
                     string sample383 = String.Format(" e.g. Cast Time 2s={0}% 3s={1:F1}% 4s={2:F1}% 5s={3:F1}%", 0.25 * (base1 / 10), 0.334 * (base1 / 10), 0.5 * (base1 / 10), 0.668 * (base1 / 10));
                     return String.Format("Cast on Spell Use: [Spell {0}] (Base {1}% Chance)", base2, base1 / 10) + sample383;
                 case 384:
@@ -2036,7 +2036,7 @@ namespace Everquest
                         return String.Format("Add Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
                     return String.Format("Add Proc: [Spell {0}]", base1);
                 case 424:
-                    return String.Format("Gradual {0} to {2}′ away (Force={1})", base1 > 0 ? "Push" : "Pull", Math.Abs(base1), base2);
+                    return String.Format("Gradual {0} to {2}' away (Force={1})", base1 > 0 ? "Push" : "Pull", Math.Abs(base1), base2);
                 //case 425: jump or antigravity?
                 case 427:
                     return String.Format("Cast on Skill Use: [Spell {0}] ({1}% Chance)", base1, base2 / 10);
@@ -2088,13 +2088,13 @@ namespace Everquest
                 case 454:
                     return String.Format("Cast: [Spell {0}] on {1} Spell Damage Taken", base1, base2);
                 case 455:
-                    // adds a % of your own hate using base1. Example: 1000 hate base1 = 50. Means you will be 1500 hate. 
+                    // adds a % of your own hate using base1. Example: 1000 hate base1 = 50. Means you will be 1500 hate.
                     return Spell.FormatPercent("Current Hate", base1);
                 case 456:
-                    // adds a % of your own hate using base1, per tick, scalable. Example: 1000 hate base1 = 50. Means you will be 1500 hate @ 1 tick, 2250 @ 2 ticks. 
+                    // adds a % of your own hate using base1, per tick, scalable. Example: 1000 hate base1 = 50. Means you will be 1500 hate @ 1 tick, 2250 @ 2 ticks.
                     return Spell.FormatPercent("Current Hate", base1) + " per tick";
                 case 457:
-                    // offical name is "Resource Tap." Formula is base1 / 1000 * damage value. Example: 88001 damage, base1 = 100. 100 / 1000 = .1 * 88001. 
+                    // offical name is "Resource Tap." Formula is base1 / 1000 * damage value. Example: 88001 damage, base1 = 100. 100 / 1000 = .1 * 88001.
                     // simply dividing by 10 gives the same result.
                     if (base2 == 2)
                         return string.Format("Return {0}% of Damage as Endurance", base1 / 10);
@@ -2498,7 +2498,7 @@ namespace Everquest
                         string c1;
                         string c2;
                         if (desc.TryGetValue("5/" + spell.CategoryDescID[0], out c1))
-                        {                            
+                        {
                             if (desc.TryGetValue("5/" + spell.CategoryDescID[1], out c2))
                                 cat.Add(c1 + "/" + c2);
                             if (desc.TryGetValue("5/" + spell.CategoryDescID[2], out c2))
@@ -2552,7 +2552,7 @@ namespace Everquest
                         }
                     }
 
-                // process each of the linked spells 
+                // process each of the linked spells
                 foreach (int id in linked)
                 {
                     Spell target = null;
@@ -2560,17 +2560,17 @@ namespace Everquest
                     {
                         target.RefCount++;
 
-                        // a lot of side effect spells do not have a level on them. this will copy the level of the referring spell 
+                        // a lot of side effect spells do not have a level on them. this will copy the level of the referring spell
                         // onto the side effect spell so that the spell will be searchable when filtering by class.
                         // e.g. Jolting Swings Strike has no level so it won't show up in a ranger search even though Jolting Swings will show up
-                        // we create this separate array and never display it because modifying the levels array would imply different functionality 
+                        // we create this separate array and never display it because modifying the levels array would imply different functionality
                         // e.g. some spells purposely don't have levels assigned so that they are not affected by focus spells
                         for (int i = 0; i < spell.Levels.Length; i++)
                         {
                             if (target.ExtLevels[i] == 0 && spell.Levels[i] != 0)
                                 target.ExtLevels[i] = spell.Levels[i];
 
-                            // apply in the reverse direction too. this will probably only be useful for including type3 augs 
+                            // apply in the reverse direction too. this will probably only be useful for including type3 augs
                             // todo: check if this includes too many focus spells
                             //if (spell.ExtLevels[i] == 0 && target.Levels[i] != 0)
                             //    spell.ExtLevels[i] = target.Levels[i];
@@ -2624,11 +2624,11 @@ namespace Everquest
                 spell.ConsumeItemID[i] = ParseInt(fields[58 + i]);
                 spell.ConsumeItemCount[i] = ParseInt(fields[62 + i]);
                 spell.FocusID[i] = ParseInt(fields[66 + i]);
-                }            
+            }
 
             //Light_Type = fields[82];
             spell.Beneficial = ParseBool(fields[83]);
-            //Activated (AAs?) = fields[84]; 
+            //Activated (AAs?) = fields[84];
             spell.ResistType = (SpellResist)ParseInt(fields[85]);
             spell.Target = (SpellTarget)ParseInt(fields[98]);
             // 99 =  base difficulty fizzle adjustment?
@@ -2640,7 +2640,7 @@ namespace Everquest
 
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
-            spell.Levels[i] = (byte)ParseInt(fields[104 + i]);
+                spell.Levels[i] = (byte)ParseInt(fields[104 + i]);
 
             //Casting Animation = fields[120];
             //Target Animation = fields[121];
@@ -2652,7 +2652,7 @@ namespace Everquest
             string[] gods = new string[] { "Agnostic", "Bertox", "Brell", "Cazic", "Erollisi", "Bristlebane", "Innoruuk", "Karana", "Mithanial", "Prexus", "Quellious", "Rallos", "Rodcet", "Solusek", "Tribunal", "Tunare", "Veeshan" };
             for (int i = 0; i < gods.Length; i++)
                 if (ParseBool(fields[125 + i]))
-                spell.Deity += gods[i] + " ";
+                    spell.Deity += gods[i] + " ";
 
             //NPC Do Not Cast = fields[142];
             //AI PT Bonus = fields[143];
@@ -2663,11 +2663,11 @@ namespace Everquest
             // 148 = non stackable DoT
             // 149 = deletable
             spell.RecourseID = ParseInt(fields[150]);
-            // 151 = used to prevent a nuke from being partially resisted.  
+            // 151 = used to prevent a nuke from being partially resisted.
             // also, it prevents or allows a player to resist a spell fully if they resist "part" of its components.
             spell.PartialResist = ParseBool(fields[151]);
             if (spell.RecourseID != 0)
-            spell.Recourse = String.Format("[Spell {0}]", spell.RecourseID);
+                spell.Recourse = String.Format("[Spell {0}]", spell.RecourseID);
             //Small Targets Only = fields[152];
             //Persistent particle effects = fields [153];
             spell.ShortDuration = ParseBool(fields[154]);
@@ -2693,12 +2693,12 @@ namespace Everquest
             spell.EnduranceUpkeep = ParseInt(fields[174]);
             spell.MaxHitsType = (SpellMaxHits)ParseInt(fields[175]);
             spell.MaxHits = ParseInt(fields[176]);
-            // 177 PVP Resist Mod = 197 values. 
+            // 177 PVP Resist Mod = 197 values.
             // 178 PVP Resist Level = 20 values. looks similar to calc values
             // 179 PVP Resist Cap = 266 values.
-            // 180 Spell Category = 185 values. 
+            // 180 Spell Category = 185 values.
             // 181 PVP Duration= 19 values. looks similar to duration calc values
-            // 182 PVP Duration = 115 values. 
+            // 182 PVP Duration = 115 values.
             // 183 No Pet = 3 values. 0, 1, 2
             // 184 Cast While Sitting Boolean
             spell.MGBable = ParseBool(fields[185]);
@@ -2720,7 +2720,7 @@ namespace Everquest
             spell.ViralRange = ParseInt(fields[201]);
             spell.SongCap = ParseInt(fields[202]);
             // 203 Stacks With Self = melee specials
-            // 204 Not Shown To Player Boolean 
+            // 204 Not Shown To Player Boolean
             spell.BeneficialBlockable = !ParseBool(fields[205]); // for beneficial spells
             //Animation Variation = fields[206];
             spell.GroupID = ParseInt(fields[207]);
@@ -2732,7 +2732,7 @@ namespace Everquest
             // 209 No Resist Boolean = ignore SPA 180 resist?
             // 210 SpellBook Scribable Boolean
             spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[211]);
-            spell.AllowFastRegen = ParseBool(fields[212]);  
+            spell.AllowFastRegen = ParseBool(fields[212]);
             spell.CastOutOfCombat = !ParseBool(fields[213]); //Cast in Combat
             // 214 Cast Out of Combat Boolean
             // 215 Show DoT Message Boolean
@@ -2742,8 +2742,8 @@ namespace Everquest
             // 219 No Effect from Spell Damage / Heal Amount on Items Boolean
             spell.CasterRestrict = (SpellTargetRestrict)ParseInt(fields[220]);
             // 221 = spell class. 13 sequential values.
-            // 222 = spell subclass. 57 sequential values. 
-            // 223 AI Valid Targets = 9 values. looks like a character class mask? 2013-3-13 Hand of Piety can now crit again. 
+            // 222 = spell subclass. 57 sequential values.
+            // 223 AI Valid Targets = 9 values. looks like a character class mask? 2013-3-13 Hand of Piety can now crit again.
             spell.PersistAfterDeath = ParseBool(fields[224]);
             // 225 = song slope?
             // 226 = song offset?
@@ -2829,8 +2829,8 @@ namespace Everquest
             string[] names = Enum.GetNames(typeof(SpellClassesLong));
             for (int i = 0; i < names.Length; i++)
                 if (String.Compare(names[i], text, true) == 0)
-                    return (int)Enum.Parse(typeof(SpellClassesLong), names[i]);                          
-            
+                    return (int)Enum.Parse(typeof(SpellClassesLong), names[i]);
+
             return 0;
         }
 
