@@ -2023,13 +2023,13 @@ namespace Everquest
                     return String.Format("Limit Bard Skill: {0}", Spell.FormatEnum((SpellSkill)base1));
                 case 416:
                     // how is this differnt than 1?
-                    return Spell.FormatCount("AC", (int)(value / (10f / 3f)));
+                    return Spell.FormatCount("AC v2", (int)(value / (10f / 3f)));
                 case 417:
                     // how is this different than 15?
-                    return Spell.FormatCount("Current Mana", value) + repeating + range;
+                    return Spell.FormatCount("Current Mana v2", value) + repeating + range;
                 case 418:
                     // how is this different than 220 bonus?
-                    return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", base1);
+                    return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus v2", base1);
                 case 419:
                     // this is used for potions. how is it different than 85? maybe proc rate?
                     if (base2 != 0)
