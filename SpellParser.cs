@@ -885,7 +885,7 @@ namespace Everquest
         public bool CastOutOfCombat;
         public SpellZoneRestrict Zone;
         public bool DurationFrozen; // in guildhall/lobby
-        public bool Dispellable;
+        public bool Dispelable;
         public bool PersistAfterDeath;
         public bool ShortDuration; // song window
         public bool CancelOnSit;
@@ -1030,7 +1030,7 @@ namespace Everquest
 
             if (!Beneficial)
                 result.Add("Resist: " + ResistType + (ResistMod != 0 ? " " + ResistMod : "") + (MinResist > 0 ? ", Min: " + MinResist / 2f + "%" : "") + (MaxResist > 0 ? ", Max: " + MaxResist / 2f + "%" : "")); // + (!PartialResist ? ", No Partials" : ""));
-            else
+            else 
                 result.Add("Beneficial: " + (BeneficialBlockable ? "Blockable" : "Not Blockable"));
 
             string rest = ClassesMask == 0 || ClassesMask == SpellClassesMask.BRD || RestTime == 0 ? "" : ", Rest: " + RestTime.ToString() + "s";
@@ -1041,17 +1041,14 @@ namespace Everquest
             else
                 result.Add("Casting: " + CastingTime.ToString() + "s" + rest);
 
-            if (DurationTicks > 0 && Beneficial && ClassesMask != 0 && ClassesMask != SpellClassesMask.BRD)
-                result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)" + ", Extend: " + (DurationExtendable ? "Yes" : "No") + (PersistAfterDeath ? ", Persist After Death" : ""));
-            else if (DurationTicks > 0)
-                result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)" + (PersistAfterDeath ? ", Persist After Death" : ""));
+            if (DurationTicks > 0)
+                result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)" 
+                    + (Beneficial && ClassesMask != SpellClassesMask.BRD ? ", Extendable: " + (DurationExtendable ? "Yes" : "No") : "")
+                    + ", Dispelable: " + (Dispelable ? "Yes" : "No")
+                    + (!Beneficial && DurationTicks > 10 ? ", Allow Fast Regen: " + (AllowFastRegen ? "Yes" : "No") : "")  // it applies on <10 ticks, but there really is no need to show it
+                    + (PersistAfterDeath ? ", Persist After Death" : "")); // pretty rare, so only shown when it's used
             else if (AEDuration >= 2500)
                 result.Add("AE Waves: " + AEDuration / 2500);
-
-            if (DurationTicks > 10) // reduce unnecessary  info. only show fast regen on long duration spells
-                result.Add("Dispellable: " + (Dispellable ? "Yes" : "No") + ", Allow Fast Regen: " + (AllowFastRegen ? "Yes" : "No"));
-            else if (DurationTicks > 0)
-                result.Add("Dispellable: " + (Dispellable ? "Yes" : "No"));
 
             if (PushUp != 0)
                 result.Add("Push: " + PushBack + "' Up: " + PushUp + "'");
@@ -2704,7 +2701,7 @@ namespace Everquest
             // 183 No Pet = 3 values. 0, 1, 2
             // 184 Cast While Sitting Boolean
             spell.MGBable = ParseBool(fields[185]);
-            spell.Dispellable = !ParseBool(fields[186]);
+            spell.Dispelable = !ParseBool(fields[186]);
             // 187 NPC Mem Category = npc stuff
             // 188 NPC Usefulness = 192 values.
             spell.MinResist = ParseInt(fields[189]);
