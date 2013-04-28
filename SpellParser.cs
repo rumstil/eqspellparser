@@ -1041,15 +1041,17 @@ namespace Everquest
             else
                 result.Add("Casting: " + CastingTime.ToString() + "s" + rest);
 
-            if (DurationTicks > 0 && Beneficial && ClassesMask != SpellClassesMask.BRD)
+            if (DurationTicks > 0 && Beneficial && ClassesMask != 0 && ClassesMask != SpellClassesMask.BRD)
                 result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)" + ", Extend: " + (DurationExtendable ? "Yes" : "No") + (PersistAfterDeath ? ", Persist After Death" : ""));
             else if (DurationTicks > 0)
                 result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)" + (PersistAfterDeath ? ", Persist After Death" : ""));
             else if (AEDuration >= 2500)
                 result.Add("AE Waves: " + AEDuration / 2500);
 
-            if (DurationTicks > 0 && !Beneficial)
+            if (DurationTicks > 10) // reduce unnecessary  info. only show fast regen on long duration spells
                 result.Add("Dispellable: " + (Dispellable ? "Yes" : "No") + ", Allow Fast Regen: " + (AllowFastRegen ? "Yes" : "No"));
+            else if (DurationTicks > 0)
+                result.Add("Dispellable: " + (Dispellable ? "Yes" : "No"));
 
             if (PushUp != 0)
                 result.Add("Push: " + PushBack + "' Up: " + PushUp + "'");
