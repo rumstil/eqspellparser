@@ -135,6 +135,7 @@ namespace Everquest
         Weapon_Damage_Bonus = 220,
         Double_Riposte_Skill = 224,
         Double_Attack_Skill = 225,
+        Persistent_Casting_AA = 229, // cast through stun
         Lung_Capacity = 246,
         Frontal_Backstab_Chance = 252,
         Frontal_Backstab_Min_Damage = 253,
@@ -1514,6 +1515,8 @@ namespace Everquest
                 case 132:
                     return Spell.FormatPercent("Spell Mana Cost", -base1, -base2);
                 case 134:
+                    if (base2 == 0)
+                        base2 = 100; // just to make it obvious that 0 means the focus stops functioning
                     return String.Format("Limit Max Level: {0} (lose {1}% per level)", base1, base2);
                 case 135:
                     return String.Format("Limit Resist: {1}{0}", (SpellResist)Math.Abs(base1), base1 >= 0 ? "" : "Exclude ");
