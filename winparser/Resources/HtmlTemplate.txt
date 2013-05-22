@@ -55,7 +55,7 @@ function showSpell(id, here) {
     if (target.className.indexOf('high') < 0)
         target.className += ' high';
     here.parentNode.insertBefore(target, here.nextSibling);
-	show(target);
+    toggle(target, here.id);
 }
 
 function showGroup(id, here) {
@@ -72,17 +72,29 @@ function showGroup(id, here) {
     for (var i = targets.length - 1; i >= 0; i--) {
         if (targets[i].className.indexOf('high') < 0)
             targets[i].className += ' high';
-		show(targets[i]);
+        toggle(targets[i], here.id);
         here.parentNode.insertBefore(targets[i], here.nextSibling);
     }
 }
 
+function toggle(e, anchorID) {
+    // hide the spell if it is already anchored at the current location	
+    if (e.anchorID && e.anchorID == anchorID) {
+        hide(e);
+        delete e.anchorID;
+    }
+    else {
+        show(e);
+        e.anchorID = anchorID;
+    }
+}
+
 function show(e) {
-	e.style.display = (e.tagName == 'TR') ? 'table-row' : 'block';
+    e.style.display = (e.tagName == 'TR') ? 'table-row' : 'block';
 }
 
 function hide(e) {
-	e.style.display = 'none';
+    e.style.display = 'none';
 }
 
 </script>
