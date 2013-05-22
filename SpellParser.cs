@@ -2785,6 +2785,11 @@ namespace Everquest
                 spell.SlotEffects[i] = spa;
                 spell.Slots[i] = spell.ParseEffect(spa, base1, base2, max, calc, MaxLevel);
 
+#if DEBUG               
+                int value = Spell.CalcValue(calc, base1, max, 1, MaxLevel);
+                spell.Slots[i] = String.Format("SPA {0} Base1={1} Base2={2} Max={3} Calc={4} Value={5} --- ", spa, base1, base2, max, calc, value) + spell.Slots[i];
+#endif
+
                 // debug stuff: detect difference in value/base1 for spells where i'm not sure which one should be used and have chosen one arbitrarily
                 //int[] uses_value = new int[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 15, 21, 24, 35, 36, 46, 47, 48, 49, 50, 55, 58, 59, 69, 79, 92, 97, 100, 111, 116, 158, 159, 164, 165, 166, 169, 184, 189, 190, 192, 262, 334, 417};
                 //int[] uses_base1 = new int[] { 32, 64, 109, 148, 149, 193, 254, 323, 360, 374, 414 };
