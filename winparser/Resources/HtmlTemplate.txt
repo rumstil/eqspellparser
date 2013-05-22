@@ -4,7 +4,7 @@
 <title>Results</title>
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
-<style type='text/css'> 
+<style type='text/css'>
 html, body { font-family: 'Segoe UI'; font-size: 9pt; color: #000; }
 table { border-collapse: collapse; border-spacing: 0; margin: 1em 0; }
 th { text-align: left; padding: 5px; background: #eee; border: solid 1px #eee; border-top: solid 1px #ccc; border-bottom: solid 1px #ccc; font-weight: normal; color: #444; }
@@ -12,9 +12,10 @@ td { padding: 2px 6px; border: solid 1px #eee; }
 a { }
 a.ext { color: #000; }
 a:hover { text-decoration: underline; }
-.mana { color: #00d; } 
+.mana { color: #00d; }
 .end { color: orange; }
-.high { background: #f8f8f8;  }
+.high { background: #f8f8f8; }
+.hidden { display: none; }
 ins { background:#e6ffe6; text-decoration: none; }
 del { background:#ffe6e6; text-decoration: none; }
 </style>
@@ -37,10 +38,10 @@ function getElementsByClassName(name) {
 function clearHighlights() {
     var targets = getElementsByClassName('high');
     for (var i = 0; i < targets.length; i++)
-        targets[i].className = targets[i].className.replace(' high', '');      
+        targets[i].className = targets[i].className.replace(' high', '');
 }
 
-function showSpell(id, here) {    
+function showSpell(id, here) {
     // 'here' is the clicked link. navigate up to the spell container div/tr
     while (!here.id || here.id.substr(0, 5) != 'spell')
     	here = here.parentNode;
@@ -54,25 +55,36 @@ function showSpell(id, here) {
     if (target.className.indexOf('high') < 0)
         target.className += ' high';
     here.parentNode.insertBefore(target, here.nextSibling);
+	show(target);
 }
 
 function showGroup(id, here) {
     // 'here' is the clicked link. navigate up to the spell container div/tr
     while (!here.id || here.id.substr(0, 5) != 'spell')
     here = here.parentNode;
-		
+
     // clear previous highlights
     clearHighlights();  //if (here != lastAnchor) { clearHighlights(); lastAnchor = here; }
-		
-    // move the referenced spell group just below 'here'    
+
+    // move the referenced spell group just below 'here'
     var targets = getElementsByClassName('group' + id);
     if (!targets || !targets.length) return;
     for (var i = targets.length - 1; i >= 0; i--) {
         if (targets[i].className.indexOf('high') < 0)
             targets[i].className += ' high';
+		show(targets[i]);
         here.parentNode.insertBefore(targets[i], here.nextSibling);
     }
 }
+
+function show(e) {
+	e.style.display = (e.tagName == 'TR') ? 'table-row' : 'block';
+}
+
+function hide(e) {
+	e.style.display = 'none';
+}
+
 </script>
 </head>
 
