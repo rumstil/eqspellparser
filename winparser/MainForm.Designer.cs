@@ -31,6 +31,9 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.panel1 = new System.Windows.Forms.Panel();
+            this.ShowRelated = new System.Windows.Forms.CheckBox();
+            this.SearchEffectSlot = new System.Windows.Forms.ComboBox();
+            this.label7 = new System.Windows.Forms.Label();
             this.SearchCategory = new System.Windows.Forms.ComboBox();
             this.label6 = new System.Windows.Forms.Label();
             this.CompareNotes = new System.Windows.Forms.Label();
@@ -51,13 +54,12 @@
             this.SearchBrowser = new System.Windows.Forms.WebBrowser();
             this.AutoSearch = new System.Windows.Forms.Timer(this.components);
             this.ToolTip = new System.Windows.Forms.ToolTip(this.components);
-            this.label7 = new System.Windows.Forms.Label();
-            this.SearchEffectSlot = new System.Windows.Forms.ComboBox();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.ShowRelated);
             this.panel1.Controls.Add(this.SearchEffectSlot);
             this.panel1.Controls.Add(this.label7);
             this.panel1.Controls.Add(this.SearchCategory);
@@ -82,6 +84,55 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(247, 730);
             this.panel1.TabIndex = 0;
+            // 
+            // ShowRelated
+            // 
+            this.ShowRelated.AutoSize = true;
+            this.ShowRelated.Checked = true;
+            this.ShowRelated.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.ShowRelated.Location = new System.Drawing.Point(12, 242);
+            this.ShowRelated.Name = "ShowRelated";
+            this.ShowRelated.Size = new System.Drawing.Size(126, 19);
+            this.ShowRelated.TabIndex = 12;
+            this.ShowRelated.Text = "Show related spells";
+            this.ShowRelated.UseVisualStyleBackColor = true;
+            this.ShowRelated.CheckedChanged += new System.EventHandler(this.SearchText_TextChanged);
+            // 
+            // SearchEffectSlot
+            // 
+            this.SearchEffectSlot.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            this.SearchEffectSlot.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            this.SearchEffectSlot.FormattingEnabled = true;
+            this.SearchEffectSlot.Items.AddRange(new object[] {
+            "",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12"});
+            this.SearchEffectSlot.Location = new System.Drawing.Point(159, 149);
+            this.SearchEffectSlot.Name = "SearchEffectSlot";
+            this.SearchEffectSlot.Size = new System.Drawing.Size(75, 23);
+            this.SearchEffectSlot.TabIndex = 9;
+            this.ToolTip.SetToolTip(this.SearchEffectSlot, "Limit the effect filter to a single slot.");
+            this.SearchEffectSlot.TextChanged += new System.EventHandler(this.SearchText_TextChanged);
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(156, 121);
+            this.label7.Name = "label7";
+            this.label7.Padding = new System.Windows.Forms.Padding(0, 10, 0, 0);
+            this.label7.Size = new System.Drawing.Size(40, 25);
+            this.label7.TabIndex = 8;
+            this.label7.Text = "In Slot";
             // 
             // SearchCategory
             // 
@@ -123,7 +174,7 @@
             this.SearchLevel.TabIndex = 5;
             this.SearchLevel.Text = "81-254";
             this.ToolTip.SetToolTip(this.SearchLevel, "Enter a single level (e.g. 81) or a level range (e.g. 81 - 85).  This filter is o" +
-                    "nly applied when a class is selected. AA are level 254.");
+        "nly applied when a class is selected. AA are level 254.");
             this.SearchLevel.TextChanged += new System.EventHandler(this.SearchText_TextChanged);
             // 
             // label5
@@ -150,7 +201,7 @@
             // DisplayText
             // 
             this.DisplayText.AutoSize = true;
-            this.DisplayText.Location = new System.Drawing.Point(12, 284);
+            this.DisplayText.Location = new System.Drawing.Point(11, 295);
             this.DisplayText.Name = "DisplayText";
             this.DisplayText.Size = new System.Drawing.Size(60, 19);
             this.DisplayText.TabIndex = 13;
@@ -162,7 +213,7 @@
             // 
             this.DisplayTable.AutoSize = true;
             this.DisplayTable.Checked = true;
-            this.DisplayTable.Location = new System.Drawing.Point(12, 309);
+            this.DisplayTable.Location = new System.Drawing.Point(10, 320);
             this.DisplayTable.Name = "DisplayTable";
             this.DisplayTable.Size = new System.Drawing.Size(54, 19);
             this.DisplayTable.TabIndex = 14;
@@ -174,7 +225,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(9, 253);
+            this.label4.Location = new System.Drawing.Point(8, 264);
             this.label4.Margin = new System.Windows.Forms.Padding(3, 0, 3, 3);
             this.label4.Name = "label4";
             this.label4.Padding = new System.Windows.Forms.Padding(0, 10, 0, 0);
@@ -185,7 +236,7 @@
             // SearchNotes
             // 
             this.SearchNotes.AutoSize = true;
-            this.SearchNotes.Location = new System.Drawing.Point(92, 363);
+            this.SearchNotes.Location = new System.Drawing.Point(92, 377);
             this.SearchNotes.Name = "SearchNotes";
             this.SearchNotes.Size = new System.Drawing.Size(16, 15);
             this.SearchNotes.TabIndex = 16;
@@ -202,7 +253,7 @@
             this.SearchEffect.Sorted = true;
             this.SearchEffect.TabIndex = 7;
             this.ToolTip.SetToolTip(this.SearchEffect, "Select a spell effect type from the list, enter an SPA number, or type some text " +
-                    "that appears in the effect description.");
+        "that appears in the effect description.");
             this.SearchEffect.TextChanged += new System.EventHandler(this.SearchText_TextChanged);
             // 
             // label3
@@ -217,7 +268,7 @@
             // 
             // SearchBtn
             // 
-            this.SearchBtn.Location = new System.Drawing.Point(11, 359);
+            this.SearchBtn.Location = new System.Drawing.Point(11, 373);
             this.SearchBtn.Name = "SearchBtn";
             this.SearchBtn.Size = new System.Drawing.Size(75, 23);
             this.SearchBtn.TabIndex = 15;
@@ -282,42 +333,6 @@
             this.AutoSearch.Interval = 500;
             this.AutoSearch.Tick += new System.EventHandler(this.SearchBtn_Click);
             // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(156, 121);
-            this.label7.Name = "label7";
-            this.label7.Padding = new System.Windows.Forms.Padding(0, 10, 0, 0);
-            this.label7.Size = new System.Drawing.Size(40, 25);
-            this.label7.TabIndex = 8;
-            this.label7.Text = "In Slot";
-            // 
-            // SearchEffectSlot
-            // 
-            this.SearchEffectSlot.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
-            this.SearchEffectSlot.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-            this.SearchEffectSlot.FormattingEnabled = true;
-            this.SearchEffectSlot.Items.AddRange(new object[] {
-            "",
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            "10",
-            "11",
-            "12"});
-            this.SearchEffectSlot.Location = new System.Drawing.Point(159, 149);
-            this.SearchEffectSlot.Name = "SearchEffectSlot";
-            this.SearchEffectSlot.Size = new System.Drawing.Size(75, 23);
-            this.SearchEffectSlot.TabIndex = 9;
-            this.ToolTip.SetToolTip(this.SearchEffectSlot, "Limit the effect filter to a single slot.");
-            this.SearchEffectSlot.TextChanged += new System.EventHandler(this.SearchText_TextChanged);
-            // 
             // MainForm
             // 
             this.AcceptButton = this.SearchBtn;
@@ -363,6 +378,7 @@
         private System.Windows.Forms.ToolTip ToolTip;
         private System.Windows.Forms.ComboBox SearchEffectSlot;
         private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.CheckBox ShowRelated;
 
     }
 }

@@ -24,6 +24,7 @@ namespace winparser
 
         public string SpellPath;
         public List<Spell> Results;
+        public HashSet<int> BaseResults; 
 
 
         public MainForm()
@@ -113,7 +114,12 @@ namespace winparser
 
             Results = Search(text, cls, min, max, effect, slot, category).ToList();
 
-            Spells.Expand(Results, Results.Count > 1);
+            // track results before they are expanded so that we can hide extra spell results
+            BaseResults = new HashSet<int>();
+            foreach (var s in Results)
+                BaseResults.Add(s.ID);
+
+            Spells.Expand(Results, ShowRelated.Checked && Results.Count > 1);
 
 
             string Sorting = null;
@@ -243,7 +249,7 @@ namespace winparser
         /// </summary>
         private void ShowResults()
         {
-            SearchNotes.Text = String.Format("{0} results", Results.Count);
+            SearchNotes.Text = String.Format("{0} results", ShowRelated.Checked ? Results.Count : BaseResults.Count);
 
             var html = InitHtml();
 
@@ -253,13 +259,16 @@ namespace winparser
             }
             else
             {
-                if (Results.Count > 2000)
+                if (Results.Count > 2000)                 
                     html.Append("<p>Only the first 2000 are shown.</p>");
 
+                Func<Spell, bool> visible = spell => ShowRelated.Checked || BaseResults.Contains(spell.ID);
+                
+
                 if (DisplayText.Checked)
-                    ShowAsText(Results.Take(2000), html);
+                    ShowAsText(Results.Take(2000), visible, html);
                 else
-                    ShowAsTable(Results.Take(2000), html);
+                    ShowAsTable(Results.Take(2000), visible, html);
             }
 
             html.Append("</html>");
@@ -283,11 +292,11 @@ namespace winparser
             //SearchBrowser.Navigate("file:///" + path);
         }
 
-        private void ShowAsText(IEnumerable<Spell> list, StringBuilder html)
+        private void ShowAsText(IEnumerable<Spell> list, Func<Spell, bool> visible, StringBuilder html)
         {
             foreach (var spell in list)
             {
-                html.AppendFormat("<p id='spell{0}' class='group{1}'><strong>{2}</strong><br/>", spell.ID, spell.GroupID, spell.ToString());
+                html.AppendFormat("<p id='spell{0}' class='spell group{1} {3}'><strong>{2}</strong><br/>", spell.ID, spell.GroupID, spell.ToString(), visible(spell) ? "" : "hidden");
                 foreach (var line in spell.Details())
                     html.Append(InsertSpellRefLinks(line) + "<br/>");
                 if (spell.Desc != null)
@@ -296,7 +305,7 @@ namespace winparser
             }
         }
 
-        private void ShowAsTable(IEnumerable<Spell> list, StringBuilder html)
+        private void ShowAsTable(IEnumerable<Spell> list, Func<Spell, bool> visible, StringBuilder html)
         {
             html.Append("<table style='table-layout: fixed; width: 89em;'>");
             html.Append("<thead><tr>");
@@ -314,7 +323,7 @@ namespace winparser
 
             foreach (var spell in list)
             {
-                html.AppendFormat("<tr id='spell{0}' class='group{1}'><td>{0}</td>", spell.ID, spell.GroupID);
+                html.AppendFormat("<tr id='spell{0}' class='spell group{1} {2}'><td>{0}</td>", spell.ID, spell.GroupID, visible(spell) ? "" : "hidden");
                 //html.AppendFormat("<tr id='spell{0}' class='group{1}'><td>{0}{2}</td>", spell.ID, spell.GroupID, spell.GroupID > 0 ? " / " + spell.GroupID : "");
 
                 html.AppendFormat("<td>{0}</td>", spell.Name);
