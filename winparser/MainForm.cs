@@ -238,7 +238,7 @@ namespace winparser
                 else if (category == "AA")
                     query = query.Where(x => x.ExtLevels.Any(y => y == 254));
                 else
-                    query = query.Where(x => x.Categories.Contains(category, StringComparer.InvariantCultureIgnoreCase));
+                    query = query.Where(x => x.Categories.Any(y => y.StartsWith(category, StringComparison.InvariantCultureIgnoreCase)));
             }
 
             return query;
