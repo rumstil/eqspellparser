@@ -45,25 +45,7 @@ namespace winparser
             SearchEffect.Items.Add("Hate");
             SearchEffect.Items.Add("Invisibility");
             SearchEffect.Items.Add("Add Defensive Proc");
-
-            // regex suggestions
-            Effects = new Dictionary<string, string>();
-            Effects.Add("Cure", @"Decrease \w+ Counter by (\d+)");
-            Effects.Add("Heal", @"Increase Current HP by ([1-9]\d+)(?!.*(?:per tick))"); // 1-9 excludes spells with Increase Current HP by 0
-            Effects.Add("HoT", @"Increase Current HP by (\d+) per tick");
-            Effects.Add("Nuke", @"Decrease Current HP by (\d+)(?!.*(?:per tick))");
-            Effects.Add("DoT", @"Decrease Current HP by (\d+) per tick");
-            Effects.Add("Haste", @"Increase Melee Haste (?:v3 )?by (\d+)");
-            Effects.Add("Slow", @"Decrease Melee Haste by (\d+)");
-            Effects.Add("Snare", @"Decrease Movement Speed by (\d+)");
-            Effects.Add("Shrink", @"Decrease Player Size");
-            Effects.Add("Rune", "@Absorb");
-            Effects.Add("Pacify", @"Decrease Social Radius");
-            Effects.Add("Damage Shield", @"Increase Damage Shield by (\d+)");
-            Effects.Add("Mana Regen", @"Increase Current Mana by (\d+)");
-            Effects.Add("Add Proc", @"(?:Add Proc)|(?:Add Skill Proc)");
-            Effects.Add("Add Spell Proc", @"Cast on Spell Use");
-            SearchEffect.Items.AddRange(Effects.Keys.ToArray());
+            SearchEffect.Items.AddRange(SpellSearch.EffectHelpers.Keys.ToArray());
             SearchEffect.Items.Add("");
 
             //SearchBrowser.ObjectForScripting = this;
@@ -112,7 +94,7 @@ namespace winparser
             int max;
             ParseRange(SearchLevel.Text, out min, out max);
 
-            Results = Search(text, cls, min, max, effect, slot, category).ToList();
+            Results = Spells.Search(text, cls, min, max, effect, slot, category).ToList();
 
             // track results before they are expanded so that we can hide extra spell results
             BaseResults = new HashSet<int>();
@@ -192,56 +174,6 @@ namespace winparser
                 }
             }
 
-        }
-
-        private IQueryable<Spell> Search(string text, int cls, int min, int max, string effect, int slot, string category)
-        {
-            var query = Spells.AsQueryable();
-
-            //  spell name and description are checked for literal text           
-            int id;
-            if (Int32.TryParse(text, out id))
-                return query.Where(x => x.ID == id || x.GroupID == id);
-
-            if (!String.IsNullOrEmpty(text))
-                query = query.Where(x => x.ID.ToString() == text || x.Name.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0 || (x.Desc != null && x.Desc.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0));
-
-            // exclude dragorn breath AA because they spam the results
-            query = query.Where(x => !x.Name.StartsWith("Breath of"));
-
-            // level filter is only used when a class is selected
-            if (cls >= 0 && category != "AA")
-            {
-                query = query.Where(x => x.ExtLevels[cls] >= min && x.ExtLevels[cls] <= max);
-            }
-
-            // effect filter  can be a literal string or a regex
-            if (!String.IsNullOrEmpty(effect))
-            {
-                if (Effects.ContainsKey(effect))
-                    effect = Effects[effect];
-
-                if (Regex.Escape(effect) != effect)
-                {
-                    var re = new Regex(effect, RegexOptions.IgnoreCase);
-                    query = query.Where(x => x.HasEffect(re, slot));
-                }
-                else
-                    query = query.Where(x => x.HasEffect(effect, slot));
-            }
-
-
-            if (!String.IsNullOrEmpty(category))
-            {
-                if (category == "AA" && cls >= 0)
-                    query = query.Where(x => x.ExtLevels[cls] == 254);
-                else if (category == "AA")
-                    query = query.Where(x => x.ExtLevels.Any(y => y == 254));
-                else
-                    query = query.Where(x => x.Categories.Any(y => y.StartsWith(category, StringComparison.InvariantCultureIgnoreCase)));
-            }
-
-            return query;
         }
 
         /// <summary>
