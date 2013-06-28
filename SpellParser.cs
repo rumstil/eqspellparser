@@ -95,6 +95,7 @@ namespace Everquest
         Summon_Corpse = 91,
         Hate = 92,
         Max_Mana = 97,
+        Melee_Haste_v2 = 98,
         Root = 99,
         Current_HP_Repeating = 100,
         Donals_Heal = 101,
@@ -102,10 +103,12 @@ namespace Everquest
         All_Resists = 111,
         Aggro_Mult = 114,
         Curse_Counter = 116,
+        Melee_Haste_v3 = 119,
         Spell_Damage_Focus = 124,
         Healing_Focus = 125,
         Haste_Focus = 127,
         Duration_Focus = 128,
+        Ability_Aggro_Mult = 130,
         Mana_Cost_Focus = 132,
         Current_HP_Percent = 147,
         Cure_Detrimental = 154,
@@ -133,6 +136,7 @@ namespace Everquest
         AE_Taunt = 206,
         Slay_Undead = 219,
         Weapon_Damage_Bonus = 220,
+        Back_Block_Chance = 222,
         Double_Riposte_Skill = 224,
         Double_Attack_Skill = 225,
         Persistent_Casting_AA = 229, // cast through stun
@@ -158,6 +162,7 @@ namespace Everquest
         Damage_Shield_Taken = 305,
         Teleport_To_Bind = 309,
         Invis = 314,
+        Shield_Block = 320,
         Targets_Target_Hate = 321,
         Gate_to_Home_City = 322,
         Defensive_Proc = 323,
@@ -165,6 +170,7 @@ namespace Everquest
         Summon_To_Corpse = 332,
         XP_Gain = 337,
         Casting_Trigger = 339,
+        Shield_Equip_Hate_Mod = 349, // AA
         Mana_Burn = 350,
         Current_Mana = 358,
         Triple_Attack = 364,
@@ -180,10 +186,14 @@ namespace Everquest
         Pet_Duration = 398,
         Twincast_Chance = 399,
         Heal_From_Mana = 400,
+        Two_Hand_Blunt_Block_Chance = 405, // AA
         Song_Effectiveness = 413,
         Teleport_to_Caster_Anchor = 437,
         Teleport_to_Player_Anchor = 438,
-        Lock_Aggro = 444
+        Lock_Aggro = 444,
+        Absorb_DoT_Damage = 450,
+        Absorb_Melee_Damage = 451,
+        Absorb_Spell_Damage = 452
     }
 
     public enum SpellSkill
