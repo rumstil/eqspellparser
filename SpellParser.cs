@@ -901,7 +901,7 @@ namespace Everquest
         public bool ShortDuration; // song window
         public bool CancelOnSit;
         public bool Sneaking;
-        public int[] CategoryDescID; // AAs don't have these set
+        public int[] CategoryDescID; // most AAs don't have these set
         public string Deity;
         public int SongCap;
         public int MinRange;
@@ -2512,9 +2512,18 @@ namespace Everquest
                         if (desc.TryGetValue("5/" + spell.CategoryDescID[0], out c1))
                         {
                             if (desc.TryGetValue("5/" + spell.CategoryDescID[1], out c2))
+                            {               
+                                // correct spells/AAs with a "discipline/timer x" description (they seem to be incorrect much of the time)
+                                if (c2.StartsWith("Timer"))
+                                    c2 = "Timer " + spell.TimerID.ToString();
                                 cat.Add(c1 + "/" + c2);
+                            }
                             if (desc.TryGetValue("5/" + spell.CategoryDescID[2], out c2))
+                            {
+                                if (c2.StartsWith("Timer"))
+                                    c2 = "Timer " + spell.TimerID.ToString();
                                 cat.Add(c1 + "/" + c2);
+                            }
                             if (cat.Count == 0)
                                 cat.Add(c1);
                         }
