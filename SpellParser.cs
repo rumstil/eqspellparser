@@ -2506,27 +2506,28 @@ namespace Everquest
 
 #if LargeMemory
                         // all spells can be grouped into up to 2 categories (type 5 in db_str)
+                        // ignore the "timer" categories because they are frequently wrong
                         List<string> cat = new List<string>();
                         string c1;
                         string c2;
                         if (desc.TryGetValue("5/" + spell.CategoryDescID[0], out c1))
                         {
-                            if (desc.TryGetValue("5/" + spell.CategoryDescID[1], out c2))
-                            {               
-                                // correct spells/AAs with a "discipline/timer x" description (they seem to be incorrect much of the time)
-                                if (c2.StartsWith("Timer"))
-                                    c2 = "Timer " + spell.TimerID.ToString();
+                            // sub category 1
+                            if (desc.TryGetValue("5/" + spell.CategoryDescID[1], out c2) && !c2.StartsWith("Timer"))
                                 cat.Add(c1 + "/" + c2);
-                            }
-                            if (desc.TryGetValue("5/" + spell.CategoryDescID[2], out c2))
-                            {
-                                if (c2.StartsWith("Timer"))
-                                    c2 = "Timer " + spell.TimerID.ToString();
+
+                            // sub category 2
+                            if (desc.TryGetValue("5/" + spell.CategoryDescID[2], out c2) && !c2.StartsWith("Timer"))                            
                                 cat.Add(c1 + "/" + c2);
-                            }
+
+                            // general category if no subcategories are defined
                             if (cat.Count == 0)
                                 cat.Add(c1);
                         }
+
+                        // add a timer category 
+                        if (spell.TimerID > 0)
+                            cat.Add("Timer " + spell.TimerID.ToString());
                         spell.Categories = cat.ToArray();
 #endif
 
