@@ -2527,7 +2527,7 @@ namespace Everquest
 
                         // add a timer category 
                         if (spell.TimerID > 0)
-                            cat.Add("Timer " + spell.TimerID.ToString());
+                            cat.Add("Timer " + spell.TimerID.ToString("D2"));
                         spell.Categories = cat.ToArray();
 #endif
 
