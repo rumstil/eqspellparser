@@ -32,6 +32,9 @@ namespace winparser
             InitializeComponent();
 
             Width = Screen.PrimaryScreen.WorkingArea.Width - 100;
+            if (Width > 1500)
+                Width = 1500;
+            Height = Screen.PrimaryScreen.WorkingArea.Height - 100;
 
             SearchClass.Items.AddRange(Enum.GetNames(typeof(SpellClassesLong)));
             SearchClass.Items.Add("");
