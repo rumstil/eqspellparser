@@ -414,6 +414,7 @@ namespace Everquest
         Raid_Boss = 191,
         HP_Above_75_Percent = 201,
         HP_Less_Than_20_Percent = 203, // dupe of 504
+        HP_Less_Than_50_Percent = 204,
         Not_In_Combat = 216,
         At_Least_1_Pet_On_Hatelist = 221,
         At_Least_2_Pets_On_Hatelist = 222,
@@ -482,6 +483,8 @@ namespace Everquest
         Humanoid_Level_84_Max = 842,
         Humanoid_Level_86_Max = 843,
         Humanoid_Level_88_Max = 844,
+
+        HP_Less_Than_80_Percent = 1004
     }
 
     public enum SpellZoneRestrict
@@ -2082,7 +2085,8 @@ namespace Everquest
                 case 442:
                     return String.Format("Cast on {1}: [Spell {0}]", base1, Spell.FormatEnum((SpellTargetRestrict)base2));
                 case 443:
-                    return String.Format("Cast: [Spell {0}] if [Spell {1}] Hits", base1, base2);
+                    // how is this different from 442?
+                    return String.Format("Cast on {1}: [Spell {0}]", base1, Spell.FormatEnum((SpellTargetRestrict)base2));
                 case 444:
                     return "Lock Aggro on Caster and " + Spell.FormatPercent("Other Aggro", base2 - 100) + String.Format(" up to level {0}", base1);
                 case 445:
