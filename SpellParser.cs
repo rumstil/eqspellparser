@@ -8,12 +8,14 @@ using System.Text.RegularExpressions;
 
 
 
+
 /* This file is intended to be used as a library and only uses c# 2.0/.net 2.0 features for the widest compatiblity.
  *
  * http://code.google.com/p/projecteqemu/source/browse/trunk/EQEmuServer/zone/spdat.h
  * http://eqitems.13th-floor.org/phpBB2/viewtopic.php?t=23
  * http://forums.station.sony.com/eqold/posts/list.m?start=150&topic_id=165000 - resists
  *
+ * 
  */
 
 namespace Everquest
@@ -925,7 +927,7 @@ namespace Everquest
         public int[] LinksTo;
         public int RefCount; // number of spells that link to this
 
-#if LargeMemory
+#if !LimitMemoryUse
         public string[] Categories;
 #endif
 
@@ -2083,10 +2085,10 @@ namespace Everquest
                 case 441:
                     return String.Format("Cancel if Moved {0}", base1);
                 case 442:
-                    return String.Format("Cast on {1}: [Spell {0}]", base1, Spell.FormatEnum((SpellTargetRestrict)base2));
+                    return String.Format("Cast: [Spell {0}] if {1}", base1, Spell.FormatEnum((SpellTargetRestrict)base2));
                 case 443:
-                    // how is this different from 442?
-                    return String.Format("Cast on {1}: [Spell {0}]", base1, Spell.FormatEnum((SpellTargetRestrict)base2));
+                    // use focus of original caster
+                    return String.Format("Cast: [Spell {0}] if {1} (As Original Caster)", base1, Spell.FormatEnum((SpellTargetRestrict)base2));
                 case 444:
                     return "Lock Aggro on Caster and " + Spell.FormatPercent("Other Aggro", base2 - 100) + String.Format(" up to level {0}", base1);
                 case 445:
@@ -2508,7 +2510,7 @@ namespace Everquest
                         string[] fields = line.Split('^');
                         Spell spell = LoadSpell(fields);
 
-#if LargeMemory
+#if !LimitMemoryUse
                         // all spells can be grouped into up to 2 categories (type 5 in db_str)
                         // ignore the "timer" categories because they are frequently wrong
                         List<string> cat = new List<string>();
