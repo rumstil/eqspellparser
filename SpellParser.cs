@@ -161,6 +161,7 @@ namespace Everquest
         Frontal_Stun_Resist_Chance = 293, // AA
         Critical_Nuke_Chance = 294,
         Archery_Damage = 301, // AA, not sure which
+        Offhand_Riposte_Chance = 304, // slippery attacks AA
         Damage_Shield_Taken = 305,
         Teleport_To_Bind = 309,
         Invis = 314,
@@ -1792,6 +1793,8 @@ namespace Everquest
                     // is added before crit multipliers, but after SPA 296 and 302 (and maybe 124).
                     // for DoTs it adds base1/ticks to each tick.
                     return Spell.FormatCount("Spell Damage", base1);
+                case 304:
+                    return Spell.FormatPercent("Chance to Offhand Riposte", -base1);
                 case 305:
                     return Spell.FormatCount("Damage Shield Taken", -Math.Abs(value));
                 case 306:
@@ -2087,8 +2090,8 @@ namespace Everquest
                 case 442:
                     return String.Format("Cast: [Spell {0}] if {1}", base1, Spell.FormatEnum((SpellTargetRestrict)base2));
                 case 443:
-                    // use focus of original caster
-                    return String.Format("Cast: [Spell {0}] if {1} (As Original Caster)", base1, Spell.FormatEnum((SpellTargetRestrict)base2));
+                    // one-time cast when triggered
+                    return String.Format("Cast: [Spell {0}] and Cancel Buff if {1}", base1, Spell.FormatEnum((SpellTargetRestrict)base2));
                 case 444:
                     return "Lock Aggro on Caster and " + Spell.FormatPercent("Other Aggro", base2 - 100) + String.Format(" up to level {0}", base1);
                 case 445:
