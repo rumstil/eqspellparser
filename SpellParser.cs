@@ -388,7 +388,6 @@ namespace Everquest
 
     public enum SpellTargetRestrict
     {
-        Gender_Change = -1,
         Caster = 3, // (any NPC with mana) guess
         Not_On_Horse = 5, // guess
         Animal_or_Humanoid = 100,
@@ -501,6 +500,7 @@ namespace Everquest
 
     public enum SpellIllusion
     {
+        Gender_Change = -1,
         Human = 1,
         Barbarian = 2,
         Erudite = 3,
