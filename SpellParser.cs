@@ -365,8 +365,8 @@ namespace Everquest
         Old_Giants = 17,
         Old_Dragons = 18,
         Target_AE_Lifetap = 20,
-        Undead_AE = 24,
-        Summoned_AE = 25,
+        Target_AE_Undead = 24,
+        Target_AE_Summoned = 25,
         Hatelist = 32,
         Hatelist2 = 33,
         Chest = 34,
@@ -375,18 +375,20 @@ namespace Everquest
         Caster_PB_NPC = 37,
         Pet2 = 38,
         No_Pets = 39, // single/group/ae ?
-        Nearby_Players = 40, // bard AE hits all players
+        Caster_AE_Players = 40, // bard AE hits all players
         Target_Group = 41,
         Directional_AE = 42,
         Frontal_AE = 44,
         Single_In_Group = 43,
         Target_Ring_AE = 45,
         Targets_Target = 46,
-        Pet_Owner = 47
+        Pet_Owner = 47,
+        Target_AE_No_Players_Pets = 50 // blanket of forgetfullness. beneficial, AE mem blur, with max targets
     }
 
     public enum SpellTargetRestrict
     {
+        Gender_Change = -1,
         Caster = 3, // (any NPC with mana) guess
         Not_On_Horse = 5, // guess
         Animal_or_Humanoid = 100,
@@ -762,6 +764,7 @@ namespace Everquest
         Vitrik = 620,
         Bellikos = 638,
         Cliknar = 643,
+        Ant = 644,
         Crystal_Sessiloid = 647,
         Telmira = 653,
         Flood_Telmira = (653 << 16) + 2,
@@ -791,8 +794,10 @@ namespace Everquest
         Hadal = 698,
         Hadal_Templar = (698 << 16) + 2,
         Alaran_Ghost = 708,
+        Holgresh = 715,
         Ratman = 718,
-        Fallen_Knight = 719
+        Fallen_Knight = 719,
+        Akhevan = 722
     }
 
     public enum SpellFaction
