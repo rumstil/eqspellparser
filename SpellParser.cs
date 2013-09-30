@@ -161,7 +161,7 @@ namespace Everquest
         Frontal_Stun_Resist_Chance = 293, // AA
         Critical_Nuke_Chance = 294,
         Archery_Damage = 301, // AA, not sure which
-        Offhand_Riposte_Chance = 304, // slippery attacks AA
+        Avoid_Riposte_Chance = 304, 
         Damage_Shield_Taken = 305,
         Teleport_To_Bind = 309,
         Invis = 314,
@@ -1807,7 +1807,8 @@ namespace Everquest
                     // for DoTs it adds base1/ticks to each tick.
                     return Spell.FormatCount("Spell Damage", base1);
                 case 304:
-                    return Spell.FormatPercent("Chance to Offhand Riposte", -base1);
+                    // it's worded as 'avoid getting riposted' for Open Wound Effect - however, this may just be chance to avoid offhand riposte
+                    return Spell.FormatPercent("Chance to Avoid Riposte", -base1);
                 case 305:
                     return Spell.FormatCount("Damage Shield Taken", -Math.Abs(value));
                 case 306:
