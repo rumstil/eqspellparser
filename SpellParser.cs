@@ -2122,14 +2122,17 @@ namespace Everquest
                 case 457:
                     // offical name is "Resource Tap." Formula is base1 / 1000 * damage value. Example: 88001 damage, base1 = 100. 100 / 1000 = .1 * 88001.
                     // simply dividing by 10 gives the same result.
-                    if (base2 == 2)
-                        return string.Format("Return {0}% of Damage as Endurance", base1 / 10);
-                    if (base2 == 1)
-                        return string.Format("Return {0}% of Damage as Mana", base1 / 10);
-                    return string.Format("Return {0}% of Damage as HP", base1 / 10);
+                    return string.Format("Return {0}% of Damage as {1}", base1 / 10, Choose(base2, "HP", "Mana", "Endurance")) + (max > 0 ? String.Format(", Max Per Hit: {0}", max) : "");
             }
 
             return String.Format("Unknown Effect: {0} Base1={1} Base2={2} Max={3} Calc={4} Value={5}", spa, base1, base2, max, calc, value);
+        }
+
+        static string Choose(int index, params string[] text)
+        {
+            if (index > text.Length - 1)
+                return null;
+            return text[index];
         }
 
         /// <summary>
