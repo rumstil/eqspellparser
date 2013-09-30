@@ -1045,7 +1045,7 @@ namespace Everquest
                 result.Add("Range: " + (MinRange > 0 ? MinRange + "' to " : "") + Range + "'");
 
             if (RangeModFarDist != 0)
-                result.Add("Effect Mod: " + RangeModCloseMult + "x at " + RangeModCloseDist + "' to " + RangeModFarMult + "x at " + RangeModFarDist + "'");
+                result.Add("Range Mod: " + (RangeModCloseMult * 100) + "% at " + RangeModCloseDist + "' to " + (RangeModFarMult * 100) + "% at " + RangeModFarDist + "'");
 
             if (ViralRange > 0)
                 result.Add("Viral Range: " + ViralRange + "', Recast: " + MinViralTime + "s to " + MaxViralTime + "s");
@@ -2130,7 +2130,7 @@ namespace Everquest
 
         static string Choose(int index, params string[] text)
         {
-            if (index > text.Length - 1)
+            if (index >= text.Length)
                 return null;
             return text[index];
         }
