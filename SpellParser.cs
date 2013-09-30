@@ -1137,6 +1137,11 @@ namespace Everquest
             if (MaxHitsType == SpellMaxHits.None || (DurationTicks == 0 && !Name.Contains("Aura")))
                 MaxHits = 0;
 
+            if (Target == SpellTarget.Caster_PB)
+            {
+                Range = 0;
+            }
+
             if (Target == SpellTarget.Self)
             {
                 Range = 0;
@@ -1157,7 +1162,10 @@ namespace Everquest
                 Zone = SpellZoneRestrict.None;
 
             if (RangeModCloseDist == RangeModFarDist)
+            { 
                 RangeModCloseDist = RangeModFarDist = 0;
+                RangeModCloseMult = RangeModFarMult = 0;
+            }
         }
 
         /// <summary>
