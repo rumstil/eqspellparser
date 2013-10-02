@@ -2104,8 +2104,8 @@ namespace Everquest
                 case 442:
                     return String.Format("Cast: [Spell {0}] if {1}", base1, Spell.FormatEnum((SpellTargetRestrict)base2));
                 case 443:
-                    // one-time cast when triggered
-                    return String.Format("Cast: [Spell {0}] and Cancel Buff if {1}", base1, Spell.FormatEnum((SpellTargetRestrict)base2));
+                    // one-time cast when triggered. not sure why this isn't just handled by using a max hits counter
+                    return String.Format("Cast Once: [Spell {0}] if {1}", base1, Spell.FormatEnum((SpellTargetRestrict)base2));
                 case 444:
                     return "Lock Aggro on Caster and " + Spell.FormatPercent("Other Aggro", base2 - 100) + String.Format(" up to level {0}", base1);
                 case 445:
