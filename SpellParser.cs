@@ -194,6 +194,10 @@ namespace Everquest
         Teleport_to_Caster_Anchor = 437,
         Teleport_to_Player_Anchor = 438,
         Lock_Aggro = 444,
+        Buff_Blocker_A = 446,
+        Buff_Blocker_B = 447,
+        Buff_Blocker_C = 448,
+        Buff_Blocker_D = 449,
         Absorb_DoT_Damage = 450,
         Absorb_Melee_Damage = 451,
         Absorb_Spell_Damage = 452
@@ -2110,8 +2114,15 @@ namespace Everquest
                     return "Lock Aggro on Caster and " + Spell.FormatPercent("Other Aggro", base2 - 100) + String.Format(" up to level {0}", base1);
                 case 445:
                     return String.Format("Grant {0} Mercenary Slots", base1);
-                //case 448 - some kind of buff blocker
-                //case 449 - some kind of buff blocker
+                case 446:
+                    // no idea how these 4 buff blockers work
+                    return String.Format("Buff Blocker A ({0})", base1);
+                case 447:
+                    return String.Format("Buff Blocker B ({0})", base1);
+                case 448:
+                    return String.Format("Buff Blocker C ({0})", base1);
+                case 449:
+                    return String.Format("Buff Blocker D ({0})", base1);
                 case 450:
                     return String.Format("Absorb DoT Damage: {0}% over {1}", base1, base2) + (max > 0 ? String.Format(" Total: {0}", max) : "");
                 case 451:
