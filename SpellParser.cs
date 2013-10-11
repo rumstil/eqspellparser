@@ -125,6 +125,7 @@ namespace Everquest
         Dodge_Chance = 174,
         Parry_Chance = 175,
         Lifetap_From_Weapon = 178,
+        Spell_Resist_Chance = 180,
         Weapon_Delay = 182,
         Hit_Chance = 184,
         Block_Chance = 188,
@@ -932,6 +933,7 @@ namespace Everquest
         public bool AllowFastRegen;
         public bool BetaOnly;
         public bool CannotRemove;
+        
 
 
         public int[] LinksTo;
@@ -1058,6 +1060,8 @@ namespace Everquest
                 result.Add("Resist: " + ResistType + (ResistMod != 0 ? " " + ResistMod : "") + (MinResist > 0 ? ", Min: " + MinResist / 2f + "%" : "") + (MaxResist > 0 ? ", Max: " + MaxResist / 2f + "%" : "")); // + (!PartialResist ? ", No Partials" : ""));
             else 
                 result.Add("Beneficial: " + (BeneficialBlockable ? "Blockable" : "Not Blockable"));
+
+            result.Add("Reflectable: " + (Reflectable ? "Yes" : "No"));
 
             string rest = ClassesMask == 0 || ClassesMask == SpellClassesMask.BRD || RestTime == 0 ? "" : ", Rest: " + RestTime.ToString() + "s";
             if (TimerID > 0)
