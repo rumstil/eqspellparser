@@ -1061,7 +1061,8 @@ namespace Everquest
             else 
                 result.Add("Beneficial: " + (BeneficialBlockable ? "Blockable" : "Not Blockable"));
 
-            result.Add("Reflectable: " + (Reflectable ? "Yes" : "No"));
+            if (!Beneficial)
+                result.Add("Reflectable: " + (Reflectable ? "Yes" : "No"));
 
             string rest = ClassesMask == 0 || ClassesMask == SpellClassesMask.BRD || RestTime == 0 ? "" : ", Rest: " + RestTime.ToString() + "s";
             if (TimerID > 0)
