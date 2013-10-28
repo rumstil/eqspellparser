@@ -1304,6 +1304,9 @@ namespace Everquest
                     return Spell.FormatCount("CHA", value) + range;
                 case 11:
                     // base attack speed is 100. so 85 = 15% slow, 130 = 30% haste
+                    // reverse check on max value for slow spells
+                    if (value < 100 && max > 0 && value < max)
+                        value = max;
                     return Spell.FormatPercent("Melee Haste", value - 100);
                 case 12:
                     if (base1 > 1)
