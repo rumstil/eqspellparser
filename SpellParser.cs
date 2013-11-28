@@ -493,7 +493,11 @@ namespace Everquest
         Humanoid_Level_86_Max = 843,
         Humanoid_Level_88_Max = 844,
 
-        HP_Less_Than_80_Percent = 1004
+        HP_Less_Than_80_Percent = 1004,
+
+        // these are backwards, may be corrected later
+        Mana_Below_20_Percent = 38311,
+        Mana_Below_10_Percent = 38312
     }
 
     public enum SpellZoneRestrict
