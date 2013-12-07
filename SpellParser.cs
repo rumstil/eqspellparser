@@ -494,6 +494,11 @@ namespace Everquest
         Humanoid_Level_86_Max = 843,
         Humanoid_Level_88_Max = 844,
 
+        Between_Level_1_and_75 = 1000,
+        Between_Level_76_and_85 = 1001,
+        Between_Level_86_and_95 = 1002,
+        Between_Level_96_and_100 = 1003,
+
         HP_Less_Than_80_Percent = 1004,
 
         // these are backwards, may be corrected later
