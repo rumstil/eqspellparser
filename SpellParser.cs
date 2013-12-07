@@ -1047,7 +1047,7 @@ namespace Everquest
             if (Target == SpellTarget.Directional_AE)
                 result.Add("Target: " + FormatEnum(Target) + " (" + ConeStartAngle + " to " + ConeEndAngle + " Degrees)");
             else if (TargetRestrict > 0)
-                result.Add("Target: " + FormatEnum(Target) + " (if " + FormatEnum(TargetRestrict) + ")");
+                result.Add("Target: " + FormatEnum(Target) + " (If " + FormatEnum(TargetRestrict) + ")");
             else if ((Target == SpellTarget.Caster_Group || Target == SpellTarget.Target_Group) && (ClassesMask != 0 && ClassesMask != SpellClassesMask.BRD) && DurationTicks > 0)
                 result.Add("Target: " + FormatEnum(Target) + ", MGB: " + (MGBable ? "Yes" : "No"));
             else
@@ -1289,7 +1289,7 @@ namespace Everquest
             {
                 case 0:
                     if (base2 > 0)
-                        return Spell.FormatCount("Current HP", value) + repeating + range + " (if " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
+                        return Spell.FormatCount("Current HP", value) + repeating + range + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
                     return Spell.FormatCount("Current HP", value) + repeating + range;
                 case 1:
                     return Spell.FormatCount("AC", (int)(value / (10f / 3f)));
@@ -1453,7 +1453,7 @@ namespace Everquest
                 case 79:
                     // delta hp for heal/nuke, non repeating
                     if (base2 > 0)
-                        return Spell.FormatCount("Current HP", value) + range + " (if " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
+                        return Spell.FormatCount("Current HP", value) + range + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
                     return Spell.FormatCount("Current HP", value) + range;
                 case 81:
                     return String.Format("Resurrect with {0}% XP", value);
@@ -1501,7 +1501,7 @@ namespace Everquest
                 case 100:
                     // heal over time
                     if (base2 > 0)
-                        return Spell.FormatCount("Current HP", value) + repeating + range + " (if " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
+                        return Spell.FormatCount("Current HP", value) + repeating + range + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
                     return Spell.FormatCount("Current HP", value) + repeating + range;
                 case 101:
                     // only castable via Donal's BP. creates a buf that blocks recasting
@@ -2457,7 +2457,7 @@ namespace Everquest
             if (Regex.IsMatch(type, @"^-?\d+$"))
                 type = "Type " + type; // undefined numeric enum
             else
-                type = Regex.Replace(type, @"\d+$", ""); // remove numeric suffix on duplicate enums undead3/summoned3/etc
+                type = Regex.Replace(type, @"(\D)\d$", "$1"); // remove numeric suffix on duplicate enums undead3/summoned3/etc
             return type;
         }
 
