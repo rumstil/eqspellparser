@@ -1061,15 +1061,15 @@ namespace Everquest
                 result.Add("Range: " + (MinRange > 0 ? MinRange + "' to " : "") + Range + "'");
 
             if (RangeModFarDist != 0)
-                result.Add("Range Mod: " + (RangeModCloseMult * 100) + "% at " + RangeModCloseDist + "' to " + (RangeModFarMult * 100) + "% at " + RangeModFarDist + "'");
+                result.Add("Range Based Mod: " + (RangeModCloseMult * 100) + "% at " + RangeModCloseDist + "' to " + (RangeModFarMult * 100) + "% at " + RangeModFarDist + "'");
 
             if (ViralRange > 0)
                 result.Add("Viral Range: " + ViralRange + "', Recast: " + MinViralTime + "s to " + MaxViralTime + "s");
 
             if (!Beneficial)
-                result.Add("Resist: " + ResistType + (ResistMod != 0 ? " " + ResistMod : "") + (MinResist > 0 ? ", Min: " + MinResist / 2f + "%" : "") + (MaxResist > 0 ? ", Max: " + MaxResist / 2f + "%" : "")); // + (!PartialResist ? ", No Partials" : ""));
+                result.Add("Resist: " + ResistType + (ResistMod != 0 ? " " + ResistMod : "") + (MinResist > 0 ? ", Min Resist Chance: " + MinResist / 2f + "%" : "") + (MaxResist > 0 ? ", Max Resist Chance: " + MaxResist / 2f + "%" : "")); // + (!PartialResist ? ", No Partials" : ""));
             else 
-                result.Add("Beneficial: " + (BeneficialBlockable ? "Blockable" : "Not Blockable"));
+                result.Add("Resist: Beneficial, Blockable: " + (BeneficialBlockable ? "Yes" : "No"));
 
             if (!Beneficial)
                 result.Add("Reflectable: " + (Reflectable ? "Yes" : "No"));
@@ -2881,7 +2881,7 @@ namespace Everquest
 
 
             // debug stuff
-            //if (spell.ID == 36293) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
+            //if (spell.ID == 1708) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
 
             spell.Prepare();
             return spell;
