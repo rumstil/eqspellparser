@@ -13,7 +13,6 @@ using System.Text.RegularExpressions;
  *
  * http://code.google.com/p/projecteqemu/source/browse/trunk/EQEmuServer/zone/spdat.h
  * http://eqitems.13th-floor.org/phpBB2/viewtopic.php?t=23
- * http://forums.station.sony.com/eqold/posts/list.m?start=150&topic_id=165000 - resists
  *
  * 
  */
@@ -140,7 +139,8 @@ namespace Everquest
         Slay_Undead = 219,
         Weapon_Damage_Bonus = 220,
         Back_Block_Chance = 222,
-        Double_Riposte_Skill = 224,
+        Double_Riposte_Skill = 223,
+        Additional_Riposte_Skill = 224,
         Double_Attack_Skill = 225,
         Persistent_Casting_AA = 229, // cast through stun
         Lung_Capacity = 246,
@@ -1359,6 +1359,7 @@ namespace Everquest
                 case 29:
                     return "Invisibility to Animals (Unstable)";
                 case 30:
+                    // how close can you get before the mob aggroes you
                     return String.Format("Decrease Aggro Radius to {0}", value) + maxlevel;
                 case 31:
                     return "Mesmerize" + maxlevel;
@@ -1443,7 +1444,7 @@ namespace Everquest
                         return String.Format("Feign Death ({0}% Chance)", value);
                     return "Feign Death";
                 case 75:
-                    return "Voice Graft";
+                    return "Project Voice";
                 case 76:
                     return "Sentinel";
                 case 77:
@@ -1476,6 +1477,9 @@ namespace Everquest
                     return String.Format("Evacuate to {0}", Extra);
                 case 89:
                     return Spell.FormatPercent("Player Size", base1 - 100);
+                case 90:
+                    // aka pet invis
+                    return "Ignore Pet";
                 case 91:
                     return String.Format("Summon Corpse up to level {0}", base1);
                 case 92:
@@ -1540,7 +1544,7 @@ namespace Everquest
                 case 119:
                     return Spell.FormatPercent("Melee Haste v3", value);
                 case 120:
-                    return Spell.FormatPercent("Healing Taken", base1); // not range
+                    return Spell.FormatPercent("Healing Taken", base1); // no min/max range
                 case 121:
                     // damages the target whenever it hits something
                     return Spell.FormatCount("Reverse Damage Shield", -value);
@@ -1635,9 +1639,9 @@ namespace Everquest
                 case 166:
                     return String.Format("Unlock Chest ({0})", value);
                 case 167:
-                    return String.Format("Pet Power ({0})", value);
+                    return String.Format("Pet Power Focus ({0})", value);
                 case 168:
-                    // how is this different than an endless rune?
+                    // defensive disc/how is this different than an endless rune?
                     return Spell.FormatPercent("Melee Mitigation", -value);
                 case 169:
                     if ((SpellSkill)base2 != SpellSkill.Hit)
@@ -1747,6 +1751,8 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Slay Undead", value / 100f);
                 case 220:
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", base1);
+                case 221:
+                    return Spell.FormatPercent("Reduce Weight", base1);
                 case 222:
                     return Spell.FormatPercent("Chance to Block from Back", value);
                 case 225:
@@ -1770,9 +1776,13 @@ namespace Everquest
                 case 259:
                     // i.e. Combat Stability
                     return Spell.FormatCount("AC Soft Cap", value);
+                case 260:
+                    return String.Format("Instrument Modifier: {0} {1}", Spell.FormatEnum((SpellSkill)base2), value);
                 case 262:
                     // affects worn cap
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkillCap)base2) + " Cap", value);
+                case 264:
+                    return String.Format("Reduce AA {0} Timer to {1}s", base2, base1 / 2f);
                 case 265:
                     // value of zero should negate effects of Mastery of the Past
                     return String.Format("No Fizzle on spells up to level {0}", value);
@@ -1802,6 +1812,10 @@ namespace Everquest
                     return String.Format("Cast on Duration Fade: [Spell {0}]", base1);
                 case 291:
                     return String.Format("Dispel Detrimental ({0})", value);
+                case 292:
+                    return "Strikethrough v2";
+                case 293:
+                    return "Stun Resist v2";
                 case 294:
                     // additive with innate crit multiplier
                     if (base1 > 0 && base2 > 0)
@@ -1835,6 +1849,8 @@ namespace Everquest
                     return Spell.FormatCount("Damage Shield Taken", -Math.Abs(value));
                 case 306:
                     return String.Format("Summon Pet: {0} x {1} for {2}s", Extra, base1, max);
+                case 307:
+                    return "Appraisal";
                 case 308:
                     return "Suspend Minion";
                 case 309:
@@ -1961,6 +1977,8 @@ namespace Everquest
                     return "Inhibit Spell Casting";
                 case 358:
                     return Spell.FormatCount("Current Mana", value) + range;
+                case 359:
+                    return "Passive Sense Trap";
                 case 360:
                     return String.Format("Add Killshot Proc: [Spell {0}] ({1}% Chance)", base2, base1);
                 case 361:
@@ -1979,6 +1997,8 @@ namespace Everquest
                     return Spell.FormatCount("Corruption Resist", value);
                 case 371:
                     return Spell.FormatPercent("Melee Delay", Math.Abs(value));
+                case 372:
+                    return "Grant Foraging";
                 case 373:
                     // this appears to be used when a spell is removed via any method: times out, cured, rune depleted, max hits, mez break
                     return String.Format("Cast on Fade: [Spell {0}]", base1);
@@ -1989,6 +2009,8 @@ namespace Everquest
                 case 375:
                     // additive with innate crit multiplier and same effect in other slots
                     return Spell.FormatPercent("Critical DoT Damage", base1) + " of Base Damage";
+                case 376:
+                    return "Fling";
                 case 377:
                     return String.Format("Cast if Not Cured: [Spell {0}]", base1);
                 case 378:
@@ -2000,7 +2022,7 @@ namespace Everquest
                 case 380:
                     return String.Format("Push back {0}' and up {1}'", base2, base1);
                 case 381:
-                    return String.Format("Summon to {0}' away", base1);
+                    return String.Format("Fling to Self ({0}' away)", base1);
                 case 382:
                     return String.Format("Inhibit Effect: {0}", Spell.FormatEnum((SpellEffect)base2));
                 case 383:
@@ -2009,7 +2031,7 @@ namespace Everquest
                     string sample383 = String.Format(" e.g. Cast Time 2s={0}% 3s={1:F1}% 4s={2:F1}% 5s={3:F1}%", 0.25 * (base1 / 10), 0.334 * (base1 / 10), 0.5 * (base1 / 10), 0.668 * (base1 / 10));
                     return String.Format("Cast on Spell Use: [Spell {0}] (Base {1}% Chance)", base2, base1 / 10) + sample383;
                 case 384:
-                    return "Leap";
+                    return "Fling to Target";
                 case 385:
                     return String.Format("Limit Spells: {1}[Group {0}]", Math.Abs(base1), base1 >= 0 ? "" : "Exclude ");
                 case 386:
@@ -2017,7 +2039,7 @@ namespace Everquest
                 case 387:
                     return String.Format("Cast if Cured: [Spell {0}]", base1);
                 case 388:
-                    return "Summon Corpse (From Any Zone)";
+                    return "Summon All Corpses (From Any Zone)";
                 case 389:
                     return "Reset Recast Timers";
                 case 390:
@@ -2092,8 +2114,9 @@ namespace Everquest
                         return String.Format("Add Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
                     return String.Format("Add Proc: [Spell {0}]", base1);
                 case 424:
-                    return String.Format("Gradual {0} to {2}' away (Force={1})", base1 > 0 ? "Push" : "Pull", Math.Abs(base1), base2);
-                //case 425: jump or antigravity?
+                    return String.Format("Gradual {0} to {2}' away (Force={1})", base1 > 0 ? "Push" : "Pull", Math.Abs(base1), base2);                
+                case 425:
+                    return "Fly";
                 case 427:
                     return String.Format("Cast on Skill Use: [Spell {0}] ({1}% Chance)", base1, base2 / 10);
                 case 428:
@@ -2116,7 +2139,8 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Critical Heal v2", base1) + String.Format(" up to level {0} (lose {1}% per level)", max, base2);
                 case 435:
                     return Spell.FormatPercent("Chance to Critical HoT v2", base1) + String.Format(" up to level {0} (lose {1}% per level)", max, base2);
-                //case 436: // prevents buff timers from ticking down?
+                case 436: 
+                    return "Beneficial Countdown Hold";
                 case 437:
                     return "Teleport to your " + FormatEnum((SpellTeleport)base1);
                 case 438:
