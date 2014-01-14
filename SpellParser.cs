@@ -1763,7 +1763,8 @@ namespace Everquest
                     return String.Format("Cast on Death Save: [Spell {0}] ({1}% Chance)", base2, base1);
                 case 233:
                     return Spell.FormatPercent("Food Consumption", -value);
-                //case 238: // probably buff extension AA
+                case 238:
+                    return "Permanent Illusion";
                 case 243:
                     return Spell.FormatPercent("Chance of Charm Breaking", -value);
                 case 246:
@@ -1787,8 +1788,7 @@ namespace Everquest
                     // value of zero should negate effects of Mastery of the Past
                     return String.Format("No Fizzle on spells up to level {0}", value);
                 case 266:
-                    // both double and triple attack? why not just use 177, 364?
-                    return Spell.FormatPercent("Chance of Additional Attack", value);
+                    return Spell.FormatPercent("Chance of Additional 2H Attack", value);
                 case 270:
                     return Spell.FormatCount("Beneficial Song Range", base1);
                 case 272:
@@ -2094,7 +2094,9 @@ namespace Everquest
                         return String.Format("Cap Endurance at lowest of {0}% or {1}", base1, base2);
                     return String.Format("Cap Endurance at {0}%", base1);
                 case 411:
-                    return String.Format("Limit Class: {0}", (SpellClassesMask)(value >> 1));
+                    return String.Format("Limit Class: {0}", (SpellClassesMask)(base1 >> 1));
+                case 412:
+                    return String.Format("Limit Race: {0}", base1);
                 case 413:
                     return Spell.FormatPercent("Spell Effectiveness", value);
                 case 414:
