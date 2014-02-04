@@ -1954,6 +1954,14 @@ namespace Everquest
                     if (ID == 8932) aura = 8947;
                     if (ID == 8933) aura = 8948;
                     if (ID == 8934) aura = 8949;
+                    if (ID == 9000) aura = 9001;
+                    if (ID == 9002) aura = 9003;
+                    if (ID == 9004) aura = 9005;
+                    if (ID == 9006) aura = 9007;
+                    if (ID == 9008) aura = 9009;
+                    if (ID == 9010) aura = 9011;
+                    if (ID == 9012) aura = 9013;
+                    if (ID == 9014) aura = 9015;
                     if (ID == 11519) aura = 11539;
                     if (ID == 11520) aura = 11538;
                     if (ID == 11521) aura = 11551;
@@ -2413,6 +2421,11 @@ namespace Everquest
                 case 143:
                     change = 3 * level / 4;
                     break;
+
+                case 3000:
+                    // todo: this appears to be scaled by the targets level
+                    // base1 value how it affects a level 100 target
+                    return base1;
 
                 default:
                     if (calc > 0 && calc < 1000)
