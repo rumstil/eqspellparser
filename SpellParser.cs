@@ -286,6 +286,7 @@ namespace Everquest
         Remove_Trap = 75,
         Triple_Attack = 76,
         _2H_Pierce = 77,
+        Unmodified_Melee = 98, // generic melee hit that doesn't get scaled up like weapon skills 
         Harm_Touch = 105,
         Lay_Hands = 107,
         Slam = 111,
@@ -549,6 +550,8 @@ namespace Everquest
         Solusek_Ro = 58,
         Tunare = 62,
         Tiger = 63,
+        Mayong = 65,
+        Ralos_Zek = 66,
         Elemental = 75,
         Earth_Elemental = 75 << 16,
         Fire_Elemental = (75 << 16) + 1,
@@ -558,6 +561,7 @@ namespace Everquest
         Old_Skeleton = 85,
         Old_Drake = 89,
         Old_Alligator = 91,
+        Cazic_Thule = 95,
         Old_Dervish = 100,
         Tadpole = 102,
         Old_Kedge = 103,
@@ -580,6 +584,8 @@ namespace Everquest
         Mosquito = 134,
         Kunark_Goblin = 137,
         Nearby_Object = 142,
+        Erollisi_Marr = 150,
+        Tribunal = 151,
         Tree = 143,
         Old_Iksar_Skeleton = 161,
         Snow_Rabbit = 176,
@@ -618,6 +624,7 @@ namespace Everquest
         Guard = 239,
         Arachnid = 326,
         Guktan = 330,
+        Troll_Pirate = 331,
         Gnome_Pirate = 338,
         Dark_Elf_Pirate = 339,
         Ogre_Pirate = 340,
@@ -812,7 +819,10 @@ namespace Everquest
         Holgresh = 715,
         Ratman = 718,
         Fallen_Knight = 719,
-        Akhevan = 722
+        Akhevan = 722,
+        Tirun = 734,
+        Bixie = 741,
+        Bixie_Soldier = (741 << 16) + 2,
     }
 
     public enum SpellFaction
@@ -1766,7 +1776,9 @@ namespace Everquest
                 case 238:
                     return "Permanent Illusion";
                 case 243:
-                    return Spell.FormatPercent("Chance of Charm Breaking", -value);
+                    return Spell.FormatPercent("Chance of Charm Breaking", -base1);
+                case 244:
+                    return Spell.FormatPercent("Chance of Root Breaking", base1);
                 case 246:
                     return Spell.FormatCount("Lung Capacity", -value);
                 case 250:
@@ -2182,9 +2194,9 @@ namespace Everquest
                 case 452:
                     return String.Format("Absorb Spell Damage: {0}% over {1}", base1, base2) + (max > 0 ? String.Format(" Total: {0}", max) : "");
                 case 453:
-                    return String.Format("Cast: [Spell {0}] on {1} Melee Damage Taken", base1, base2);
+                    return String.Format("Cast: [Spell {0}] on {1} Melee Damage Taken in Single Hit", base1, base2);
                 case 454:
-                    return String.Format("Cast: [Spell {0}] on {1} Spell Damage Taken", base1, base2);
+                    return String.Format("Cast: [Spell {0}] on {1} Spell Damage Taken in Single Hit", base1, base2);
                 case 455:
                     // adds a % of your own hate using base1. Example: 1000 hate base1 = 50. Means you will be 1500 hate.
                     return Spell.FormatPercent("Current Hate", base1);
