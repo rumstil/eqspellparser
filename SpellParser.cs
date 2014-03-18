@@ -803,7 +803,6 @@ namespace Everquest
         Rabbit = 668,
         Gouzah_Rabbit = (668 << 16) + 3,
         Polka_Dot_Rabbit = (668 << 16) + 5,
-        Cazic_Thule = 670,
         Selyrah = 686,
         Goral = 687,
         Braxi = 688,
