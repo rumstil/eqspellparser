@@ -1564,7 +1564,7 @@ namespace Everquest
                 case 125:
                     return Spell.FormatPercent("Healing", base1, base2);
                 case 126:
-                    return Spell.FormatPercent("Spell Resist Rate", -base1);
+                    return Spell.FormatPercent("Spell Resist Rate", -base1, -base2);
                 case 127:
                     return Spell.FormatPercent("Spell Haste", base1);
                 case 128:
@@ -1575,7 +1575,7 @@ namespace Everquest
                     // i think this affects all special attacks. bash/kick/frenzy/etc...
                     return Spell.FormatPercent("Spell and Bash Hate", base1, base2);
                 case 131:
-                    return Spell.FormatPercent("Chance of Using Reagent", -base1);
+                    return Spell.FormatPercent("Chance of Using Reagent", -base1, -base2);
                 case 132:
                     return Spell.FormatPercent("Spell Mana Cost", -base1, -base2);
                 case 134:
@@ -1764,6 +1764,8 @@ namespace Everquest
                     return Spell.FormatPercent("Reduce Weight", base1);
                 case 222:
                     return Spell.FormatPercent("Chance to Block from Back", value);
+                    // called AddRiposte by devs
+                    return Spell.FormatPercent("Chance to Additional Riposte", base1);
                 case 225:
                     return Spell.FormatCount("Double Attack Skill", base1);
                 case 227:
