@@ -1917,8 +1917,7 @@ namespace Everquest
                     // so far this is only used on spells that have a rune
                     return String.Format("Cast on Rune Fade: [Spell {0}]", base1);
                 case 334:
-                    // only used by a few bard songs. how is this different than 1/100
-                    return Spell.FormatCount("Current HP", value) + repeating + range;
+                    return Spell.FormatCount("Current HP", value) + repeating + range + "(If Not Moving)";
                 case 335:
                     if (base1 < 100)
                         return String.Format("Block Next Matching Spell ({0}% Chance)", base1);
