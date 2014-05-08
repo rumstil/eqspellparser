@@ -1557,6 +1557,8 @@ namespace Everquest
                 case 121:
                     // damages the target whenever it hits something
                     return Spell.FormatCount("Reverse Damage Shield", -value);
+                case 122:
+                    return String.Format("Reduce {0} Skill ({1})", Spell.FormatEnum((SpellSkill)base1), calc);
                 case 123:
                     return "Screech";
                 case 124:
@@ -1784,7 +1786,7 @@ namespace Everquest
                     return Spell.FormatCount("Lung Capacity", -value);
                 case 250:
                     // not sure about this one
-                    return Spell.FormatPercent("Defensive Proc Rate", value);
+                    return Spell.FormatPercent("Defensive Proc Rate", base1);
                 case 258:
                     return Spell.FormatPercent("Chance to Triple Backstab", value);
                 case 259:
