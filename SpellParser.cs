@@ -1749,7 +1749,7 @@ namespace Everquest
                     return String.Format("Pet Shielding for {0}s", base1 * 12);
                 case 211:
                     // use spell duration if it is > 0?
-                    return String.Format("AE Attack for {0}s", base1 * 12);
+                    return String.Format("AE Attack for {0}s", base1 * 10);
                 case 213:
                     return String.Format("Pet Power v2 ({0})", value);
                 case 214:
