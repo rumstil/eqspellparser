@@ -923,7 +923,7 @@ namespace Everquest
         public int[] ConsumeItemCount;
         public int[] FocusID;
         public string LandOnSelf;
-        //public string LandOnOther;
+        public string LandOnOther;
         public int ConeStartAngle;
         public int ConeEndAngle;
         public bool MGBable;
@@ -1626,7 +1626,10 @@ namespace Everquest
                 case 153:
                     return String.Format("Balance Group HP with {0}% Penalty", value);
                 case 154:
-                    return String.Format("Cure Detrimental ({0})", value);
+                    // +0.5% per level difference
+                    if (base2 != 0)
+                        return String.Format("Reduce Detrimental Duration by 50% ({0}% Chance)", base1 / 10) + maxlevel;
+                    return String.Format("Dispel Detrimental ({0}% Chance)", base1 / 10) + maxlevel;
                 case 156:
                     return "Illusion: Target";
                 case 157:
@@ -1744,7 +1747,10 @@ namespace Everquest
                 case 207:
                     return "Flesh to Bone Chips";
                 case 209:
-                    return String.Format("Dispel Beneficial ({0})", value);
+                    // +0.5% per level difference
+                    if (base2 != 0)
+                        return String.Format("Reduce Beneficial Duration by 50% ({0}% Chance)", base1 / 10) + maxlevel;
+                    return String.Format("Dispel Beneficial ({0}% Chance)", base1 / 10) + maxlevel;
                 case 210:
                     return String.Format("Pet Shielding for {0}s", base1 * 12);
                 case 211:
@@ -2124,7 +2130,7 @@ namespace Everquest
                 case 414:
                     return String.Format("Limit Bard Skill: {0}", Spell.FormatEnum((SpellSkill)base1));
                 case 416:
-                    // how is this differnt than 1?
+                    // SPA 416 functions exactly like SPA 1, it was added so that we could avoid stacking conflicts with only 12 spell slots. - Dzarn
                     return Spell.FormatCount("AC v2", (int)(value / (10f / 3f)));
                 case 417:
                     // how is this different than 15?
@@ -2736,7 +2742,7 @@ namespace Everquest
             //Target = fields[2];
             spell.Extra = fields[3];
             spell.LandOnSelf = fields[6];
-            //spell.LandOnOther = fields[7];
+            spell.LandOnOther = fields[7];
             //Wear Off Message = fields[8];
             spell.Range = ParseInt(fields[9]);
             spell.AERange = ParseInt(fields[10]);
