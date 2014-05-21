@@ -127,6 +127,8 @@ namespace Everquest
         Spell_Resist_Chance = 180,
         Weapon_Delay = 182,
         Hit_Chance = 184,
+        Hit_Damage = 185,
+        Min_Hit_Damage = 186,
         Block_Chance = 188,
         Endurance_Repeating = 189,
         Hate_Repeating = 192,
@@ -192,6 +194,7 @@ namespace Everquest
         Heal_From_Mana = 400,
         Two_Hand_Blunt_Block_Chance = 405, // AA
         Song_Effectiveness = 413,
+        Weapon_Damage_Bonus_v2 = 418,
         Teleport_to_Caster_Anchor = 437,
         Teleport_to_Player_Anchor = 438,
         Lock_Aggro = 444,
@@ -2052,7 +2055,7 @@ namespace Everquest
                 case 381:
                     return String.Format("Fling to Self ({0}' away)", base1);
                 case 382:
-                    return String.Format("Inhibit Effect: {0}", Spell.FormatEnum((SpellEffect)base2));
+                    return String.Format("Inhibit Effect: {0}", Spell.FormatEnum((SpellEffect)base2), base2);
                 case 383:
                     // chance % modified by the cast time of the spell cast that triggers the proc, whereas 339 is not
                     // i'm just going to list a few samples here since the forumula is too much information
