@@ -205,7 +205,8 @@ namespace Everquest
         Absorb_DoT_Damage = 450,
         Absorb_Melee_Damage = 451,
         Absorb_Spell_Damage = 452,
-        Faction_Hit = 458
+        Faction_Hit = 458,
+        Hit_Damage_v2 = 459,
     }
 
     public enum SpellSkill
@@ -956,6 +957,7 @@ namespace Everquest
         public bool AllowFastRegen;
         public bool BetaOnly;
         public bool CannotRemove;
+        public int CritOverride; // when set the spell has this % crit chance and mod 
         
 
 
@@ -1114,6 +1116,10 @@ namespace Everquest
 
             if (HateOverride != 0)
                 result.Add("Hate: " + HateOverride);
+
+            // Arcane Fusion has a Crit Override value of 15, so it has a max 15% crit chance AND crit damage. This overrides ALL of it, AA, Worn, and Spell, which are normally separate.
+            if (CritOverride > 0)
+                result.Add("Crit Chance/Dmg: " + CritOverride + "%");
 
             if (MaxHits > 0)
                 result.Add("Max Hits: " + MaxHits + " " + FormatEnum((SpellMaxHits)MaxHitsType));
@@ -1692,7 +1698,7 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Resist Fear Spell", value);
                 case 182:
                     // hundred hands effect. how is this different than 371?
-                    return Spell.FormatPercent("Weapon Delay", value);
+                    return Spell.FormatPercent("Weapon Delay", base1 / 10);
                 case 183:
                     return Spell.FormatPercent("Skill Check for " + Spell.FormatEnum((SpellSkill)base2), value);
                 case 184:
@@ -2223,9 +2229,12 @@ namespace Everquest
                 case 458:
                     // -100 = no faction hit, 100 = double faction
                     return Spell.FormatPercent("Faction Hit", base1);
+                case 459:
+                    // stacks with 185
+                    return Spell.FormatPercent(Spell.FormatEnum((SpellSkill)base2) + " Damage v2", base1);
                 case 460:
-                    // how is this different than 185?
-                    return Spell.FormatPercent(Spell.FormatEnum((SpellSkill)base2) + " Damage", base1);
+                    // some spells are tagged as non focusable (field 197) this overrides that
+                    return "Limit: Include non focusable spells";
             }
 
             return String.Format("Unknown Effect: {0} Base1={1} Base2={2} Max={3} Calc={4} Value={5}", spa, base1, base2, max, calc, value);
@@ -2523,8 +2532,8 @@ namespace Everquest
             string type = e.ToString().Replace("_", " ").Trim();
             if (Regex.IsMatch(type, @"^-?\d+$"))
                 type = "Type " + type; // undefined numeric enum
-            else
-                type = Regex.Replace(type, @"(\D)\d$", "$1"); // remove numeric suffix on duplicate enums undead3/summoned3/etc
+            //else
+            //    type = Regex.Replace(type, @"(^[\dv])\d$", "$1"); // remove numeric suffix on duplicate enums undead3/summoned3/etc
             return type;
         }
 
@@ -2884,7 +2893,7 @@ namespace Everquest
             // 214 Cast Out of Combat Boolean
             // 215 Show DoT Message Boolean
             // 216 Invalid Boolean
-            // 217 Override Crit chance Boolean
+            spell.CritOverride = ParseInt(fields[217]); 
             spell.MaxTargets = ParseInt(fields[218]);
             // 219 No Effect from Spell Damage / Heal Amount on Items Boolean
             spell.CasterRestrict = (SpellTargetRestrict)ParseInt(fields[220]);
