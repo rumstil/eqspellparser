@@ -164,7 +164,7 @@ namespace Everquest
         Frontal_Stun_Resist_Chance = 293, // AA
         Critical_Nuke_Chance = 294,
         Archery_Damage = 301, // AA, not sure which
-        Avoid_Riposte_Chance = 304, 
+        Avoid_Riposte_Chance = 304,
         Damage_Shield_Taken = 305,
         Teleport_To_Bind = 309,
         Invis = 314,
@@ -290,7 +290,7 @@ namespace Everquest
         Remove_Trap = 75,
         Triple_Attack = 76,
         _2H_Pierce = 77,
-        Unmodified_Melee = 98, // generic melee hit that doesn't get scaled up like weapon skills 
+        Melee = 98, // generic melee hit that doesn't get scaled up like weapon skills 
         Harm_Touch = 105,
         Lay_Hands = 107,
         Slam = 111,
@@ -958,7 +958,7 @@ namespace Everquest
         public bool BetaOnly;
         public bool CannotRemove;
         public int CritOverride; // when set the spell has this % crit chance and mod 
-        
+        public bool CombatSkill;
 
 
         public int[] LinksTo;
@@ -1012,7 +1012,9 @@ namespace Everquest
                 result.Add("Classes: " + ClassesLevels);
                 if (SongCap > 0)
                     result.Add("Skill: " + FormatEnum(Skill) + ", Cap: " + SongCap);
-                else if ((int)Skill != 98) // 98 might be for AA only
+                else if (CombatSkill)
+                    result.Add("Skill: " + FormatEnum(Skill) + " (Combat Skill)");
+                else
                     result.Add("Skill: " + FormatEnum(Skill));
             }
 
@@ -1083,7 +1085,7 @@ namespace Everquest
 
             if (!Beneficial)
                 result.Add("Resist: " + ResistType + (ResistMod != 0 ? " " + ResistMod : "") + (MinResist > 0 ? ", Min Resist Chance: " + MinResist / 2f + "%" : "") + (MaxResist > 0 ? ", Max Resist Chance: " + MaxResist / 2f + "%" : "")); // + (!PartialResist ? ", No Partials" : ""));
-            else 
+            else
                 result.Add("Resist: Beneficial, Blockable: " + (BeneficialBlockable ? "Yes" : "No"));
 
             if (!Beneficial)
@@ -1098,7 +1100,7 @@ namespace Everquest
                 result.Add("Casting: " + CastingTime.ToString() + "s" + rest);
 
             if (DurationTicks > 0)
-                result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)" 
+                result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)"
                     + (Beneficial && ClassesMask != SpellClassesMask.BRD ? ", Extendable: " + (DurationExtendable ? "Yes" : "No") : "")
                     + ", Dispelable: " + (Dispelable ? "Yes" : "No")
                     + (!Beneficial && DurationTicks > 10 ? ", Allow Fast Regen: " + (AllowFastRegen ? "Yes" : "No") : "")  // it applies on <10 ticks, but there really is no need to show it
@@ -1200,7 +1202,7 @@ namespace Everquest
                 Zone = SpellZoneRestrict.None;
 
             if (RangeModCloseDist == RangeModFarDist)
-            { 
+            {
                 RangeModCloseDist = RangeModFarDist = 0;
                 RangeModCloseMult = RangeModFarMult = 0;
             }
@@ -1782,7 +1784,7 @@ namespace Everquest
                     return Spell.FormatPercent("Reduce Weight", base1);
                 case 222:
                     return Spell.FormatPercent("Chance to Block from Back", base1);
-                case 224:    
+                case 224:
                     return Spell.FormatPercent("Chance to Additional Riposte", base1);
                 case 225:
                     return Spell.FormatCount("Double Attack Skill", base1);
@@ -1889,8 +1891,7 @@ namespace Everquest
                 case 310:
                     return String.Format("Reduce Timer by {0}s", base1 / 1000f);
                 case 311:
-                    // does this affect procs that the caster can also cast as spells?
-                    return "Limit Type: Exclude Procs";
+                    return String.Format("Limit Type: {0}Combat Skills", base1 == 1 ? "" : "Exclude ");
                 case 312:
                     return "Sanctuary";
                 case 314:
@@ -2037,7 +2038,7 @@ namespace Everquest
                 case 371:
                     return Spell.FormatPercent("Melee Delay", Math.Abs(value));
                 case 372:
-                    return "Grant Foraging";
+                    return String.Format("Foraging Skill ({0})", base1);
                 case 373:
                     // this appears to be used when a spell is removed via any method: times out, cured, rune depleted, max hits, mez break
                     return String.Format("Cast: [Spell {0}] on Fade", base1);
@@ -2085,9 +2086,7 @@ namespace Everquest
                     // what unit? seconds?
                     return String.Format("Set Recast Timers to {0}", value);
                 case 391:
-                    // desc says "additional damage from every melee and ranged attack"
-                    // how does this differ from 197 with base2=-1
-                    return Spell.FormatPercent("Hit Damage Taken", base1);
+                    return String.Format("Limit Max Mana Cost: {0}", base1);
                 case 392:
                     return Spell.FormatCount("Healing Bonus", base1);
                 case 393:
@@ -2155,7 +2154,7 @@ namespace Everquest
                         return String.Format("Add Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
                     return String.Format("Add Proc: [Spell {0}]", base1);
                 case 424:
-                    return String.Format("Gradual {0} to {2}' away (Force={1})", base1 > 0 ? "Push" : "Pull", Math.Abs(base1), base2);                
+                    return String.Format("Gradual {0} to {2}' away (Force={1})", base1 > 0 ? "Push" : "Pull", Math.Abs(base1), base2);
                 case 425:
                     return "Fly";
                 case 427:
@@ -2180,7 +2179,7 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Critical Heal v2", base1) + String.Format(" up to level {0} (lose {1}% per level)", max, base2);
                 case 435:
                     return Spell.FormatPercent("Chance to Critical HoT v2", base1) + String.Format(" up to level {0} (lose {1}% per level)", max, base2);
-                case 436: 
+                case 436:
                     return "Beneficial Countdown Hold";
                 case 437:
                     return "Teleport to your " + FormatEnum((SpellTeleport)base1);
@@ -2230,7 +2229,7 @@ namespace Everquest
                     // -100 = no faction hit, 100 = double faction
                     return Spell.FormatPercent("Faction Hit", base1);
                 case 459:
-                    // stacks with 185
+                    // same as 185, created to stack
                     return Spell.FormatPercent(Spell.FormatEnum((SpellSkill)base2) + " Damage v2", base1);
                 case 460:
                     // some spells are tagged as non focusable (field 197) this overrides that
@@ -2651,7 +2650,7 @@ namespace Everquest
                                 cat.Add(c1 + "/" + c2);
 
                             // sub category 2
-                            if (desc.TryGetValue("5/" + spell.CategoryDescID[2], out c2) && !c2.StartsWith("Timer"))                            
+                            if (desc.TryGetValue("5/" + spell.CategoryDescID[2], out c2) && !c2.StartsWith("Timer"))
                                 cat.Add(c1 + "/" + c2);
 
                             // general category if no subcategories are defined
@@ -2834,13 +2833,12 @@ namespace Everquest
             // 159 NPC Does not Require LoS
             // 160 Feedbackable (Triggers spell damage shield)
             spell.Reflectable = ParseBool(fields[161]);
-            spell.HateMod = ParseInt(fields[162]);
-            // 163 Resist Level = 19 values.  looks similar to calc values
+            spell.HateMod = ParseInt(fields[162]);          
             // 164 Resist Cap = 147 values. mostly negative
             // 165 Useable On Objects Boolean
             spell.Endurance = ParseInt(fields[166]);
             spell.TimerID = ParseInt(fields[167]);
-            // 168 Skill = 3 values. 0, -1, 1
+            spell.CombatSkill = ParseBool(fields[168]);
             // 169 Attack Open = all 0
             // 170 Defense Open = all 0
             // 171 Skill Open = all 0
@@ -2893,7 +2891,7 @@ namespace Everquest
             // 214 Cast Out of Combat Boolean
             // 215 Show DoT Message Boolean
             // 216 Invalid Boolean
-            spell.CritOverride = ParseInt(fields[217]); 
+            spell.CritOverride = ParseInt(fields[217]);
             spell.MaxTargets = ParseInt(fields[218]);
             // 219 No Effect from Spell Damage / Heal Amount on Items Boolean
             spell.CasterRestrict = (SpellTargetRestrict)ParseInt(fields[220]);
@@ -2940,7 +2938,7 @@ namespace Everquest
                 spell.Slots[i] = spell.ParseEffect(spa, base1, base2, max, calc, MaxLevel);
 
 #if DEBUG
-                if (spell.Slots[i] != null) 
+                if (spell.Slots[i] != null)
                 {
                     int value = Spell.CalcValue(calc, base1, max, 1, MaxLevel);
                     spell.Slots[i] = String.Format("SPA {0} Base1={1} Base2={2} Max={3} Calc={4} --- ", spa, base1, base2, max, calc) + spell.Slots[i];
@@ -2957,7 +2955,8 @@ namespace Everquest
 
 
             // debug stuff
-            //if (spell.ID == 1708) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
+            //if (spell.ID == 16365) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
+            //if (fields[198] != "0") Console.WriteLine("\n\n===\n{0} {1}", fields[198], String.Join("\n", spell.Details()));
 
             spell.Prepare();
             return spell;
