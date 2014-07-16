@@ -91,7 +91,7 @@ namespace Everquest
             return text;
         }
 
-        public IQueryable<Spell> Search(string text, int cls, int min, int max, string effect, int slot, string category)
+        public IQueryable<Spell> Search(string text, int cls, int min, int max, string effect, string category)
         {
             var query = spells.AsQueryable();
 
@@ -121,10 +121,10 @@ namespace Everquest
                 if (Regex.Escape(effect) != effect)
                 {
                     var re = new Regex(effect, RegexOptions.IgnoreCase);
-                    query = query.Where(x => x.HasEffect(re, slot));
+                    query = query.Where(x => x.HasEffect(re));
                 }
                 else
-                    query = query.Where(x => x.HasEffect(effect, slot));
+                    query = query.Where(x => x.HasEffect(effect));
             }
 
 
