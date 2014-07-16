@@ -18,7 +18,7 @@ namespace winparser
     //[ComVisible(true)] // for SearchBrowser.ObjectForScripting
     public partial class MainForm : Form
     {
-        private Dictionary<string, string> Effects;
+        //private Dictionary<string, string> Effects;
 
         private SpellCache Spells;
 
@@ -88,14 +88,14 @@ namespace winparser
             Int32.TryParse(text, out id);
             var cls = SpellParser.ParseClass(SearchClass.Text) - 1;
             var effect = SearchEffect.Text;
-            int slot = 0;
-            Int32.TryParse(SearchEffectSlot.Text, out slot);
+            //int slot = 0;
+            //Int32.TryParse(SearchEffectSlot.Text, out slot);
             var category = SearchCategory.Text;
             int min;
             int max;
             ParseRange(SearchLevel.Text, out min, out max);
 
-            Results = Spells.Search(text, cls, min, max, effect, slot, category).ToList();
+            Results = Spells.Search(text, cls, min, max, effect, category).ToList();
 
             // track results before they are expanded so that we can hide extra spell results
             BaseResults = new HashSet<int>();
