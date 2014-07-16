@@ -884,10 +884,10 @@ namespace Everquest
         public int EnduranceUpkeep;
         public int DurationTicks;
         public bool DurationExtendable;
-        public string[] Slots;
-        public int[] SlotEffects;
+        public string[] Slots; // parsed description for each of the 12 slots
+        public int[] SlotEffects;  // raw SPA # for each of the 12 slots
         //public byte Level;
-        public byte[] Levels;
+        public byte[] Levels; // casting level for each of the 16 classes
         public byte[] ExtLevels; // similar to levels but assigns levels for side effect spells that don't have levels defined (e.g. a proc effect will get the level of it's proc buff)
         public string ClassesLevels;
         public SpellClassesMask ClassesMask;
@@ -1010,6 +1010,7 @@ namespace Everquest
             if (!String.IsNullOrEmpty(ClassesLevels))
             {
                 result.Add("Classes: " + ClassesLevels);
+                // the skill field if full of random values for spells that aren't PC castable so it's best to hide it 
                 if (SongCap > 0)
                     result.Add("Skill: " + FormatEnum(Skill) + ", Cap: " + SongCap);
                 else if (CombatSkill)
@@ -1209,50 +1210,35 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Search all spell slots for a certain effect using SPA number.
+        /// Search all spell slots for a certain effect using a SPA match.
         /// </summary>
-        public bool HasEffect(int spa, int slot)
+        public bool HasEffect(int spa)
         {
-            if (slot > 0)
-                return SlotEffects[slot - 1] == spa;
             return Array.IndexOf(SlotEffects, spa) >= 0;
         }
 
         /// <summary>
         /// Search all spell slots for a certain effect using a text match.
         /// </summary>
-        /// <param name="text">Effect to search for. Can be text or a integer representing an SPA.</param>
-        /// <param name="slot">0 to check or slots, or a value between 1 and 12.</param>
-        public bool HasEffect(string text, int slot)
+        /// <param name="desc">Effect to search for. Can be text or a integer representing an SPA.</param>
+        public bool HasEffect(string desc)
         {
             int spa;
-            if (Int32.TryParse(text, out spa))
-                return HasEffect(spa, slot);
-
-            if (slot > 0)
-                return Slots[slot - 1] != null && Slots[slot - 1].IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0;
+            if (Int32.TryParse(desc, out spa))
+                return HasEffect(spa);
 
             for (int i = 0; i < Slots.Length; i++)
-                if (Slots[i] != null && Slots[i].IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0)
+                if (Slots[i] != null && Slots[i].IndexOf(desc, StringComparison.InvariantCultureIgnoreCase) >= 0)
                     return true;
 
             return false;
         }
 
-        public bool HasEffect(string text)
-        {
-            return HasEffect(text, 0);
-        }
-
         /// <summary>
         /// Search all spell slots for a certain effect using a RegEx.
         /// </summary>
-        /// <param name="slot">0 to check or slots, or a value between 1 and 12.</param>
-        public bool HasEffect(Regex re, int slot)
+        public bool HasEffect(Regex re)
         {
-            if (slot > 0)
-                return Slots[slot - 1] != null && re.IsMatch(Slots[slot - 1]);
-
             for (int i = 0; i < Slots.Length; i++)
                 if (Slots[i] != null && re.IsMatch(Slots[i]))
                     return true;
