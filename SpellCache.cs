@@ -91,7 +91,7 @@ namespace Everquest
             return text;
         }
 
-        public IQueryable<Spell> Search(string text, int cls, int min, int max, string effect, string category)
+        public IQueryable<Spell> Search(string text, int cls, int min, int max, string effect, int slot, string category)
         {
             var query = spells.AsQueryable();
 
@@ -112,7 +112,7 @@ namespace Everquest
                 query = query.Where(x => x.ExtLevels[cls] >= min && x.ExtLevels[cls] <= max);
             }
 
-            // effect filter  can be a literal string or a regex
+            // effect filter can be a literal string or a regex
             if (!String.IsNullOrEmpty(effect))
             {
                 if (SpellSearch.EffectHelpers.ContainsKey(effect))
@@ -121,10 +121,10 @@ namespace Everquest
                 if (Regex.Escape(effect) != effect)
                 {
                     var re = new Regex(effect, RegexOptions.IgnoreCase);
-                    query = query.Where(x => x.HasEffect(re));
+                    query = query.Where(x => x.HasEffect(re, slot));
                 }
                 else
-                    query = query.Where(x => x.HasEffect(effect));
+                    query = query.Where(x => x.HasEffect(effect, slot));
             }
 
 
@@ -167,7 +167,7 @@ namespace Everquest
                 }
             }
 
-            // search the result to find other spells that they link to (forward links)
+            // search the results to find other spells that the matches link to (forward links)
             int i = 0;
             while (i < list.Count)
             {

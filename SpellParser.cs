@@ -1922,7 +1922,9 @@ namespace Everquest
                 case 334:
                     return Spell.FormatCount("Current HP", value) + repeating + range + " (If Target Not Moving)";
                 case 335:
-                    return String.Format("Block Next Matching Spell ({0}% Chance)", base1);
+                    if (base1 < 100)
+                        return String.Format("Block Next Matching Spell ({0}% Chance)", base1);
+                    return "Block Next Matching Spell";
                 case 337:
                     return Spell.FormatPercent("Experience Gain", value);
                 case 338:
