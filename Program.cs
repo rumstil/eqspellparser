@@ -88,7 +88,7 @@ namespace parser
 
             // search by effect type
             if (field == "type" || field == "spa")
-                results = spells.Where(x => x.HasEffect(value));
+                results = spells.Where(x => x.HasEffect(value, 0));
 
             // search by id
             if (field == "id")

@@ -1212,8 +1212,10 @@ namespace Everquest
         /// <summary>
         /// Search all spell slots for a certain effect using a SPA match.
         /// </summary>
-        public bool HasEffect(int spa)
+        public bool HasEffect(int spa, int slot)
         {
+            if (slot > 0)
+                return SlotEffects[slot - 1] == spa;
             return Array.IndexOf(SlotEffects, spa) >= 0;
         }
 
@@ -1221,14 +1223,17 @@ namespace Everquest
         /// Search all spell slots for a certain effect using a text match.
         /// </summary>
         /// <param name="desc">Effect to search for. Can be text or a integer representing an SPA.</param>
-        public bool HasEffect(string desc)
+        /// <param name="slot">0 to check or slots, or a value between 1 and 12.</param>
+        public bool HasEffect(string text, int slot)
         {
             int spa;
-            if (Int32.TryParse(desc, out spa))
-                return HasEffect(spa);
+            if (Int32.TryParse(text, out spa))
+                return HasEffect(spa, slot);
 
+            if (slot > 0)
+                return Slots[slot - 1] != null && Slots[slot - 1].IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0;
             for (int i = 0; i < Slots.Length; i++)
-                if (Slots[i] != null && Slots[i].IndexOf(desc, StringComparison.InvariantCultureIgnoreCase) >= 0)
+                if (Slots[i] != null && Slots[i].IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0)
                     return true;
 
             return false;
@@ -1237,8 +1242,12 @@ namespace Everquest
         /// <summary>
         /// Search all spell slots for a certain effect using a RegEx.
         /// </summary>
-        public bool HasEffect(Regex re)
+        /// <param name="slot">0 to check or slots, or a value between 1 and 12.</param>
+        public bool HasEffect(Regex re, int slot)
         {
+            if (slot > 0)
+                return Slots[slot - 1] != null && re.IsMatch(Slots[slot - 1]);
+
             for (int i = 0; i < Slots.Length; i++)
                 if (Slots[i] != null && re.IsMatch(Slots[i]))
                     return true;
