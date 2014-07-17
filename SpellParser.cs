@@ -1425,7 +1425,7 @@ namespace Everquest
                 case 63:
                     // +25 if over level 53, +(cha - 150)/10 max:15. so base is 40 + whatever the value is
                     //return String.Format("Memory Blur ({0})", value);
-                    return String.Format("Memory Blur ({0}% Chance)", value + 40);
+                    return String.Format("Memory Blur ({0}% Chance)", Math.Min(value + 40, 100));
                 case 64:
                     if (base2 != base1 && base2 != 0)
                         return String.Format("Stun and Spin NPC for {0:0.##}s (PC for {1:0.##}s)", base1 / 1000f, base2 / 1000f) + maxlevel;
@@ -1712,7 +1712,7 @@ namespace Everquest
                     return String.Format("{0} Attack for {1} with {2}% Accuracy Mod", Spell.FormatEnum(Skill), base1, base2);
                 case 194:
                     // cancel all aggro. aka Fade
-                    return String.Format("Fade ({0}% Chance)", value);
+                    return String.Format("Cancel Aggro ({0}% Chance)", value);
                 case 195:
                     // 100 is full resist. not sure why some spells have more
                     return String.Format("Stun Resist ({0})", value);
