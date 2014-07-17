@@ -1425,9 +1425,7 @@ namespace Everquest
                 case 63:
                     // +25 if over level 53, +(cha - 150)/10 max:15. so base is 40 + whatever the value is
                     //return String.Format("Memory Blur ({0})", value);
-                    if (value + 40 < 100)
-                        return String.Format("Memory Blur ({0}% Chance)", value + 40);
-                    return "Memory Blur";
+                    return String.Format("Memory Blur ({0}% Chance)", value + 40);
                 case 64:
                     if (base2 != base1 && base2 != 0)
                         return String.Format("Stun and Spin NPC for {0:0.##}s (PC for {1:0.##}s)", base1 / 1000f, base2 / 1000f) + maxlevel;
@@ -1713,9 +1711,8 @@ namespace Everquest
                 case 193:
                     return String.Format("{0} Attack for {1} with {2}% Accuracy Mod", Spell.FormatEnum(Skill), base1, base2);
                 case 194:
-                    if (value < 100)
-                        return String.Format("Cancel All Aggro ({0}% Chance)", value);
-                    return "Cancel All Aggro";
+                    // cancel all aggro. aka Fade
+                    return String.Format("Fade ({0}% Chance)", value);
                 case 195:
                     // 100 is full resist. not sure why some spells have more
                     return String.Format("Stun Resist ({0})", value);
@@ -1925,9 +1922,7 @@ namespace Everquest
                 case 334:
                     return Spell.FormatCount("Current HP", value) + repeating + range + " (If Target Not Moving)";
                 case 335:
-                    if (base1 < 100)
-                        return String.Format("Block Next Matching Spell ({0}% Chance)", base1);
-                    return "Block Next Matching Spell";
+                    return String.Format("Block Next Matching Spell ({0}% Chance)", base1);
                 case 337:
                     return Spell.FormatPercent("Experience Gain", value);
                 case 338:
