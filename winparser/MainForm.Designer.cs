@@ -122,7 +122,6 @@
             this.SearchEffectSlot.Size = new System.Drawing.Size(75, 23);
             this.SearchEffectSlot.TabIndex = 9;
             this.ToolTip.SetToolTip(this.SearchEffectSlot, "Limit the effect filter to a single slot.");
-            this.SearchEffectSlot.Visible = false;
             this.SearchEffectSlot.TextChanged += new System.EventHandler(this.SearchText_TextChanged);
             // 
             // label7
@@ -134,7 +133,6 @@
             this.label7.Size = new System.Drawing.Size(40, 25);
             this.label7.TabIndex = 8;
             this.label7.Text = "In Slot";
-            this.label7.Visible = false;
             // 
             // SearchCategory
             // 
