@@ -284,7 +284,6 @@
             this.SearchClass.Location = new System.Drawing.Point(12, 108);
             this.SearchClass.Name = "SearchClass";
             this.SearchClass.Size = new System.Drawing.Size(141, 23);
-            this.SearchClass.Sorted = true;
             this.SearchClass.TabIndex = 3;
             this.SearchClass.TextChanged += new System.EventHandler(this.SearchClass_TextChanged);
             // 

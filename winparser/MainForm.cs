@@ -33,6 +33,10 @@ namespace winparser
             Height = Screen.PrimaryScreen.WorkingArea.Height - 100;
 
             SearchClass.Items.AddRange(Enum.GetNames(typeof(SpellClassesLong)));
+            SearchClass.Sorted = true;
+            SearchClass.Sorted = false;
+            SearchClass.Items.Add("Non PC");
+            SearchClass.Items.Add("Any PC");
             SearchClass.Items.Add("");
 
             // literal text suggestions (these words appear in parsed text)
@@ -93,7 +97,7 @@ namespace winparser
             int max;
             ParseRange(SearchLevel.Text, out min, out max);
 
-            Results = Spells.Search(text, cls, min, max, effect, slot, category).ToList();
+            Results = Spells.Search(text, SearchClass.Text, min, max, effect, slot, category).ToList();
 
             // track results before they are expanded so that we can hide extra spell results
             BaseResults = new HashSet<int>();
