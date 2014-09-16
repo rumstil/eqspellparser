@@ -91,7 +91,7 @@ namespace Everquest
             return text;
         }
 
-        public IQueryable<Spell> Search(string text, int cls, int min, int max, string effect, int slot, string category)
+        public IQueryable<Spell> Search(string text, string cls, int min, int max, string effect, int slot, string category)
         {
             var query = spells.AsQueryable();
 
@@ -107,9 +107,30 @@ namespace Everquest
             query = query.Where(x => !x.Name.StartsWith("Breath of"));
 
             // level filter is only used when a class is selected
-            if (cls >= 0 && category != "AA")
+            int levelArrayIndex = SpellParser.ParseClass(cls) - 1;
+            if (cls == "Any PC")
             {
-                query = query.Where(x => x.ExtLevels[cls] >= min && x.ExtLevels[cls] <= max);
+                query = query.Where(x => x.ClassesMask != 0);
+            }
+            else if (cls == "Non PC")
+            {
+                query = query.Where(x => x.ClassesMask == 0);
+                //query = query.Where(x => x.ExtLevels.All(y => y == 0));
+            }
+            else if (!String.IsNullOrEmpty(cls) && category != "AA")
+            {
+                if (levelArrayIndex >= 0)
+                    query = query.Where(x => x.ExtLevels[levelArrayIndex] >= min && x.ExtLevels[levelArrayIndex] <= max);
+            }
+
+            if (!String.IsNullOrEmpty(category))
+            {
+                if (category == "AA" && levelArrayIndex >= 0)
+                    query = query.Where(x => x.ExtLevels[levelArrayIndex] == 254);
+                else if (category == "AA")
+                    query = query.Where(x => x.ExtLevels.Any(y => y == 254));
+                else
+                    query = query.Where(x => x.Categories.Any(y => y.StartsWith(category, StringComparison.InvariantCultureIgnoreCase)));
             }
 
             // effect filter can be a literal string or a regex
@@ -125,17 +146,6 @@ namespace Everquest
                 }
                 else
                     query = query.Where(x => x.HasEffect(effect, slot));
-            }
-
-
-            if (!String.IsNullOrEmpty(category))
-            {
-                if (category == "AA" && cls >= 0)
-                    query = query.Where(x => x.ExtLevels[cls] == 254);
-                else if (category == "AA")
-                    query = query.Where(x => x.ExtLevels.Any(y => y == 254));
-                else
-                    query = query.Where(x => x.Categories.Any(y => y.StartsWith(category, StringComparison.InvariantCultureIgnoreCase)));
             }
 
             return query;
