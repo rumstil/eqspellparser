@@ -33,6 +33,20 @@ namespace Everquest
     }
 
 
+    public class SpellSearchFilter
+    {
+        public string Text { get; set; }
+        public string Effect { get; set; }
+        public int EffectSlot { get; set; }
+        public string Class { get; set; }
+        public int ClassMinLevel { get; set; }
+        public int ClassMaxLevel { get; set; }
+        public string Category { get; set; }
+        //public bool AppendForwardRefs { get; set; }
+        //public bool AppendBackRefs { get; set; }
+    }
+
+
     /// <summary>
     /// Encapsulates a simple spell list to provide some search and cross referencing abilities.
     /// </summary>
@@ -91,61 +105,63 @@ namespace Everquest
             return text;
         }
 
-        public IQueryable<Spell> Search(string text, string cls, int min, int max, string effect, int slot, string category)
+        public IQueryable<Spell> Search(SpellSearchFilter filter) 
         {
             var query = spells.AsQueryable();
 
             //  spell name and description are checked for literal text           
             int id;
-            if (Int32.TryParse(text, out id))
+            if (Int32.TryParse(filter.Text, out id))
                 return query.Where(x => x.ID == id || x.GroupID == id);
 
-            if (!String.IsNullOrEmpty(text))
-                query = query.Where(x => x.ID.ToString() == text || x.Name.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0 || (x.Desc != null && x.Desc.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0));
+            if (!String.IsNullOrEmpty(filter.Text))
+                query = query.Where(x => x.ID.ToString() == filter.Text || x.Name.IndexOf(filter.Text, StringComparison.InvariantCultureIgnoreCase) >= 0 || (x.Desc != null && x.Desc.IndexOf(filter.Text, StringComparison.InvariantCultureIgnoreCase) >= 0));
 
             // exclude dragorn breath AA because they spam the results
             query = query.Where(x => !x.Name.StartsWith("Breath of"));
 
             // level filter is only used when a class is selected
-            int levelArrayIndex = SpellParser.ParseClass(cls) - 1;
-            if (cls == "Any PC")
+            int levelArrayIndex = SpellParser.ParseClass(filter.Class) - 1;
+            if (filter.Class == "Any PC")
             {
                 query = query.Where(x => x.ClassesMask != 0);
             }
-            else if (cls == "Non PC")
+            else if (filter.Class == "Non PC")
             {
-                query = query.Where(x => x.ClassesMask == 0);
-                //query = query.Where(x => x.ExtLevels.All(y => y == 0));
+                //query = query.Where(x => x.ClassesMask == 0);
+                query = query.Where(x => x.ExtLevels.All(y => y == 0));
             }
-            else if (!String.IsNullOrEmpty(cls) && category != "AA")
+            else if (!String.IsNullOrEmpty(filter.Class) && filter.Category != "AA")
             {
                 if (levelArrayIndex >= 0)
-                    query = query.Where(x => x.ExtLevels[levelArrayIndex] >= min && x.ExtLevels[levelArrayIndex] <= max);
+                    query = query.Where(x => x.ExtLevels[levelArrayIndex] >= filter.ClassMinLevel && x.ExtLevels[levelArrayIndex] <= filter.ClassMaxLevel);
             }
 
-            if (!String.IsNullOrEmpty(category))
+            if (!String.IsNullOrEmpty(filter.Category))
             {
-                if (category == "AA" && levelArrayIndex >= 0)
+                if (filter.Category == "AA" && levelArrayIndex >= 0)
                     query = query.Where(x => x.ExtLevels[levelArrayIndex] == 254);
-                else if (category == "AA")
+                else if (filter.Category == "AA")
                     query = query.Where(x => x.ExtLevels.Any(y => y == 254));
                 else
-                    query = query.Where(x => x.Categories.Any(y => y.StartsWith(category, StringComparison.InvariantCultureIgnoreCase)));
+                    query = query.Where(x => x.Categories.Any(y => y.StartsWith(filter.Category, StringComparison.InvariantCultureIgnoreCase)));
             }
 
             // effect filter can be a literal string or a regex
-            if (!String.IsNullOrEmpty(effect))
+            if (!String.IsNullOrEmpty(filter.Effect))
             {
-                if (SpellSearch.EffectHelpers.ContainsKey(effect))
-                    effect = SpellSearch.EffectHelpers[effect];
+                var effect = filter.Effect;
+
+                if (SpellSearch.EffectHelpers.ContainsKey(filter.Effect))
+                    effect = SpellSearch.EffectHelpers[filter.Effect];
 
                 if (Regex.Escape(effect) != effect)
                 {
                     var re = new Regex(effect, RegexOptions.IgnoreCase);
-                    query = query.Where(x => x.HasEffect(re, slot));
+                    query = query.Where(x => x.HasEffect(re, filter.EffectSlot));
                 }
                 else
-                    query = query.Where(x => x.HasEffect(effect, slot));
+                    query = query.Where(x => x.HasEffect(effect, filter.EffectSlot));
             }
 
             return query;
