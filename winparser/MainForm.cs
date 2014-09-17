@@ -78,6 +78,28 @@ namespace winparser
             ShowHtml(html);
         }
 
+        public SpellSearchFilter GetFilter()
+        {
+
+            var filter = new SpellSearchFilter();
+            filter.Text = SearchText.Text.Trim();
+            filter.Effect = SearchEffect.Text.Trim();
+            int slot;
+            if (Int32.TryParse(SearchEffectSlot.Text.Trim(), out slot))
+                filter.EffectSlot = slot;
+            filter.Category = SearchCategory.Text.Trim();
+            filter.Class = SearchClass.Text.Trim();
+            int min;
+            int max;
+            ParseRange(SearchLevel.Text, out min, out max);
+            filter.ClassMinLevel = min;
+            filter.ClassMaxLevel = max;
+            //filter.AppendForwardRefs = true;
+            //filter.AppendBackRefs = ShowRelated.Checked;
+
+            return filter;
+        }
+
         /// <summary>
         /// Search spell database based on filter settings
         /// </summary>
@@ -85,28 +107,21 @@ namespace winparser
         {
             AutoSearch.Enabled = false;
 
-            var text = SearchText.Text.Trim();
-            int id = 0;
-            Int32.TryParse(text, out id);
-            var cls = SpellParser.ParseClass(SearchClass.Text) - 1;
-            var effect = SearchEffect.Text;
-            int slot = 0;
-            Int32.TryParse(SearchEffectSlot.Text, out slot);
-            var category = SearchCategory.Text;
-            int min;
-            int max;
-            ParseRange(SearchLevel.Text, out min, out max);
+            var filter = GetFilter();
+            int id;
+            Int32.TryParse(filter.Text, out id);
+            int cls = SpellParser.ParseClass(SearchClass.Text) - 1;
 
-            Results = Spells.Search(text, SearchClass.Text, min, max, effect, slot, category).ToList();
+            Results = Spells.Search(filter).ToList();
 
             // track results before they are expanded so that we can hide extra spell results
             BaseResults = new HashSet<int>();
             foreach (var s in Results)
                 BaseResults.Add(s.ID);
 
+            // expand always includes forward links but backward links are optional 
             Spells.Expand(Results, ShowRelated.Checked && Results.Count > 1);
-
-
+            
             string Sorting = null;
             // 1. if an effect is selected then sort by the effect strength
             // this is problematic since many spells have conditional effects 
@@ -167,12 +182,12 @@ namespace winparser
                 }
             }
             // move entries that begin with the search text to the front of the results
-            else if (!String.IsNullOrEmpty(text))
+            else if (!String.IsNullOrEmpty(filter.Text))
             {
-                var move = Results.FindAll(x => x.Name.StartsWith(text, StringComparison.CurrentCultureIgnoreCase));
+                var move = Results.FindAll(x => x.Name.StartsWith(filter.Text, StringComparison.InvariantCultureIgnoreCase));
                 if (move.Count > 0)
                 {
-                    Results.RemoveAll(x => x.Name.StartsWith(text, StringComparison.CurrentCultureIgnoreCase));
+                    Results.RemoveAll(x => x.Name.StartsWith(filter.Text, StringComparison.InvariantCultureIgnoreCase));
                     Results.InsertRange(0, move);
                 }
             }
@@ -462,14 +477,9 @@ namespace winparser
             }
 
             // perform the same search on both spell files
-            Search();
-            other.SearchText.Text = SearchText.Text;
-            other.SearchClass.Text = SearchClass.Text;
-            other.SearchLevel.Text = SearchLevel.Text;
-            other.SearchEffect.Text = SearchEffect.Text;
-            other.SearchEffectSlot.Text = SearchEffectSlot.Text;
-            other.SearchCategory.Text = SearchCategory.Text;
-            other.Search();
+            var filter = GetFilter();
+            Results = Spells.Search(filter).ToList();
+            other.Results = other.Spells.Search(filter).ToList();
 
             MainForm oldVer = this;
             MainForm newVer = other;
