@@ -39,16 +39,7 @@ namespace winparser
             SearchClass.Items.Add("Any PC");
             SearchClass.Items.Add("");
 
-            // literal text suggestions (these words appear in parsed text)
-            SearchEffect.Items.Add("Charm");
-            SearchEffect.Items.Add("Mesmerize");
-            SearchEffect.Items.Add("Memory Blur");
-            SearchEffect.Items.Add("Root");
-            SearchEffect.Items.Add("Stun");
-            SearchEffect.Items.Add("Hate");
-            SearchEffect.Items.Add("Invisibility");
-            SearchEffect.Items.Add("Add Defensive Proc");
-            SearchEffect.Items.AddRange(SpellSearch.EffectHelpers.Keys.ToArray());
+            SearchEffect.Items.AddRange(SpellCache.EffectSearchHelpers.Keys.ToArray());
             SearchEffect.Items.Add("");
 
             //SearchBrowser.ObjectForScripting = this;
