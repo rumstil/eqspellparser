@@ -970,6 +970,7 @@ namespace Everquest
 
 #if !LimitMemoryUse
         public string[] Categories;
+        //public string[] RawData;
 #endif
 
         public float Unknown;
@@ -2751,6 +2752,10 @@ namespace Everquest
             int MaxLevel = 100;
 
             Spell spell = new Spell();
+
+#if !LimitMemoryUse
+            //spell.RawData = fields; // takes about 400mb
+#endif
 
             spell.ID = Convert.ToInt32(fields[0]);
             spell.Name = fields[1];

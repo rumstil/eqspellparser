@@ -6,33 +6,6 @@ using System.Text.RegularExpressions;
 
 namespace Everquest
 {
-    static class SpellSearch
-    {
-        static public readonly Dictionary<string, string> EffectHelpers;
-
-        static SpellSearch()
-        {
-            EffectHelpers = new Dictionary<string, string>();
-
-            EffectHelpers.Add("Cure", @"Decrease \w+ Counter by (\d+)");
-            EffectHelpers.Add("Heal", @"Increase Current HP by ([1-9]\d+)(?!.*(?:per tick))"); // 1-9 excludes spells with Increase Current HP by 0
-            EffectHelpers.Add("HoT", @"Increase Current HP by (\d+) per tick");
-            EffectHelpers.Add("Nuke", @"Decrease Current HP by (\d+)(?!.*(?:per tick))");
-            EffectHelpers.Add("DoT", @"Decrease Current HP by (\d+) per tick");
-            EffectHelpers.Add("Haste", @"Increase Melee Haste (?:v3 )?by (\d+)");
-            EffectHelpers.Add("Slow", @"Decrease Melee Haste by (\d+)");
-            EffectHelpers.Add("Snare", @"Decrease Movement Speed by (\d+)");
-            EffectHelpers.Add("Shrink", @"Decrease Player Size");
-            EffectHelpers.Add("Rune", "@Absorb");
-            EffectHelpers.Add("Pacify", @"Decrease Social Radius");
-            EffectHelpers.Add("Damage Shield", @"Increase Damage Shield by (\d+)");
-            EffectHelpers.Add("Mana Regen", @"Increase Current Mana by (\d+)");
-            EffectHelpers.Add("Add Proc", @"(?:Add Proc)|(?:Add Skill Proc)");
-            EffectHelpers.Add("Add Spell Proc", @"Cast on Spell Use");
-        }
-    }
-
-
     public class SpellSearchFilter
     {
         public string Text { get; set; }
@@ -52,12 +25,45 @@ namespace Everquest
     /// </summary>
     public class SpellCache : IEnumerable<Spell>
     {
+        public static readonly Dictionary<string, string> EffectSearchHelpers;
+
         private string id;
         private List<Spell> spells;
         private Dictionary<int, Spell> spellsById;
         private ILookup<int, Spell> spellsByGroup;
 
         public string Id { get { return id; } set { id = value; } }
+
+        static SpellCache()
+        {
+            EffectSearchHelpers = new Dictionary<string, string>();
+
+            // literal text suggestions (these words appear in parsed text)
+            EffectSearchHelpers.Add("Charm", null);
+            EffectSearchHelpers.Add("Mesmerize", null);
+            EffectSearchHelpers.Add("Memory Blur", null);
+            EffectSearchHelpers.Add("Root", null);
+            EffectSearchHelpers.Add("Stun", null);
+            EffectSearchHelpers.Add("Hate", null);
+            EffectSearchHelpers.Add("Invisibility", null);
+            EffectSearchHelpers.Add("Add Defensive Proc", null);
+
+            EffectSearchHelpers.Add("Cure", @"Decrease \w+ Counter by (\d+)");
+            EffectSearchHelpers.Add("Heal", @"Increase Current HP by ([1-9]\d+)(?!.*(?:per tick))"); // 1-9 to exclude spells with "Increase Current HP by 0" 
+            EffectSearchHelpers.Add("HoT", @"Increase Current HP by (\d+) per tick");
+            EffectSearchHelpers.Add("Nuke", @"Decrease Current HP by (\d+)(?!.*(?:per tick))");
+            EffectSearchHelpers.Add("DoT", @"Decrease Current HP by (\d+) per tick");
+            EffectSearchHelpers.Add("Haste", @"Increase Melee Haste (?:v3 )?by (\d+)");
+            EffectSearchHelpers.Add("Slow", @"Decrease Melee Haste by (\d+)");
+            EffectSearchHelpers.Add("Snare", @"Decrease Movement Speed by (\d+)");
+            EffectSearchHelpers.Add("Shrink", @"Decrease Player Size");
+            EffectSearchHelpers.Add("Rune", "@Absorb");
+            EffectSearchHelpers.Add("Pacify", @"Decrease Social Radius");
+            EffectSearchHelpers.Add("Damage Shield", @"Increase Damage Shield by (\d+)");
+            EffectSearchHelpers.Add("Mana Regen", @"Increase Current Mana by (\d+)");
+            EffectSearchHelpers.Add("Add Proc", @"(?:Add Proc)|(?:Add Skill Proc)");
+            EffectSearchHelpers.Add("Add Spell Proc", @"Cast.+on Spell Use");
+        }
 
         public SpellCache(string id, List<Spell> list)
         {
@@ -152,8 +158,8 @@ namespace Everquest
             {
                 var effect = filter.Effect;
 
-                if (SpellSearch.EffectHelpers.ContainsKey(filter.Effect))
-                    effect = SpellSearch.EffectHelpers[filter.Effect];
+                if (EffectSearchHelpers.ContainsKey(filter.Effect))
+                    effect = EffectSearchHelpers[filter.Effect] ?? filter.Effect;
 
                 if (Regex.Escape(effect) != effect)
                 {
