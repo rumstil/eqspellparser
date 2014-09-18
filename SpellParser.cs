@@ -114,6 +114,7 @@ namespace Everquest
         Current_HP_Percent = 147,
         Divine_Intervention_With_Heal = 150,
         Cure_Detrimental = 154,
+        Reflect_Spell = 158,
         Spell_Rune = 161,
         Melee_Rune = 162,
         Absorb_Hits = 163,
@@ -1643,7 +1644,9 @@ namespace Everquest
                 case 157:
                     return Spell.FormatCount("Spell Damage Shield", -value);
                 case 158:
-                    return Spell.FormatPercent("Chance to Reflect Spell", value);
+                    if (max != 0)
+                        return Spell.FormatPercent("Chance to Reflect Spell", base1) + String.Format(" with up to {0}% Damage", max);
+                    return Spell.FormatPercent("Chance to Reflect Spell", base1);
                 case 159:
                     return Spell.FormatCount("Base Stats", value);
                 case 160:
