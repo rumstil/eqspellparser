@@ -112,6 +112,7 @@ namespace Everquest
         Ability_Aggro_Mult = 130,
         Mana_Cost_Focus = 132,
         Current_HP_Percent = 147,
+        Divine_Intervention_With_Heal = 150,
         Cure_Detrimental = 154,
         Spell_Rune = 161,
         Melee_Rune = 162,
@@ -174,11 +175,13 @@ namespace Everquest
         Defensive_Proc = 323,
         Crit_Hit_Damage = 330,
         Summon_To_Corpse = 332,
+        Block_Matching_Spell = 335,
         XP_Gain = 337,
         Casting_Trigger = 339,
         Shield_Equip_Hate_Mod = 349, // AA
         Mana_Burn = 350,
         Current_Mana = 358,
+        Cast_On_Death = 361,
         Triple_Attack = 364,
         Corruption_Counter = 369,
         Corruption_Resist = 370,
@@ -1693,7 +1696,7 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Resist Fear Spell", value);
                 case 182:
                     // hundred hands effect. how is this different than 371?
-                    return Spell.FormatPercent("Weapon Delay", base1 / 10);
+                    return Spell.FormatPercent("Weapon Delay", base1 / 10f);
                 case 183:
                     return Spell.FormatPercent("Skill Check for " + Spell.FormatEnum((SpellSkill)base2), value);
                 case 184:
