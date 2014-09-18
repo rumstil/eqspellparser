@@ -1419,7 +1419,7 @@ namespace Everquest
                 case 54:
                     return "Sense Animal";
                 case 55:
-                    return String.Format("Absorb Damage: 100% Total: {0}", value);
+                    return String.Format("Absorb Damage: 100%, Total: {0}", value);
                 case 56:
                     return "True North";
                 case 57:
@@ -1468,7 +1468,7 @@ namespace Everquest
                 case 77:
                     return "Locate Corpse";
                 case 78:
-                    return String.Format("Absorb Spell Damage: 100% Total: {0}", value);
+                    return String.Format("Absorb Spell Damage: 100%, Total: {0}", value);
                 case 79:
                     // delta hp for heal/nuke, non repeating
                     if (base2 > 0)
@@ -1619,7 +1619,8 @@ namespace Everquest
                     // has not been implemented in the game
                     return Spell.FormatCount("Electricity Resist", value);
                 case 147:
-                    return String.Format("Increase Current HP by {1} Max: {0}% ", value, max);
+                    //return String.Format("Increase Current HP by {1} Max: {0}% ", value, max);
+                    return FormatPercent("Current HP", value) + String.Format(" up to {0}", max);
                 case 148:
                     //if (max > 1000) max -= 1000;
                     return String.Format("Stacking: Block new spell if slot {0} is '{1}' and < {2}", calc % 100, Spell.FormatEnum((SpellEffect)base1), max);
@@ -1650,13 +1651,13 @@ namespace Everquest
                 case 159:
                     return Spell.FormatCount("Base Stats", value);
                 case 160:
-                    return String.Format("Intoxicate if Tolerance < {0}", value);
+                    return String.Format("Intoxicate if Tolerance under {0}", base1);
                 case 161:
-                    return String.Format("Absorb Spell Damage: {0}%", value) + (base2 > 0 ? String.Format(", Max Per Hit: {0}", base2) : "") + (max > 0 ? String.Format(", Total: {0}", max) : "");
+                    return String.Format("Absorb Spell Damage: {0}%", base1) + (base2 > 0 ? String.Format(", Max Per Hit: {0}", base2) : "") + (max > 0 ? String.Format(", Total: {0}", max) : "");
                 case 162:
-                    return String.Format("Absorb Melee Damage: {0}%", value) + (base2 > 0 ? String.Format(", Max Per Hit: {0}", base2) : "") + (max > 0 ? String.Format(", Total: {0}", max) : "");
+                    return String.Format("Absorb Melee Damage: {0}%", base1) + (base2 > 0 ? String.Format(", Max Per Hit: {0}", base2) : "") + (max > 0 ? String.Format(", Total: {0}", max) : "");
                 case 163:
-                    return String.Format("Absorb {0} Hits or Spells", value) + (max > 0 ? String.Format(", Max Per Hit: {0}", max) : "");
+                    return String.Format("Absorb {0} Hits or Spells", base1) + (max > 0 ? String.Format(", Max Per Hit: {0}", max) : "");
                 case 164:
                     return String.Format("Appraise Chest ({0})", value);
                 case 165:
@@ -2204,15 +2205,15 @@ namespace Everquest
                 case 449:
                     return String.Format("Buff Blocker D ({0})", base1);
                 case 450:
-                    return String.Format("Absorb DoT Damage: {0}% over {1}", base1, base2) + (max > 0 ? String.Format(" Total: {0}", max) : "");
+                    return String.Format("Absorb DoT Damage: {0}% over {1}", base1, base2) + (max > 0 ? String.Format(", Total: {0}", max) : "");
                 case 451:
-                    return String.Format("Absorb Melee Damage: {0}% over {1}", base1, base2) + (max > 0 ? String.Format(" Total: {0}", max) : "");
+                    return String.Format("Absorb Melee Damage: {0}% over {1}", base1, base2) + (max > 0 ? String.Format(", Total: {0}", max) : "");
                 case 452:
-                    return String.Format("Absorb Spell Damage: {0}% over {1}", base1, base2) + (max > 0 ? String.Format(" Total: {0}", max) : "");
+                    return String.Format("Absorb Spell Damage: {0}% over {1}", base1, base2) + (max > 0 ? String.Format(", Total: {0}", max) : "");
                 case 453:
-                    return String.Format("Cast: [Spell {0}] on {1} Melee Damage Taken in Single Hit", base1, base2);
+                    return String.Format("Cast: [Spell {0}] if {1} Melee Damage Taken in Single Hit", base1, base2);
                 case 454:
-                    return String.Format("Cast: [Spell {0}] on {1} Spell Damage Taken in Single Hit", base1, base2);
+                    return String.Format("Cast: [Spell {0}] if {1} Spell Damage Taken in Single Hit", base1, base2);
                 case 455:
                     // adds a % of your own hate using base1. Example: 1000 hate base1 = 50. Means you will be 1500 hate.
                     return Spell.FormatPercent("Current Hate", base1);
