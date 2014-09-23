@@ -123,8 +123,9 @@ namespace winparser
         {
             if (listView1.FocusedItem != null)
             {
-                Open(listView1.FocusedItem.Text);
                 Hide();
+                Open(listView1.FocusedItem.Text);
+                
             }
         }
 

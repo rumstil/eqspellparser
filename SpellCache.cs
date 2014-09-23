@@ -36,7 +36,7 @@ namespace Everquest
 
         static SpellCache()
         {
-            EffectSearchHelpers = new Dictionary<string, string>();
+            EffectSearchHelpers = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
 
             // literal text suggestions (these words appear in parsed text)
             EffectSearchHelpers.Add("Charm", null);
@@ -57,7 +57,7 @@ namespace Everquest
             EffectSearchHelpers.Add("Slow", @"Decrease Melee Haste by (\d+)");
             EffectSearchHelpers.Add("Snare", @"Decrease Movement Speed by (\d+)");
             EffectSearchHelpers.Add("Shrink", @"Decrease Player Size");
-            EffectSearchHelpers.Add("Rune", "@Absorb");
+            EffectSearchHelpers.Add("Rune", "Absorb");
             EffectSearchHelpers.Add("Pacify", @"Decrease Social Radius");
             EffectSearchHelpers.Add("Damage Shield", @"Increase Damage Shield by (\d+)");
             EffectSearchHelpers.Add("Mana Regen", @"Increase Current Mana by (\d+)");
@@ -156,18 +156,17 @@ namespace Everquest
             // effect filter can be a literal string or a regex
             if (!String.IsNullOrEmpty(filter.Effect))
             {
-                var effect = filter.Effect;
-
+                string effect = null;
                 if (EffectSearchHelpers.ContainsKey(filter.Effect))
-                    effect = EffectSearchHelpers[filter.Effect] ?? filter.Effect;
+                    effect = EffectSearchHelpers[filter.Effect];
 
-                if (Regex.Escape(effect) != effect)
+                if (!String.IsNullOrEmpty(effect))
                 {
                     var re = new Regex(effect, RegexOptions.IgnoreCase);
                     query = query.Where(x => x.HasEffect(re, filter.EffectSlot));
                 }
                 else
-                    query = query.Where(x => x.HasEffect(effect, filter.EffectSlot));
+                    query = query.Where(x => x.HasEffect(filter.Effect, filter.EffectSlot));
             }
 
             return query;
