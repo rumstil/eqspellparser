@@ -91,6 +91,14 @@ namespace winparser
             return filter;
         }
 
+        private void SearchBtn_Click(object sender, EventArgs e)
+        {
+            Cursor.Current = Cursors.WaitCursor;
+            Search();
+            ShowResults();
+            Cursor.Current = Cursors.Default;
+        }
+
         /// <summary>
         /// Search spell database based on filter settings
         /// </summary>
@@ -437,20 +445,11 @@ namespace winparser
             }
         }
 
-        private void SearchBtn_Click(object sender, EventArgs e)
-        {
-            Cursor.Current = Cursors.WaitCursor;
-            Search();
-            ShowResults();
-            Cursor.Current = Cursors.Default;
-        }
-
         private void CompareBtn_Click(object sender, EventArgs e)
         {
-            Cursor.Current = Cursors.WaitCursor;
-
             FileOpenForm open = null;
             MainForm other = null;
+
             foreach (var f in Application.OpenForms)
             {
                 if (f is MainForm && f != this)
@@ -467,6 +466,13 @@ namespace winparser
                 return;
             }
 
+            Cursor.Current = Cursors.WaitCursor;
+            Compare(other);
+            Cursor.Current = Cursors.Default;
+        }
+
+        public void Compare(MainForm other)
+        {
             // perform the same search on both spell files
             var filter = GetFilter();
             Results = Spells.Search(filter).ToList();
@@ -490,7 +496,7 @@ namespace winparser
             if (diffs.Count == 0)
                 html.AppendFormat("<p>No differences were found between {0} and {1} based on the search filters.</p>", oldVer.SpellPath, newVer.SpellPath);
             else
-            {                
+            {
                 html.AppendFormat("<p>Found {0} differences between <del>{1}</del> and <ins>{2}</ins>.</p>", diffs.Count(x => x.operation != Operation.EQUAL), oldVer.SpellPath, newVer.SpellPath);
                 html.Append(diff_match_patch.diff_prettyHtml(diffs));
             }
@@ -502,8 +508,6 @@ namespace winparser
             //html = InitHtml();
             //html.AppendFormat("<p>See other window for comparison.</p></html>");
             //other.SearchBrowser.DocumentText = html.ToString();
-
-            Cursor.Current = Cursors.Default;
         }
 
         private static List<Diff> Compare(IEnumerable<Spell> setA, IEnumerable<Spell> setB, Func<Spell, string> getTextA, Func<Spell, string> getTextB)

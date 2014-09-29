@@ -76,6 +76,7 @@
             // 
             // listView1
             // 
+            this.listView1.Activation = System.Windows.Forms.ItemActivation.OneClick;
             this.listView1.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader1,
@@ -91,6 +92,7 @@
             this.listView1.TabIndex = 1;
             this.listView1.UseCompatibleStateImageBehavior = false;
             this.listView1.View = System.Windows.Forms.View.Details;
+            this.listView1.ItemActivate += new System.EventHandler(this.listView1_DoubleClick);
             this.listView1.DoubleClick += new System.EventHandler(this.listView1_DoubleClick);
             // 
             // columnHeader1
@@ -127,7 +129,7 @@
             this.Status.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Status.Location = new System.Drawing.Point(12, 9);
             this.Status.Name = "Status";
-            this.Status.Size = new System.Drawing.Size(297, 20);
+            this.Status.Size = new System.Drawing.Size(232, 15);
             this.Status.TabIndex = 0;
             this.Status.Text = "Please select at least one spell file to open. ";
             // 
@@ -143,7 +145,7 @@
             // FileOpenForm
             // 
             this.AcceptButton = this.OpenBtn;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(660, 323);
             this.Controls.Add(this.listView1);

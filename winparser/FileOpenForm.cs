@@ -62,13 +62,24 @@ namespace winparser
         }
 
         /// <summary>
-        /// Open a spell file in the parser.
+        /// Load a spell file into a new window.
         /// </summary>
         private void Open(string spellPath)
         {
+            MainForm other = Application.OpenForms.OfType<MainForm>().FirstOrDefault();
+
             var f = new MainForm();
             f.Load(spellPath, spellPath.Replace("spells_us", "dbstr_us"));
             f.Show();
+
+            // if a form is already loaded then assume we are going to be comparing right away
+            if (other != null)
+            {
+                other.BringToFront();
+                other.Compare(f);
+            }
+
+            Hide();
         }
 
         /// <summary>
@@ -122,20 +133,13 @@ namespace winparser
         private void listView1_DoubleClick(object sender, EventArgs e)
         {
             if (listView1.FocusedItem != null)
-            {
-                Hide();
                 Open(listView1.FocusedItem.Text);
-                
-            }
         }
 
         private void OpenBtn_Click(object sender, EventArgs e)
         {
             for (int i = 0; i < listView1.SelectedItems.Count; i++)
-            {
                 Open(listView1.SelectedItems[i].Text);
-                Hide();
-            }
         }
 
         private void DownloadLive_Click(object sender, EventArgs e)
