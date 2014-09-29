@@ -59,13 +59,11 @@ namespace winparser
             Cursor.Current = Cursors.Default;
 
             var html = InitHtml();
-
             html.AppendFormat("<p>Loaded <strong>{0}</strong> spells from {1}.</p></html>", Spells.Count, SpellPath);
             html.Append("<p>Use the search button to perform a search on this spell file based on the filters on the left.");
             html.Append("<p>Use the compare button to compare two different spell files and show the differences. e.g. test server vs live server spells.");
             html.Append("<p>Tip: You can use the up/down arrow keys when the cursor is in the Class/Has Effect/Category fields to quickly try different searches.");
             html.Append("<p>Tip: This parser is an open source application and accepts updates and corrections here: <a href='http://code.google.com/p/eqspellparser/' class='ext' target='_top'>http://code.google.com/p/eqspellparser/</a>");
-
             ShowHtml(html);
         }
 
@@ -86,7 +84,7 @@ namespace winparser
             filter.ClassMinLevel = min;
             filter.ClassMaxLevel = max;
             //filter.AppendForwardRefs = true;
-            //filter.AppendBackRefs = ShowRelated.Checked;
+            filter.AppendBackRefs = ShowRelated.Checked;
 
             return filter;
         }
@@ -100,97 +98,27 @@ namespace winparser
         }
 
         /// <summary>
-        /// Search spell database based on filter settings
+        /// Search spells and save to [Results] 
         /// </summary>
         public void Search()
         {
             AutoSearch.Enabled = false;
 
             var filter = GetFilter();
-            int id;
-            Int32.TryParse(filter.Text, out id);
-            int cls = SpellParser.ParseClass(SearchClass.Text) - 1;
 
             Results = Spells.Search(filter).ToList();
 
-            // track results before they are expanded so that we can hide extra spell results
+            // track base results before we add reference spells (which will be hidden by default)
             BaseResults = new HashSet<int>();
             foreach (var s in Results)
                 BaseResults.Add(s.ID);
 
-            // expand always includes forward links but backward links are optional 
-            Spells.Expand(Results, ShowRelated.Checked && Results.Count > 1);
-            
-            string Sorting = null;
-            // 1. if an effect is selected then sort by the effect strength
-            // this is problematic since many spells have conditional effects 
-            //if (effect.Contains(@"(\d+)"))
-            //{
-            //    Sorting = "Results have been sorted by descending " + SearchEffect.Text + " strength.";
-            //    var re = new Regex(effect, RegexOptions.IgnoreCase);
-            //    Results.Sort((a, b) =>
-            //    {
-            //        int comp = b.ScoreEffect(re) - a.ScoreEffect(re);
-            //        if (comp == 0)
-            //            comp = a.ID - b.ID;
-            //        return comp;
-            //    });
-            //}
-            // 2. if a class is selected then sort by the casting levels for that class first
-            // place castable spells before non castable effects (level == 0)
-            if (cls >= 0)
-            {
-                Sorting = String.Format("Results sorted by {1} level.", Results.Count, SearchClass.Text);
-                Results.Sort((a, b) =>
-                {
-                    if (a.Levels[cls] > 0 && b.Levels[cls] == 0)
-                        return -1;
-                    if (b.Levels[cls] > 0 && a.Levels[cls] == 0)
-                        return 1;
-                    int comp = a.Levels[cls] - b.Levels[cls];
-                    if (comp == 0)
-                        comp = String.Compare(TrimNumerals(a.Name), TrimNumerals(b.Name));
-                    if (comp == 0)
-                        comp = a.ID - b.ID;
-                    return comp;
-                });
-            }
-            // 3. finally sort by name if no better method is found
-            else
-            {
-                Sorting = String.Format("Results sorted by name.", Results.Count);
-                Results.Sort((a, b) =>
-                {
-                    int comp = String.Compare(TrimNumerals(a.Name), TrimNumerals(b.Name));
-                    if (comp == 0)
-                        comp = a.ID - b.ID;
-                    return comp;
-                });
-
-            }
-
-            // if searching by id, move the spell to the top of the results because it may be sorted below it's side effect spells
-            if (id > 0)
-            {
-                var i = Results.FindIndex(x => x.ID == id);
-                if (i > 0)
-                {
-                    var move = Results[i];
-                    Results.RemoveAt(i);
-                    Results.Insert(0, move);
-                }
-            }
-            // move entries that begin with the search text to the front of the results
-            else if (!String.IsNullOrEmpty(filter.Text))
-            {
-                var move = Results.FindAll(x => x.Name.StartsWith(filter.Text, StringComparison.InvariantCultureIgnoreCase));
-                if (move.Count > 0)
-                {
-                    Results.RemoveAll(x => x.Name.StartsWith(filter.Text, StringComparison.InvariantCultureIgnoreCase));
-                    Results.InsertRange(0, move);
-                }
-            }
-
+            // add referenced spells
+            Spells.AddForwardRefs(Results);
+            if (filter.AppendBackRefs && Results.Count > 1)
+                Spells.AddBackRefs(Results);
+           
+            Spells.Sort(Results, filter);
         }
 
         /// <summary>
@@ -388,19 +316,6 @@ namespace winparser
         {
             // i don't think .net has a html encoder outside of the system.web assembly
             return text.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
-        }
-
-        private string TrimNumerals(string text)
-        {
-            // trim rank
-            int i = text.IndexOf("Rk.");
-            if (i > 0)
-                text = text.Substring(0, i - 1);
-
-            // trim numerals
-            text = text.TrimEnd(' ', 'X', 'V', 'I');
-
-            return text;
         }
 
         private string FormatTime(float seconds)

@@ -16,7 +16,7 @@ namespace Everquest
         public int ClassMaxLevel { get; set; }
         public string Category { get; set; }
         //public bool AppendForwardRefs { get; set; }
-        //public bool AppendBackRefs { get; set; }
+        public bool AppendBackRefs { get; set; }
     }
 
 
@@ -115,11 +115,12 @@ namespace Everquest
         {
             var query = spells.AsQueryable();
 
-            //  spell name and description are checked for literal text           
+            // if the spell text filter is an integer then just do a quick search by ID and ignore the other filters
             int id;
             if (Int32.TryParse(filter.Text, out id))
                 return query.Where(x => x.ID == id || x.GroupID == id);
 
+            //  spell name and description are checked for literal text    
             if (!String.IsNullOrEmpty(filter.Text))
                 query = query.Where(x => x.ID.ToString() == filter.Text || x.Name.IndexOf(filter.Text, StringComparison.InvariantCultureIgnoreCase) >= 0 || (x.Desc != null && x.Desc.IndexOf(filter.Text, StringComparison.InvariantCultureIgnoreCase) >= 0));
 
@@ -173,30 +174,89 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Expand a spell list to include referenced spells.
-        /// </summary>                
-        public void Expand(List<Spell> list, bool backwards)
+        /// Sort a spell list based on what kind of filters were used.
+        /// </summary>
+        public void Sort(List<Spell> list, SpellSearchFilter filter)
         {
-            // keep track of all spells in the results so that we don't enter into a loop
-            HashSet<int> included = new HashSet<int>();
-            foreach (Spell spell in list)
-                included.Add(spell.ID);
+            int cls = SpellParser.ParseClass(filter.Class) - 1;
+            int id;
+            Int32.TryParse(filter.Text, out id);
 
-            // search the full spell list to find spells that link to the current results (reverse links)
-            // but do not do this for spells that are heavily referenced. e.g. complete heal is referenced by hundreds of focus spells
-            if (backwards)
+            // 1. if an effect is selected then sort by the effect strength
+            // this is problematic since many spells have conditional effects 
+            //if (effect.Contains(@"(\d+)"))
+            //{
+            //    Sorting = "Results have been sorted by descending " + SearchEffect.Text + " strength.";
+            //    var re = new Regex(effect, RegexOptions.IgnoreCase);
+            //    Results.Sort((a, b) =>
+            //    {
+            //        int comp = b.ScoreEffect(re) - a.ScoreEffect(re);
+            //        if (comp == 0)
+            //            comp = a.ID - b.ID;
+            //        return comp;
+            //    });
+            //}
+            // 2. if a class is selected then sort by the casting levels for that class first
+            // place castable spells before non castable effects (level == 0)
+            if (cls >= 0)
             {
-                var ignore = list.Where(x => x.RefCount > 10).Select(x => x.ID).ToList();
-                foreach (var spell in spells)
+                list.Sort((a, b) =>
                 {
-                    foreach (int id in spell.LinksTo)
-                        if (!ignore.Contains(id) && included.Contains(id) && !included.Contains(spell.ID))
-                        {
-                            included.Add(spell.ID);
-                            list.Add(spell);
-                        }
+                    if (a.Levels[cls] > 0 && b.Levels[cls] == 0)
+                        return -1;
+                    if (b.Levels[cls] > 0 && a.Levels[cls] == 0)
+                        return 1;
+                    int comp = a.Levels[cls] - b.Levels[cls];
+                    if (comp == 0)
+                        comp = String.Compare(TrimNumerals(a.Name), TrimNumerals(b.Name));
+                    if (comp == 0)
+                        comp = a.ID - b.ID;
+                    return comp;
+                });
+            }
+            // 3. finally sort by name if no better method is found
+            else
+            {
+                list.Sort((a, b) =>
+                {
+                    int comp = String.Compare(TrimNumerals(a.Name), TrimNumerals(b.Name));
+                    if (comp == 0)
+                        comp = a.ID - b.ID;
+                    return comp;
+                });
+
+            }
+
+            // if searching by id, move the spell to the top of the results because it may be sorted below it's side effect spells
+            if (id > 0)
+            {
+                var i = list.FindIndex(x => x.ID == id);
+                if (i > 0)
+                {
+                    var move = list[i];
+                    list.RemoveAt(i);
+                    list.Insert(0, move);
                 }
             }
+            // move entries that begin with the search text to the front of the results
+            else if (!String.IsNullOrEmpty(filter.Text))
+            {
+                var move = list.FindAll(x => x.Name.StartsWith(filter.Text, StringComparison.InvariantCultureIgnoreCase));
+                if (move.Count > 0)
+                {
+                    list.RemoveAll(x => x.Name.StartsWith(filter.Text, StringComparison.InvariantCultureIgnoreCase));
+                    list.InsertRange(0, move);
+                }
+            }
+
+        }
+
+        /// <summary>
+        /// Expand a spell list to include spells that the existing list makes references to.
+        /// </summary>                
+        public void AddForwardRefs(List<Spell> list)
+        {
+            var included = new HashSet<int>(list.Select(x => x.ID));
 
             // search the results to find other spells that the matches link to (forward links)
             int i = 0;
@@ -216,6 +276,39 @@ namespace Everquest
 
         }
 
+        /// <summary>
+        /// Expand a spell list to include spells that make reference to the results.
+        /// </summary> 
+        public void AddBackRefs(List<Spell> list)
+        {
+            var included = new HashSet<int>(list.Select(x => x.ID));
+
+            // do not include not produce back refs for spells that are heavily reference. 
+            // e.g. complete heal is referenced by hundreds of focus spells (we wouldn't want to add those focus spells to the results)
+            var ignore = list.Where(x => x.RefCount > 10).Select(x => x.ID).ToList();
+            foreach (var spell in spells)
+            {
+                foreach (int id in spell.LinksTo)
+                    if (!ignore.Contains(id) && included.Contains(id) && !included.Contains(spell.ID))
+                    {
+                        included.Add(spell.ID);
+                        list.Add(spell);
+                    }
+            }
+        }
+
+        private string TrimNumerals(string text)
+        {
+            // trim rank
+            int i = text.IndexOf("Rk.");
+            if (i > 0)
+                text = text.Substring(0, i - 1);
+
+            // trim numerals
+            text = text.TrimEnd(' ', 'X', 'V', 'I');
+
+            return text;
+        }
 
 
         #region IEnumerable<Spell> Members
