@@ -63,7 +63,7 @@ namespace parser
                 {
                     Console.Error.WriteLine("{0} results", results.Count);
                     Console.Error.WriteLine();
-                    spells.Expand(results, false);
+                    spells.AddForwardRefs(results);
                     Show(results);
                 }
 
