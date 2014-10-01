@@ -1869,12 +1869,12 @@ namespace Everquest
                     return "Summon Doppelganger: " + Extra;
                 case 302:
                     // see also 124. only used on 2 AA
-                    return Spell.FormatPercent("Spell Damage", base1);
+                    return Spell.FormatPercent("Base Spell Damage", base1);
                 case 303:
                     // used on type 3 augments
                     // is added before crit multipliers, but after SPA 296 and 302 (and maybe 124).
                     // for DoTs it adds base1/ticks to each tick.
-                    return Spell.FormatCount("Spell Damage", base1);
+                    return Spell.FormatCount("Base Spell Damage", base1);
                 case 304:
                     // it's worded as 'avoid getting riposted' for Open Wound Effect - however, this may just be chance to avoid offhand riposte
                     return Spell.FormatPercent("Chance to Avoid Riposte", -base1);
