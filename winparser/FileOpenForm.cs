@@ -68,9 +68,18 @@ namespace winparser
         {
             MainForm other = Application.OpenForms.OfType<MainForm>().FirstOrDefault();
 
+            if (other != null && other.SpellPath == spellPath)
+            {
+                Status.Text = spellPath + " has already been loaded.";
+                return;
+            }
+
             var f = new MainForm();
             f.Load(spellPath, spellPath.Replace("spells_us", "dbstr_us"));
             f.Show();
+
+            // DoEvents is a bit naughty because we could reenter this method on a double click, but it gives the browser a chance to init
+            Application.DoEvents(); 
 
             // if a form is already loaded then assume we are going to be comparing right away
             if (other != null)
@@ -132,14 +141,20 @@ namespace winparser
 
         private void listView1_DoubleClick(object sender, EventArgs e)
         {
+            listView1.Enabled = false;
             if (listView1.FocusedItem != null)
                 Open(listView1.FocusedItem.Text);
+            listView1.Enabled = true;
         }
 
         private void OpenBtn_Click(object sender, EventArgs e)
         {
+            listView1.Enabled = false;
             for (int i = 0; i < listView1.SelectedItems.Count; i++)
+            { 
                 Open(listView1.SelectedItems[i].Text);
+            }
+            listView1.Enabled = true;
         }
 
         private void DownloadLive_Click(object sender, EventArgs e)

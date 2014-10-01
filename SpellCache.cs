@@ -27,12 +27,12 @@ namespace Everquest
     {
         public static readonly Dictionary<string, string> EffectSearchHelpers;
 
-        private string id;
+        private string path;
         private List<Spell> spells;
         private Dictionary<int, Spell> spellsById;
         private ILookup<int, Spell> spellsByGroup;
 
-        public string Id { get { return id; } set { id = value; } }
+        public string Path { get { return path; } }
 
         static SpellCache()
         {
@@ -65,9 +65,9 @@ namespace Everquest
             EffectSearchHelpers.Add("Add Spell Proc", @"Cast.+on Spell Use");
         }
 
-        public SpellCache(string id, List<Spell> list)
+        public SpellCache(string path, List<Spell> list)
         {
-            Id = id;
+            this.path = path;
             spells = list;
             spellsById = list.ToDictionary(x => x.ID);
             spellsByGroup = list.Where(x => x.GroupID != 0).ToLookup(x => x.GroupID);

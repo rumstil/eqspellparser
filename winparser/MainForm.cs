@@ -22,7 +22,7 @@ namespace winparser
 
         public string SpellPath;
         public List<Spell> Results;
-        public HashSet<int> BaseResults; 
+        public HashSet<int> BaseResults;
 
 
         public MainForm()
@@ -117,7 +117,7 @@ namespace winparser
             Spells.AddForwardRefs(Results);
             if (filter.AppendBackRefs && Results.Count > 1)
                 Spells.AddBackRefs(Results);
-           
+
             Spells.Sort(Results, filter);
         }
 
@@ -136,11 +136,11 @@ namespace winparser
             }
             else
             {
-                if (Results.Count > 2000)                 
+                if (Results.Count > 2000)
                     html.Append("<p>Only the first 2000 are shown.</p>");
 
                 Func<Spell, bool> visible = spell => ShowRelated.Checked || BaseResults.Contains(spell.ID);
-                
+
 
                 if (DisplayText.Checked)
                     ShowAsText(Results.Take(2000), visible, html);
