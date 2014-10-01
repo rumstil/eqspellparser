@@ -2158,7 +2158,10 @@ namespace Everquest
                 case 425:
                     return "Fly";
                 case 427:
-                    return String.Format("Cast: [Spell {0}] on Skill Use ({1}% Chance)", base1, base2 / 10);
+                    // not sure how this works. base2 / 10 doesn't seem to be the correct chance.
+                    // raising base2 increases the frequency of the cast.
+                    // it may only have an opportunity to fire once a round or maybe once per some timespan?
+                    return String.Format("Cast: [Spell {0}] on Skill Use ({1})", base1, base2);
                 case 428:
                     return String.Format("Limit Skill: {0}", Spell.FormatEnum((SpellSkill)value));
                 case 429:
