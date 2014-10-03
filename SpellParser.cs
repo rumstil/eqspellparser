@@ -1572,11 +1572,11 @@ namespace Everquest
                 case 123:
                     return "Screech";
                 case 124:
-                    return Spell.FormatPercent("Spell Damage", base1, base2);
+                    return Spell.FormatFocus("Spell Damage", base1, base2);
                 case 125:
-                    return Spell.FormatPercent("Healing", base1, base2);
+                    return Spell.FormatFocus("Healing", base1, base2);
                 case 126:
-                    return Spell.FormatPercent("Spell Resist Rate", -base1, -base2);
+                    return Spell.FormatFocus("Spell Resist Rate", -base1, -base2);
                 case 127:
                     return Spell.FormatPercent("Spell Haste", base1);
                 case 128:
@@ -1585,11 +1585,11 @@ namespace Everquest
                     return Spell.FormatPercent("Spell Range", base1);
                 case 130:
                     // i think this affects all special attacks. bash/kick/frenzy/etc...
-                    return Spell.FormatPercent("Spell and Bash Hate", base1, base2);
+                    return Spell.FormatFocus("Spell and Bash Hate", base1, base2);
                 case 131:
-                    return Spell.FormatPercent("Chance of Using Reagent", -base1, -base2);
+                    return Spell.FormatFocus("Chance of Using Reagent", -base1, -base2);
                 case 132:
-                    return Spell.FormatPercent("Spell Mana Cost", -base1, -base2);
+                    return Spell.FormatFocus("Spell Mana Cost", -base1, -base2);
                 case 134:
                     if (base2 == 0)
                         base2 = 100; // just to make it obvious that 0 means the focus stops functioning
@@ -1858,7 +1858,7 @@ namespace Everquest
                     else
                         return Spell.FormatPercent("Critical Nuke Damage", base2) + " of Base Damage";
                 case 296:
-                    return Spell.FormatPercent("Spell Damage Taken", base2, base1);
+                    return Spell.FormatFocus("Spell Damage Taken", base1, base2);
                 case 297:
                     return Spell.FormatCount("Spell Damage Taken", base1);
                 case 298:
@@ -2090,9 +2090,9 @@ namespace Everquest
                 case 392:
                     return Spell.FormatCount("Healing Bonus", base1);
                 case 393:
-                    return Spell.FormatPercent("Healing Taken", base1, base2); // ranged
+                    return Spell.FormatFocus("Healing Taken", base1, base2); // ranged
                 case 394:
-                    return Spell.FormatCount("Healing Taken", base1); // affected by limits
+                    return Spell.FormatCount("Healing Taken", base1); // affected by focus limit rules
                 case 396:
                     // used on type 3 augments
                     return Spell.FormatCount("Healing", base1);
@@ -2557,25 +2557,21 @@ namespace Everquest
 
         static private string FormatPercent(string name, float value)
         {
-            return Spell.FormatPercent(name, value, value);
+            return String.Format("{0} {1} by {2}%", value < 0 ? "Decrease" : "Increase", name, Math.Abs(value));
         }
 
-        static private string FormatPercent(string name, float min, float max)
+        static private string FormatFocus(string name, int min, int max)
         {
-            if (Math.Abs(min) > Math.Abs(max))
-            {
-                float temp = min;
-                min = max;
-                max = temp;
-            }
+            if ((min >= 0 && min > max) || (min < 0 && min < max))
+                max = min;
 
-            if (min == 0 && max != 0)
+            if (min == 0)
                 min = 1;
 
             if (min == max)
-                return String.Format("{0} {1} by {2}%", max < 0 ? "Decrease" : "Increase", name, Math.Abs(max));
+                return String.Format("{0} {1} by {2}%", min < 0 ? "Decrease" : "Increase", name, Math.Abs(min));
 
-            return String.Format("{0} {1} by {2}% to {3}%", max < 0 ? "Decrease" : "Increase", name, Math.Abs(min), Math.Abs(max));
+            return String.Format("{0} {1} by {2}% to {3}%", min < 0 ? "Decrease" : "Increase", name, Math.Abs(min), Math.Abs(max));
         }
 
         /*
@@ -2761,7 +2757,7 @@ namespace Everquest
 #endif
 
             spell.ID = Convert.ToInt32(fields[0]);
-            spell.Name = fields[1];
+            spell.Name = fields[1].Trim();
             //Target = fields[2];
             spell.Extra = fields[3];
             spell.LandOnSelf = fields[6];
@@ -2840,7 +2836,7 @@ namespace Everquest
             // 159 NPC Does not Require LoS
             // 160 Feedbackable (Triggers spell damage shield)
             spell.Reflectable = ParseBool(fields[161]);
-            spell.HateMod = ParseInt(fields[162]);          
+            spell.HateMod = ParseInt(fields[162]);
             // 164 Resist Cap = 147 values. mostly negative
             // 165 Useable On Objects Boolean
             spell.Endurance = ParseInt(fields[166]);
