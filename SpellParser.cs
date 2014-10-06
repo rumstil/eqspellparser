@@ -5,17 +5,8 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Linq;
 
-
-
-
-/* This file is intended to be used as a library and only uses c# 2.0/.net 2.0 features for the widest compatiblity.
- *
- * http://code.google.com/p/projecteqemu/source/browse/trunk/EQEmuServer/zone/spdat.h
- * http://eqitems.13th-floor.org/phpBB2/viewtopic.php?t=23
- *
- * 
- */
 
 namespace Everquest
 {
@@ -877,6 +868,16 @@ namespace Everquest
 
     #endregion
 
+    public sealed class FocusEffect
+    {
+        public string Type;
+        public int Min;
+        public int Max;
+        public int MaxLevel;
+        public int MaxLevelLoss;
+        public int[] AtLevel;
+    }
+
     public sealed class Spell
     {
         public int ID;
@@ -964,6 +965,10 @@ namespace Everquest
         public int CritOverride; // when set the spell has this % crit chance and mod 
         public bool CombatSkill;
 
+        //public string FocusType;
+        //public string FocusResist;
+        //public string FocusBenDet;
+
 
         public int[] LinksTo;
         public int RefCount; // number of spells that link to this
@@ -983,6 +988,14 @@ namespace Everquest
         static public readonly Regex SpellRefExpr = new Regex(@"\[Spell\s(\d+)\]");
         static public readonly Regex GroupRefExpr = new Regex(@"\[Group\s(\d+)\]");
         static public readonly Regex ItemRefExpr = new Regex(@"\[Item\s(\d+)\]");
+
+        static public readonly Regex FocusAmount = new Regex(@"(.+) by (\d+)%(?: to (\d+)%)?");
+        static public readonly Regex FocusPetAmount = new Regex(@"(Increase Pet Power) \((\d+)\)");
+        static public readonly Regex FocusResist = new Regex(@"Limit Resist: (.+)");
+        static public readonly Regex FocusBenDet = new Regex(@"Limit Type: (.+)");
+        static public readonly Regex FocusLevel = new Regex(@"Limit Max Level: (\d+).+lose (\d+)% per level");
+
+        
 
         public Spell()
         {
@@ -1572,11 +1585,11 @@ namespace Everquest
                 case 123:
                     return "Screech";
                 case 124:
-                    return Spell.FormatFocus("Spell Damage", base1, base2);
+                    return Spell.FormatPercentRange("Spell Damage", base1, base2);
                 case 125:
-                    return Spell.FormatFocus("Healing", base1, base2);
+                    return Spell.FormatPercentRange("Healing", base1, base2);
                 case 126:
-                    return Spell.FormatFocus("Spell Resist Rate", -base1, -base2);
+                    return Spell.FormatPercentRange("Spell Resist Rate", -base1, -base2);
                 case 127:
                     return Spell.FormatPercent("Spell Haste", base1);
                 case 128:
@@ -1585,11 +1598,11 @@ namespace Everquest
                     return Spell.FormatPercent("Spell Range", base1);
                 case 130:
                     // i think this affects all special attacks. bash/kick/frenzy/etc...
-                    return Spell.FormatFocus("Spell and Bash Hate", base1, base2);
+                    return Spell.FormatPercentRange("Spell and Bash Hate", base1, base2);
                 case 131:
-                    return Spell.FormatFocus("Chance of Using Reagent", -base1, -base2);
+                    return Spell.FormatPercentRange("Chance of Using Reagent", -base1, -base2);
                 case 132:
-                    return Spell.FormatFocus("Spell Mana Cost", -base1, -base2);
+                    return Spell.FormatPercentRange("Spell Mana Cost", -base1, -base2);
                 case 134:
                     if (base2 == 0)
                         base2 = 100; // just to make it obvious that 0 means the focus stops functioning
@@ -1666,7 +1679,7 @@ namespace Everquest
                 case 166:
                     return String.Format("Unlock Chest ({0})", value);
                 case 167:
-                    return String.Format("Pet Power Focus ({0})", value);
+                    return String.Format("Increase Pet Power ({0})", value);
                 case 168:
                     // defensive disc/how is this different than an endless rune?
                     return Spell.FormatPercent("Melee Mitigation", -value);
@@ -1769,7 +1782,7 @@ namespace Everquest
                     // use spell duration if it is > 0?
                     return String.Format("AE Attack for {0}s", base1 * 10);
                 case 213:
-                    return String.Format("Pet Power v2 ({0})", value);
+                    return String.Format("Increase Pet Power v2 ({0})", value);
                 case 214:
                     if (Math.Abs(value) >= 100)
                         value = (int)(value / 100f);
@@ -1858,7 +1871,7 @@ namespace Everquest
                     else
                         return Spell.FormatPercent("Critical Nuke Damage", base2) + " of Base Damage";
                 case 296:
-                    return Spell.FormatFocus("Spell Damage Taken", base1, base2);
+                    return Spell.FormatPercentRange("Spell Damage Taken", base1, base2);
                 case 297:
                     return Spell.FormatCount("Spell Damage Taken", base1);
                 case 298:
@@ -1891,7 +1904,8 @@ namespace Everquest
                 case 310:
                     return String.Format("Reduce Timer by {0}s", base1 / 1000f);
                 case 311:
-                    return String.Format("Limit Type: {0}Combat Skills", base1 == 1 ? "" : "Exclude ");
+                    // filter based on field 168 
+                    return String.Format("Limit Combat Skills: {0}", base1 == 1 ? "Include" : "Exclude ");
                 case 312:
                     return "Sanctuary";
                 case 314:
@@ -2090,7 +2104,7 @@ namespace Everquest
                 case 392:
                     return Spell.FormatCount("Healing Bonus", base1);
                 case 393:
-                    return Spell.FormatFocus("Healing Taken", base1, base2); // ranged
+                    return Spell.FormatPercentRange("Healing Taken", base1, base2); 
                 case 394:
                     return Spell.FormatCount("Healing Taken", base1); // affected by focus limit rules
                 case 396:
@@ -2227,7 +2241,7 @@ namespace Everquest
                 case 457:
                     // offical name is "Resource Tap." Formula is base1 / 1000 * damage value. Example: 88001 damage, base1 = 100. 100 / 1000 = .1 * 88001.
                     // simply dividing by 10 gives the same result.
-                    return string.Format("Return {0}% of Damage as {1}", base1 / 10, Choose(base2, "HP", "Mana", "Endurance")) + (max > 0 ? String.Format(", Max Per Hit: {0}", max) : "");
+                    return string.Format("Return {0}% of Damage as {1}", base1 / 10, new string[] { "HP", "Mana", "Endurance" }[base2 % 3]) + (max > 0 ? String.Format(", Max Per Hit: {0}", max) : "");
                 case 458:
                     // -100 = no faction hit, 100 = double faction
                     return Spell.FormatPercent("Faction Hit", base1);
@@ -2242,11 +2256,83 @@ namespace Everquest
             return String.Format("Unknown Effect: {0} Base1={1} Base2={2} Max={3} Calc={4} Value={5}", spa, base1, base2, max, calc, value);
         }
 
-        static string Choose(int index, params string[] text)
+        /*
+        public Focus HasFocus(string type, params string[] limit)
         {
-            if (index >= text.Length)
+            // focus effects are always in the first slot
+            if (Slots[0] == null || !Slots[0].StartsWith(type))
                 return null;
-            return text[index];
+
+            // check that the limits exist
+            if (!limit.All(x => Slots.Contains(x)))
+                return null;
+
+            var focus = new Focus();
+            focus.Type = type;
+            
+            var amount = FocusAmount.Match(Slots[0]);
+            focus.Min = Int32.Parse(amount.Groups[1].Value);
+            focus.Max = focus.Min;
+            if (amount.Groups.Count > 2)
+                focus.Max = Int32.Parse(amount.Groups[2].Value);
+
+            var level = Slots.Where(x => x != null).Select(x => FocusLevel.Match(x)).FirstOrDefault(x => x.Success);
+            if (level != null)
+            {
+                focus.Level = Int32.Parse(level.Groups[1].Value);
+            }
+
+            var bendet = Slots.Where(x => x != null).Select(x => FocusBenDet.Match(x)).FirstOrDefault(x => x.Success);
+
+            return focus;
+        }
+        */
+
+        /// <summary>
+        /// If the spell is a focus effect return the details of the focus.
+        /// </summary>
+        public FocusEffect FocusEffect()
+        {
+            if (Slots[0] == null)
+                return null;
+
+            var amount = FocusAmount.Match(Slots[0]);
+            if (!amount.Success)
+                amount = FocusPetAmount.Match(Slots[0]);
+            if (!amount.Success)
+                return null;
+
+            var focus = new FocusEffect();
+            focus.Type = amount.Groups[1].Value;
+            focus.Min = focus.Max = Int32.Parse(amount.Groups[2].Value);
+            if (amount.Groups[3].Success)
+            {
+                focus.Max = Int32.Parse(amount.Groups[3].Value);
+            }
+
+            focus.AtLevel = Enumerable.Repeat(focus.Max, 105).ToArray();
+            var level = Slots.Where(x => x != null).Select(x => FocusLevel.Match(x)).FirstOrDefault(x => x.Success);
+            if (level != null)
+            {
+                focus.MaxLevel = Int32.Parse(level.Groups[1].Value);
+                focus.MaxLevelLoss = Int32.Parse(level.Groups[2].Value);
+                for (int i = focus.MaxLevel; i <= focus.AtLevel.Length; i++)
+                   focus.AtLevel[i - 1] = (int)Math.Max(0, Math.Truncate(focus.Max - focus.Max * (i - focus.MaxLevel) * focus.MaxLevelLoss / 100f));
+            }
+
+            var bendet = Slots.Where(x => x != null).Select(x => FocusBenDet.Match(x)).FirstOrDefault(x => x.Success);
+            var resist = Slots.Where(x => x != null).Select(x => FocusResist.Match(x)).FirstOrDefault(x => x.Success);
+            if (resist != null)
+            {
+                // if there's a resist filter then we don't need to add /detrimental since that's a given
+                focus.Type += "/" + resist.Groups[1].Value;
+            }
+            else if (bendet != null && focus.Type != "Increase Healing")
+            {
+                focus.Type += "/" + bendet.Groups[1].Value;
+            }
+
+            return focus;
         }
 
         /// <summary>
@@ -2560,7 +2646,7 @@ namespace Everquest
             return String.Format("{0} {1} by {2}%", value < 0 ? "Decrease" : "Increase", name, Math.Abs(value));
         }
 
-        static private string FormatFocus(string name, int min, int max)
+        static private string FormatPercentRange(string name, int min, int max)
         {
             if ((min >= 0 && min > max) || (min < 0 && min < max))
                 max = min;
