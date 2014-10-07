@@ -24,6 +24,9 @@ namespace winparser
         public List<Spell> Results;
         public HashSet<int> BaseResults;
 
+        public SpellSearchFilter DefaultFilter;
+        public List<SpellSearchFilter> SearchHistory = new List<SpellSearchFilter>();
+
 
         public MainForm()
         {
@@ -39,10 +42,18 @@ namespace winparser
             SearchClass.Items.Add("Any PC");
             SearchClass.Items.Add("");
 
-            SearchEffect.Items.AddRange(SpellCache.EffectSearchHelpers.Keys.ToArray());
-            SearchEffect.Items.Add("");
+            SearchEffect1.Items.AddRange(SpellCache.EffectSearchHelpers.Keys.ToArray());
+            SearchEffect1.Items.Add("");
+            SearchEffect1.Text = "";
+            SearchEffect2.Items.AddRange(SpellCache.EffectSearchHelpers.Keys.ToArray());
+            SearchEffect2.Items.Add("");
+            SearchEffect3.Items.AddRange(SpellCache.EffectSearchHelpers.Keys.ToArray());
+            SearchEffect3.Items.Add("");
+
+
 
             //SearchBrowser.ObjectForScripting = this;
+            DefaultFilter = GetFilter();
         }
 
         public new void Load(string spellPath, string descPath)
@@ -72,10 +83,16 @@ namespace winparser
 
             var filter = new SpellSearchFilter();
             filter.Text = SearchText.Text.Trim();
-            filter.Effect = SearchEffect.Text.Trim();
+            filter.Effect[0] = SearchEffect1.Text.Trim();
+            filter.Effect[1] = SearchEffect2.Text.Trim();
+            filter.Effect[2] = SearchEffect3.Text.Trim();
             int slot;
-            if (Int32.TryParse(SearchEffectSlot.Text.Trim(), out slot))
-                filter.EffectSlot = slot;
+            if (Int32.TryParse(SearchEffectSlot1.Text.Trim(), out slot))
+                filter.EffectSlot[0] = slot;
+            if (Int32.TryParse(SearchEffectSlot2.Text.Trim(), out slot))
+                filter.EffectSlot[1] = slot;
+            if (Int32.TryParse(SearchEffectSlot3.Text.Trim(), out slot))
+                filter.EffectSlot[2] = slot;
             filter.Category = SearchCategory.Text.Trim();
             filter.Class = SearchClass.Text.Trim();
             int min;
@@ -87,6 +104,40 @@ namespace winparser
             filter.AppendBackRefs = ShowRelated.Checked;
 
             return filter;
+        }
+
+        public void SetFilter(SpellSearchFilter filter)
+        {
+            SearchText.Text = filter.Text;
+            SearchEffect1.Text = filter.Effect[0];
+            SearchEffect2.Text = filter.Effect[1];
+            SearchEffect3.Text = filter.Effect[2];
+            SearchEffectSlot1.Text = filter.EffectSlot[0].HasValue ? filter.EffectSlot[0].ToString() : "";
+            SearchEffectSlot2.Text = filter.EffectSlot[1].HasValue ? filter.EffectSlot[1].ToString() : "";
+            SearchEffectSlot3.Text = filter.EffectSlot[2].HasValue ? filter.EffectSlot[2].ToString() : "";
+            SearchCategory.Text = filter.Category;
+            SearchClass.Text = filter.Class;
+            if (filter.ClassMinLevel > 0 && filter.ClassMaxLevel > 0)
+                SearchLevel.Text = filter.ClassMinLevel + "-" + filter.ClassMaxLevel;
+            else if (filter.ClassMinLevel > 0)
+                SearchLevel.Text = filter.ClassMinLevel.ToString();
+            else if (filter.ClassMaxLevel > 0)
+                SearchLevel.Text = filter.ClassMaxLevel.ToString();
+            ShowRelated.Checked = filter.AppendBackRefs;
+        }
+
+        private void MainForm_Shown(object sender, EventArgs e)
+        {
+            // a winforms bug will trigger TextChanged() the first time a combobox with a "" value loses focus (even if no text has changed)
+            // this hack will quickly cycle all controls and disable the auto search that would be triggered
+            for (int i = 0; i < SearchFilters.Controls.Count; i++)
+            {
+                var combo = SearchFilters.Controls[i] as ComboBox;
+                if (combo != null)
+                    combo.Focus();
+            }
+            SearchText.Focus();
+            AutoSearch.Enabled = false;
         }
 
         private void SearchBtn_Click(object sender, EventArgs e)
@@ -537,10 +588,18 @@ namespace winparser
         private void SearchText_TextChanged(object sender, EventArgs e)
         {
             // reset timer every time the user presses a key
+            //var combo = sender as ComboBox;
             AutoSearch.Interval = (sender is TextBox) ? 800 : 400;
             AutoSearch.Enabled = false;
             AutoSearch.Enabled = true;
         }
+
+        private void ResetBtn_Click(object sender, EventArgs e)
+        {
+            SetFilter(DefaultFilter);
+            AutoSearch.Enabled = false;
+        }
+
 
 
     }

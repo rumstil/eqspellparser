@@ -9,14 +9,20 @@ namespace Everquest
     public class SpellSearchFilter
     {
         public string Text { get; set; }
-        public string Effect { get; set; }
-        public int EffectSlot { get; set; }
+        public string[] Effect { get; set; }
+        public int?[] EffectSlot { get; set; }
         public string Class { get; set; }
         public int ClassMinLevel { get; set; }
         public int ClassMaxLevel { get; set; }
         public string Category { get; set; }
         //public bool AppendForwardRefs { get; set; }
         public bool AppendBackRefs { get; set; }
+
+        public SpellSearchFilter()
+        {
+            Effect = new string[3];
+            EffectSlot = new int?[3];
+        }
     }
 
 
@@ -155,20 +161,26 @@ namespace Everquest
             }
 
             // effect filter can be a literal string or a regex
-            if (!String.IsNullOrEmpty(filter.Effect))
-            {
-                string effect = null;
-                if (EffectSearchHelpers.ContainsKey(filter.Effect))
-                    effect = EffectSearchHelpers[filter.Effect];
-
-                if (!String.IsNullOrEmpty(effect))
+            for (int i = 0; i < filter.Effect.Length; i++)
+                if (!String.IsNullOrEmpty(filter.Effect[i]))
                 {
-                    var re = new Regex(effect, RegexOptions.IgnoreCase);
-                    query = query.Where(x => x.HasEffect(re, filter.EffectSlot));
+                    string effect = null;
+                    if (EffectSearchHelpers.ContainsKey(filter.Effect[i]))
+                        effect = EffectSearchHelpers[filter.Effect[i]];
+
+                    if (!String.IsNullOrEmpty(effect))
+                    {
+                        var re = new Regex(effect, RegexOptions.IgnoreCase);
+                        int? slot = filter.EffectSlot[i];
+                        query = query.Where(x => x.HasEffect(re, slot ?? 0));
+                    }
+                    else
+                    {
+                        string text = filter.Effect[i];
+                        int? slot = filter.EffectSlot[i];
+                        query = query.Where(x => x.HasEffect(text, slot ?? 0));
+                    }
                 }
-                else
-                    query = query.Where(x => x.HasEffect(filter.Effect, filter.EffectSlot));
-            }
 
             return query;
         }
