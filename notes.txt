@@ -707,6 +707,8 @@ AFFECTNUMBER AFFECTNAME
 456 Add Hate Over Time %
 457 Resource Tap
 458 Faction Mod %
+459 Skill Damage Mod 2
+460 Ff_Override_NotFocusable
 
 
 Resists

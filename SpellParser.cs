@@ -1232,7 +1232,7 @@ namespace Everquest
         /// </summary>
         public bool HasEffect(int spa, int slot)
         {
-            if (slot > 0)
+            if (slot > 0 && slot < Slots.Length)
                 return SlotEffects[slot - 1] == spa;
             return Array.IndexOf(SlotEffects, spa) >= 0;
         }
@@ -1248,8 +1248,9 @@ namespace Everquest
             if (Int32.TryParse(text, out spa))
                 return HasEffect(spa, slot);
 
-            if (slot > 0)
+            if (slot > 0 && slot < Slots.Length)
                 return Slots[slot - 1] != null && Slots[slot - 1].IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0;
+
             for (int i = 0; i < Slots.Length; i++)
                 if (Slots[i] != null && Slots[i].IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0)
                     return true;
@@ -1263,7 +1264,7 @@ namespace Everquest
         /// <param name="slot">0 to check or slots, or a value between 1 and 12.</param>
         public bool HasEffect(Regex re, int slot)
         {
-            if (slot > 0)
+            if (slot > 0 && slot < Slots.Length)
                 return Slots[slot - 1] != null && re.IsMatch(Slots[slot - 1]);
 
             for (int i = 0; i < Slots.Length; i++)
@@ -1837,6 +1838,8 @@ namespace Everquest
                     return Spell.FormatPercent("Chance of Additional 2H Attack", value);
                 case 270:
                     return Spell.FormatCount("Beneficial Song Range", base1);
+                case 271:
+                    return String.Format("Movement Speed Mod ({0})", base1);
                 case 272:
                     return Spell.FormatPercent("Spell Casting Skill", value);
                 case 273:
@@ -2040,6 +2043,7 @@ namespace Everquest
                 case 364:
                     return Spell.FormatPercent("Chance to Triple Attack", value);
                 case 365:
+                    // included on nukes and triggered when the nuke kills the mob
                     return String.Format("Cast: [Spell {0}] on Killshot ({1}% Chance)", base2, base1);
                 case 367:
                     return String.Format("Transform Body Type to {0}", FormatEnum((SpellBodyType)base1));
@@ -2133,7 +2137,7 @@ namespace Everquest
                     // this is a guess. haven't tested this
                     return String.Format("Cast: [Spell {0}] on Hit By Spell", base1);
                 case 408:
-                    // unlike 214, this does not show a lower max HP
+                    // target will still have normal max HP but cannot be regen/heal past the cap
                     if (base2 > 0)
                         return String.Format("Cap HP at lowest of {0}% or {1}", base1, base2);
                     return String.Format("Cap HP at {0}%", base1);
