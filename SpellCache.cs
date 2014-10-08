@@ -15,14 +15,19 @@ namespace Everquest
         public int ClassMinLevel { get; set; }
         public int ClassMaxLevel { get; set; }
         public string Category { get; set; }
-        //public bool AppendForwardRefs { get; set; }
-        public bool AppendBackRefs { get; set; }
+        public int Rank { get; set; }
+        
+        // these are for post search processing:
+        //public bool AddForwardRefs { get; set; }
+        public bool AddBackRefs { get; set; }
+
 
         public SpellSearchFilter()
         {
             Effect = new string[3];
             EffectSlot = new int?[3];
         }
+
     }
 
 
@@ -36,6 +41,7 @@ namespace Everquest
         private string path;
         private List<Spell> spells;
         private Dictionary<int, Spell> spellsById;
+        //private Dictionary<string, Spell> spellsByName;
         private ILookup<int, Spell> spellsByGroup;
 
         public string Path { get { return path; } }
@@ -76,6 +82,7 @@ namespace Everquest
             this.path = path;
             spells = list;
             spellsById = list.ToDictionary(x => x.ID);
+            //spellsByName = list.ToDictionary(x => x.Name);
             spellsByGroup = list.Where(x => x.GroupID != 0).ToLookup(x => x.GroupID);
         }
 
@@ -293,6 +300,9 @@ namespace Everquest
         /// </summary> 
         public void AddBackRefs(List<Spell> list)
         {
+            if (list.Count == 0)
+                return;
+
             var included = new HashSet<int>(list.Select(x => x.ID));
 
             // do not include not produce back refs for spells that are heavily reference. 

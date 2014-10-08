@@ -2714,8 +2714,6 @@ namespace Everquest
                         desc[fields[1] + "/" + fields[0]] = fields[2].Trim();
                     }
 
-            Console.WriteLine(desc.Count);
-
             // load spell definition file
             if (File.Exists(spellPath))
                 using (StreamReader text = File.OpenText(spellPath))
