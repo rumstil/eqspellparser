@@ -601,7 +601,7 @@ namespace winparser
             }
             SearchCategory.Items.Add("AA");
             SearchCategory.Items.Add("");
-            //SearchText_TextChanged(sender, e); // already called
+            SearchText_TextChanged(sender, e); 
         }
 
         private void SearchText_TextChanged(object sender, EventArgs e)
