@@ -18,11 +18,13 @@ namespace winparser
     //[ComVisible(true)] // for SearchBrowser.ObjectForScripting
     public partial class MainForm : Form
     {
+        private const int MAX_RESULTS = 2500;
+
         private SpellCache Spells;
 
         public string SpellPath;
         public List<Spell> Results;
-        public HashSet<int> BaseResults;
+        public HashSet<int> VisibleResults;
 
         public SpellSearchFilter DefaultFilter;
         public List<SpellSearchFilter> SearchHistory = new List<SpellSearchFilter>();
@@ -49,8 +51,6 @@ namespace winparser
             SearchEffect2.Items.Add("");
             SearchEffect3.Items.AddRange(SpellCache.EffectSearchHelpers.Keys.ToArray());
             SearchEffect3.Items.Add("");
-
-
 
             //SearchBrowser.ObjectForScripting = this;
             DefaultFilter = GetFilter();
@@ -101,7 +101,7 @@ namespace winparser
             filter.ClassMinLevel = min;
             filter.ClassMaxLevel = max;
             //filter.AppendForwardRefs = true;
-            filter.AppendBackRefs = ShowRelated.Checked;
+            filter.AddBackRefs = IncludeRelated.Checked;
 
             return filter;
         }
@@ -123,7 +123,7 @@ namespace winparser
                 SearchLevel.Text = filter.ClassMinLevel.ToString();
             else if (filter.ClassMaxLevel > 0)
                 SearchLevel.Text = filter.ClassMaxLevel.ToString();
-            ShowRelated.Checked = filter.AppendBackRefs;
+            IncludeRelated.Checked = filter.AddBackRefs;
         }
 
         private void MainForm_Shown(object sender, EventArgs e)
@@ -159,15 +159,30 @@ namespace winparser
 
             Results = Spells.Search(filter).ToList();
 
-            // track base results before we add reference spells (which will be hidden by default)
-            BaseResults = new HashSet<int>();
-            foreach (var s in Results)
-                BaseResults.Add(s.ID);
+            // filter ranks
+            //if (filter.Rank != 0)
+            //{
+            //    // there is no 'rk. 1' suffix so when filtering ranks we need to make sure a spell has a rank 2/3 version
+            //    var names = new HashSet<string>(Results.Select(x => x.Name));
+            //    if (filter.Rank == 1)
+            //        Results.RemoveAll(x => x.Rank == 2 || x.Rank == 3);
+            //}
 
-            // add referenced spells
+            // track search results before we add referenced spells 
+            // so that we know what to show/hide by defeault
+            VisibleResults = new HashSet<int>();
+            foreach (var s in Results)
+                VisibleResults.Add(s.ID);
+
+            // always add forward refs so that links can be clicked
             Spells.AddForwardRefs(Results);
-            if (filter.AppendBackRefs && Results.Count > 1)
+
+            // optionally add back refs
+            if (filter.AddBackRefs)
+            { 
                 Spells.AddBackRefs(Results);
+                Spells.AddForwardRefs(Results); // some of the back refs will require new forward refs
+            }
 
             Spells.Sort(Results, filter);
         }
@@ -177,7 +192,7 @@ namespace winparser
         /// </summary>
         private void ShowResults()
         {
-            SearchNotes.Text = String.Format("{0} results", ShowRelated.Checked ? Results.Count : BaseResults.Count);
+            SearchNotes.Text = String.Format("{0} results", IncludeRelated.Checked ? Results.Count : VisibleResults.Count);
 
             var html = InitHtml();
 
@@ -187,16 +202,16 @@ namespace winparser
             }
             else
             {
-                if (Results.Count > 2000)
-                    html.Append("<p>Only the first 2000 are shown.</p>");
+                if (Results.Count > MAX_RESULTS)
+                    html.Append(String.Format("<p>Too many results -- only the first {0} will be shown.</p>", MAX_RESULTS));
 
-                Func<Spell, bool> visible = spell => ShowRelated.Checked || BaseResults.Contains(spell.ID);
+                Func<Spell, bool> visible = spell => IncludeRelated.Checked || VisibleResults.Contains(spell.ID);
 
 
                 if (DisplayText.Checked)
-                    ShowAsText(Results.Take(2000), visible, html);
+                    ShowAsText(Results.Take(MAX_RESULTS), visible, html);
                 else
-                    ShowAsTable(Results.Take(2000), visible, html);
+                    ShowAsTable(Results.Take(MAX_RESULTS), visible, html);
             }
 
             html.Append("</html>");
@@ -553,6 +568,10 @@ namespace winparser
 
         private void SearchClass_TextChanged(object sender, EventArgs e)
         {
+            // cancel if spells haven't been loaded yet
+            if (Spells == null)
+                return;
+
             // whenever the class is changed refresh the list of categories so that it only shows categories that class can cast
             int cls = SpellParser.ParseClass(SearchClass.Text) - 1;
             if (cls >= 0)
@@ -582,7 +601,7 @@ namespace winparser
             }
             SearchCategory.Items.Add("AA");
             SearchCategory.Items.Add("");
-            SearchText_TextChanged(sender, e);
+            //SearchText_TextChanged(sender, e); // already called
         }
 
         private void SearchText_TextChanged(object sender, EventArgs e)
