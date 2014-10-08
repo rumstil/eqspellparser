@@ -965,11 +965,6 @@ namespace Everquest
         public int CritOverride; // when set the spell has this % crit chance and mod 
         public bool CombatSkill;
 
-        //public string FocusType;
-        //public string FocusResist;
-        //public string FocusBenDet;
-
-
         public int[] LinksTo;
         public int RefCount; // number of spells that link to this
 
@@ -1007,289 +1002,6 @@ namespace Everquest
             ConsumeItemCount = new int[4];
             FocusID = new int[4];
             CategoryDescID = new int[3];
-        }
-
-        public override string ToString()
-        {
-            if (GroupID <= 0)
-                return String.Format("[{0}] {1}", ID, Name);
-            return String.Format("[{0}/{2}] {1}", ID, Name, GroupID);
-        }
-
-        /// <summary>
-        /// Get a full description of the spell. This is mostly useful as a debug dump.
-        /// </summary>
-        public string[] Details()
-        {
-            List<string> result = new List<string>(20);
-            //Action<string> Add = delegate(string s) { result.Add(s); };
-
-
-            if (!String.IsNullOrEmpty(ClassesLevels))
-            {
-                result.Add("Classes: " + ClassesLevels);
-                // the skill field if full of random values for spells that aren't PC castable so it's best to hide it 
-                if (SongCap > 0)
-                    result.Add("Skill: " + FormatEnum(Skill) + ", Cap: " + SongCap);
-                else if (CombatSkill)
-                    result.Add("Skill: " + FormatEnum(Skill) + " (Combat Skill)");
-                else
-                    result.Add("Skill: " + FormatEnum(Skill));
-            }
-
-            if (!String.IsNullOrEmpty(Deity))
-                result.Add("Deity: " + Deity);
-
-            if (Mana > 0)
-                result.Add("Mana: " + Mana);
-
-            if (EnduranceUpkeep > 0)
-                result.Add("Endurance: " + Endurance + ", Upkeep: " + EnduranceUpkeep + " per tick");
-            else if (Endurance > 0)
-                result.Add("Endurance: " + Endurance);
-
-            for (int i = 0; i < ConsumeItemID.Length; i++)
-                if (ConsumeItemID[i] > 0)
-                    result.Add("Consumes: [Item " + ConsumeItemID[i] + "] x " + ConsumeItemCount[i]);
-
-            for (int i = 0; i < FocusID.Length; i++)
-                if (FocusID[i] > 0)
-                    result.Add("Focus: [Item " + FocusID[i] + "]");
-
-            if (BetaOnly)
-                result.Add("Restriction: Beta Only");
-
-            if (CannotRemove)
-                result.Add("Restriction: Cannot Remove");
-
-            if (CastOutOfCombat)
-                result.Add("Restriction: Out of Combat"); // i.e. no aggro
-
-            if (CastInFastRegen)
-                result.Add("Restriction: In Fast Regen");
-
-            if (Zone != SpellZoneRestrict.None)
-                result.Add("Restriction: " + Zone + " Only");
-
-            if (Sneaking)
-                result.Add("Restriction: Sneaking");
-
-            if (CancelOnSit)
-                result.Add("Restriction: Cancel on Sit");
-
-            if ((int)CasterRestrict > 100)
-                result.Add("Restriction: " + FormatEnum(CasterRestrict));
-
-            if (Target == SpellTarget.Directional_AE)
-                result.Add("Target: " + FormatEnum(Target) + " (" + ConeStartAngle + " to " + ConeEndAngle + " Degrees)");
-            else if (TargetRestrict > 0)
-                result.Add("Target: " + FormatEnum(Target) + " (If " + FormatEnum(TargetRestrict) + ")");
-            else if ((Target == SpellTarget.Caster_Group || Target == SpellTarget.Target_Group) && (ClassesMask != 0 && ClassesMask != SpellClassesMask.BRD) && DurationTicks > 0)
-                result.Add("Target: " + FormatEnum(Target) + ", MGB: " + (MGBable ? "Yes" : "No"));
-            else
-                result.Add("Target: " + FormatEnum(Target));
-
-            if (AERange > 0 && Range == 0)
-                result.Add("AE Range: " + (MinRange > 0 ? MinRange + "' to " : "") + AERange + "'");
-            else if (AERange > 0)
-                result.Add("Range: " + Range + "', AE Range: " + (MinRange > 0 ? MinRange + "' to " : "") + AERange + "'"); // unsure where the min range should be applied
-            else if (Range > 0)
-                result.Add("Range: " + (MinRange > 0 ? MinRange + "' to " : "") + Range + "'");
-
-            if (RangeModFarDist != 0)
-                result.Add("Range Based Mod: " + (RangeModCloseMult * 100) + "% at " + RangeModCloseDist + "' to " + (RangeModFarMult * 100) + "% at " + RangeModFarDist + "'");
-
-            if (ViralRange > 0)
-                result.Add("Viral Range: " + ViralRange + "', Recast: " + MinViralTime + "s to " + MaxViralTime + "s");
-
-            if (!Beneficial)
-                result.Add("Resist: " + ResistType + (ResistMod != 0 ? " " + ResistMod : "") + (MinResist > 0 ? ", Min Resist Chance: " + MinResist / 2f + "%" : "") + (MaxResist > 0 ? ", Max Resist Chance: " + MaxResist / 2f + "%" : "")); // + (!PartialResist ? ", No Partials" : ""));
-            else
-                result.Add("Resist: Beneficial, Blockable: " + (BeneficialBlockable ? "Yes" : "No"));
-
-            if (!Beneficial)
-                result.Add("Reflectable: " + (Reflectable ? "Yes" : "No"));
-
-            string rest = ClassesMask == 0 || ClassesMask == SpellClassesMask.BRD || RestTime == 0 ? "" : ", Rest: " + RestTime.ToString() + "s";
-            if (TimerID > 0)
-                result.Add("Casting: " + CastingTime.ToString() + "s, Recast: " + FormatTime(RecastTime) + ", Timer: " + TimerID + rest);
-            else if (RecastTime > 0)
-                result.Add("Casting: " + CastingTime.ToString() + "s, Recast: " + FormatTime(RecastTime) + rest);
-            else
-                result.Add("Casting: " + CastingTime.ToString() + "s" + rest);
-
-            if (DurationTicks > 0)
-                result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)"
-                    + (Beneficial && ClassesMask != SpellClassesMask.BRD ? ", Extendable: " + (DurationExtendable ? "Yes" : "No") : "")
-                    + ", Dispelable: " + (Dispelable ? "Yes" : "No")
-                    + (!Beneficial && DurationTicks > 10 ? ", Allow Fast Regen: " + (AllowFastRegen ? "Yes" : "No") : "")  // it applies on <10 ticks, but there really is no need to show it
-                    + (PersistAfterDeath ? ", Persist After Death" : "")); // pretty rare, so only shown when it's used
-            else if (AEDuration >= 2500)
-                result.Add("AE Waves: " + AEDuration / 2500);
-
-            if (PushUp != 0)
-                result.Add("Push: " + PushBack + "' Up: " + PushUp + "'");
-            else if (PushBack != 0)
-                result.Add("Push: " + PushBack + "'");
-
-            if (HateMod != 0)
-                result.Add("Hate Mod: " + (HateMod > 0 ? "+" : "") + HateMod);
-
-            if (HateOverride != 0)
-                result.Add("Hate: " + HateOverride);
-
-            // Arcane Fusion has a Crit Override value of 15, so it has a max 15% crit chance AND crit damage. This overrides ALL of it, AA, Worn, and Spell, which are normally separate.
-            if (CritOverride > 0)
-                result.Add("Crit Chance/Dmg: " + CritOverride + "%");
-
-            if (MaxHits > 0)
-                result.Add("Max Hits: " + MaxHits + " " + FormatEnum((SpellMaxHits)MaxHitsType));
-
-            if (MaxTargets > 0)
-                result.Add("Max Targets: " + MaxTargets);
-
-            if (Recourse != null)
-                result.Add("Recourse: " + Recourse);
-
-            if (Unknown != 0)
-                result.Add("Unknown: " + Unknown);
-
-            //if (!String.IsNullOrEmpty(Category))
-            //    result.Add("Category: " + Category);
-
-            for (int i = 0; i < Slots.Length; i++)
-                if (Slots[i] != null)
-                    result.Add(String.Format("{0}: {1}", i + 1, Slots[i]));
-
-            if (!String.IsNullOrEmpty(LandOnSelf))
-                result.Add("Text: " + LandOnSelf);
-
-            return result.ToArray();
-        }
-
-        /// <summary>
-        /// Finalize spell data after all the attributes have been loaded.
-        /// </summary>
-        public void Prepare()
-        {
-            ClassesLevels = String.Empty;
-            ClassesMask = 0;
-            bool All254 = true;
-            for (int i = 0; i < Levels.Length; i++)
-            {
-                if (Levels[i] == 255)
-                    Levels[i] = 0;
-                if (Levels[i] != 0)
-                {
-                    ClassesMask |= (SpellClassesMask)(1 << i);
-                    ClassesLevels += " " + (SpellClasses)(i + 1) + "/" + Levels[i];
-                }
-                // bard AA i=7 are marked as 255 even though are usable
-                if (Levels[i] != 254 && i != (int)SpellClasses.BRD)
-                    All254 = false;
-            }
-            Array.Copy(Levels, ExtLevels, Levels.Length);
-            ClassesLevels = ClassesLevels.TrimStart();
-            if (All254)
-                ClassesLevels = "ALL/254";
-
-            if (MaxHitsType == SpellMaxHits.None || (DurationTicks == 0 && !Name.Contains("Aura")))
-                MaxHits = 0;
-
-            if (Target == SpellTarget.Caster_PB)
-            {
-                Range = 0;
-            }
-
-            if (Target == SpellTarget.Self)
-            {
-                Range = 0;
-                AERange = 0;
-                MaxTargets = 0;
-            }
-
-            if (Target == SpellTarget.Single)
-            {
-                AERange = 0;
-                MaxTargets = 0;
-            }
-
-            if (ResistType == SpellResist.Unresistable)
-                ResistMod = 0;
-
-            if (Zone != SpellZoneRestrict.Indoors && Zone != SpellZoneRestrict.Outdoors)
-                Zone = SpellZoneRestrict.None;
-
-            if (RangeModCloseDist == RangeModFarDist)
-            {
-                RangeModCloseDist = RangeModFarDist = 0;
-                RangeModCloseMult = RangeModFarMult = 0;
-            }
-        }
-
-        /// <summary>
-        /// Search all spell slots for a certain effect using a SPA match.
-        /// </summary>
-        public bool HasEffect(int spa, int slot)
-        {
-            if (slot > 0 && slot < Slots.Length)
-                return SlotEffects[slot - 1] == spa;
-            return Array.IndexOf(SlotEffects, spa) >= 0;
-        }
-
-        /// <summary>
-        /// Search all spell slots for a certain effect using a text match.
-        /// </summary>
-        /// <param name="desc">Effect to search for. Can be text or a integer representing an SPA.</param>
-        /// <param name="slot">0 to check or slots, or a value between 1 and 12.</param>
-        public bool HasEffect(string text, int slot)
-        {
-            int spa;
-            if (Int32.TryParse(text, out spa))
-                return HasEffect(spa, slot);
-
-            if (slot > 0 && slot < Slots.Length)
-                return Slots[slot - 1] != null && Slots[slot - 1].IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0;
-
-            for (int i = 0; i < Slots.Length; i++)
-                if (Slots[i] != null && Slots[i].IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0)
-                    return true;
-
-            return false;
-        }
-
-        /// <summary>
-        /// Search all spell slots for a certain effect using a RegEx.
-        /// </summary>
-        /// <param name="slot">0 to check or slots, or a value between 1 and 12.</param>
-        public bool HasEffect(Regex re, int slot)
-        {
-            if (slot > 0 && slot < Slots.Length)
-                return Slots[slot - 1] != null && re.IsMatch(Slots[slot - 1]);
-
-            for (int i = 0; i < Slots.Length; i++)
-                if (Slots[i] != null && re.IsMatch(Slots[i]))
-                    return true;
-
-            return false;
-        }
-
-        /// <summary>
-        /// Sum all the spell slots effects that match a regex. The regex must have a capturing group for an integer value.
-        /// e.g. Increase Current HP by (\d+)
-        /// </summary>
-        public int ScoreEffect(Regex re)
-        {
-            int score = 0;
-            for (int i = 0; i < Slots.Length; i++)
-                if (Slots[i] != null)
-                {
-                    Match m = re.Match(Slots[i]);
-                    if (m.Success)
-                        score += Int32.Parse(m.Groups[1].Value);
-                }
-
-            return score;
         }
 
         /// <summary>
@@ -2260,85 +1972,6 @@ namespace Everquest
             return String.Format("Unknown Effect: {0} Base1={1} Base2={2} Max={3} Calc={4} Value={5}", spa, base1, base2, max, calc, value);
         }
 
-        /*
-        public Focus HasFocus(string type, params string[] limit)
-        {
-            // focus effects are always in the first slot
-            if (Slots[0] == null || !Slots[0].StartsWith(type))
-                return null;
-
-            // check that the limits exist
-            if (!limit.All(x => Slots.Contains(x)))
-                return null;
-
-            var focus = new Focus();
-            focus.Type = type;
-            
-            var amount = FocusAmount.Match(Slots[0]);
-            focus.Min = Int32.Parse(amount.Groups[1].Value);
-            focus.Max = focus.Min;
-            if (amount.Groups.Count > 2)
-                focus.Max = Int32.Parse(amount.Groups[2].Value);
-
-            var level = Slots.Where(x => x != null).Select(x => FocusLevel.Match(x)).FirstOrDefault(x => x.Success);
-            if (level != null)
-            {
-                focus.Level = Int32.Parse(level.Groups[1].Value);
-            }
-
-            var bendet = Slots.Where(x => x != null).Select(x => FocusBenDet.Match(x)).FirstOrDefault(x => x.Success);
-
-            return focus;
-        }
-        */
-
-        /// <summary>
-        /// If the spell is a focus effect return the details of the focus.
-        /// </summary>
-        public FocusEffect FocusEffect()
-        {
-            if (Slots[0] == null)
-                return null;
-
-            var amount = FocusAmount.Match(Slots[0]);
-            if (!amount.Success)
-                amount = FocusPetAmount.Match(Slots[0]);
-            if (!amount.Success)
-                return null;
-
-            var focus = new FocusEffect();
-            focus.Type = amount.Groups[1].Value;
-            focus.Min = focus.Max = Int32.Parse(amount.Groups[2].Value);
-            if (amount.Groups[3].Success)
-            {
-                focus.Max = Int32.Parse(amount.Groups[3].Value);
-            }
-
-            focus.AtLevel = Enumerable.Repeat(focus.Max, 105).ToArray();
-            var level = Slots.Where(x => x != null).Select(x => FocusLevel.Match(x)).FirstOrDefault(x => x.Success);
-            if (level != null)
-            {
-                focus.MaxLevel = Int32.Parse(level.Groups[1].Value);
-                focus.MaxLevelLoss = Int32.Parse(level.Groups[2].Value);
-                for (int i = focus.MaxLevel; i <= focus.AtLevel.Length; i++)
-                   focus.AtLevel[i - 1] = (int)Math.Max(0, Math.Truncate(focus.Max - focus.Max * (i - focus.MaxLevel) * focus.MaxLevelLoss / 100f));
-            }
-
-            var bendet = Slots.Where(x => x != null).Select(x => FocusBenDet.Match(x)).FirstOrDefault(x => x.Success);
-            var resist = Slots.Where(x => x != null).Select(x => FocusResist.Match(x)).FirstOrDefault(x => x.Success);
-            if (resist != null)
-            {
-                // if there's a resist filter then we don't need to add /detrimental since that's a given
-                focus.Type += "/" + resist.Groups[1].Value;
-            }
-            else if (bendet != null && focus.Type != "Increase Healing")
-            {
-                focus.Type += "/" + bendet.Groups[1].Value;
-            }
-
-            return focus;
-        }
-
         /// <summary>
         /// Calculate a duration.
         /// </summary>
@@ -2619,6 +2252,371 @@ namespace Everquest
             return null;
         }
 
+        public override string ToString()
+        {
+            if (GroupID <= 0)
+                return String.Format("[{0}] {1}", ID, Name);
+            return String.Format("[{0}/{2}] {1}", ID, Name, GroupID);
+        }
+
+        /// <summary>
+        /// Get a full description of the spell. This is mostly useful as a debug dump.
+        /// </summary>
+        public string[] Details()
+        {
+            List<string> result = new List<string>(20);
+            //Action<string> Add = delegate(string s) { result.Add(s); };
+
+
+            if (!String.IsNullOrEmpty(ClassesLevels))
+            {
+                result.Add("Classes: " + ClassesLevels);
+                // the skill field if full of random values for spells that aren't PC castable so it's best to hide it 
+                if (SongCap > 0)
+                    result.Add("Skill: " + FormatEnum(Skill) + ", Cap: " + SongCap);
+                else if (CombatSkill)
+                    result.Add("Skill: " + FormatEnum(Skill) + " (Combat Skill)");
+                else
+                    result.Add("Skill: " + FormatEnum(Skill));
+            }
+
+            if (!String.IsNullOrEmpty(Deity))
+                result.Add("Deity: " + Deity);
+
+            if (Mana > 0)
+                result.Add("Mana: " + Mana);
+
+            if (EnduranceUpkeep > 0)
+                result.Add("Endurance: " + Endurance + ", Upkeep: " + EnduranceUpkeep + " per tick");
+            else if (Endurance > 0)
+                result.Add("Endurance: " + Endurance);
+
+            for (int i = 0; i < ConsumeItemID.Length; i++)
+                if (ConsumeItemID[i] > 0)
+                    result.Add("Consumes: [Item " + ConsumeItemID[i] + "] x " + ConsumeItemCount[i]);
+
+            for (int i = 0; i < FocusID.Length; i++)
+                if (FocusID[i] > 0)
+                    result.Add("Focus: [Item " + FocusID[i] + "]");
+
+            if (BetaOnly)
+                result.Add("Restriction: Beta Only");
+
+            if (CannotRemove)
+                result.Add("Restriction: Cannot Remove");
+
+            if (CastOutOfCombat)
+                result.Add("Restriction: Out of Combat"); // i.e. no aggro
+
+            if (CastInFastRegen)
+                result.Add("Restriction: In Fast Regen");
+
+            if (Zone != SpellZoneRestrict.None)
+                result.Add("Restriction: " + Zone + " Only");
+
+            if (Sneaking)
+                result.Add("Restriction: Sneaking");
+
+            if (CancelOnSit)
+                result.Add("Restriction: Cancel on Sit");
+
+            if ((int)CasterRestrict > 100)
+                result.Add("Restriction: " + FormatEnum(CasterRestrict));
+
+            if (Target == SpellTarget.Directional_AE)
+                result.Add("Target: " + FormatEnum(Target) + " (" + ConeStartAngle + " to " + ConeEndAngle + " Degrees)");
+            else if (TargetRestrict > 0)
+                result.Add("Target: " + FormatEnum(Target) + " (If " + FormatEnum(TargetRestrict) + ")");
+            else if ((Target == SpellTarget.Caster_Group || Target == SpellTarget.Target_Group) && (ClassesMask != 0 && ClassesMask != SpellClassesMask.BRD) && DurationTicks > 0)
+                result.Add("Target: " + FormatEnum(Target) + ", MGB: " + (MGBable ? "Yes" : "No"));
+            else
+                result.Add("Target: " + FormatEnum(Target));
+
+            if (AERange > 0 && Range == 0)
+                result.Add("AE Range: " + (MinRange > 0 ? MinRange + "' to " : "") + AERange + "'");
+            else if (AERange > 0)
+                result.Add("Range: " + Range + "', AE Range: " + (MinRange > 0 ? MinRange + "' to " : "") + AERange + "'"); // unsure where the min range should be applied
+            else if (Range > 0)
+                result.Add("Range: " + (MinRange > 0 ? MinRange + "' to " : "") + Range + "'");
+
+            if (RangeModFarDist != 0)
+                result.Add("Range Based Mod: " + (RangeModCloseMult * 100) + "% at " + RangeModCloseDist + "' to " + (RangeModFarMult * 100) + "% at " + RangeModFarDist + "'");
+
+            if (ViralRange > 0)
+                result.Add("Viral Range: " + ViralRange + "', Recast: " + MinViralTime + "s to " + MaxViralTime + "s");
+
+            if (!Beneficial)
+                result.Add("Resist: " + ResistType + (ResistMod != 0 ? " " + ResistMod : "") + (MinResist > 0 ? ", Min Resist Chance: " + MinResist / 2f + "%" : "") + (MaxResist > 0 ? ", Max Resist Chance: " + MaxResist / 2f + "%" : "")); // + (!PartialResist ? ", No Partials" : ""));
+            else
+                result.Add("Resist: Beneficial, Blockable: " + (BeneficialBlockable ? "Yes" : "No"));
+
+            if (!Beneficial)
+                result.Add("Reflectable: " + (Reflectable ? "Yes" : "No"));
+            
+            //if (!Beneficial && DurationTicks > 0 && HasEffect("Decrease Current HP", 0))
+            //    result.Add("Stackable: " + (Stackable ? "Yes" : "No"));
+
+            string rest = ClassesMask == 0 || ClassesMask == SpellClassesMask.BRD || RestTime == 0 ? "" : ", Rest: " + RestTime.ToString() + "s";
+            if (TimerID > 0)
+                result.Add("Casting: " + CastingTime.ToString() + "s, Recast: " + FormatTime(RecastTime) + ", Timer: " + TimerID + rest);
+            else if (RecastTime > 0)
+                result.Add("Casting: " + CastingTime.ToString() + "s, Recast: " + FormatTime(RecastTime) + rest);
+            else
+                result.Add("Casting: " + CastingTime.ToString() + "s" + rest);
+
+            if (DurationTicks > 0)
+                result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)"
+                    + (Beneficial && ClassesMask != SpellClassesMask.BRD ? ", Extendable: " + (DurationExtendable ? "Yes" : "No") : "")
+                    + ", Dispelable: " + (Dispelable ? "Yes" : "No")
+                    + (!Beneficial && DurationTicks > 10 ? ", Allow Fast Regen: " + (AllowFastRegen ? "Yes" : "No") : "")  // it applies on <10 ticks, but there really is no need to show it
+                    + (PersistAfterDeath ? ", Persist After Death" : "")); // pretty rare, so only shown when it's used
+            else if (AEDuration >= 2500)
+                result.Add("AE Waves: " + AEDuration / 2500);
+
+            if (PushUp != 0)
+                result.Add("Push: " + PushBack + "' Up: " + PushUp + "'");
+            else if (PushBack != 0)
+                result.Add("Push: " + PushBack + "'");
+
+            if (HateMod != 0)
+                result.Add("Hate Mod: " + (HateMod > 0 ? "+" : "") + HateMod);
+
+            if (HateOverride != 0)
+                result.Add("Hate: " + HateOverride);
+
+            // Arcane Fusion has a Crit Override value of 15, so it has a max 15% crit chance AND crit damage. This overrides ALL of it, AA, Worn, and Spell, which are normally separate.
+            if (CritOverride > 0)
+                result.Add("Crit Chance/Dmg: " + CritOverride + "%");
+
+            if (MaxHits > 0)
+                result.Add("Max Hits: " + MaxHits + " " + FormatEnum((SpellMaxHits)MaxHitsType));
+
+            if (MaxTargets > 0)
+                result.Add("Max Targets: " + MaxTargets);
+
+            if (Recourse != null)
+                result.Add("Recourse: " + Recourse);
+
+            if (Unknown != 0)
+                result.Add("Unknown: " + Unknown);
+
+            //if (!String.IsNullOrEmpty(Category))
+            //    result.Add("Category: " + Category);
+
+            for (int i = 0; i < Slots.Length; i++)
+                if (Slots[i] != null)
+                    result.Add(String.Format("{0}: {1}", i + 1, Slots[i]));
+
+            if (!String.IsNullOrEmpty(LandOnSelf))
+                result.Add("Text: " + LandOnSelf);
+
+            return result.ToArray();
+        }
+
+        /// <summary>
+        /// Finalize spell data after all the attributes have been loaded.
+        /// </summary>
+        public void Prepare()
+        {
+            ClassesLevels = String.Empty;
+            ClassesMask = 0;
+            bool All254 = true;
+            for (int i = 0; i < Levels.Length; i++)
+            {
+                if (Levels[i] == 255)
+                    Levels[i] = 0;
+                if (Levels[i] != 0)
+                {
+                    ClassesMask |= (SpellClassesMask)(1 << i);
+                    ClassesLevels += " " + (SpellClasses)(i + 1) + "/" + Levels[i];
+                }
+                // bard AA i=7 are marked as 255 even though are usable
+                if (Levels[i] != 254 && i != (int)SpellClasses.BRD)
+                    All254 = false;
+            }
+            Array.Copy(Levels, ExtLevels, Levels.Length);
+            ClassesLevels = ClassesLevels.TrimStart();
+            if (All254)
+                ClassesLevels = "ALL/254";
+
+            if (MaxHitsType == SpellMaxHits.None || (DurationTicks == 0 && !Name.Contains("Aura")))
+                MaxHits = 0;
+
+            if (Target == SpellTarget.Caster_PB)
+            {
+                Range = 0;
+            }
+
+            if (Target == SpellTarget.Self)
+            {
+                Range = 0;
+                AERange = 0;
+                MaxTargets = 0;
+            }
+
+            if (Target == SpellTarget.Single)
+            {
+                AERange = 0;
+                MaxTargets = 0;
+            }
+
+            if (ResistType == SpellResist.Unresistable)
+                ResistMod = 0;
+
+            if (Zone != SpellZoneRestrict.Indoors && Zone != SpellZoneRestrict.Outdoors)
+                Zone = SpellZoneRestrict.None;
+
+            if (RangeModCloseDist == RangeModFarDist)
+            {
+                RangeModCloseDist = RangeModFarDist = 0;
+                RangeModCloseMult = RangeModFarMult = 0;
+            }
+        }
+
+        /// <summary>
+        /// Search all spell slots for a certain effect using a SPA match.
+        /// </summary>
+        public bool HasEffect(int spa, int slot)
+        {
+            if (slot > 0 && slot < Slots.Length)
+                return SlotEffects[slot - 1] == spa;
+            return Array.IndexOf(SlotEffects, spa) >= 0;
+        }
+
+        /// <summary>
+        /// Search all spell slots for a certain effect using a text match.
+        /// </summary>
+        /// <param name="desc">Effect to search for. Can be text or a integer representing an SPA.</param>
+        /// <param name="slot">0 to check or slots, or a value between 1 and 12.</param>
+        public bool HasEffect(string text, int slot)
+        {
+            int spa;
+            if (Int32.TryParse(text, out spa))
+                return HasEffect(spa, slot);
+
+            if (slot > 0 && slot < Slots.Length)
+                return Slots[slot - 1] != null && Slots[slot - 1].IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0;
+
+            for (int i = 0; i < Slots.Length; i++)
+                if (Slots[i] != null && Slots[i].IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0)
+                    return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// Search all spell slots for a certain effect using a RegEx.
+        /// </summary>
+        /// <param name="slot">0 to check or slots, or a value between 1 and 12.</param>
+        public bool HasEffect(Regex re, int slot)
+        {
+            if (slot > 0 && slot < Slots.Length)
+                return Slots[slot - 1] != null && re.IsMatch(Slots[slot - 1]);
+
+            for (int i = 0; i < Slots.Length; i++)
+                if (Slots[i] != null && re.IsMatch(Slots[i]))
+                    return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// Sum all the spell slots effects that match a regex. The regex must have a capturing group for an integer value.
+        /// e.g. Increase Current HP by (\d+)
+        /// </summary>
+        public int ScoreEffect(Regex re)
+        {
+            int score = 0;
+            for (int i = 0; i < Slots.Length; i++)
+                if (Slots[i] != null)
+                {
+                    Match m = re.Match(Slots[i]);
+                    if (m.Success)
+                        score += Int32.Parse(m.Groups[1].Value);
+                }
+
+            return score;
+        }
+
+        /*
+        public Focus HasFocus(string type, params string[] limit)
+        {
+            // focus effects are always in the first slot
+            if (Slots[0] == null || !Slots[0].StartsWith(type))
+                return null;
+
+            // check that the limits exist
+            if (!limit.All(x => Slots.Contains(x)))
+                return null;
+
+            var focus = new Focus();
+            focus.Type = type;
+            
+            var amount = FocusAmount.Match(Slots[0]);
+            focus.Min = Int32.Parse(amount.Groups[1].Value);
+            focus.Max = focus.Min;
+            if (amount.Groups.Count > 2)
+                focus.Max = Int32.Parse(amount.Groups[2].Value);
+
+            var level = Slots.Where(x => x != null).Select(x => FocusLevel.Match(x)).FirstOrDefault(x => x.Success);
+            if (level != null)
+            {
+                focus.Level = Int32.Parse(level.Groups[1].Value);
+            }
+
+            var bendet = Slots.Where(x => x != null).Select(x => FocusBenDet.Match(x)).FirstOrDefault(x => x.Success);
+
+            return focus;
+        }
+        */
+
+        /// <summary>
+        /// If the spell is a focus effect return the details of the focus.
+        /// </summary>
+        public FocusEffect FocusEffect()
+        {
+            if (Slots[0] == null)
+                return null;
+
+            var amount = FocusAmount.Match(Slots[0]);
+            if (!amount.Success)
+                amount = FocusPetAmount.Match(Slots[0]);
+            if (!amount.Success)
+                return null;
+
+            var focus = new FocusEffect();
+            focus.Type = amount.Groups[1].Value;
+            focus.Min = focus.Max = Int32.Parse(amount.Groups[2].Value);
+            if (amount.Groups[3].Success)
+            {
+                focus.Max = Int32.Parse(amount.Groups[3].Value);
+            }
+
+            focus.AtLevel = Enumerable.Repeat(focus.Max, 105).ToArray();
+            var level = Slots.Where(x => x != null).Select(x => FocusLevel.Match(x)).FirstOrDefault(x => x.Success);
+            if (level != null)
+            {
+                focus.MaxLevel = Int32.Parse(level.Groups[1].Value);
+                focus.MaxLevelLoss = Int32.Parse(level.Groups[2].Value);
+                for (int i = focus.MaxLevel; i <= focus.AtLevel.Length; i++)
+                    focus.AtLevel[i - 1] = (int)Math.Max(0, Math.Truncate(focus.Max - focus.Max * (i - focus.MaxLevel) * focus.MaxLevelLoss / 100f));
+            }
+
+            var bendet = Slots.Where(x => x != null).Select(x => FocusBenDet.Match(x)).FirstOrDefault(x => x.Success);
+            var resist = Slots.Where(x => x != null).Select(x => FocusResist.Match(x)).FirstOrDefault(x => x.Success);
+            if (resist != null)
+            {
+                // if there's a resist filter then we don't need to add /detrimental since that's a given
+                focus.Type += "/" + resist.Groups[1].Value;
+            }
+            else if (bendet != null && focus.Type != "Increase Healing")
+            {
+                focus.Type += "/" + bendet.Groups[1].Value;
+            }
+
+            return focus;
+        }
+
         static private string FormatEnum(Enum e)
         {
             string type = e.ToString().Replace("_", " ").Trim();
@@ -2668,9 +2666,9 @@ namespace Everquest
         static private string FormatDesc()
         {
             // Spell descriptions include references to 12 spell attributes. e.g.
-            // #7 - base1 for slot 7
-            // @7 - calc(base1) for slot 7
-            // $7 - base2 for slot 7
+            // #7 = base1 for slot 7
+            // @7 = calc(base1) for slot 7
+            // $7 = base2 for slot 7
             return null;
         }
         */
@@ -2686,12 +2684,12 @@ namespace Everquest
         /// </summary>
         static public List<Spell> LoadFromFile(string spellPath, string descPath)
         {
-            List<Spell> list = new List<Spell>(30000);
-            Dictionary<int, Spell> listById = new Dictionary<int, Spell>(30000);
+            List<Spell> list = new List<Spell>(50000);
+            Dictionary<int, Spell> listById = new Dictionary<int, Spell>(50000);
             //Dictionary<int, Spell> listByGroup = new Dictionary<int, Spell>(30000);
 
             // load description text file
-            Dictionary<string, string> desc = new Dictionary<string, string>(30000);
+            Dictionary<string, string> desc = new Dictionary<string, string>(50000);
             if (File.Exists(descPath))
                 using (StreamReader text = File.OpenText(descPath))
                     while (!text.EndOfStream)
@@ -2701,7 +2699,7 @@ namespace Everquest
                         if (fields.Length < 3)
                             continue;
 
-                        // 0 = id in type
+                        // 0 = id within type
                         // 1 = type
                         // 2 = description
                         // type 1 = AA names
@@ -2716,6 +2714,7 @@ namespace Everquest
                         desc[fields[1] + "/" + fields[0]] = fields[2].Trim();
                     }
 
+            Console.WriteLine(desc.Count);
 
             // load spell definition file
             if (File.Exists(spellPath))
@@ -2885,7 +2884,6 @@ namespace Everquest
             //Environment Type = fields[102];
             //Time of Day = fields[103]; Day, Night, Both
 
-
             // each spell has a different casting level for all 16 classes
             for (int i = 0; i < spell.Levels.Length; i++)
                 spell.Levels[i] = (byte)ParseInt(fields[104 + i]);
@@ -2902,13 +2900,12 @@ namespace Everquest
                 if (ParseBool(fields[125 + i]))
                     spell.Deity += gods[i] + " ";
 
-            //NPC Do Not Cast = fields[142];
-            //AI PT Bonus = fields[143];
+            // 142 NPC Do Not Cast 
+            // 143 AI PT Bonus
             spell.Icon = ParseInt(fields[144]);
-            //Spell Effect ID
             spell.Interruptable = !ParseBool(fields[146]);
             spell.ResistMod = ParseInt(fields[147]);
-            // 148 = non stackable DoT
+            //spell.StackableDoT = !ParseBool(fields[148]);
             // 149 = deletable
             spell.RecourseID = ParseInt(fields[150]);
             // 151 = used to prevent a nuke from being partially resisted.
@@ -2916,15 +2913,15 @@ namespace Everquest
             spell.PartialResist = ParseBool(fields[151]);
             if (spell.RecourseID != 0)
                 spell.Recourse = String.Format("[Spell {0}]", spell.RecourseID);
-            //Small Targets Only = fields[152];
-            //Persistent particle effects = fields [153];
+            // 152 Small Targets Only 
+            // 153 Persistent particle effects 
             spell.ShortDuration = ParseBool(fields[154]);
             spell.DescID = ParseInt(fields[155]);
             spell.CategoryDescID[0] = ParseInt(fields[156]);
             spell.CategoryDescID[1] = ParseInt(fields[157]);
             spell.CategoryDescID[2] = ParseInt(fields[158]);
             // 159 NPC Does not Require LoS
-            // 160 Feedbackable (Triggers spell damage shield)
+            // 160 Feedbackable (Triggers spell damage shield. This is mostly used on procs and non nukes, so it's not that useful to show)
             spell.Reflectable = ParseBool(fields[161]);
             spell.HateMod = ParseInt(fields[162]);
             // 164 Resist Cap = 147 values. mostly negative
@@ -2969,7 +2966,7 @@ namespace Everquest
             // 203 Stacks With Self = melee specials
             // 204 Not Shown To Player Boolean
             spell.BeneficialBlockable = !ParseBool(fields[205]); // for beneficial spells
-            //Animation Variation = fields[206];
+            // 206 Animation Variation 
             spell.GroupID = ParseInt(fields[207]);
             spell.Rank = ParseInt(fields[208]); // rank 1/5/10. a few auras do not have this set properly
             if (spell.Rank == 5 || spell.Name.EndsWith("II"))
@@ -3006,11 +3003,8 @@ namespace Everquest
             spell.BetaOnly = ParseBool(fields[235]);
             //Spell Subgoup = fields[236];
 
-
             // debug stuff
             //spell.Unknown = ParseFloat(fields[217]);
-
-
 
 
             // each spell has 12 effect slots which have 5 attributes each
