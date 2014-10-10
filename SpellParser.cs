@@ -990,7 +990,7 @@ namespace Everquest
         static public readonly Regex FocusBenDet = new Regex(@"Limit Type: (.+)");
         static public readonly Regex FocusLevel = new Regex(@"Limit Max Level: (\d+).+lose (\d+)% per level");
 
-        
+
 
         public Spell()
         {
@@ -1302,7 +1302,7 @@ namespace Everquest
                 case 125:
                     return Spell.FormatPercentRange("Healing", base1, base2);
                 case 126:
-                    return Spell.FormatPercentRange("Spell Resist Rate", -base1, -base2);
+                    return Spell.FormatPercentRange("Spell Resist Rate", base1, base2, true);
                 case 127:
                     return Spell.FormatPercent("Spell Haste", base1);
                 case 128:
@@ -1313,9 +1313,9 @@ namespace Everquest
                     // i think this affects all special attacks. bash/kick/frenzy/etc...
                     return Spell.FormatPercentRange("Spell and Bash Hate", base1, base2);
                 case 131:
-                    return Spell.FormatPercentRange("Chance of Using Reagent", -base1, -base2);
+                    return Spell.FormatPercentRange("Chance of Using Reagent", base1, base2, true);
                 case 132:
-                    return Spell.FormatPercentRange("Spell Mana Cost", -base1, -base2);
+                    return Spell.FormatPercentRange("Spell Mana Cost", base1, base2, true);
                 case 134:
                     if (base2 == 0)
                         base2 = 100; // just to make it obvious that 0 means the focus stops functioning
@@ -1555,9 +1555,9 @@ namespace Everquest
                 case 272:
                     return Spell.FormatPercent("Spell Casting Skill", value);
                 case 273:
-                    return Spell.FormatPercent("Chance to Critical DoT", value);
+                    return Spell.FormatPercent("Chance to Critical DoT", base1) + maxlevel;
                 case 274:
-                    return Spell.FormatPercent("Chance to Critical Heal", value);
+                    return Spell.FormatPercent("Chance to Critical Heal", base1);
                 case 279:
                     return Spell.FormatPercent("Chance to Flurry", value);
                 case 280:
@@ -1820,7 +1820,7 @@ namespace Everquest
                 case 392:
                     return Spell.FormatCount("Healing Bonus", base1);
                 case 393:
-                    return Spell.FormatPercentRange("Healing Taken", base1, base2); 
+                    return Spell.FormatPercentRange("Healing Taken", base1, base2);
                 case 394:
                     return Spell.FormatCount("Healing Taken", base1); // affected by focus limit rules
                 case 396:
@@ -2352,7 +2352,7 @@ namespace Everquest
 
             if (!Beneficial)
                 result.Add("Reflectable: " + (Reflectable ? "Yes" : "No"));
-            
+
             //if (!Beneficial && DurationTicks > 0 && HasEffect("Decrease Current HP", 0))
             //    result.Add("Stackable: " + (Stackable ? "Yes" : "No"));
 
@@ -2648,18 +2648,38 @@ namespace Everquest
             return String.Format("{0} {1} by {2}%", value < 0 ? "Decrease" : "Increase", name, Math.Abs(value));
         }
 
-        static private string FormatPercentRange(string name, int min, int max)
+        static private string FormatPercentRange(string name, int min, int max, bool negate = false)
         {
-            if ((min >= 0 && min > max) || (min < 0 && min < max))
-                max = min;
+            if (min < 0)
+            {
+                // for negative min values, min < max is valid but should be swapped
+                // e.g. cleric vow spells: min=-50 max=0, decrease healing by 0% to 50% (not sure why they didn't use min=0 max=-50)
+                if (min < max)
+                {
+                    //return String.Format("{0} {1}", min, max);
+                    int temp = min;
+                    min = max;
+                    max = temp;
+                }
+            }
+            else
+            {
+                // for positive min values, min < max is bad data and max should be ignored
+                if (min > max)
+                    max = min;
+            }
 
-            if (min == 0)
-                min = 1;
+            // some effects like 'increase mana conservation' use negated wording 'decrease mana cost' 
+            if (negate)
+            {
+                min = -min;
+                max = -max;
+            }
 
             if (min == max)
-                return String.Format("{0} {1} by {2}%", min < 0 ? "Decrease" : "Increase", name, Math.Abs(min));
+                return String.Format("{0} {1} by {2}%", max < 0 ? "Decrease" : "Increase", name, Math.Abs(min));
 
-            return String.Format("{0} {1} by {2}% to {3}%", min < 0 ? "Decrease" : "Increase", name, Math.Abs(min), Math.Abs(max));
+            return String.Format("{0} {1} by {2}% to {3}%", max < 0 ? "Decrease" : "Increase", name, Math.Abs(min), Math.Abs(max));
         }
 
         /*
