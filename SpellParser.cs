@@ -2648,7 +2648,12 @@ namespace Everquest
             return String.Format("{0} {1} by {2}%", value < 0 ? "Decrease" : "Increase", name, Math.Abs(value));
         }
 
-        static private string FormatPercentRange(string name, int min, int max, bool negate = false)
+        static private string FormatPercentRange(string name, int min, int max)
+        {
+            return FormatPercentRange(name, min, max, false);
+        }
+
+        static private string FormatPercentRange(string name, int min, int max, bool negate)
         {
             if (min < 0)
             {

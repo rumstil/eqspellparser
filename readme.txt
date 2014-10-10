@@ -1,14 +1,22 @@
 
+This zip file contains two applications to help you read the EQ spell file. 
+
+winparser.exe is the user friendly Windows version of the parser.
+
+parser.exe is the command line version of the parser for people that need to export results to a text file.
+
+
+
 REQUIREMENTS
 ============
-You will need to have Microsoft .NET Framework 3.5 installed to run this application.
-If you are running Windows 7 or 8 then you already have it installed.
-For older versions of windows you may need to install it from:
+You will need to have Microsoft .NET Framework 3.5 installed to run the parser.
+Microsoft .NET Framework 3.5 is preisntalled on Windows 7.
+For other versions of windows you may need to install it from:
 
 http://www.microsoft.com/downloads/details.aspx?FamilyId=333325FD-AE52-4E35-B531-508D977D32A6&displaylang=en
 
-If you run the parser and get the error: "This application failed to initialize properly"
-then you will need to install the framework.
+If you try to start the parser and it crashes or gives you an error message, you will 
+need to install the .NET Framework linked above.
 
 
 
