@@ -56,6 +56,27 @@ namespace winparser
             DefaultFilter = GetFilter();
         }
 
+        private void MainForm_Shown(object sender, EventArgs e)
+        {
+            // a winforms bug will trigger TextChanged() the first time a combobox with a "" value loses focus (even if no text has changed)
+            // this hack will quickly cycle all controls and disable the auto search that would be triggered
+            for (int i = 0; i < SearchFilters.Controls.Count; i++)
+            {
+                var combo = SearchFilters.Controls[i] as ComboBox;
+                if (combo != null)
+                    combo.Focus();
+            }
+            SearchText.Focus();
+            AutoSearch.Enabled = false;
+        }
+
+        private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            // quit if no other windows are open (+1 for FileOpenForm which is hidden)
+            if (Application.OpenForms.Count <= 2)
+                Application.Exit();
+        }
+
         public new void Load(string spellPath, string descPath)
         {
             SpellPath = spellPath;
@@ -124,20 +145,6 @@ namespace winparser
             else if (filter.ClassMaxLevel > 0)
                 SearchLevel.Text = filter.ClassMaxLevel.ToString();
             IncludeRelated.Checked = filter.AddBackRefs;
-        }
-
-        private void MainForm_Shown(object sender, EventArgs e)
-        {
-            // a winforms bug will trigger TextChanged() the first time a combobox with a "" value loses focus (even if no text has changed)
-            // this hack will quickly cycle all controls and disable the auto search that would be triggered
-            for (int i = 0; i < SearchFilters.Controls.Count; i++)
-            {
-                var combo = SearchFilters.Controls[i] as ComboBox;
-                if (combo != null)
-                    combo.Focus();
-            }
-            SearchText.Focus();
-            AutoSearch.Enabled = false;
         }
 
         private void SearchBtn_Click(object sender, EventArgs e)
@@ -405,13 +412,6 @@ namespace winparser
             else
                 type = Regex.Replace(type, @"\d+$", ""); // remove numeric suffix on duplicate enums undead3/summoned3/etc
             return type;
-        }
-
-        private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            // quit if no other windows are open (+1 for FileOpenForm which is hidden)
-            if (Application.OpenForms.Count <= 2)
-                Application.Exit();
         }
 
         private void SearchBrowser_Navigating(object sender, WebBrowserNavigatingEventArgs e)
