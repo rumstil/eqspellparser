@@ -2701,8 +2701,7 @@ namespace Everquest
 
     public static class SpellParser
     {
-        // the spell file is in US culture (dots are used for decimals)
-        private static readonly CultureInfo culture = new CultureInfo("en-US", false);
+        private const int MAX_LEVEL = 105;
 
         /// <summary>
         /// Load spell list from the EQ spell definition files.
@@ -2860,8 +2859,6 @@ namespace Everquest
         /// </summary>
         static Spell LoadSpell(string[] fields)
         {
-            int MaxLevel = 100;
-
             Spell spell = new Spell();
 
 #if !LimitMemoryUse
@@ -2882,7 +2879,7 @@ namespace Everquest
             spell.CastingTime = ParseFloat(fields[13]) / 1000f;
             spell.RestTime = ParseFloat(fields[14]) / 1000f;
             spell.RecastTime = ParseFloat(fields[15]) / 1000f;
-            spell.DurationTicks = Spell.CalcDuration(ParseInt(fields[16]), ParseInt(fields[17]), MaxLevel);
+            spell.DurationTicks = Spell.CalcDuration(ParseInt(fields[16]), ParseInt(fields[17]), MAX_LEVEL);
             spell.AEDuration = ParseInt(fields[18]);
             spell.Mana = ParseInt(fields[19]);
 
@@ -3045,7 +3042,7 @@ namespace Everquest
                 int base2 = ParseInt(fields[32 + i]);
 
                 spell.SlotEffects[i] = spa;
-                spell.Slots[i] = spell.ParseEffect(spa, base1, base2, max, calc, MaxLevel);
+                spell.Slots[i] = spell.ParseEffect(spa, base1, base2, max, calc, MAX_LEVEL);
 
 #if DEBUG
                 if (spell.Slots[i] != null)
@@ -3076,14 +3073,14 @@ namespace Everquest
         {
             if (String.IsNullOrEmpty(s))
                 return 0f;
-            return Single.Parse(s, culture);
+            return Single.Parse(s, CultureInfo.InvariantCulture);
         }
 
         static int ParseInt(string s)
         {
             if (s == "" || s == "0" || s[0] == '.')
                 return 0;
-            return (int)Single.Parse(s, culture);
+            return (int)Single.Parse(s, CultureInfo.InvariantCulture);
         }
 
         static bool ParseBool(string s)
