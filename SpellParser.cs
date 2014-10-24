@@ -561,7 +561,7 @@ namespace Everquest
         Old_Skeleton = 85,
         Old_Drake = 89,
         Old_Alligator = 91,
-        Cazic_Thule = 95,
+        Old_Cazic_Thule = 95,
         Old_Dervish = 100,
         Tadpole = 102,
         Old_Kedge = 103,
@@ -586,6 +586,7 @@ namespace Everquest
         Nearby_Object = 142,
         Erollisi_Marr = 150,
         Tribunal = 151,
+        Bristlebane = 153,
         Tree = 143,
         Old_Iksar_Skeleton = 161,
         Snow_Rabbit = 176,
@@ -614,6 +615,7 @@ namespace Everquest
         Stonegrabber = 220,
         Zelniak = 222,
         Lightcrawler = 223,
+        Shadow = 224,
         Sunflower = 225,
         Sun_Revenant = 226,
         Shrieker = 227,
@@ -744,6 +746,9 @@ namespace Everquest
         Drakkin = 522,
         Gnoll = 524,
         Undead_Gnoll = (524 << 16) + 1,
+        Mucktail_Gnoll = (524 << 16) + 2,
+        Gnoll_Reaver = (524 << 16) + 3,
+        Blackburrow_Gnoll = (524 << 16) + 4,
         Satyr = 529,
         Dragon = 530,
         Hideous_Harpy = 527,
@@ -803,6 +808,7 @@ namespace Everquest
         Rabbit = 668,
         Gouzah_Rabbit = (668 << 16) + 3,
         Polka_Dot_Rabbit = (668 << 16) + 5,
+        Cazic_Thule = 670,
         Selyrah = 686,
         Goral = 687,
         Braxi = 688,
@@ -822,6 +828,12 @@ namespace Everquest
         Tirun = 734,
         Bixie = 741,
         Bixie_Soldier = (741 << 16) + 2,
+        Butterfly = 742,
+        Arc_Worker = 766,
+        Cursed_Siren = 769,
+        Tyrannosaurus = 771,
+        Ankylosaurus = 774,
+        Thaell_Ew = 785
     }
 
     public enum SpellFaction
@@ -3047,7 +3059,7 @@ namespace Everquest
 #if DEBUG
                 if (spell.Slots[i] != null)
                 {
-                    int value = Spell.CalcValue(calc, base1, max, 1, MaxLevel);
+                    int value = Spell.CalcValue(calc, base1, max, 1, MAX_LEVEL);
                     spell.Slots[i] = String.Format("SPA {0} Base1={1} Base2={2} Max={3} Calc={4} --- ", spa, base1, base2, max, calc) + spell.Slots[i];
                 }
 #endif
