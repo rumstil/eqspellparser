@@ -60,6 +60,7 @@ namespace Everquest
         Summon_Pet = 33,
         Disease_Counter = 35,
         Poison_Counter = 36,
+        Twincast_Blocker = 39,
         Invulnerability = 40,
         Shadowstep = 42,
         Delayed_Heal_Marker = 44,
@@ -967,6 +968,7 @@ namespace Everquest
         public int RangeModFarDist;
         public int RangeModFarMult;
         public bool Interruptable;
+        public bool Feedbackable; // triger spell DS
         public bool Reflectable;
         public int SpellClass;
         public int SpellSubclass;
@@ -976,6 +978,8 @@ namespace Everquest
         public bool CannotRemove;
         public int CritOverride; // when set the spell has this % crit chance and mod 
         public bool CombatSkill;
+        public int ResistPerLevel;
+        public int ResistCap;
 
         public int[] LinksTo;
         public int RefCount; // number of spells that link to this
@@ -1132,6 +1136,10 @@ namespace Everquest
                     return Spell.FormatCount("Disease Counter", value);
                 case 36:
                     return Spell.FormatCount("Poison Counter", value);
+                case 39:
+                    // this doesn't actually block twincast by itself. 
+                    // twincast excludes spells that have this marker
+                    return "Stacking: Twincast Blocker";
                 case 40:
                     return "Invulnerability";
                 case 41:
@@ -1433,7 +1441,8 @@ namespace Everquest
                 case 179:
                     return String.Format("Instrument Modifier: {0} {1}", Skill, value);
                 case 180:
-                    // mystical shielding is 5%, fervor of the dark reign / sanctity of the keepers is 2%.
+                    // devs call this Sanctification
+                    // AA is called mystical shielding is 5%, fervor of the dark reign / sanctity of the keepers is 2%.
                     return Spell.FormatPercent("Chance to Resist Spell", value);
                 case 181:
                     return Spell.FormatPercent("Chance to Resist Fear Spell", value);
@@ -1608,11 +1617,11 @@ namespace Everquest
                 case 300:
                     return "Summon Doppelganger: " + Extra;
                 case 302:
-                    // see also 124. only used on 2 AA
+                    // see also 124. only used on a few AA
                     return Spell.FormatPercent("Base Spell Damage", base1);
                 case 303:
                     // used on type 3 augments
-                    // is added before crit multipliers, but after SPA 296 and 302 (and maybe 124).
+                    // is added before crit multipliers, but after SPA 296 and 302 (and maybe 124)?
                     // for DoTs it adds base1/ticks to each tick.
                     return Spell.FormatCount("Base Spell Damage", base1);
                 case 304:
@@ -1632,7 +1641,7 @@ namespace Everquest
                     return String.Format("Reduce Timer by {0}s", base1 / 1000f);
                 case 311:
                     // filter based on field 168 
-                    return String.Format("Limit Combat Skills: {0}", base1 == 1 ? "Include" : "Exclude ");
+                    return String.Format("Limit Type: {0} Combat Skills", base1 == 1 ? "Include" : "Exclude");
                 case 312:
                     return "Sanctuary";
                 case 314:
@@ -1836,8 +1845,8 @@ namespace Everquest
                 case 394:
                     return Spell.FormatCount("Healing Taken", base1); // affected by focus limit rules
                 case 396:
-                    // used on type 3 augments
-                    return Spell.FormatCount("Healing", base1);
+                    // used on type 3 augments 
+                    return Spell.FormatCount("Base Healing", base1);
                 case 398:
                     return String.Format("Increase Pet Duration by {0}s", base1 / 1000);
                 case 399:
@@ -1978,7 +1987,7 @@ namespace Everquest
                     return Spell.FormatPercent(Spell.FormatEnum((SpellSkill)base2) + " Damage v2", base1);
                 case 460:
                     // some spells are tagged as non focusable (field 197) this overrides that
-                    return "Limit: Include non focusable spells";
+                    return "Limit Type: Include Non-Focusable";
             }
 
             return String.Format("Unknown Effect: {0} Base1={1} Base2={2} Max={3} Calc={4} Value={5}", spa, base1, base2, max, calc, value);
@@ -2362,8 +2371,14 @@ namespace Everquest
             else
                 result.Add("Resist: Beneficial, Blockable: " + (BeneficialBlockable ? "Yes" : "No"));
 
+            //if (ResistPerLevel != 0)
+            //    result.Add("Resist Per Level: " + ResistPerLevel + ", Cap: " + ResistCap);
+
             if (!Beneficial)
-                result.Add("Reflectable: " + (Reflectable ? "Yes" : "No"));
+            {
+                result.Add("Trigger Spell DS: " + (Feedbackable ? "Yes" : "No"));
+                //result.Add("Reflectable: " + (Reflectable ? "Yes" : "No"));
+            }
 
             //if (!Beneficial && DurationTicks > 0 && HasEffect("Decrease Current HP", 0))
             //    result.Add("Stackable: " + (Stackable ? "Yes" : "No"));
@@ -2808,9 +2823,6 @@ namespace Everquest
                     if (s != null)
                     {
                         // match spell refs
-                        //Match match = Spell.SpellRefExpr.Match(s);
-                        //if (match.Success)
-                        //    linked.Add(Int32.Parse(match.Groups[1].Value));
                         // effect 443 will references 2 spells. all other effects reference 1 at most
                         MatchCollection matches = Spell.SpellRefExpr.Matches(s);
                         foreach (Match m in matches)
@@ -2953,10 +2965,11 @@ namespace Everquest
             spell.CategoryDescID[1] = ParseInt(fields[157]);
             spell.CategoryDescID[2] = ParseInt(fields[158]);
             // 159 NPC Does not Require LoS
-            // 160 Feedbackable (Triggers spell damage shield. This is mostly used on procs and non nukes, so it's not that useful to show)
+            spell.Feedbackable = ParseBool(fields[160]); // (Triggers spell damage shield. This is mostly used on procs and non nukes, so it's not that useful to show)
             spell.Reflectable = ParseBool(fields[161]);
             spell.HateMod = ParseInt(fields[162]);
-            // 164 Resist Cap = 147 values. mostly negative
+            spell.ResistPerLevel = ParseInt(fields[163]);
+            spell.ResistCap = ParseInt(fields[164]);
             // 165 Useable On Objects Boolean
             spell.Endurance = ParseInt(fields[166]);
             spell.TimerID = ParseInt(fields[167]);
@@ -3036,7 +3049,7 @@ namespace Everquest
             //Spell Subgoup = fields[236];
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[217]);
+            //spell.Unknown = ParseFloat(fields[209]);
 
 
             // each spell has 12 effect slots which have 5 attributes each
@@ -3072,9 +3085,12 @@ namespace Everquest
                 //    Console.Error.WriteLine(String.Format("SPA {1} {0} has diff value/base1: {2}/{3} calc: {4}", spell.Name, spa, value, base1, calc));
             }
 
+            //if (spell.Unknown != 0)
+            //    spell.ResistType = SpellResist.Unresistable;
+
 
             // debug stuff
-            //if (spell.ID == 16365) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
+            //if (spell.ID == 21683) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
             //if (fields[198] != "0") Console.WriteLine("\n\n===\n{0} {1}", fields[198], String.Join("\n", spell.Details()));
 
             spell.Prepare();
