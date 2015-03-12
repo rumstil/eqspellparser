@@ -2,26 +2,29 @@ This project was created to help decode the EQ spell file and provide detailed i
 
 e.g. what the game shows for "Guardian of the Forest":
 
->This ability transforms you into an exceptionally bloodthirsty wolf that attacks
->with lightning speed, for a brief time. Additional ranks increase your offensive
->capabilities and cause the transition into the wolf to heal many of your wounds.
+```
+This ability transforms you into an exceptionally bloodthirsty wolf that attacks
+with lightning speed, for a brief time. Additional ranks increase your offensive
+capabilities and cause the transition into the wolf to heal many of your wounds.
+```
 
 what the parser shows:
 
->[16038] Guardian of the Forest
->Classes: RNG/254
->Skill: Melee
->Target: Self
->Resist: Beneficial, Blockable: Yes
->Casting: 0s
->Duration: 60s (10 ticks), Extendable: Yes, Dispelable: Yes
->2: Cast: Guardian of the Forest Effect
->4: Increase Melee Haste v3 by 25%
->7: Increase Current HP by 775 per tick
->8: Increase ATK by 228
->9: Increase Hit Damage by 42%
->Text: The power of the forest surges through your muscles.
-
+```
+[16038] Guardian of the Forest
+Classes: RNG/254
+Skill: Melee
+Target: Self
+Resist: Beneficial, Blockable: Yes
+Casting: 0s
+Duration: 60s (10 ticks), Extendable: Yes, Dispelable: Yes
+2: Cast: Guardian of the Forest Effect
+4: Increase Melee Haste v3 by 25%
+7: Increase Current HP by 775 per tick
+8: Increase ATK by 228
+9: Increase Hit Damage by 42%
+Text: The power of the forest surges through your muscles.
+```
 
 #Web Version#
 
@@ -32,7 +35,7 @@ The latest version of this parser is always running here: http://www.raidloot.co
 
 If you want to parse test or beta server spells you will need to download the parser and run it on your own machine.
 
-Download the parser here: Download Updated Oct 9, 2014
+Download the parser here: [Download Updated Oct 9, 2014](http://s3.amazonaws.com/raidloot/parser327.zip)
 
 The zip file contains two applications to help you read the EQ spell file:
 
@@ -40,7 +43,7 @@ The zip file contains two applications to help you read the EQ spell file:
 
 - parser.exe is the command line version of the parser for people that need to export results to a text file.
 
-In order to run the parser on your computer you will need to have Microsoft .NET Framework 3.5 installed. Windows 7 comes with the framework installed. If you run the parser without the framework installed it will crash or give an error message. The framework can be installed from here:
+In order to run the parser on your computer you will need to have Microsoft .NET Framework 3.5 installed. Windows 7 comes with the framework installed. The easiest way to tell if it will work is just to run it. If the parser crashes or gives an error, then you probably need to download the framework from Microsoft here:
 
 http://www.microsoft.com/downloads/details.aspx?FamilyId=333325FD-AE52-4E35-B531-508D977D32A6&displaylang=en
 
