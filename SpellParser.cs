@@ -1753,6 +1753,9 @@ namespace Everquest
                     if (ID == 32271) aura = 32257;
                     if (ID == 22510) aura = 22574;
                     if (ID == 22511) aura = 22575;
+                    if (ID == 45022) aura = 45019;
+                    if (ID == 45023) aura = 45020;
+                    if (ID == 45024) aura = 45021;
 
                     if (Extra.StartsWith("IOQuicksandTrap85")) aura = 22655;
                     if (Extra.StartsWith("IOAuraCantataRk")) aura = 19713 + Rank;
@@ -2374,11 +2377,13 @@ namespace Everquest
             //if (ResistPerLevel != 0)
             //    result.Add("Resist Per Level: " + ResistPerLevel + ", Cap: " + ResistCap);
 
-            if (!Beneficial)
-            {
+            // only nukes and DoT can trigger spell damage shields
+            // no points showing it for NPC spells since NPCs will never take significant damage via incoming spell DS 
+            if (!Beneficial && ClassesMask != 0 && HasEffect("Decrease Current HP", 0))
                 result.Add("Trigger Spell DS: " + (Feedbackable ? "Yes" : "No"));
-                //result.Add("Reflectable: " + (Reflectable ? "Yes" : "No"));
-            }
+
+            if (!Beneficial)
+                result.Add("Reflectable: " + (Reflectable ? "Yes" : "No"));
 
             //if (!Beneficial && DurationTicks > 0 && HasEffect("Decrease Current HP", 0))
             //    result.Add("Stackable: " + (Stackable ? "Yes" : "No"));
