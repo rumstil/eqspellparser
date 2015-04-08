@@ -124,9 +124,15 @@ namespace Everquest
             return text;
         }
 
-        public IQueryable<Spell> Search(SpellSearchFilter filter) 
+        public IEnumerable<Spell> Search(SpellSearchFilter filter) 
         {
-            var query = spells.AsQueryable();
+            if (filter.ClassMaxLevel == 0)
+                filter.ClassMinLevel = 1;
+            if (filter.ClassMaxLevel == 0)
+                filter.ClassMaxLevel = 255;
+
+            
+            IEnumerable<Spell> query = spells;
 
             // if the spell text filter is an integer then just do a quick search by ID and ignore the other filters
             int id;
