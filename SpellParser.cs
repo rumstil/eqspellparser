@@ -1753,14 +1753,13 @@ namespace Everquest
                     if (ID == 32271) aura = 32257;
                     if (ID == 22510) aura = 22574;
                     if (ID == 22511) aura = 22575;
-                    if (ID == 45022) aura = 45019;
-                    if (ID == 45023) aura = 45020;
-                    if (ID == 45024) aura = 45021;
 
                     if (Extra.StartsWith("IOQuicksandTrap85")) aura = 22655;
                     if (Extra.StartsWith("IOAuraCantataRk")) aura = 19713 + Rank;
                     if (Extra.StartsWith("IOEncEchoProc95Rk")) aura = 30179 + Rank;
                     if (Extra.StartsWith("IORogTrapAggro92Rk")) aura = 26111 + Rank;
+                    if (Extra.StartsWith("IOEncEchoProc100Rk")) aura = 36227 + Rank;
+                    if (Extra.StartsWith("IOEncEchoProc105Rk")) aura = 45018 + Rank;
 
                     return String.Format("Aura Effect: [Spell {0}] ({1})", aura, Extra);
                 case 353:
