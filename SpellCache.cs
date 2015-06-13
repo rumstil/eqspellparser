@@ -160,7 +160,7 @@ namespace Everquest
             else if (!String.IsNullOrEmpty(filter.Class) && filter.Category != "AA")
             {
                 if (levelArrayIndex >= 0)
-                    query = query.Where(x => x.ExtLevels[levelArrayIndex] >= filter.ClassMinLevel && x.ExtLevels[levelArrayIndex] <= filter.ClassMaxLevel);
+                    query = query.Where(x => x.ClassesLevels != "ALL/254" && x.ExtLevels[levelArrayIndex] >= filter.ClassMinLevel && x.ExtLevels[levelArrayIndex] <= filter.ClassMaxLevel);
             }
 
             if (!String.IsNullOrEmpty(filter.Category))
