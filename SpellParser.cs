@@ -2461,7 +2461,7 @@ namespace Everquest
                     ClassesMask |= (SpellClassesMask)(1 << i);
                     ClassesLevels += " " + (SpellClasses)(i + 1) + "/" + Levels[i];
                 }
-                // bard AA i=7 are marked as 255 even though are usable
+                // bard AA are marked as 255 even though they are usable
                 if (Levels[i] != 254 && i != (int)SpellClasses.BRD)
                     All254 = false;
             }
