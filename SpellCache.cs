@@ -143,9 +143,6 @@ namespace Everquest
             if (!String.IsNullOrEmpty(filter.Text))
                 query = query.Where(x => x.ID.ToString() == filter.Text || x.Name.IndexOf(filter.Text, StringComparison.InvariantCultureIgnoreCase) >= 0 || (x.Desc != null && x.Desc.IndexOf(filter.Text, StringComparison.InvariantCultureIgnoreCase) >= 0));
 
-            // exclude dragorn breath AA because they spam the results
-            query = query.Where(x => !x.Name.StartsWith("Breath of"));
-
             // level filter is only used when a class is selected
             int levelArrayIndex = SpellParser.ParseClass(filter.Class) - 1;
             if (filter.Class == "Any PC")
