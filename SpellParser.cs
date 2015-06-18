@@ -2454,16 +2454,16 @@ namespace Everquest
             bool All254 = true;
             for (int i = 0; i < Levels.Length; i++)
             {
+                // level 255 means the class can't use this spell (except for bards)
                 if (Levels[i] == 255)
                     Levels[i] = 0;
+                if (Levels[i] != 254 && (i + 1) != (int)SpellClasses.BRD)
+                    All254 = false;
                 if (Levels[i] != 0)
                 {
                     ClassesMask |= (SpellClassesMask)(1 << i);
                     ClassesLevels += " " + (SpellClasses)(i + 1) + "/" + Levels[i];
                 }
-                // bard AA are marked as 255 even though they are usable
-                if (Levels[i] != 254 && i != (int)SpellClasses.BRD)
-                    All254 = false;
             }
             Array.Copy(Levels, ExtLevels, Levels.Length);
             ClassesLevels = ClassesLevels.TrimStart();
