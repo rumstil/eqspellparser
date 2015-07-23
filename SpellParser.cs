@@ -1033,10 +1033,6 @@ namespace Everquest
             if (spa == 254)
                 return null;
 
-            // type 10 sometimes indicates an unused slot
-            if (spa == 10 && (base1 <= 1 || base1 > 255))
-                return null;
-
             // many SPAs use a scaled value based on either current tick or caster level
             int value = CalcValue(calc, base1, max, 1, level);
             string range = CalcValueRange(calc, base1, max, DurationTicks, level);
@@ -1075,7 +1071,9 @@ namespace Everquest
                 case 9:
                     return Spell.FormatCount("WIS", value) + range;
                 case 10:
-                    // 10 is often used as a filler or to trigger server side scripts
+                    // type 10 sometimes indicates an unused slot or some special script trigger
+                    if (base1 <= 1 || base1 > 255)
+                        return null;
                     return Spell.FormatCount("CHA", value) + range;
                 case 11:
                     // base attack speed is 100. so 85 = 15% slow, 130 = 30% haste
@@ -1423,7 +1421,7 @@ namespace Everquest
                         return Spell.FormatPercent("Chance to Critical Hit with " + Spell.FormatEnum((SpellSkill)base2), value);
                     return Spell.FormatPercent("Chance to Critical Hit", value);
                 case 170:
-                    // stacks with 294
+                    // stacks with itself in other slots
                     // by default a crit does 100% of the base damage
                     return Spell.FormatPercent("Critical Nuke Damage", base1 + 100) + " of Base Damage";
                 case 171:
@@ -1603,13 +1601,13 @@ namespace Everquest
                 case 293:
                     return "Stun Resist v2";
                 case 294:
-                    // additive with innate crit multiplier
-                    if (base1 > 0 && base2 > 0)
+                    //if (base1 == 0 && base2 == 0)
+                    //    return null;
+                    // the base2 nuke damage increase doesn't appear on any spells after the 2015-7-22 patch but the code may still be functional
+                    if (base2 > 0)
                         return Spell.FormatPercent("Chance to Critical Nuke", base1) + " and " + Spell.FormatPercent("Critical Nuke Damage v2", base2) + " of Base Damage";
-                    else if (base1 > 0)
-                        return Spell.FormatPercent("Chance to Critical Nuke", base1);
                     else
-                        return Spell.FormatPercent("Critical Nuke Damage v2", base2) + " of Base Damage";
+                        return Spell.FormatPercent("Chance to Critical Nuke", base1);
                 case 296:
                     return Spell.FormatPercentRange("Spell Damage Taken", base1, base2);
                 case 297:
