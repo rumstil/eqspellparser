@@ -97,21 +97,25 @@ namespace winparser
         private void Download(string server)
         {
             Cursor.Current = Cursors.WaitCursor;
+            var manifest = "manifest.dat";
+            LaunchpadPatcher.DownloadManifest(server, manifest);
+            var files = LaunchpadPatcher.LoadManifest(manifest);
+            Cursor.Current = Cursors.Default;
 
-            var files = LaunchpadPatcher.DownloadManifest(server);
-
-            var spell = files["spells_us.txt"];
+            var spell = files.FirstOrDefault(x => x.Name == "spells_us.txt");
+            if (spell == null)
+                return;
             spell.Name = spell.Name.Replace(".txt", "-" + spell.LastModified.ToString("yyyy-MM-dd") + server + ".txt");
             LaunchpadPatcher.DownloadFile(spell.Url, spell.Name);
 
             // the desc file can sometimes be older than the spell file. we need to save it with the spell file timestamp 
             // so that there is always a corresponding copy
-            var desc = files["dbstr_us.txt"];
+            var desc = files.FirstOrDefault(x => x.Name == "dbstr_us.txt");
+            if (desc == null)
+                return;
             desc.Name = desc.Name.Replace(".txt", "-" + spell.LastModified.ToString("yyyy-MM-dd") + server + ".txt");
             LaunchpadPatcher.DownloadFile(desc.Url, desc.Name);
-
-            Cursor.Current = Cursors.Default;
-
+            
             Status.Text = String.Format("Downloaded {0} {1}", spell.Name, spell.LastModified.ToString());
 
             var item = listView1.FindItemWithText(spell.Name);

@@ -145,10 +145,15 @@ namespace parser
         /// <param name="server">Null for the live server.</param>
         static void DownloadPatchFiles(string server)
         {
-            var files = LaunchpadPatcher.DownloadManifest(server);
+            var manifest = "manifest.dat";
+            LaunchpadPatcher.DownloadManifest(server, manifest);
+            var files = LaunchpadPatcher.LoadManifest(manifest);
 
-            LaunchpadPatcher.DownloadFile(files[SpellFilename].Url, SpellFilename);
-            LaunchpadPatcher.DownloadFile(files[DescFilename].Url, DescFilename);
+            foreach (var f in files)
+                LaunchpadPatcher.DownloadFile(f.Url, f.Name);
+
+            //LaunchpadPatcher.DownloadFile(files.FirstOrDefault(x => x.Name == SpellFilename).Url, SpellFilename);
+            //LaunchpadPatcher.DownloadFile(files.FirstOrDefault(x => x.Name == DescFilename).Url, DescFilename);
         }
 
     }
