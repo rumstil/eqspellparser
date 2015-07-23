@@ -112,6 +112,7 @@ namespace Everquest
         Absorb_Hits = 163,
         Melee_Mitigation = 168,
         Critical_Hit_Chance = 169,
+        Critical_Nuke_Damage = 170,
         Crippling_Blow_Chance = 171,
         Avoid_Melee_Chance = 172, // combat agility AA?
         Riposte_Chance = 173,
@@ -859,6 +860,7 @@ namespace Everquest
         Reflected_Spells = 9,
         Defensive_Proc_Casts = 10,
         Offensive_Proc_Casts = 11
+        // 13 is probably like 8 but also excludes or includes damage shields
     }
 
     public enum SpellTeleport
@@ -976,7 +978,7 @@ namespace Everquest
         public bool AllowFastRegen;
         public bool BetaOnly;
         public bool CannotRemove;
-        public int CritOverride; // when set the spell has this % crit chance and mod 
+        public int CritOverride; // when set the spell has this max % crit chance and mod 
         public bool CombatSkill;
         public int ResistPerLevel;
         public int ResistCap;
@@ -1421,7 +1423,9 @@ namespace Everquest
                         return Spell.FormatPercent("Chance to Critical Hit with " + Spell.FormatEnum((SpellSkill)base2), value);
                     return Spell.FormatPercent("Chance to Critical Hit", value);
                 case 170:
-                    return Spell.FormatPercent("Chance to Critical Cast", value);
+                    // stacks with 294
+                    // by default a crit does 100% of the base damage
+                    return Spell.FormatPercent("Critical Nuke Damage", base1 + 100) + " of Base Damage";
                 case 171:
                     return Spell.FormatPercent("Chance to Crippling Blow", value);
                 case 172:
@@ -1601,11 +1605,11 @@ namespace Everquest
                 case 294:
                     // additive with innate crit multiplier
                     if (base1 > 0 && base2 > 0)
-                        return Spell.FormatPercent("Chance to Critical Nuke", base1) + " and " + Spell.FormatPercent("Critical Nuke Damage", base2) + " of Base Damage";
+                        return Spell.FormatPercent("Chance to Critical Nuke", base1) + " and " + Spell.FormatPercent("Critical Nuke Damage v2", base2) + " of Base Damage";
                     else if (base1 > 0)
                         return Spell.FormatPercent("Chance to Critical Nuke", base1);
                     else
-                        return Spell.FormatPercent("Critical Nuke Damage", base2) + " of Base Damage";
+                        return Spell.FormatPercent("Critical Nuke Damage v2", base2) + " of Base Damage";
                 case 296:
                     return Spell.FormatPercentRange("Spell Damage Taken", base1, base2);
                 case 297:
@@ -2417,7 +2421,7 @@ namespace Everquest
 
             // Arcane Fusion has a Crit Override value of 15, so it has a max 15% crit chance AND crit damage. This overrides ALL of it, AA, Worn, and Spell, which are normally separate.
             if (CritOverride > 0)
-                result.Add("Crit Chance/Dmg: " + CritOverride + "%");
+                result.Add("Max Crit Chance/Dmg: " + CritOverride + "%");
 
             if (MaxHits > 0)
                 result.Add("Max Hits: " + MaxHits + " " + FormatEnum((SpellMaxHits)MaxHitsType));
