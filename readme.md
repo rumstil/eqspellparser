@@ -35,7 +35,8 @@ The latest version of this parser is always running here: http://www.raidloot.co
 
 If you want to parse test or beta server spells you will need to download the parser and run it on your own machine.
 
-Download the parser here: [Download Updated Oct 9, 2014](http://s3.amazonaws.com/raidloot/parser327.zip)
+Download the parser here: 
+https://bitbucket.org/raidloot/eqspellparser/downloads/parser20150722.zip
 
 The zip file contains two applications to help you read the EQ spell file:
 
