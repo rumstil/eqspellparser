@@ -14,6 +14,10 @@ namespace Everquest
 
     public class LaunchpadPatcher
     {
+        public const string SPELL_FILE = "spells_us.txt";
+        public const string SPELLDESC_FILE = "dbstr_us.txt";
+        public const string SPELLSTACK_FILE = "SpellStackingGroups.txt";
+
         public class FileInfo
         {
             public string Name;
@@ -47,23 +51,30 @@ namespace Everquest
             List<FileInfo> files = new List<FileInfo>();
 
             // 2015-7-22 the parser broke so rather than trying to read the entire manifest i'm just going to look 
-            // for the 2 files i need
+            // for the few files i need
 
-            //string text = Encoding.ASCII.GetString(File.ReadAllBytes(path));
+            var queue = new string[] { SPELLSTACK_FILE, SPELL_FILE, SPELLDESC_FILE };
+
             using (Stream f = File.OpenRead(path))
             {
                 StreamReader str = new StreamReader(f, Encoding.ASCII);
                 string text = str.ReadToEnd();
 
-                f.Position = text.IndexOf("spells_us.txt") - 4;
-                FileInfo file = ReadFile(f);
-                file.Url = root + "/" + file.Url;
-                files.Add(file);
-
-                f.Position = text.IndexOf("dbstr_us.txt") - 4;
-                file = ReadFile(f);
-                file.Url = root + "/" + file.Url;
-                files.Add(file);
+                foreach (var name in queue)
+                {
+                    // set file position to the location of the filename
+                    // if any of the other important attributes preceeded the filename then this will fail to load them
+                    f.Position = text.IndexOf(name) - 2;
+                    FileInfo file = ReadFile(f);
+                    if (file == null)
+                    {
+                        Console.Error.WriteLine("Could not find {0} in manifest.", name);
+                        continue;
+                    }
+                    //Console.WriteLine(file);
+                    file.Url = root + "/" + file.Url;
+                    files.Add(file);
+                }
             }
 
 
@@ -135,12 +146,8 @@ namespace Everquest
         {
             FileInfo file = new FileInfo();
 
-            //int size = f.ReadByte();
-            //if (size >= 128)
-            //    size = ((size & 0xF) << 8) + f.ReadByte();
-
-            int size = ReadSize(f);
-            long next = f.Position + size;
+            //int size = ReadSize(f);
+            //long next = f.Position + size;
 
             // each file record contains the following attributes 
             // 1 = file name
@@ -151,7 +158,7 @@ namespace Everquest
             // 8 = timestamp in unix time
             // 18 = hash of some sort (forms the URL)
 
-            while (f.Position < next)
+            while (true)
             {
                 int type = f.ReadByte();
 
@@ -181,7 +188,7 @@ namespace Everquest
                 else break;
             }
 
-            f.Position = next;
+            //f.Position = next;
             //byte[] buf = new byte[next - f.Position];
             //f.Read(buf, 0, buf.Length);
             //Console.Error.WriteLine(file);

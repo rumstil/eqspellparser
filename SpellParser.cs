@@ -2417,9 +2417,8 @@ namespace Everquest
             if (HateOverride != 0)
                 result.Add("Hate: " + HateOverride);
 
-            // Arcane Fusion has a Crit Override value of 15, so it has a max 15% crit chance AND crit damage. This overrides ALL of it, AA, Worn, and Spell, which are normally separate.
             if (CritOverride > 0)
-                result.Add("Max Crit Chance/Dmg: " + CritOverride + "%");
+                result.Add("Max Crit Chance: " + CritOverride + "%");
 
             if (MaxHits > 0)
                 result.Add("Max Hits: " + MaxHits + " " + FormatEnum((SpellMaxHits)MaxHitsType));
