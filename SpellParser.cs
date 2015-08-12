@@ -2733,7 +2733,11 @@ namespace Everquest
 
     public static class SpellParser
     {
-        private const int MAX_LEVEL = 105;
+        public const int MAX_LEVEL = 105;
+
+        public const string SPELL_FILE = "spells_us.txt";
+        public const string SPELLDESC_FILE = "dbstr_us.txt";
+        public const string SPELLSTACK_FILE = "SpellStackingGroups.txt";
 
         /// <summary>
         /// Load spell list from the EQ spell definition files.

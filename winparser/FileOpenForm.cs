@@ -92,27 +92,22 @@ namespace winparser
         }
 
         /// <summary>
-        /// Download an updated spell file from the patch server.
+        /// Download an updated spell file from the patch server. File names will include date (from server timestamp) and patch server type.
         /// </summary>
         private void Download(string server)
         {
             Cursor.Current = Cursors.WaitCursor;
-            var manifest = "manifest.dat";
-            LaunchpadPatcher.DownloadManifest(server, manifest);
-            var files = LaunchpadPatcher.LoadManifest(manifest);
-            Cursor.Current = Cursors.Default;
 
-            var spell = files.FirstOrDefault(x => x.Name == "spells_us.txt");
-            if (spell == null)
-                return;
+            LaunchpadPatcher.DownloadManifest(server, "manifest.dat");
+            var manifest = new LaunchpadManifest(File.OpenRead("manifest.dat"));
+
+            var spell = manifest.FindFile(SpellParser.SPELL_FILE);
             spell.Name = spell.Name.Replace(".txt", "-" + spell.LastModified.ToString("yyyy-MM-dd") + server + ".txt");
             LaunchpadPatcher.DownloadFile(spell.Url, spell.Name);
 
             // the desc file can sometimes be older than the spell file. we need to save it with the spell file timestamp 
             // so that there is always a corresponding copy
-            var desc = files.FirstOrDefault(x => x.Name == "dbstr_us.txt");
-            if (desc == null)
-                return;
+            var desc = manifest.FindFile(SpellParser.SPELLDESC_FILE);
             desc.Name = desc.Name.Replace(".txt", "-" + spell.LastModified.ToString("yyyy-MM-dd") + server + ".txt");
             LaunchpadPatcher.DownloadFile(desc.Url, desc.Name);
             
@@ -130,6 +125,8 @@ namespace winparser
             item.EnsureVisible();
             item.Selected = true;
             listView1.MultiSelect = true;
+
+            Cursor.Current = Cursors.Default;
         }
 
         public void SetStatus(string text)
