@@ -145,15 +145,18 @@ namespace parser
         /// <param name="server">Null for the live server.</param>
         static void DownloadPatchFiles(string server)
         {
-            var manifest = "manifest.dat";
-            LaunchpadPatcher.DownloadManifest(server, manifest);
-            var files = LaunchpadPatcher.LoadManifest(manifest);
+            LaunchpadPatcher.DownloadManifest(server, "manifest.dat");
+            var manifest = new LaunchpadManifest(File.OpenRead("manifest.dat"));
 
-            foreach (var f in files)
-                LaunchpadPatcher.DownloadFile(f.Url, f.Name);
+            var spell = manifest.FindFile(SpellParser.SPELL_FILE);
+            LaunchpadPatcher.DownloadFile(spell.Url, spell.Name);
 
-            //LaunchpadPatcher.DownloadFile(files.FirstOrDefault(x => x.Name == SpellFilename).Url, SpellFilename);
-            //LaunchpadPatcher.DownloadFile(files.FirstOrDefault(x => x.Name == DescFilename).Url, DescFilename);
+            var desc = manifest.FindFile(SpellParser.SPELLDESC_FILE);
+            LaunchpadPatcher.DownloadFile(desc.Url, desc.Name);
+
+            var stack = manifest.FindFile(SpellParser.SPELLSTACK_FILE);
+            LaunchpadPatcher.DownloadFile(stack.Url, stack.Name);
+
         }
 
     }

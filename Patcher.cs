@@ -9,15 +9,12 @@ using SevenZip;
 
 namespace Everquest
 {
-    // .net 2.0 doesn't include the standard Func() delegates
-    //public delegate TResult Func<TResult>();
-
-    public class LaunchpadPatcher
+    /// <summary>
+    /// The launchpad manifest is basically a binary directory structure with some meta data. 
+    /// It contains a list of all the files needed to run the game, download URLs and local path names.
+    /// </summary>
+    public class LaunchpadManifest
     {
-        public const string SPELL_FILE = "spells_us.txt";
-        public const string SPELLDESC_FILE = "dbstr_us.txt";
-        public const string SPELLSTACK_FILE = "SpellStackingGroups.txt";
-
         public class FileInfo
         {
             public string Name;
@@ -33,51 +30,43 @@ namespace Everquest
             }
         }
 
-        /// <summary>
-        /// The manifest is basically a binary directory structure with some meta data. 
-        /// The URL for this is static. We need to download this to find the dynamic URLs for all other patch files.
-        /// </summary>
-        /// <param name="server">null for the live servers. "-test" for test server.</param>
-        public static void DownloadManifest(string server, string path)
+        private Stream data;
+        private string text;
+
+        public LaunchpadManifest(Stream stream)
         {
-            string url = String.Format("http://manifest.patch.station.sony.com/patch/sha/manifest/eq/eq-en{0}/live/eq-en{0}.sha.soe", server);
-            DownloadFile(url, path);
+            data = stream;
+
+            StreamReader str = new StreamReader(data, Encoding.ASCII);
+            text = str.ReadToEnd();
         }
 
-        public static List<FileInfo> LoadManifest(string path)
+        public FileInfo FindFile(string name)
         {
             string root = "http://eq.patch.station.sony.com/patch/sha/eq/eq.sha.zs";
 
-            List<FileInfo> files = new List<FileInfo>();
+            // set file position to the location of the filename
+            // if any of the other important attributes preceeded the filename then this will fail to load them
+            data.Position = text.IndexOf(name) - 2;
+            FileInfo file = ReadFile();
+            if (file == null)
+            {
+                Console.Error.WriteLine("Could not find {0} in manifest.", name);
+                return null;
+            }
+            //Console.WriteLine(file);
+            file.Url = root + "/" + file.Url;
+            return file;
+        }
+
+        public List<FileInfo> Files()
+        {
+            throw new NotImplementedException();
+
+            List<FileInfo> list = new List<FileInfo>();
 
             // 2015-7-22 the parser broke so rather than trying to read the entire manifest i'm just going to look 
             // for the few files i need
-
-            var queue = new string[] { SPELLSTACK_FILE, SPELL_FILE, SPELLDESC_FILE };
-
-            using (Stream f = File.OpenRead(path))
-            {
-                StreamReader str = new StreamReader(f, Encoding.ASCII);
-                string text = str.ReadToEnd();
-
-                foreach (var name in queue)
-                {
-                    // set file position to the location of the filename
-                    // if any of the other important attributes preceeded the filename then this will fail to load them
-                    f.Position = text.IndexOf(name) - 2;
-                    FileInfo file = ReadFile(f);
-                    if (file == null)
-                    {
-                        Console.Error.WriteLine("Could not find {0} in manifest.", name);
-                        continue;
-                    }
-                    //Console.WriteLine(file);
-                    file.Url = root + "/" + file.Url;
-                    files.Add(file);
-                }
-            }
-
-
 
             /*
 
@@ -139,10 +128,10 @@ namespace Everquest
             }
             */
 
-            return files;
+            return list;
         }
 
-        private static FileInfo ReadFile(Stream f)
+        private FileInfo ReadFile()
         {
             FileInfo file = new FileInfo();
 
@@ -160,29 +149,29 @@ namespace Everquest
 
             while (true)
             {
-                int type = f.ReadByte();
+                int type = data.ReadByte();
 
                 if (type == 1)
-                    file.Name = ReadString(f);
+                    file.Name = ReadString();
                 else if (type == 2)
-                    file.CompressedSize = ReadInt(f);
+                    file.CompressedSize = ReadInt();
                 else if (type == 3)
-                    file.UncompressedSize = ReadInt(f);
+                    file.UncompressedSize = ReadInt();
                 else if (type == 4)
-                    file.CRC32 = ReadInt(f);
+                    file.CRC32 = ReadInt();
                 else if (type == 8)
-                    file.LastModified = ReadDateTime(f);
+                    file.LastModified = ReadDateTime();
                 else if (type == 10)
                 {
                     // no idea what this is
-                    int len = ReadSize(f);
-                    f.Position += len;
+                    int len = ReadSize();
+                    data.Position += len;
                 }
                 else if (type == 18)
                 {
-                    int len = f.ReadByte();
+                    int len = data.ReadByte();
                     byte[] hash = new byte[len];
-                    f.Read(hash, 0, len);
+                    data.Read(hash, 0, len);
                     file.Url = EncodeAsBase16String(hash).Insert(5, "/").Insert(2, "/");
                 }
                 else break;
@@ -198,58 +187,76 @@ namespace Everquest
         /// <summary>
         /// Read a datetime from the manifest.
         /// </summary>
-        private static DateTime ReadDateTime(Stream f)
+        private DateTime ReadDateTime()
         {
-            return new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(ReadInt(f));
+            return new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(ReadInt());
         }
 
         /// <summary>
         /// Read an integer from the manifest.
         /// </summary>
-        private static int ReadInt(Stream f)
+        private int ReadInt()
         {
-            int len = f.ReadByte();
+            int len = data.ReadByte();
             int result = 0;
             for (int i = 0; i < len; i++)
-                result = (result << 8) + f.ReadByte();
+                result = (result << 8) + data.ReadByte();
             return result;
         }
 
         /// <summary>
         /// Read a string from the manifest.
         /// </summary>
-        private static string ReadString(Stream f)
+        private string ReadString()
         {
-            int len = f.ReadByte();
+            int len = data.ReadByte();
             byte[] buf = new byte[len];
-            f.Read(buf, 0, len);
+            data.Read(buf, 0, len);
             return Encoding.UTF8.GetString(buf).TrimEnd('\0');
         }
 
         /// <summary>
         /// Read size of the next variable length field. For some reason even the "size" itself is variable length.
         /// </summary>
-        private static int ReadSize(Stream f)
+        private int ReadSize()
         {
-            int size = f.ReadByte();
+            int size = data.ReadByte();
 
             if (size == 255)
             {
                 // size is an int32
                 size = 0;
                 for (int i = 0; i < 4; i++)
-                    size = (size << 8) + f.ReadByte();
+                    size = (size << 8) + data.ReadByte();
             }
             else if (size >= 128)
             {
                 // size is an int16
-                size = ((size & 0x7F) << 8) + f.ReadByte();
+                size = ((size & 0x7F) << 8) + data.ReadByte();
             }
 
             return size;
         }
 
-        public static void DownloadFile(string url, string path)
+        private static string EncodeAsBase16String(byte[] bytes)
+        {
+            StringBuilder s = new StringBuilder(bytes.Length * 2);
+            foreach (byte b in bytes)
+                s.Append(b.ToString("x2"));
+            return s.ToString();
+        }
+    }
+
+    public class LaunchpadPatcher
+    {
+        /// <param name="server">null for the live servers. "-test" for test server.</param>
+        public static void DownloadManifest(string server, string path)
+        {
+            string url = String.Format("http://manifest.patch.station.sony.com/patch/sha/manifest/eq/eq-en{0}/live/eq-en{0}.sha.soe", server);
+            DownloadFile(url, path);
+        }
+
+        public static void DownloadFile(string url, string saveToPath)
         {
             Console.Error.WriteLine("=> " + url);
 
@@ -259,17 +266,17 @@ namespace Everquest
                 web.Proxy = null;
                 byte[] data = web.DownloadData(url);
                 Stream inStream = new MemoryStream(data);
-                using (FileStream outStream = new FileStream(path, FileMode.Create))
+                using (FileStream outStream = new FileStream(saveToPath, FileMode.Create))
                 {
                     // Launchpad files are LZMA compressed
                     Decompress(inStream, outStream);
-                    Console.Error.WriteLine("   {2} [{0} bytes] {1}", outStream.Length, web.ResponseHeaders["Last-Modified"], path);
+                    Console.Error.WriteLine("   {2} [{0} bytes] {1}", outStream.Length, web.ResponseHeaders["Last-Modified"], saveToPath);
                     Console.Error.WriteLine();
                 }
 
                 DateTime lastMod;
                 if (DateTime.TryParse(web.ResponseHeaders["Last-Modified"], out lastMod))
-                    File.SetLastWriteTimeUtc(path, lastMod);
+                    File.SetLastWriteTimeUtc(saveToPath, lastMod);
             }
         }
 
@@ -291,15 +298,6 @@ namespace Everquest
             long compressedSize = inStream.Length - inStream.Position;
             decoder.Code(inStream, outStream, compressedSize, outSize, null);
         }
-
-        private static string EncodeAsBase16String(byte[] bytes)
-        {
-            StringBuilder s = new StringBuilder(bytes.Length * 2);
-            foreach (byte b in bytes)
-                s.Append(b.ToString("x2"));
-            return s.ToString();
-        }
-
 
     }
 
