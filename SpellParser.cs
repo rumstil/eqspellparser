@@ -1992,6 +1992,12 @@ namespace Everquest
                 case 460:
                     // some spells are tagged as non focusable (field 197) this overrides that
                     return "Limit Type: Include Non-Focusable";
+                case 464:
+                    // this chance is additive with the owner's passive pet flurry chance AA abilities.
+                    // how does this differ from 280?
+                    return Spell.FormatPercent("Pet Flurry Chance", base1);
+                case 466:
+                    return Spell.FormatPercent("Pet Rampage Chance", base1);
             }
 
             return String.Format("Unknown Effect: {0} Base1={1} Base2={2} Max={3} Calc={4} Value={5}", spa, base1, base2, max, calc, value);
