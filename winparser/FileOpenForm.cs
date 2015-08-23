@@ -52,13 +52,10 @@ namespace winparser
                 listView1.Items.Add(item);
             }
 
-            if (item == null)
-                Status.Text = "spells_us.txt was not found. Use the download button or copy a file into " + Directory.GetCurrentDirectory();
+            if (listView1.Items.Count > 0)
+                listView1.Items[0].Selected = true;
             else
-            {
-                item.EnsureVisible();
-                item.Selected = true;
-            }
+                Status.Text = "spells_us.txt was not found. Use the download button or copy a file into " + Directory.GetCurrentDirectory();
         }
 
         /// <summary>
