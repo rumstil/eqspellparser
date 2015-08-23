@@ -66,7 +66,7 @@ namespace Everquest
             EffectSearchHelpers.Add("Nuke", @"Decrease Current HP by (\d+)(?!.*(?:per tick))");
             EffectSearchHelpers.Add("DoT", @"Decrease Current HP by (\d+) per tick");
             EffectSearchHelpers.Add("Haste", @"Increase Melee Haste (?:v3 )?by (\d+)");
-            EffectSearchHelpers.Add("Slow", @"Decrease Melee Haste by (\d+)");
+            EffectSearchHelpers.Add("Slow", @"(?:Decrease Melee Haste)|(?:Increase Melee Delay) by (\d+)");
             EffectSearchHelpers.Add("Snare", @"Decrease Movement Speed by (\d+)");
             EffectSearchHelpers.Add("Shrink", @"Decrease Player Size");
             EffectSearchHelpers.Add("Rune", "Absorb");
