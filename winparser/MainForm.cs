@@ -44,12 +44,12 @@ namespace winparser
             SearchClass.Items.Add("Any PC");
             SearchClass.Items.Add("");
 
-            SearchEffect1.Items.AddRange(SpellCache.EffectSearchHelpers.Keys.ToArray());
+            SearchEffect1.Items.AddRange(SpellSearchFilter.CommonEffects.Keys.ToArray());
             SearchEffect1.Items.Add("");
             SearchEffect1.Text = "";
-            SearchEffect2.Items.AddRange(SpellCache.EffectSearchHelpers.Keys.ToArray());
+            SearchEffect2.Items.AddRange(SpellSearchFilter.CommonEffects.Keys.ToArray());
             SearchEffect2.Items.Add("");
-            SearchEffect3.Items.AddRange(SpellCache.EffectSearchHelpers.Keys.ToArray());
+            SearchEffect3.Items.AddRange(SpellSearchFilter.CommonEffects.Keys.ToArray());
             SearchEffect3.Items.Add("");
 
             //SearchBrowser.ObjectForScripting = this;

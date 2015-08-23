@@ -8,6 +8,9 @@ namespace Everquest
 {
     public class SpellSearchFilter
     {
+        // stores a list of the most popular effect types for populating a search suggestion dropdown
+        public static readonly Dictionary<string, string> CommonEffects;
+
         public string Text { get; set; }
         public string[] Effect { get; set; }
         public int?[] EffectSlot { get; set; }
@@ -21,6 +24,37 @@ namespace Everquest
         //public bool AddForwardRefs { get; set; }
         public bool AddBackRefs { get; set; }
 
+        static SpellSearchFilter()
+        {
+            CommonEffects = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
+
+            // some effect types are described differently by the parser than what players commonly call them
+            CommonEffects.Add("Cure", @"Decrease \w+ Counter by (\d+)");
+            CommonEffects.Add("Heal", @"Increase Current HP by ([1-9]\d+)(?!.*(?:per tick))"); // 1-9 to exclude spells with "Increase Current HP by 0" 
+            CommonEffects.Add("HoT", @"Increase Current HP by (\d+) per tick");
+            CommonEffects.Add("Nuke", @"Decrease Current HP by (\d+)(?!.*(?:per tick))");
+            CommonEffects.Add("DoT", @"Decrease Current HP by (\d+) per tick");
+            CommonEffects.Add("Haste", @"Increase Melee Haste (?:v3 )?by (\d+)");
+            CommonEffects.Add("Slow", @"(?:Decrease Melee Haste)|(?:Increase Melee Delay) by (\d+)");
+            CommonEffects.Add("Snare", @"Decrease Movement Speed by (\d+)");
+            CommonEffects.Add("Shrink", @"Decrease Player Size");
+            CommonEffects.Add("Rune", "Absorb");
+            CommonEffects.Add("Pacify", @"Decrease Social Radius");
+            CommonEffects.Add("Damage Shield", @"Increase Damage Shield by (\d+)");
+            CommonEffects.Add("Mana Regen", @"Increase Current Mana by (\d+)");
+            CommonEffects.Add("Add Proc", @"(?:Add Proc)|(?:Add Skill Proc)");
+            CommonEffects.Add("Add Spell Proc", @"Cast.+on Spell Use");
+
+            // literal text suggestions (these words appear in parsed text so they don't need to be regexes)
+            CommonEffects.Add("Charm", null);
+            CommonEffects.Add("Mesmerize", null);
+            CommonEffects.Add("Memory Blur", null);
+            CommonEffects.Add("Root", null);
+            CommonEffects.Add("Stun", null);
+            CommonEffects.Add("Hate", null);
+            CommonEffects.Add("Invisibility", null);
+            CommonEffects.Add("Add Defensive Proc", null);
+        }
 
         public SpellSearchFilter()
         {
@@ -36,7 +70,6 @@ namespace Everquest
     /// </summary>
     public class SpellCache : IEnumerable<Spell>
     {
-        public static readonly Dictionary<string, string> EffectSearchHelpers;
 
         private string path;
         private List<Spell> spells;
@@ -45,37 +78,6 @@ namespace Everquest
         private ILookup<int, Spell> spellsByGroup;
 
         public string Path { get { return path; } }
-
-        static SpellCache()
-        {
-            EffectSearchHelpers = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
-
-            // literal text suggestions (these words appear in parsed text)
-            EffectSearchHelpers.Add("Charm", null);
-            EffectSearchHelpers.Add("Mesmerize", null);
-            EffectSearchHelpers.Add("Memory Blur", null);
-            EffectSearchHelpers.Add("Root", null);
-            EffectSearchHelpers.Add("Stun", null);
-            EffectSearchHelpers.Add("Hate", null);
-            EffectSearchHelpers.Add("Invisibility", null);
-            EffectSearchHelpers.Add("Add Defensive Proc", null);
-
-            EffectSearchHelpers.Add("Cure", @"Decrease \w+ Counter by (\d+)");
-            EffectSearchHelpers.Add("Heal", @"Increase Current HP by ([1-9]\d+)(?!.*(?:per tick))"); // 1-9 to exclude spells with "Increase Current HP by 0" 
-            EffectSearchHelpers.Add("HoT", @"Increase Current HP by (\d+) per tick");
-            EffectSearchHelpers.Add("Nuke", @"Decrease Current HP by (\d+)(?!.*(?:per tick))");
-            EffectSearchHelpers.Add("DoT", @"Decrease Current HP by (\d+) per tick");
-            EffectSearchHelpers.Add("Haste", @"Increase Melee Haste (?:v3 )?by (\d+)");
-            EffectSearchHelpers.Add("Slow", @"(?:Decrease Melee Haste)|(?:Increase Melee Delay) by (\d+)");
-            EffectSearchHelpers.Add("Snare", @"Decrease Movement Speed by (\d+)");
-            EffectSearchHelpers.Add("Shrink", @"Decrease Player Size");
-            EffectSearchHelpers.Add("Rune", "Absorb");
-            EffectSearchHelpers.Add("Pacify", @"Decrease Social Radius");
-            EffectSearchHelpers.Add("Damage Shield", @"Increase Damage Shield by (\d+)");
-            EffectSearchHelpers.Add("Mana Regen", @"Increase Current Mana by (\d+)");
-            EffectSearchHelpers.Add("Add Proc", @"(?:Add Proc)|(?:Add Skill Proc)");
-            EffectSearchHelpers.Add("Add Spell Proc", @"Cast.+on Spell Use");
-        }
 
         public SpellCache(string path, List<Spell> list)
         {
@@ -175,8 +177,8 @@ namespace Everquest
                 if (!String.IsNullOrEmpty(filter.Effect[i]))
                 {
                     string effect = null;
-                    if (EffectSearchHelpers.ContainsKey(filter.Effect[i]))
-                        effect = EffectSearchHelpers[filter.Effect[i]];
+                    if (SpellSearchFilter.CommonEffects.ContainsKey(filter.Effect[i]))
+                        effect = SpellSearchFilter.CommonEffects[filter.Effect[i]];
 
                     if (!String.IsNullOrEmpty(effect))
                     {
