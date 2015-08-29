@@ -3,15 +3,70 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+// Launchpad files are all LZMA compressed. I've included it as binary for easier building of this project.
 // SevenZip (lzma.dll) is compiled from v9.20 of the LZMA SDK http://www.7-zip.org/sdk.html
-// I've included it as binary for easier building of this project.
 using SevenZip;
 
 namespace Everquest
 {
+    public class LaunchpadPatcher
+    {
+        /// <param name="server">null for the live servers. "-test" for test server.</param>
+        public static void DownloadManifest(string server, string saveToPath)
+        {
+            string url = String.Format("http://manifest.patch.station.sony.com/patch/sha/manifest/eq/eq-en{0}/live/eq-en{0}.sha.soe", server);
+            DownloadFile(url, saveToPath);
+        }
+
+        public static void DownloadFile(string url, string saveToPath)
+        {
+            Console.Error.WriteLine("=> " + url);
+
+            using (WebClient web = new WebClient())
+            {
+                web.Headers["User-Agent"] = "Quicksilver Player/1.0.3.183";
+                web.Proxy = null;
+                byte[] data = web.DownloadData(url);
+                Stream inStream = new MemoryStream(data);
+                using (FileStream outStream = new FileStream(saveToPath, FileMode.Create))
+                {
+                    // Launchpad files are LZMA compressed
+                    Decompress(inStream, outStream);
+                    Console.Error.WriteLine("   {2} [{0} bytes] {1}", outStream.Length, web.ResponseHeaders["Last-Modified"], saveToPath);
+                    Console.Error.WriteLine();
+                }
+
+                DateTime lastMod;
+                if (DateTime.TryParse(web.ResponseHeaders["Last-Modified"], out lastMod))
+                    File.SetLastWriteTimeUtc(saveToPath, lastMod);
+            }
+        }
+
+        private static void Decompress(Stream inStream, Stream outStream)
+        {
+            byte[] properties = new byte[5];
+            if (inStream.Read(properties, 0, 5) != 5)
+                throw new Exception("Input .lzma is too short");
+
+            SevenZip.Compression.LZMA.Decoder decoder = new SevenZip.Compression.LZMA.Decoder();
+            decoder.SetDecoderProperties(properties);
+            long outSize = 0;
+            for (int i = 0; i < 8; i++)
+            {
+                int v = inStream.ReadByte();
+                outSize |= ((long)(byte)v) << (8 * i);
+            }
+            long compressedSize = inStream.Length - inStream.Position;
+            decoder.Code(inStream, outStream, compressedSize, outSize, null);
+        }
+
+    }
+
     /// <summary>
     /// The launchpad manifest is basically a binary directory structure with some meta data. 
     /// It contains a list of all the files needed to run the game, download URLs and local path names.
+    /// Before we download any files we need to look them up in the manifest to get the URLs for them.
+    /// The only file with a fixed URL is the manifest itself.
     /// </summary>
     public class LaunchpadManifest
     {
@@ -46,15 +101,15 @@ namespace Everquest
             string root = "http://eq.patch.station.sony.com/patch/sha/eq/eq.sha.zs";
 
             // set file position to the location of the filename
-            // if any of the other important attributes preceeded the filename then this will fail to load them
-            data.Position = text.IndexOf(name) - 2;
-            FileInfo file = ReadFile();
-            if (file == null)
+            // if any of the other important attributes preceeded the filename (as they can) then this will fail to load them 
+            int pos = text.IndexOf(name) - 2;
+            if (pos <= 0)
             {
                 Console.Error.WriteLine("Could not find {0} in manifest.", name);
                 return null;
             }
-            //Console.WriteLine(file);
+            data.Position = pos;
+            FileInfo file = ReadFile();
             file.Url = root + "/" + file.Url;
             return file;
         }
@@ -163,7 +218,7 @@ namespace Everquest
                     file.LastModified = ReadDateTime();
                 else if (type == 10)
                 {
-                    // no idea what this is
+                    // no idea what type 10 is
                     int len = ReadSize();
                     data.Position += len;
                 }
@@ -193,7 +248,7 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Read an integer from the manifest.
+        /// Read an integer from the manifest. Integers are stored as a variable length byte array.
         /// </summary>
         private int ReadInt()
         {
@@ -212,6 +267,7 @@ namespace Everquest
             int len = data.ReadByte();
             byte[] buf = new byte[len];
             data.Read(buf, 0, len);
+            // not sure if the encoding is actually UTF8 
             return Encoding.UTF8.GetString(buf).TrimEnd('\0');
         }
 
@@ -247,58 +303,6 @@ namespace Everquest
         }
     }
 
-    public class LaunchpadPatcher
-    {
-        /// <param name="server">null for the live servers. "-test" for test server.</param>
-        public static void DownloadManifest(string server, string path)
-        {
-            string url = String.Format("http://manifest.patch.station.sony.com/patch/sha/manifest/eq/eq-en{0}/live/eq-en{0}.sha.soe", server);
-            DownloadFile(url, path);
-        }
 
-        public static void DownloadFile(string url, string saveToPath)
-        {
-            Console.Error.WriteLine("=> " + url);
-
-            using (WebClient web = new WebClient())
-            {
-                web.Headers["User-Agent"] = "Quicksilver Player/1.0.3.183";
-                web.Proxy = null;
-                byte[] data = web.DownloadData(url);
-                Stream inStream = new MemoryStream(data);
-                using (FileStream outStream = new FileStream(saveToPath, FileMode.Create))
-                {
-                    // Launchpad files are LZMA compressed
-                    Decompress(inStream, outStream);
-                    Console.Error.WriteLine("   {2} [{0} bytes] {1}", outStream.Length, web.ResponseHeaders["Last-Modified"], saveToPath);
-                    Console.Error.WriteLine();
-                }
-
-                DateTime lastMod;
-                if (DateTime.TryParse(web.ResponseHeaders["Last-Modified"], out lastMod))
-                    File.SetLastWriteTimeUtc(saveToPath, lastMod);
-            }
-        }
-
-        private static void Decompress(Stream inStream, Stream outStream)
-        {
-            byte[] properties = new byte[5];
-            if (inStream.Read(properties, 0, 5) != 5)
-                throw new Exception("Input .lzma is too short");
-
-
-            SevenZip.Compression.LZMA.Decoder decoder = new SevenZip.Compression.LZMA.Decoder();
-            decoder.SetDecoderProperties(properties);
-            long outSize = 0;
-            for (int i = 0; i < 8; i++)
-            {
-                int v = inStream.ReadByte();
-                outSize |= ((long)(byte)v) << (8 * i);
-            }
-            long compressedSize = inStream.Length - inStream.Position;
-            decoder.Code(inStream, outStream, compressedSize, outSize, null);
-        }
-
-    }
 
 }
