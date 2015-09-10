@@ -1020,8 +1020,6 @@ https://forums.station.sony.com/eq/index.php?threads/test-update-07-20-15.225079
 
 July 20, 2015
 
-- Note that some of the following changes are already on test.
-
 The old way critical damage was handled was as follows:
 - 0 meant no critical damage, 100 is "the same," anything over 100 is a bonus.
 - Only the best modifier from AAs was added, and only the best modifier from spells was added.
