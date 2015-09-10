@@ -87,6 +87,7 @@ namespace Everquest
         Max_HP = 69,
         Summon_Corpse = 91,
         Hate = 92,
+        Silence = 96,
         Max_Mana = 97,
         Melee_Haste_v2 = 98,
         Root = 99,
@@ -114,7 +115,7 @@ namespace Everquest
         Critical_Hit_Chance = 169,
         Critical_Nuke_Damage = 170,
         Crippling_Blow_Chance = 171,
-        Avoid_Melee_Chance = 172, // combat agility AA?
+        Avoid_Melee_Chance = 172, 
         Riposte_Chance = 173,
         Dodge_Chance = 174,
         Parry_Chance = 175,
@@ -265,7 +266,7 @@ namespace Everquest
         Tracking = 53,
         Wind = 54,
         Fishing = 55,
-        Make_Poison = 56,
+        Poison_Making = 56,
         Tinkering = 57,
         Research = 58,
         Alchemy = 59,
@@ -1427,7 +1428,8 @@ namespace Everquest
                 case 171:
                     return Spell.FormatPercent("Chance to Crippling Blow", value);
                 case 172:
-                    return Spell.FormatPercent("Chance to Avoid Melee", value);
+                    // combat agility AA
+                    return Spell.FormatPercent("Chance to Avoid Melee", base1);
                 case 173:
                     return Spell.FormatPercent("Chance to Riposte", value);
                 case 174:
@@ -1523,8 +1525,14 @@ namespace Everquest
                     if (Math.Abs(value) >= 100)
                         value = (int)(value / 100f);
                     return Spell.FormatPercent("Max HP", value);
+                case 215:
+                    return Spell.FormatPercent("Pet Chance to Avoid Melee", base1);
                 case 216:
                     return Spell.FormatPercent("Accuracy", value);
+                case 217:
+                    return String.Format("Add Headshot Proc with up to {0} Damage", base2);
+                case 218:
+                    return Spell.FormatPercent("Pet Chance to Critical Hit", value);
                 case 219:
                     return Spell.FormatPercent("Chance to Slay Undead", value / 100f);
                 case 220:
@@ -1537,33 +1545,77 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Additional Riposte", base1);
                 case 225:
                     return Spell.FormatCount("Double Attack Skill", base1);
+                case 226:
+                    // allows bash while weilding a 2h weapon
+                    return "Add Two-Handed Bash Ability";
                 case 227:
                     return String.Format("Reduce {0} Timer by {1}s", Spell.FormatEnum((SpellSkill)base2), base1);
+                case 228:
+                    return Spell.FormatPercent("Falling Damage", base1);
+                case 229:
+                    return Spell.FormatPercent("Chance to Cast Through Stun", base1);
+                case 230:
+                    return Spell.FormatPercent("Shielding Distance", base1);
+                case 231:
+                    return Spell.FormatPercent("Chance to Stun Bash", base1);
                 case 232:
                     return String.Format("Cast: [Spell {0}] on Death Save ({1}% Chance)", base2, base1);
                 case 233:
                     return Spell.FormatPercent("Food Consumption", -value);
+                case 234:
+                    return String.Format("Decrease Poison Application Time by {0}s", 10f - base1 / 1000f);
                 case 238:
                     return "Permanent Illusion";
+                case 237:
+                    return "Passive Pet Ability: Spell Affinity";
+                case 239:
+                    return Spell.FormatPercent("Feign Death Through Spell Hit", base1);
+                case 242:
+                    return Spell.FormatPercent("Chance to Memory Blur", base1);
                 case 243:
                     return Spell.FormatPercent("Chance of Charm Breaking", -base1);
                 case 244:
                     return Spell.FormatPercent("Chance of Root Breaking", base1);
+                case 245:
+                    return Spell.FormatPercent("Chance of Trap Circumvention", base1);
                 case 246:
                     return Spell.FormatCount("Lung Capacity", -value);
+                case 247:
+                    return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Skill Cap", base1);
+                case 248:
+                    // ability to train spell skills over 200 is limited to 1
+                    return String.Format("Extra Specialization", base1);
+                case 249:
+                    return "Add Offhand Weapon Damage Bonus";
                 case 250:
                     // not sure about this one
                     return Spell.FormatPercent("Defensive Proc Rate", base1);
+                case 251:
+                    // endless quiver AA
+                    return Spell.FormatPercent("Chance of Using Ammo", -base1);
+                case 252:
+                    return Spell.FormatPercent("Chance to Backstab From Front", base1);
+                case 253:
+                    return String.Format("Chaotic Stab ({0})", base1);
+                case 255:
+                    return String.Format("Increase Shielding Duration by {0}s", base1);
+                case 256:
+                    return "Shroud of Stealth";
+                case 257:
+                    return "Enable Pet Ability: Hold";
                 case 258:
                     return Spell.FormatPercent("Chance to Triple Backstab", value);
                 case 259:
-                    // i.e. Combat Stability AA
+                    // combat stability AA
                     return Spell.FormatCount("AC Soft Cap", value);
                 case 260:
                     return String.Format("Instrument Modifier: {0} {1}", Spell.FormatEnum((SpellSkill)base2), value);
                 case 262:
                     // affects worn cap
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkillCap)base2) + " Cap", value);
+                case 263:
+                    // ability to train tradeskills over 200 is limited to 1 by default
+                    return Spell.FormatCount("Extra Tradeskill Specialization", base1);
                 case 264:
                     return String.Format("Reduce AA {0} Timer to {1}s", base2, base1 / 2f);
                 case 265:
@@ -1571,6 +1623,12 @@ namespace Everquest
                     return String.Format("No Fizzle on spells up to level {0}", value);
                 case 266:
                     return Spell.FormatPercent("Chance of Additional 2H Attack", value);
+                case 267:
+                    return String.Format("Enable Pet Ability: {0}", base2);
+                case 268:
+                    return Spell.FormatPercent("Chance to Fail " + Spell.FormatEnum((SpellSkill)base2) + " Combine", -base1);
+                case 269:
+                    return Spell.FormatPercent("Bandage HP Cap", base1);
                 case 270:
                     return Spell.FormatCount("Beneficial Song Range", base1);
                 case 271:
@@ -1581,25 +1639,48 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Critical DoT", base1) + maxlevel;
                 case 274:
                     return Spell.FormatPercent("Chance to Critical Heal", base1);
+                case 275:
+                    return Spell.FormatPercent("Chance to Critical Mend", base1);
+                case 276:
+                    return String.Format("Dual Wield Amount ({0})", base1);
+                case 277:
+                    return Spell.FormatPercent("Chance to Trigger Divine Intervention", base1);
+                case 278:
+                    // not sure what base1 is. maybe minimum hit damage needed to proc?
+                    return String.Format("Add Finishing Blow Proc with up to {0} Damage", base2);
                 case 279:
                     return Spell.FormatPercent("Chance to Flurry", value);
                 case 280:
                     return Spell.FormatPercent("Pet Chance to Flurry", value);
+                case 281:
+                    return Spell.FormatPercent("Pet Chance to Feign Death", base1);
+                case 282:
+                    return Spell.FormatCount("Bandage Amount", base1);
+                case 283:
+                    return Spell.FormatPercent("Chance to Double Special Attack", base1);
+                case 285:
+                    return Spell.FormatPercent("Chance to Evade", base1);
                 case 286:
                     // is added after all other multipliers (focus, crit, etc..)
                     // for DoTs it adds base1/ticks to each tick.
                     return Spell.FormatCount("Spell Damage Bonus", base1);
                 case 287:
                     return String.Format("Increase Duration by {0}s", base1 * 6);
+                case 288:
+                    // this procs the spell associated with the aa
+                    return String.Format("Add " + Spell.FormatEnum((SpellSkill)base2) + " Proc with {1}% Rate Mod", base1, base2);
                 case 289:
                     // this only triggers if the spell times out. compare with 373
                     return String.Format("Cast: [Spell {0}] on Duration Fade", base1);
+                case 290:
+                    return Spell.FormatCount("Movement Cap", value);
                 case 291:
                     return String.Format("Dispel Detrimental ({0})", value);
                 case 292:
-                    return "Strikethrough v2";
+                    return String.Format("Strikethrough v2 ({0})", base1);
                 case 293:
-                    return "Stun Resist v2";
+                    // clenched jaw aa. 75 seems to be full resist
+                    return String.Format("Stun Resist v2 ({0})", base1);
                 case 294:
                     //if (base1 == 0 && base2 == 0)
                     //    return null;
@@ -1618,6 +1699,8 @@ namespace Everquest
                     return String.Format("Wake the Dead ({0})", max);
                 case 300:
                     return "Summon Doppelganger: " + Extra;
+                case 301:
+                    return Spell.FormatPercent("Range Damage", base1);
                 case 302:
                     // see also 124. only used on a few AA
                     return Spell.FormatPercent("Base Spell Damage", base1);
@@ -1646,6 +1729,8 @@ namespace Everquest
                     return String.Format("Limit Type: {0} Combat Skills", base1 == 1 ? "Include" : "Exclude");
                 case 312:
                     return "Sanctuary";
+                case 313:
+                    return Spell.FormatPercent("Chance to Double Forage", base1);
                 case 314:
                     return "Invisibility";
                 case 315:
@@ -1672,6 +1757,10 @@ namespace Everquest
                 case 324:
                     // blood magic. uses HP as mana
                     return String.Format("Cast from HP with {0}% Penalty", value);
+                case 325:
+                    return Spell.FormatPercent("Chance to Remain Hidden When Hit By AE", base1);
+                case 326:
+                    return Spell.FormatCount("Memorized Spell Slots", base1);
                 case 327:
                     return Spell.FormatCount("Buff Slots", base1);
                 case 328:
@@ -1713,8 +1802,19 @@ namespace Everquest
                     if (base1 < 100)
                         return String.Format("Interrupt Casting ({0}% Chance)", base1);
                     return "Interrupt Casting";
+                case 344:
+                    return Spell.FormatPercent("Chance to Channel Item Procs", base1);
+                case 345:
+                    return String.Format("Limit Assassinate Level: {0}", base1);
+                case 346:
+                    return String.Format("Limit Headshot Level: {0}", base1);
+                case 347:
+                    return Spell.FormatPercent("Chance to Double Range Attack", base1);
                 case 348:
                     return String.Format("Limit Min Mana Cost: {0}", base1);
+                case 349:
+                    // increases weapon damage when a shield is equiped
+                    return Spell.FormatPercent("Damage When Shield Equiped", base1);
                 case 350:
                     Mana = base1; // hack
                     return String.Format("Mana Burn: up to {0} damage", base1 * -base2 / 10);
@@ -1772,11 +1872,15 @@ namespace Everquest
                 case 358:
                     return Spell.FormatCount("Current Mana", value) + range;
                 case 359:
-                    return "Passive Sense Trap";
+                    return Spell.FormatPercent("Chance to Sense Trap", base1);
                 case 360:
                     return String.Format("Add Killshot Proc: [Spell {0}] ({1}% Chance)", base2, base1);
                 case 361:
                     return String.Format("Cast: [Spell {0}] on Death ({1}% Chance)", base2, base1);
+                case 362:
+                    return Spell.FormatCount("Potion Belt Slots", base1);
+                case 363:
+                    return Spell.FormatCount("Bandolier Slots", base1);
                 case 364:
                     return Spell.FormatPercent("Chance to Triple Attack", value);
                 case 365:
@@ -1847,10 +1951,15 @@ namespace Everquest
                 case 393:
                     return Spell.FormatPercentRange("Healing Taken", base1, base2);
                 case 394:
-                    return Spell.FormatCount("Healing Taken", base1); // affected by focus limit rules
+                    // affected by focus limit rules
+                    return Spell.FormatCount("Healing Taken", base1);
+                case 395:
+                    return Spell.FormatPercent("Chance to Crit Incoming Heal", value);
                 case 396:
                     // used on type 3 augments 
                     return Spell.FormatCount("Base Healing", base1);
+                case 397:
+                    return Spell.FormatCount("Pet Melee Mitigation", base1);
                 case 398:
                     return String.Format("Increase Pet Duration by {0}s", base1 / 1000);
                 case 399:
@@ -1868,6 +1977,8 @@ namespace Everquest
                     return String.Format("Limit Spell Category: {0}{1}", base1 >= 0 ? "" : "Exclude ", Spell.FormatEnum((SpellCategory)Math.Abs(base1)));
                 case 404:
                     return String.Format("Limit Spell Subcategory: {0}{1}", base1 >= 0 ? "" : "Exclude ", Math.Abs(base1));
+                case 405:
+                    return Spell.FormatPercent("Staff Block Chance", base1);
                 case 406:
                     return String.Format("Cast: [Spell {0}] on Max Hits", base1);
                 case 407:
@@ -1898,27 +2009,35 @@ namespace Everquest
                     // SPA 416 functions exactly like SPA 1, it was added so that we could avoid stacking conflicts with only 12 spell slots. - Dzarn
                     return Spell.FormatCount("AC v2", (int)(value / (10f / 3f)));
                 case 417:
-                    // how is this different than 15?
+                    // same as 15 and used for stacking
                     return Spell.FormatCount("Current Mana v2", value) + repeating + range;
                 case 418:
-                    // how is this different than 220 bonus?
+                    // same as 220 and used for stacking
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus v2", base1);
                 case 419:
                     // this is used for potions. how is it different than 85? maybe proc rate?
                     if (base2 != 0)
                         return String.Format("Add Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
                     return String.Format("Add Proc: [Spell {0}]", base1);
+                case 421:
+                    return Spell.FormatCount("Max Hits Counter", base1);
+                case 422:
+                    return String.Format("Limit Max Hits Min: {0}", base1);
+                case 423:
+                    return String.Format("Limit Max Hits Type: {0}", Spell.FormatEnum((SpellMaxHits)base1));
                 case 424:
                     return String.Format("Gradual {0} to {2}' away (Force={1})", base1 > 0 ? "Push" : "Pull", Math.Abs(base1), base2);
                 case 425:
                     return "Fly";
+                case 426:
+                    return Spell.FormatCount("Extended Target Window Slots", base1);
                 case 427:
                     // not sure how this works. base2 / 10 doesn't seem to be the correct chance.
                     // raising base2 increases the frequency of the cast.
                     // it may only have an opportunity to fire once a round or maybe once per some timespan?
                     return String.Format("Cast: [Spell {0}] on Skill Use ({1})", base1, base2);
                 case 428:
-                    return String.Format("Limit Skill: {0}", Spell.FormatEnum((SpellSkill)value));
+                    return String.Format("Limit Skill: {0}", Spell.FormatEnum((SpellSkill)base1));
                 case 429:
                     if (base2 != 0)
                         return String.Format("Add Skill Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
@@ -1931,6 +2050,8 @@ namespace Everquest
                     if (base1 < 0)
                         return String.Format("Tint Vision: Red={0} Green={1} Blue={2}", base1 >> 16 & 0xff, base1 >> 8 & 0xff, base1 & 0xff);
                     return String.Format("Alter Vision: Base1={0} Base2={1} Max={2}", base1, base2, max);
+                case 432:
+                    return Spell.FormatCount("Trophy Slots", base1);
                 case 433:
                     return Spell.FormatPercent("Chance to Critical DoT v2", base1) + String.Format(" up to level {0} (lose {1}% per level)", max, base2);
                 case 434:
@@ -1943,6 +2064,10 @@ namespace Everquest
                     return "Teleport to your " + FormatEnum((SpellTeleport)base1);
                 case 438:
                     return "Teleport to their " + FormatEnum((SpellTeleport)base1);
+                case 439:
+                    return String.Format("Add Assasinate Proc with up to {0} Damage", base2);
+                case 440:
+                    return String.Format("Limit Finishing Blow Level: {0}", base1);
                 case 441:
                     return String.Format("Cancel if Moved {0}", base1);
                 case 442:
@@ -2755,9 +2880,9 @@ namespace Everquest
             //Dictionary<int, Spell> listByGroup = new Dictionary<int, Spell>(30000);
 
             // load description text file
-            Dictionary<string, string> desc = new Dictionary<string, string>(50000);
+            var desc = new Dictionary<string, string>(50000);
             if (File.Exists(descPath))
-                using (StreamReader text = File.OpenText(descPath))
+                using (var text = File.OpenText(descPath))
                     while (!text.EndOfStream)
                     {
                         string line = text.ReadLine();
@@ -2782,7 +2907,7 @@ namespace Everquest
 
             // load spell definition file
             if (File.Exists(spellPath))
-                using (StreamReader text = File.OpenText(spellPath))
+                using (var text = File.OpenText(spellPath))
                     while (!text.EndOfStream)
                     {
                         string line = text.ReadLine();
@@ -2954,7 +3079,8 @@ namespace Everquest
             spell.CancelOnSit = ParseBool(fields[124]);
 
             // 125..141 deity casting restrictions
-            string[] gods = new string[] { "Agnostic", "Bertox", "Brell", "Cazic", "Erollisi", "Bristlebane", "Innoruuk", "Karana", "Mithanial", "Prexus", "Quellious", "Rallos", "Rodcet", "Solusek", "Tribunal", "Tunare", "Veeshan" };
+            string[] gods = new string[] { "Agnostic", "Bertox", "Brell", "Cazic", "Erollisi", "Bristlebane", "Innoruuk", "Karana", "Mithanial", "Prexus", 
+                "Quellious", "Rallos", "Rodcet", "Solusek", "Tribunal", "Tunare", "Veeshan" };
             for (int i = 0; i < gods.Length; i++)
                 if (ParseBool(fields[125 + i]))
                     spell.Deity += gods[i] + " ";
