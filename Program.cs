@@ -14,10 +14,9 @@ namespace parser
 {
     class Program
     {
-        static string SpellFilename = "spells_us.txt";
-        static string DescFilename = "dbstr_us.txt";
-
         static SpellCache spells;
+
+        static string SpellFilename = LaunchpadManifest.SPELL_FILE;
 
         static void Main(string[] args)
         {
@@ -148,13 +147,13 @@ namespace parser
             LaunchpadPatcher.DownloadManifest(server, "manifest.dat");
             var manifest = new LaunchpadManifest(File.OpenRead("manifest.dat"));
 
-            var spell = manifest.FindFile(SpellParser.SPELL_FILE);
+            var spell = manifest.FindFile(LaunchpadManifest.SPELL_FILE);
             LaunchpadPatcher.DownloadFile(spell.Url, spell.Name);
 
-            var desc = manifest.FindFile(SpellParser.SPELLDESC_FILE);
+            var desc = manifest.FindFile(LaunchpadManifest.SPELLDESC_FILE);
             LaunchpadPatcher.DownloadFile(desc.Url, desc.Name);
 
-            var stack = manifest.FindFile(SpellParser.SPELLSTACK_FILE);
+            var stack = manifest.FindFile(LaunchpadManifest.SPELLSTACK_FILE);
             LaunchpadPatcher.DownloadFile(stack.Url, stack.Name);
 
         }

@@ -106,6 +106,8 @@ namespace Everquest
         Mana_Cost_Focus = 132,
         Current_HP_Percent = 147,
         Divine_Intervention_With_Heal = 150,
+        Suspend_Pet = 151,
+        Summon_Swarm_Pet = 152,
         Cure_Detrimental = 154,
         Reflect_Spell = 158,
         Spell_Rune = 161,
@@ -1620,7 +1622,7 @@ namespace Everquest
                     return String.Format("Reduce AA {0} Timer to {1}s", base2, base1 / 2f);
                 case 265:
                     // value of zero should negate effects of Mastery of the Past
-                    return String.Format("No Fizzle on spells up to level {0}", value);
+                    return String.Format("No Fizzle up to level {0}", value);
                 case 266:
                     return Spell.FormatPercent("Chance of Additional 2H Attack", value);
                 case 267:
@@ -2790,7 +2792,7 @@ namespace Everquest
             return type;
         }
 
-        static private string FormatTime(float seconds)
+        static public string FormatTime(float seconds)
         {
             if (seconds < 120)
                 return seconds.ToString("0.##") + "s";
@@ -2865,10 +2867,6 @@ namespace Everquest
     public static class SpellParser
     {
         public const int MAX_LEVEL = 105;
-
-        public const string SPELL_FILE = "spells_us.txt";
-        public const string SPELLDESC_FILE = "dbstr_us.txt";
-        public const string SPELLSTACK_FILE = "SpellStackingGroups.txt";
 
         /// <summary>
         /// Load spell list from the EQ spell definition files.
