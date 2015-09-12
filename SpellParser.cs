@@ -1544,7 +1544,7 @@ namespace Everquest
                 case 220:
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", base1);
                 case 221:
-                    return Spell.FormatPercent("Reduce Weight", base1);
+                    return Spell.FormatPercent("Weight", -base1);
                 case 222:
                     return Spell.FormatPercent("Chance to Block from Back", base1);
                 case 224:
@@ -1613,7 +1613,7 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Triple Backstab", value);
                 case 259:
                     // combat stability AA
-                    return Spell.FormatCount("AC Soft Cap", value);
+                    return Spell.FormatPercent("AC Soft Cap", value);
                 case 260:
                     return String.Format("Instrument Modifier: {0} {1}", Spell.FormatEnum((SpellSkill)base2), value);
                 case 262:
@@ -1663,6 +1663,7 @@ namespace Everquest
                 case 282:
                     return Spell.FormatCount("Bandage Amount", base1);
                 case 283:
+                    // only special monks attack skills?
                     return Spell.FormatPercent("Chance to Double Special Attack", base1);
                 case 285:
                     return Spell.FormatPercent("Chance to Evade", base1);
@@ -1674,7 +1675,7 @@ namespace Everquest
                     return String.Format("Increase Duration by {0}s", base1 * 6);
                 case 288:
                     // this procs the spell associated with the aa
-                    return String.Format("Add " + Spell.FormatEnum((SpellSkill)base2) + " Proc with {1}% Rate Mod", base1, base2);
+                    return String.Format("Add " + Spell.FormatEnum((SpellSkill)base2) + " Proc with {1}% Rate Mod", base2, base1);
                 case 289:
                     // this only triggers if the spell times out. compare with 373
                     return String.Format("Cast: [Spell {0}] on Duration Fade", base1);
