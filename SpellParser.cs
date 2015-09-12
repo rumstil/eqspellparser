@@ -1001,9 +1001,11 @@ namespace Everquest
         /// [Spell 123]    is a reference to spell 123
         /// [Group 123]    is a reference to spell group 123
         /// [Item 123]     is a reference to item 123
+        /// [AA 123]     is a reference to AA group 123
         static public readonly Regex SpellRefExpr = new Regex(@"\[Spell\s(\d+)\]");
         static public readonly Regex GroupRefExpr = new Regex(@"\[Group\s(\d+)\]");
         static public readonly Regex ItemRefExpr = new Regex(@"\[Item\s(\d+)\]");
+        static public readonly Regex AARefExpr = new Regex(@"\[AA\s(\d+)\]");
 
         static public readonly Regex FocusAmount = new Regex(@"(.+) by (\d+)%(?: to (\d+)%)?");
         static public readonly Regex FocusPetAmount = new Regex(@"(Increase Pet Power) \((\d+)\)");
@@ -1530,6 +1532,8 @@ namespace Everquest
                 case 215:
                     return Spell.FormatPercent("Pet Chance to Avoid Melee", base1);
                 case 216:
+                    if ((SpellSkill)base2 != SpellSkill.Hit)
+                        return Spell.FormatPercent(Spell.FormatEnum((SpellSkill)base2) + " Accuracy", value);
                     return Spell.FormatPercent("Accuracy", value);
                 case 217:
                     return String.Format("Add Headshot Proc with up to {0} Damage", base2);
@@ -1553,7 +1557,7 @@ namespace Everquest
                 case 227:
                     return String.Format("Reduce {0} Timer by {1}s", Spell.FormatEnum((SpellSkill)base2), base1);
                 case 228:
-                    return Spell.FormatPercent("Falling Damage", base1);
+                    return Spell.FormatPercent("Falling Damage", -base1);
                 case 229:
                     return Spell.FormatPercent("Chance to Cast Through Stun", base1);
                 case 230:
@@ -1571,7 +1575,7 @@ namespace Everquest
                 case 237:
                     return "Passive Pet Ability: Spell Affinity";
                 case 239:
-                    return Spell.FormatPercent("Feign Death Through Spell Hit", base1);
+                    return Spell.FormatPercent("Chance to Feign Death Through Spell Hit", base1);
                 case 242:
                     return Spell.FormatPercent("Chance to Memory Blur", base1);
                 case 243:
@@ -1619,7 +1623,7 @@ namespace Everquest
                     // ability to train tradeskills over 200 is limited to 1 by default
                     return Spell.FormatCount("Extra Tradeskill Specialization", base1);
                 case 264:
-                    return String.Format("Reduce AA {0} Timer to {1}s", base2, base1 / 2f);
+                    return String.Format("Reduce [AA {0}] Timer by {1}s", base2, base1 / 2f);
                 case 265:
                     // value of zero should negate effects of Mastery of the Past
                     return String.Format("No Fizzle up to level {0}", value);
@@ -1915,7 +1919,7 @@ namespace Everquest
                 case 377:
                     return String.Format("Cast: [Spell {0}] if Not Cured", base1);
                 case 378:
-                    return Spell.FormatPercent("Chance to Resist " + Spell.FormatEnum((SpellEffect)base2), value);
+                    return Spell.FormatPercent("Chance to Resist " + Spell.FormatEnum((SpellEffect)base2) + " Effects", value);
                 case 379:
                     if (base2 > 0)
                         return String.Format("Push {0}' in Direction: {1}", base1, base2);
@@ -2961,7 +2965,6 @@ namespace Everquest
                     if (s != null)
                     {
                         // match spell refs
-                        // effect 443 will references 2 spells. all other effects reference 1 at most
                         MatchCollection matches = Spell.SpellRefExpr.Matches(s);
                         foreach (Match m in matches)
                             if (m.Success)
