@@ -35,6 +35,14 @@ namespace Everquest
         The_Darkened_Sea      
     }
 
+    public struct AASlot
+    {
+        public int SPA;
+        public int Base1;
+        public int Base2;
+        public string Desc;
+    }
+
     public sealed class AA
     {
         public int ID;
@@ -55,12 +63,14 @@ namespace Everquest
         public int Tab; // 1=general, 2=archetype, 3=class
         public AAExpansion Expansion;
         public int HotKey;
-        public string[] Slots; // parsed description for each effect
+        public AASlot[] Slots;
+        //public string[] SlotDesc; // parsed description for each slot
         public int[] LinksTo;
 
         public AA()
         {
-            Slots = new string[0];
+            Slots = new AASlot[0];
+            //SlotDesc = new string[0];
             LinksTo = new int[0];
         }
 
@@ -123,7 +133,7 @@ namespace Everquest
                     aa.Expansion = (AAExpansion)ParseInt(fields[15]);
 
                     var effects = fields[16].Split(',').ToList();
-                    var slots = new List<string>();
+                    var slots = new List<AASlot>();
                     var spell = new Spell();
                     spell.DurationTicks = 1; // to show regen with "/tick" mode
                     while (effects.Count >= 4)
@@ -131,17 +141,18 @@ namespace Everquest
                         int spa = ParseInt(effects[0]);
                         int base1 = ParseInt(effects[1]);
                         int base2 = ParseInt(effects[2]);
-                        int max = 0;
-                        int calc = 100;
                         effects.RemoveRange(0, 4);
-                        var spadesc = spell.ParseEffect(spa, base1, base2, max, calc, 105);
+                        var slot = new AASlot() { SPA = spa, Base1 = base1, Base2 = base2 };
+                        slot.Desc = spell.ParseEffect(spa, base1, base2, 0, 100, aa.ReqLevel);
+                        //var spadesc = spell.ParseEffect(spa, base1, base2, max, calc, 105);
 #if DEBUG
-                        spadesc = String.Format("SPA {0} Base1={1} Base2={2} --- {3}", spa, base1, base2, spadesc);
+                        //spadesc = String.Format("SPA {0} Base1={1} Base2={2} --- {3}", spa, base1, base2, spadesc);
 #endif
-                        slots.Add(spadesc);
+                        slots.Add(slot);
 
                     }
                     aa.Slots = slots.ToArray();
+                    //aa.SlotDesc = slots.Select(x => spell.ParseEffect(x.SPA, x.Base1, x.Base2, 0, 100, aa.ReqLevel)).ToArray();
 
 
                     list.Add(aa);
@@ -163,16 +174,16 @@ namespace Everquest
                 if (aa.SpellID > 0)
                     linked.Add(aa.SpellID);
 
-                foreach (string s in aa.Slots.Where(x => x != null))
+                foreach (var s in aa.Slots.Where(x => x.Desc != null))
                 {
                     // match spell refs
-                    var matches = Spell.SpellRefExpr.Matches(s);
+                    var matches = Spell.SpellRefExpr.Matches(s.Desc);
                     foreach (Match m in matches)
                         if (m.Success)
                             linked.Add(Int32.Parse(m.Groups[1].Value));
 
                     // match spell group refs
-                    Match match = Spell.GroupRefExpr.Match(s);
+                    Match match = Spell.GroupRefExpr.Match(s.Desc);
                     if (match.Success)
                     {
                         int id = Int32.Parse(match.Groups[1].Value);
