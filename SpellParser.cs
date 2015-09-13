@@ -1540,7 +1540,9 @@ namespace Everquest
                 case 218:
                     return Spell.FormatPercent("Pet Chance to Critical Hit", value);
                 case 219:
-                    return Spell.FormatPercent("Chance to Slay Undead", value / 100f);
+                    // what does base2 do?
+                    //return Spell.FormatPercent("Chance to Slay Undead", base1 / 100f);
+                    return String.Format("Slay Undead (Base1={0}) (Base2={1})", base1, base2);
                 case 220:
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", base1);
                 case 221:
@@ -1567,7 +1569,7 @@ namespace Everquest
                 case 232:
                     return String.Format("Cast: [Spell {0}] on Death Save ({1}% Chance)", base2, base1);
                 case 233:
-                    return Spell.FormatPercent("Food Consumption", -value);
+                    return Spell.FormatPercent("Food Consumption", -base1);
                 case 234:
                     return String.Format("Decrease Poison Application Time by {0}s", 10f - base1 / 1000f);
                 case 238:
@@ -1585,7 +1587,7 @@ namespace Everquest
                 case 245:
                     return Spell.FormatPercent("Chance of Trap Circumvention", base1);
                 case 246:
-                    return Spell.FormatCount("Lung Capacity", -value);
+                    return Spell.FormatCount("Lung Capacity", base1);
                 case 247:
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Skill Cap", base1);
                 case 248:
@@ -2805,7 +2807,9 @@ namespace Everquest
             if (seconds < 7200)
                 return (seconds / 60f).ToString("0.#") + "m";
 
-            return new TimeSpan(0, 0, (int)seconds).ToString();
+            return (seconds / 3600f).ToString("0.#") + "h";
+
+            //return new TimeSpan(0, 0, (int)seconds).ToString();
         }
 
         static private string FormatCount(string name, int value)
