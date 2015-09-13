@@ -1581,7 +1581,7 @@ namespace Everquest
                 case 243:
                     return Spell.FormatPercent("Chance of Charm Breaking", -base1);
                 case 244:
-                    return Spell.FormatPercent("Chance of Root Breaking", base1);
+                    return Spell.FormatPercent("Chance of Root Breaking", -100 + base1);
                 case 245:
                     return Spell.FormatPercent("Chance of Trap Circumvention", base1);
                 case 246:
