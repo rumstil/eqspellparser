@@ -96,7 +96,7 @@ namespace winparser
             Cursor.Current = Cursors.WaitCursor;
 
             LaunchpadPatcher.DownloadManifest(server, "manifest.dat");
-            var manifest = new LaunchpadManifest(File.OpenRead("manifest.dat"));
+            var manifest = new LaunchpadManifest(new MemoryStream(File.ReadAllBytes("manifest.dat")));
 
             var spell = manifest.FindFile(LaunchpadManifest.SPELL_FILE);
             spell.Name = spell.Name.Replace(".txt", "-" + spell.LastModified.ToString("yyyy-MM-dd") + server + ".txt");
