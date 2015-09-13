@@ -896,6 +896,21 @@ namespace Everquest
         public int[] AtLevel;
     }
 
+    public struct SpellSlot
+    {
+        public int SPA;
+        public int Base1;
+        public int Base2;
+        public int Max;
+        public int Calc;
+        public string Desc;
+
+        public override string ToString()
+        {
+            return Desc;
+        }
+    }
+
     public sealed class Spell
     {
         public int ID;
@@ -907,8 +922,7 @@ namespace Everquest
         public int EnduranceUpkeep;
         public int DurationTicks;
         public bool DurationExtendable;
-        public string[] Slots; // parsed description for each of the 12 slots
-        public int[] SlotEffects;  // raw SPA # for each of the 12 slots
+        public SpellSlot[] Slots;  
         //public byte Level;
         public byte[] Levels; // casting level for each of the 16 classes
         public byte[] ExtLevels; // similar to levels but assigns levels for side effect spells that don't have levels defined (e.g. a proc effect will get the level of it's proc buff)
@@ -1017,8 +1031,7 @@ namespace Everquest
 
         public Spell()
         {
-            Slots = new string[12];
-            SlotEffects = new int[12];
+            Slots = new SpellSlot[12];
             Levels = new byte[16];
             ExtLevels = new byte[16];
             ConsumeItemID = new int[4];
@@ -1540,9 +1553,8 @@ namespace Everquest
                 case 218:
                     return Spell.FormatPercent("Pet Chance to Critical Hit", value);
                 case 219:
-                    // what does base2 do?
-                    //return Spell.FormatPercent("Chance to Slay Undead", base1 / 100f);
-                    return String.Format("Slay Undead (Base1={0}) (Base2={1})", base1, base2);
+                    return Spell.FormatPercent("Chance to Slay Undead", base1 / 100f) + String.Format(" with {0} Damage Mod", base2);
+                    //return Spell.FormatPercent("Chance to Slay Undead", base1 / 100f) + " and " + Spell.FormatPercent("Slay Damage", base2) + " of Base Damage";
                 case 220:
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", base1);
                 case 221:
@@ -1676,13 +1688,13 @@ namespace Everquest
                 case 287:
                     return String.Format("Increase Duration by {0}s", base1 * 6);
                 case 288:
-                    // this procs the spell associated with the aa
+                    // this procs the spell associated with the AA
                     return String.Format("Add " + Spell.FormatEnum((SpellSkill)base2) + " Proc with {1}% Rate Mod", base2, base1);
                 case 289:
                     // this only triggers if the spell times out. compare with 373
                     return String.Format("Cast: [Spell {0}] on Duration Fade", base1);
                 case 290:
-                    return Spell.FormatCount("Movement Cap", value);
+                    return Spell.FormatCount("Movement Speed Cap", value);
                 case 291:
                     return String.Format("Dispel Detrimental ({0})", value);
                 case 292:
@@ -1693,7 +1705,8 @@ namespace Everquest
                 case 294:
                     //if (base1 == 0 && base2 == 0)
                     //    return null;
-                    // the base2 nuke damage increase doesn't appear on any spells after the 2015-7-22 patch but the code may still be functional
+                    // the base2 nuke damage increase doesn't appear on any spells after the 2015-7-22 patch 
+                    // it still remains on a few AA however
                     if (base2 > 0)
                         return Spell.FormatPercent("Chance to Critical Nuke", base1) + " and " + Spell.FormatPercent("Critical Nuke Damage v2", base2) + " of Base Damage";
                     else
@@ -2576,8 +2589,8 @@ namespace Everquest
             //    result.Add("Category: " + Category);
 
             for (int i = 0; i < Slots.Length; i++)
-                if (Slots[i] != null)
-                    result.Add(String.Format("{0}: {1}", i + 1, Slots[i]));
+                if (Slots[i].Desc != null)
+                    result.Add(String.Format("{0}: {1}", i + 1, Slots[i].Desc));
 
             if (!String.IsNullOrEmpty(LandOnSelf))
                 result.Add("Text: " + LandOnSelf);
@@ -2651,8 +2664,13 @@ namespace Everquest
         public bool HasEffect(int spa, int slot)
         {
             if (slot > 0 && slot < Slots.Length)
-                return SlotEffects[slot - 1] == spa;
-            return Array.IndexOf(SlotEffects, spa) >= 0;
+                return Slots[slot - 1].SPA == spa;
+
+            for (int i = 0; i < Slots.Length; i++)
+                if (Slots[i].SPA == spa)
+                    return true;
+
+            return false;
         }
 
         /// <summary>
@@ -2667,10 +2685,10 @@ namespace Everquest
                 return HasEffect(spa, slot);
 
             if (slot > 0 && slot < Slots.Length)
-                return Slots[slot - 1] != null && Slots[slot - 1].IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0;
+                return Slots[slot - 1].Desc != null && Slots[slot - 1].Desc.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0;
 
             for (int i = 0; i < Slots.Length; i++)
-                if (Slots[i] != null && Slots[i].IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0)
+                if (Slots[i].Desc != null && Slots[i].Desc.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0)
                     return true;
 
             return false;
@@ -2683,10 +2701,10 @@ namespace Everquest
         public bool HasEffect(Regex re, int slot)
         {
             if (slot > 0 && slot < Slots.Length)
-                return Slots[slot - 1] != null && re.IsMatch(Slots[slot - 1]);
+                return Slots[slot - 1].Desc != null && re.IsMatch(Slots[slot - 1].Desc);
 
             for (int i = 0; i < Slots.Length; i++)
-                if (Slots[i] != null && re.IsMatch(Slots[i]))
+                if (Slots[i].Desc != null && re.IsMatch(Slots[i].Desc))
                     return true;
 
             return false;
@@ -2700,9 +2718,9 @@ namespace Everquest
         {
             int score = 0;
             for (int i = 0; i < Slots.Length; i++)
-                if (Slots[i] != null)
+                if (Slots[i].Desc != null)
                 {
-                    Match m = re.Match(Slots[i]);
+                    Match m = re.Match(Slots[i].Desc);
                     if (m.Success)
                         score += Int32.Parse(m.Groups[1].Value);
                 }
@@ -2747,12 +2765,12 @@ namespace Everquest
         /// </summary>
         public FocusEffect FocusEffect()
         {
-            if (Slots[0] == null)
+            if (Slots[0].Desc == null)
                 return null;
 
-            var amount = FocusAmount.Match(Slots[0]);
+            var amount = FocusAmount.Match(Slots[0].Desc);
             if (!amount.Success)
-                amount = FocusPetAmount.Match(Slots[0]);
+                amount = FocusPetAmount.Match(Slots[0].Desc);
             if (!amount.Success)
                 return null;
 
@@ -2765,7 +2783,7 @@ namespace Everquest
             }
 
             focus.AtLevel = Enumerable.Repeat(focus.Max, 105).ToArray();
-            var level = Slots.Where(x => x != null).Select(x => FocusLevel.Match(x)).FirstOrDefault(x => x.Success);
+            var level = Slots.Where(x => x.Desc != null).Select(x => FocusLevel.Match(x.Desc)).FirstOrDefault(x => x.Success);
             if (level != null)
             {
                 focus.MaxLevel = Int32.Parse(level.Groups[1].Value);
@@ -2774,8 +2792,8 @@ namespace Everquest
                     focus.AtLevel[i - 1] = (int)Math.Max(0, Math.Truncate(focus.Max - focus.Max * (i - focus.MaxLevel) * focus.MaxLevelLoss / 100f));
             }
 
-            var bendet = Slots.Where(x => x != null).Select(x => FocusBenDet.Match(x)).FirstOrDefault(x => x.Success);
-            var resist = Slots.Where(x => x != null).Select(x => FocusResist.Match(x)).FirstOrDefault(x => x.Success);
+            var bendet = Slots.Where(x => x.Desc != null).Select(x => FocusBenDet.Match(x.Desc)).FirstOrDefault(x => x.Success);
+            var resist = Slots.Where(x => x.Desc != null).Select(x => FocusResist.Match(x.Desc)).FirstOrDefault(x => x.Success);
             if (resist != null)
             {
                 // if there's a resist filter then we don't need to add /detrimental since that's a given
@@ -2966,22 +2984,22 @@ namespace Everquest
                 if (spell.RecourseID != 0)
                     linked.Add(spell.RecourseID);
 
-                foreach (string s in spell.Slots)
-                    if (s != null)
+                foreach (var s in spell.Slots)
+                    if (s.Desc != null)
                     {
                         // match spell refs
-                        MatchCollection matches = Spell.SpellRefExpr.Matches(s);
+                        MatchCollection matches = Spell.SpellRefExpr.Matches(s.Desc);
                         foreach (Match m in matches)
                             if (m.Success)
                                 linked.Add(Int32.Parse(m.Groups[1].Value));
 
                         // match spell group refs
-                        Match match = Spell.GroupRefExpr.Match(s);
+                        Match match = Spell.GroupRefExpr.Match(s.Desc);
                         if (match.Success)
                         {
                             int id = Int32.Parse(match.Groups[1].Value);
                             // negate id on excluded spells so that we don't set extlevels on them
-                            if (s.Contains("Exclude"))
+                            if (s.Desc.Contains("Exclude"))
                                 id = -id;
                             groups.FindAll(delegate(Spell x) { return x.GroupID == id; }).ForEach(delegate(Spell x) { linked.Add(x.ID); });
                         }
@@ -3213,14 +3231,13 @@ namespace Everquest
                 int base1 = ParseInt(fields[20 + i]);
                 int base2 = ParseInt(fields[32 + i]);
 
-                spell.SlotEffects[i] = spa;
-                spell.Slots[i] = spell.ParseEffect(spa, base1, base2, max, calc, MAX_LEVEL);
+                spell.Slots[i] = new SpellSlot() { SPA  = spa, Base1 = base1, Base2 = base2, Max = max, Calc = calc };
+                spell.Slots[i].Desc = spell.ParseEffect(spa, base1, base2, max, calc, MAX_LEVEL);
 
 #if DEBUG
-                if (spell.Slots[i] != null)
+                if (spell.Slots[i].Desc != null)
                 {
-                    int value = Spell.CalcValue(calc, base1, max, 1, MAX_LEVEL);
-                    spell.Slots[i] = String.Format("SPA {0} Base1={1} Base2={2} Max={3} Calc={4} --- ", spa, base1, base2, max, calc) + spell.Slots[i];
+                    spell.Slots[i].Desc = String.Format("SPA {0} Base1={1} Base2={2} Max={3} Calc={4} --- ", spa, base1, base2, max, calc) + spell.Slots[i].Desc;
                 }
 #endif
 
