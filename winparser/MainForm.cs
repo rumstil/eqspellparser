@@ -320,8 +320,8 @@ namespace winparser
                     html.AppendFormat("Recourse: {0}<br/>", InsertSpellRefLinks(String.Format("[Spell {0}]", spell.RecourseID)));
 
                 for (int i = 0; i < spell.Slots.Length; i++)
-                    if (spell.Slots[i] != null)
-                        html.AppendFormat("{0}: {1}<br/>", i + 1, InsertSpellRefLinks(spell.Slots[i]));
+                    if (spell.Slots[i].Desc != null)
+                        html.AppendFormat("{0}: {1}<br/>", i + 1, InsertSpellRefLinks(spell.Slots[i].Desc));
 
                 html.Append("</td>");
 
