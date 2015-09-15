@@ -207,6 +207,7 @@ namespace Everquest
         Absorb_Spell_Damage = 452,
         Faction_Hit = 458,
         Hit_Damage_v2 = 459,
+        Bash = 999 // i don't think this is an actual SPA, it's just used as a effect limit
     }
 
     public enum SpellSkill
@@ -1569,7 +1570,7 @@ namespace Everquest
                     // allows bash while weilding a 2h weapon
                     return "Add Two-Handed Bash Ability";
                 case 227:
-                    return String.Format("Reduce {0} Timer by {1}s", Spell.FormatEnum((SpellSkill)base2), base1);
+                    return String.Format("Reduce {0} Timer by {1}", Spell.FormatEnum((SpellSkill)base2), FormatTime(base1));
                 case 228:
                     return Spell.FormatPercent("Falling Damage", -base1);
                 case 229:
@@ -1637,7 +1638,7 @@ namespace Everquest
                     // ability to train tradeskills over 200 is limited to 1 by default
                     return Spell.FormatCount("Extra Tradeskill Specialization", base1);
                 case 264:
-                    return String.Format("Reduce [AA {0}] Timer by {1}s", base2, base1 / 2f);
+                    return String.Format("Reduce [AA {0}] Timer by {1}", base2, FormatTime(base1));
                 case 265:
                     // value of zero should negate effects of Mastery of the Past
                     return String.Format("No Fizzle up to level {0}", value);
@@ -1745,7 +1746,7 @@ namespace Everquest
                 case 309:
                     return "Teleport to Bind";
                 case 310:
-                    return String.Format("Reduce Timer by {0}s", base1 / 1000f);
+                    return String.Format("Reduce Timer by {0}", FormatTime(base1 / 1000f));
                 case 311:
                     // filter based on field 168 
                     return String.Format("Limit Type: {0} Combat Skills", base1 == 1 ? "Include" : "Exclude");
@@ -2449,7 +2450,7 @@ namespace Everquest
             if (!String.IsNullOrEmpty(ClassesLevels))
             {
                 result.Add("Classes: " + ClassesLevels);
-                // the skill field if full of random values for spells that aren't PC castable so it's best to hide it 
+                // the skill field is full of random values for spells that aren't PC castable so it's best to hide it 
                 if (SongCap > 0)
                     result.Add("Skill: " + FormatEnum(Skill) + ", Cap: " + SongCap);
                 else if (CombatSkill)
