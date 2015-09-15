@@ -143,6 +143,7 @@ namespace Everquest
         Additional_Riposte_Skill = 224,
         Double_Attack_Skill = 225,
         Persistent_Casting_AA = 229, // cast through stun
+        Divine_Intervention = 232,
         Lung_Capacity = 246,
         Frontal_Backstab_Chance = 252,
         Frontal_Backstab_Min_Damage = 253,
@@ -207,7 +208,6 @@ namespace Everquest
         Absorb_Spell_Damage = 452,
         Faction_Hit = 458,
         Hit_Damage_v2 = 459,
-        Bash = 999 // i don't think this is an actual SPA, it's just used as a effect limit
     }
 
     public enum SpellSkill
@@ -1350,6 +1350,7 @@ namespace Everquest
                     return Spell.FormatPercent("Spell Range", base1);
                 case 130:
                     // i think this affects all special attacks. bash/kick/frenzy/etc...
+                    // "If this SPA is on a shield then add hate a second time for a bash attack = Damage * ThisRoll (*2 if the PC is a warrior).] Applied before SPA 114 or 444" - Dzarn
                     return Spell.FormatPercentRange("Spell and Bash Hate", base1, base2);
                 case 131:
                     return Spell.FormatPercentRange("Chance of Using Reagent", base1, base2, true);
@@ -1580,7 +1581,7 @@ namespace Everquest
                 case 231:
                     return Spell.FormatPercent("Chance to Stun Bash", base1);
                 case 232:
-                    return String.Format("Cast: [Spell {0}] on Death Save ({1}% Chance)", base2, base1);
+                    return Spell.FormatPercent("Chance to Trigger Divine Intervention", base1);
                 case 233:
                     return Spell.FormatPercent("Food Consumption", -base1);
                 case 234:
