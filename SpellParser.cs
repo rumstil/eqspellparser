@@ -1737,7 +1737,7 @@ namespace Everquest
                     // it's worded as 'avoid getting riposted' for Open Wound Effect - however, this may just be chance to avoid offhand riposte
                     return Spell.FormatPercent("Chance to Avoid Riposte", -base1);
                 case 305:
-                    return Spell.FormatCount("Damage Shield Taken", -Math.Abs(value));
+                    return Spell.FormatPercent("Offhand Damage Shield Taken", base1);
                 case 306:
                     return String.Format("Summon Pet: {0} x {1} for {2}s", Extra, base1, max);
                 case 307:
