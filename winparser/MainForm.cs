@@ -321,7 +321,7 @@ namespace winparser
 
                 for (int i = 0; i < spell.Slots.Length; i++)
                     if (spell.Slots[i].Desc != null)
-                        html.AppendFormat("{0}: {1}<br/>", i + 1, InsertSpellRefLinks(spell.Slots[i].Desc));
+                        html.AppendFormat("{0}: <span title=\"SPA={2} Base1={3} Base2={4} Max={5} Calc={6}\">{1}</span><br/>", i + 1, InsertSpellRefLinks(spell.Slots[i].Desc), spell.Slots[i].SPA, spell.Slots[i].Base1, spell.Slots[i].Base2, spell.Slots[i].Max, spell.Slots[i].Calc);
 
                 html.Append("</td>");
 
