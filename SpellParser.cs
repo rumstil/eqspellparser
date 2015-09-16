@@ -2663,9 +2663,10 @@ namespace Everquest
         /// <summary>
         /// Search all spell slots for a certain effect using a SPA match.
         /// </summary>
+        /// <param name="slot">0 to check or slots, or a value between 1 and 12.</param>
         public bool HasEffect(int spa, int slot)
         {
-            if (slot > 0 && slot < Slots.Length)
+            if (slot > 0 && slot <= Slots.Length)
                 return Slots[slot - 1].SPA == spa;
 
             for (int i = 0; i < Slots.Length; i++)
@@ -2686,7 +2687,7 @@ namespace Everquest
             if (Int32.TryParse(text, out spa))
                 return HasEffect(spa, slot);
 
-            if (slot > 0 && slot < Slots.Length)
+            if (slot > 0 && slot <= Slots.Length)
                 return Slots[slot - 1].Desc != null && Slots[slot - 1].Desc.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0;
 
             for (int i = 0; i < Slots.Length; i++)
@@ -2702,7 +2703,7 @@ namespace Everquest
         /// <param name="slot">0 to check or slots, or a value between 1 and 12.</param>
         public bool HasEffect(Regex re, int slot)
         {
-            if (slot > 0 && slot < Slots.Length)
+            if (slot > 0 && slot <= Slots.Length)
                 return Slots[slot - 1].Desc != null && re.IsMatch(Slots[slot - 1].Desc);
 
             for (int i = 0; i < Slots.Length; i++)
