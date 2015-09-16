@@ -520,6 +520,7 @@ namespace Everquest
         Indoors = 2
     }
 
+    // these are found as type 11 in the dbstr file
     public enum SpellIllusion
     {
         Gender_Change = -1,
@@ -1657,7 +1658,9 @@ namespace Everquest
                 case 270:
                     return Spell.FormatCount("Beneficial Song Range", base1);
                 case 271:
-                    return String.Format("Movement Speed Mod ({0})", base1);
+                    // each 0.7 points seems to equal 10% normal run speed
+                    return Spell.FormatPercent("Innate Movement Speed", base1 / 0.7f);
+                    //return String.Format("Movement Speed Mod ({0})", base1);
                 case 272:
                     return Spell.FormatPercent("Spell Casting Skill", value);
                 case 273:
@@ -2664,9 +2667,9 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Search all spell slots for a certain effect using a SPA match.
+        /// Search all effect slots using a SPA match.
         /// </summary>
-        /// <param name="slot">0 to check or slots, or a value between 1 and 12.</param>
+        /// <param name="slot">0 to check all slots, or a value between 1 and 12.</param>
         public bool HasEffect(int spa, int slot)
         {
             if (slot > 0 && slot <= Slots.Length)
@@ -2680,10 +2683,10 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Search all spell slots for a certain effect using a text match.
+        /// Search all effect slots using a text match.
         /// </summary>
         /// <param name="desc">Effect to search for. Can be text or a integer representing an SPA.</param>
-        /// <param name="slot">0 to check or slots, or a value between 1 and 12.</param>
+        /// <param name="slot">0 to check all slots, or a value between 1 and 12.</param>
         public bool HasEffect(string text, int slot)
         {
             int spa;
@@ -2701,9 +2704,9 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Search all spell slots for a certain effect using a RegEx.
+        /// Search all effect slots using a regular expression.
         /// </summary>
-        /// <param name="slot">0 to check or slots, or a value between 1 and 12.</param>
+        /// <param name="slot">0 to check all slots, or a value between 1 and 12.</param>
         public bool HasEffect(Regex re, int slot)
         {
             if (slot > 0 && slot <= Slots.Length)
@@ -2843,7 +2846,7 @@ namespace Everquest
 
         static private string FormatPercent(string name, float value)
         {
-            return String.Format("{0} {1} by {2}%", value < 0 ? "Decrease" : "Increase", name, Math.Abs(value));
+            return String.Format("{0} {1} by {2:0.#}%", value < 0 ? "Decrease" : "Increase", name, Math.Abs(value));
         }
 
         static private string FormatPercentRange(string name, int min, int max)
@@ -2880,9 +2883,9 @@ namespace Everquest
             }
 
             if (min == max)
-                return String.Format("{0} {1} by {2}%", max < 0 ? "Decrease" : "Increase", name, Math.Abs(min));
+                return String.Format("{0} {1} by {2:0.#}%", max < 0 ? "Decrease" : "Increase", name, Math.Abs(min));
 
-            return String.Format("{0} {1} by {2}% to {3}%", max < 0 ? "Decrease" : "Increase", name, Math.Abs(min), Math.Abs(max));
+            return String.Format("{0} {1} by {2:0.#}% to {3:0.#}%", max < 0 ? "Decrease" : "Increase", name, Math.Abs(min), Math.Abs(max));
         }
 
         /*
