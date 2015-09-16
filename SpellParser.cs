@@ -1333,7 +1333,7 @@ namespace Everquest
                     // damages the target whenever it hits something
                     return Spell.FormatCount("Reverse Damage Shield", -value);
                 case 122:
-                    return String.Format("Reduce {0} Skill ({1})", Spell.FormatEnum((SpellSkill)base1), calc);
+                    return String.Format("Decrease {0} Skill ({1})", Spell.FormatEnum((SpellSkill)base1), calc);
                 case 123:
                     return "Screech";
                 case 124:
@@ -1405,7 +1405,7 @@ namespace Everquest
                 case 154:
                     // +0.5% per level difference
                     if (base2 != 0)
-                        return String.Format("Reduce Detrimental Duration by 50% ({0}% Chance)", base1 / 10) + maxlevel;
+                        return String.Format("Decrease Detrimental Duration by 50% ({0}% Chance)", base1 / 10) + maxlevel;
                     return String.Format("Dispel Detrimental ({0}% Chance)", base1 / 10) + maxlevel;
                 case 156:
                     return "Illusion: Target";
@@ -1531,7 +1531,7 @@ namespace Everquest
                 case 209:
                     // +0.5% per level difference
                     if (base2 != 0)
-                        return String.Format("Reduce Beneficial Duration by 50% ({0}% Chance)", base1 / 10) + maxlevel;
+                        return String.Format("Decrease Beneficial Duration by 50% ({0}% Chance)", base1 / 10) + maxlevel;
                     return String.Format("Dispel Beneficial ({0}% Chance)", base1 / 10) + maxlevel;
                 case 210:
                     return String.Format("Pet Shielding for {0}s", base1 * 12);
@@ -1571,7 +1571,7 @@ namespace Everquest
                     // allows bash while weilding a 2h weapon
                     return "Add Two-Handed Bash Ability";
                 case 227:
-                    return String.Format("Reduce {0} Timer by {1}", Spell.FormatEnum((SpellSkill)base2), FormatTime(base1));
+                    return String.Format("Decrease {0} Timer by {1}", Spell.FormatEnum((SpellSkill)base2), FormatTime(base1));
                 case 228:
                     return Spell.FormatPercent("Falling Damage", -base1);
                 case 229:
@@ -1606,7 +1606,7 @@ namespace Everquest
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Skill Cap", base1);
                 case 248:
                     // ability to train spell skills over 200 is limited to 1
-                    return String.Format("Extra Specialization", base1);
+                    return Spell.FormatCount("Magic Specialization Ability", base1);
                 case 249:
                     return "Add Offhand Weapon Damage Bonus";
                 case 250:
@@ -1620,7 +1620,7 @@ namespace Everquest
                 case 253:
                     return String.Format("Chaotic Stab ({0})", base1);
                 case 255:
-                    return String.Format("Increase Shielding Duration by {0}s", base1);
+                    return String.Format("Increase Shielding Duration by {0}", FormatTime(base1));
                 case 256:
                     return "Shroud of Stealth";
                 case 257:
