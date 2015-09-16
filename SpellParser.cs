@@ -863,8 +863,11 @@ namespace Everquest
         Incoming_Hits_Or_Spells = 8,
         Reflected_Spells = 9,
         Defensive_Proc_Casts = 10,
-        Offensive_Proc_Casts = 11
-        // 13 is probably like 8 but also excludes or includes damage shields
+        Offensive_Proc_Casts = 11,
+        // 2015-7-22 patch:
+        // Damage shield damage is now considered magical non-melee damage; this means that melee guard and melee threshold guard spell effects will no longer 
+        // negate damage shield damage. Rune, spell guard, spell threshold guard, and spells that allow you to absorb damage as mana will continue to block damage shield damage.
+        Incoming_Hits_Or_Spells_Or_DS = 13
     }
 
     public enum SpellTeleport
