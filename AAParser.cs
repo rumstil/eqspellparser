@@ -59,12 +59,12 @@ namespace Everquest
         public int TotalCost;
         public SpellClassesMask ClassesMask;
         public int SpellID;
+        public Spell Spell;
         public int Recast;
         public int Tab; // 1=general, 2=archetype, 3=class
         public AAExpansion Expansion;
         public int HotKey;
         public AASlot[] Slots;
-        //public string[] SlotDesc; // parsed description for each slot
         public int[] LinksTo;
 
         public AA()
@@ -77,6 +77,56 @@ namespace Everquest
         public override string ToString()
         {
             return String.Format("[{0}] {1} ({2})", ID, Name, Rank);
+        }
+
+        /// <summary>
+        /// Search all effect slots using a SPA match.
+        /// </summary>
+        public bool HasEffect(int spa)
+        {
+            for (int i = 0; i < Slots.Length; i++)
+                if (Slots[i].SPA == spa)
+                    return true;
+
+            if (Spell != null)
+                return Spell.HasEffect(spa, 0);
+
+            return false;
+        }
+
+        /// <summary>
+        /// Search all effect slots using a text match.
+        /// </summary>
+        /// <param name="desc">Effect to search for. Can be text or a integer representing an SPA.</param>
+        public bool HasEffect(string text)
+        {
+            int spa;
+            if (Int32.TryParse(text, out spa))
+                return HasEffect(spa);
+
+            for (int i = 0; i < Slots.Length; i++)
+                if (Slots[i].Desc != null && Slots[i].Desc.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0)
+                    return true;
+
+            if (Spell != null)
+                return Spell.HasEffect(text, 0);
+
+            return false;
+        }
+
+        /// <summary>
+        /// Search all effect slots using a regular expression.
+        /// </summary>
+        public bool HasEffect(Regex re)
+        {
+            for (int i = 0; i < Slots.Length; i++)
+                if (Slots[i].Desc != null && re.IsMatch(Slots[i].Desc))
+                    return true;
+
+            if (Spell != null)
+                return Spell.HasEffect(re, 0);
+
+            return false;
         }
     }
 
@@ -144,7 +194,6 @@ namespace Everquest
                         effects.RemoveRange(0, 4);
                         var slot = new AASlot() { SPA = spa, Base1 = base1, Base2 = base2 };
                         slot.Desc = spell.ParseEffect(spa, base1, base2, 0, 100, aa.ReqLevel);
-                        //var spadesc = spell.ParseEffect(spa, base1, base2, max, calc, 105);
 #if DEBUG
                         //spadesc = String.Format("SPA {0} Base1={1} Base2={2} --- {3}", spa, base1, base2, spadesc);
 #endif
