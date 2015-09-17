@@ -1446,8 +1446,7 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Critical Hit", value);
                 case 170:
                     // stacks with itself in other slots
-                    // by default a crit does 100% of the base damage
-                    return Spell.FormatPercent("Critical Nuke Damage", base1 + 100) + " of Base Damage";
+                    return Spell.FormatPercent("Critical Nuke Damage", base1) + " of Base Damage";
                 case 171:
                     return Spell.FormatPercent("Chance to Crippling Blow", value);
                 case 172:
@@ -1711,10 +1710,7 @@ namespace Everquest
                     // clenched jaw aa. 75 seems to be full resist
                     return String.Format("Stun Resist v2 ({0})", base1);
                 case 294:
-                    //if (base1 == 0 && base2 == 0)
-                    //    return null;
-                    // the base2 nuke damage increase doesn't appear on any spells after the 2015-7-22 patch 
-                    // it still remains on a few AA however
+                    // the base2 nuke damage increase only appears on 4 spells after the 2015-7-22 patch 
                     if (base2 > 0)
                         return Spell.FormatPercent("Chance to Critical Nuke", base1) + " and " + Spell.FormatPercent("Critical Nuke Damage v2", base2) + " of Base Damage";
                     else
