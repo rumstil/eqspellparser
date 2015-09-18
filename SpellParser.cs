@@ -1401,6 +1401,8 @@ namespace Everquest
                 case 150:
                     return String.Format("Divine Intervention with {0} Heal", max);
                 case 151:
+                    if (base1 == 1)
+                        return "Suspend Pet with Buffs";
                     return "Suspend Pet";
                 case 152:
                     return String.Format("Summon Pet: {0} x {1} for {2}s", Extra, base1, max);
@@ -1541,6 +1543,8 @@ namespace Everquest
                 case 211:
                     // use spell duration if it is > 0?
                     return String.Format("AE Attack for {0}s", base1 * 10);
+                case 212:
+                    return Spell.FormatPercent("Chance to Critical Nuke", base1) + " and " + Spell.FormatPercent("Spell Mana Cost v2", base2);
                 case 213:
                     return String.Format("Increase Pet Power v2 ({0})", value);
                 case 214:
@@ -1611,7 +1615,9 @@ namespace Everquest
                     // ability to train spell skills over 200 is limited to 1
                     return Spell.FormatCount("Magic Specialization Ability", base1);
                 case 249:
-                    return "Add Offhand Weapon Damage Bonus";
+                    // 1-Handed weapon - Primary Hand: (damage * delay * level * 80) / 400000
+                    // 1-Handed weapon - Secondary Hand: [Primary Hand Formula * Base1 of Sinister Strike SPA]
+                    return Spell.FormatCount("Add Offhand Weapon Damage Mod", base1);
                 case 250:
                     // not sure about this one
                     return Spell.FormatPercent("Defensive Proc Rate", base1);
@@ -1835,7 +1841,7 @@ namespace Everquest
                 case 346:
                     return String.Format("Limit Headshot Level: {0}", base1);
                 case 347:
-                    return Spell.FormatPercent("Chance to Double Range Attack", base1);
+                    return Spell.FormatPercent("Chance to Double Ranged Attack", base1);
                 case 348:
                     return String.Format("Limit Min Mana Cost: {0}", base1);
                 case 349:
@@ -1843,7 +1849,7 @@ namespace Everquest
                     return Spell.FormatPercent("Damage When Shield Equiped", base1);
                 case 350:
                     Mana = base1; // hack
-                    return String.Format("Mana Burn: up to {0} damage", base1 * -base2 / 10);
+                    return String.Format("Mana Burn up to {0} damage", base1 * -base2 / 10);
                 case 351:
                     // the actual aura spell effect reference doesn't seem to be stored in the spell file so we have to handle this SPA
                     // with guesses and some hardcoding. most of the time the effect is placed right after the aura in the spell file
