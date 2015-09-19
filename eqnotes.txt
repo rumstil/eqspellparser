@@ -465,10 +465,22 @@ AFFECTNUMBER AFFECTNAME
 458 Faction Mod %
 459 Skill Damage Mod 2
 460 Ff_Override_NotFocusable
+461 Fc_Damage_%2
+462 Fc_Damage_Amt2
+463 Shield Target
+464 PC Pet Rampage
+465 PC Pet AE Rampage
+466 PC Pet Flurry Chance
+467 DS Mitigation Amount
+468 DS Mitigation Percentage
+469 Chance Best in Spell Group
+470 Trigger Best in Spell Group
+471 Double Melee Round (PC Only) 
 
 
 
-spell_us.txt Field List
+
+spells_us.txt Field List
 ===================================
 https://forums.station.sony.com/eq/index.php?threads/enumerated-spa-list.206288/page-2#post-3101242
 
