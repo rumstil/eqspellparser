@@ -95,6 +95,7 @@ namespace Everquest
         Donals_Heal = 101,
         Translocate = 104,
         All_Resists = 111,
+        Summon_Mount = 113,
         Aggro_Mult = 114,
         Curse_Counter = 116,
         Melee_Haste_v3 = 119,
@@ -105,6 +106,7 @@ namespace Everquest
         Ability_Aggro_Mult = 130,
         Mana_Cost_Focus = 132,
         Current_HP_Percent = 147,
+        Stacking_Blocker = 148,
         Divine_Intervention_With_Heal = 150,
         Suspend_Pet = 151,
         Summon_Swarm_Pet = 152,
@@ -187,6 +189,7 @@ namespace Everquest
         Crit_DoT_Damage = 375,
         Push = 379,
         Cast_On_Spell = 383,
+        Healing_Bonus = 392,
         Healing_Taken = 393,
         Healing_Taken2 = 394,
         Crit_DoT_Chance = 395,
@@ -1528,9 +1531,9 @@ namespace Everquest
                 case 204:
                     return String.Format("Group Fear Immunity for {0}s", base1 * 10);
                 case 205:
-                    return String.Format("AE Attack ({0})", value);
+                    return String.Format("Rampage ({0})", base1);
                 case 206:
-                    return String.Format("AE Taunt ({0})", value);
+                    return String.Format("AE Taunt ({0})", base1);
                 case 207:
                     return "Flesh to Bone Chips";
                 case 209:
@@ -1541,8 +1544,7 @@ namespace Everquest
                 case 210:
                     return String.Format("Pet Shielding for {0}s", base1 * 12);
                 case 211:
-                    // use spell duration if it is > 0?
-                    return String.Format("AE Attack for {0}s", base1 * 10);
+                    return String.Format("AE Attack ({0})", base1);
                 case 212:
                     return Spell.FormatPercent("Chance to Critical Nuke", base1) + " and " + Spell.FormatPercent("Spell Mana Cost v2", base2);
                 case 213:
@@ -2152,9 +2154,18 @@ namespace Everquest
                 case 464:
                     // this chance is additive with the owner's passive pet flurry chance AA abilities.
                     // how does this differ from 280?
-                    return Spell.FormatPercent("Pet Flurry Chance", base1);
-                case 466:
                     return Spell.FormatPercent("Pet Rampage Chance", base1);
+                case 465:
+                    return Spell.FormatPercent("Pet AE Rampage Chance", base1);
+                case 466:
+                    return Spell.FormatPercent("Pet Flurry Chance", base1);
+                case 467:
+                    return Spell.FormatCount("Damage Shield Taken", base1);
+                case 468:
+                    return Spell.FormatPercent("Damage Shield Taken", base1);
+                case 471:
+                    return String.Format("Double Melee Round ({0})", base1);
+
             }
 
             return String.Format("Unknown Effect: {0} Base1={1} Base2={2} Max={3} Calc={4} Value={5}", spa, base1, base2, max, calc, value);
