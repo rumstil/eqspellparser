@@ -11,7 +11,7 @@ namespace Everquest
 
     public enum AAExpansion
     {
-        Original = 0, 
+        Original = 0,
         Ruins_of_Kunark,
         Scars_of_Velious,
         Shadows_of_Luclin,
@@ -32,7 +32,7 @@ namespace Everquest
         Veil_of_Alaris,
         Rain_of_Fear,
         Call_of_the_Forsaken,
-        The_Darkened_Sea      
+        The_Darkened_Sea
     }
 
     public struct AASlot
@@ -41,6 +41,18 @@ namespace Everquest
         public int Base1;
         public int Base2;
         public string Desc;
+
+        public override string ToString()
+        {
+            return Desc;
+        }
+    }
+
+    public struct AAReq
+    {
+        public int GroupID;
+        public int Rank;
+        //public string Desc;
     }
 
     public sealed class AA
@@ -48,7 +60,6 @@ namespace Everquest
         public int ID;
         public int PrevID;
         public int GroupID;
-        //public int NameID;
         public string Name;
         public string Desc;
         public int Mana;
@@ -59,18 +70,23 @@ namespace Everquest
         public int TotalCost;
         public SpellClassesMask ClassesMask;
         public int SpellID;
-        public Spell Spell;
+        public int SpellType;
         public int Recast;
         public int Tab; // 1=general, 2=archetype, 3=class
-        public AAExpansion Expansion;
-        public int HotKey;
+        public int Category;
+        public int Expansion;
         public AASlot[] Slots;
+        public AAReq[] Req;
+
+
+        // these fields are initialized after loading
+        public Spell Spell;
         public int[] LinksTo;
 
         public AA()
         {
             Slots = new AASlot[0];
-            //SlotDesc = new string[0];
+            Req = new AAReq[0];
             LinksTo = new int[0];
         }
 
@@ -152,7 +168,7 @@ namespace Everquest
                         // type 4 = AA desc
                         desc[fields[1] + "/" + fields[0]] = fields[2].Trim();
                     }
-            
+
             var list = new List<AA>();
 
             using (var text = File.OpenText(aaPath))
@@ -160,16 +176,15 @@ namespace Everquest
                 {
                     string line = text.ReadLine();
                     string[] fields = line.Split('^');
-                    if (fields.Length < 13) 
+                    if (fields.Length < 17)
                         continue;
 
                     var aa = new AA();
                     aa.ID = ParseInt(fields[0]);
                     aa.GroupID = ParseInt(fields[1]);
                     aa.PrevID = ParseInt(fields[2]);
-                    //aa.NameID = ParseInt(fields[3]);
                     desc.TryGetValue("1/" + fields[3], out aa.Name);
-                    desc.TryGetValue("4/" + fields[4], out aa.Desc);
+                    //desc.TryGetValue("4/" + fields[4], out aa.Desc); // save memory for now
                     aa.Rank = ParseInt(fields[5]);
                     aa.MaxRank = ParseInt(fields[6]);
                     aa.ClassesMask = (SpellClassesMask)ParseInt(fields[7]);
@@ -178,31 +193,45 @@ namespace Everquest
                     aa.TotalCost = ParseInt(fields[10]);
                     aa.SpellID = ParseInt(fields[11]);
                     aa.Recast = ParseInt(fields[12]);
-                    // spell type
+                    aa.SpellType = ParseInt(fields[13]);
                     aa.Tab = ParseInt(fields[14]);
-                    aa.Expansion = (AAExpansion)ParseInt(fields[15]);
+                    aa.Expansion = ParseInt(fields[15]);
+                    aa.Category = ParseInt(fields[16]);
 
-                    var effects = fields[16].Split(',').ToList();
+                    // read effect slots (an array of 4-int groups)
+                    var slotsArray = fields[17].Split(',');
                     var slots = new List<AASlot>();
                     var spell = new Spell();
                     spell.DurationTicks = 1; // to show regen with "/tick" mode
-                    while (effects.Count >= 4)
+                    for (int i = 0; i + 3 < slotsArray.Length; i += 4)
                     {
-                        int spa = ParseInt(effects[0]);
-                        int base1 = ParseInt(effects[1]);
-                        int base2 = ParseInt(effects[2]);
-                        effects.RemoveRange(0, 4);
+                        int spa = ParseInt(slotsArray[i]);
+                        int base1 = ParseInt(slotsArray[i + 1]);
+                        int base2 = ParseInt(slotsArray[i + 2]);
                         var slot = new AASlot() { SPA = spa, Base1 = base1, Base2 = base2 };
+
                         slot.Desc = spell.ParseEffect(spa, base1, base2, 0, 100, aa.ReqLevel);
 #if DEBUG
                         //spadesc = String.Format("SPA {0} Base1={1} Base2={2} --- {3}", spa, base1, base2, spadesc);
 #endif
                         slots.Add(slot);
-
                     }
                     aa.Slots = slots.ToArray();
-                    //aa.SlotDesc = slots.Select(x => spell.ParseEffect(x.SPA, x.Base1, x.Base2, 0, 100, aa.ReqLevel)).ToArray();
 
+                    /*
+                    // read prerequisites (an array of 2-int groups)
+                    var reqArray = fields[18].Split(',');
+                    var req = new List<AAReq>();
+                    for (int i = 0; i + 1 < reqArray.Length; i += 2)
+                    {
+                        int group = ParseInt(reqArray[i]);
+                        int rank = ParseInt(reqArray[i + 1]);
+                        // 1685 is the now removed alaran language AA
+                        if (group != 0 && group != 1685)
+                            req.Add(new AAReq() { GroupID = group, Rank = rank });
+                    }
+                    aa.Req = req.ToArray();
+                    */
 
                     list.Add(aa);
                 }
@@ -232,15 +261,6 @@ namespace Everquest
                             linked.Add(Int32.Parse(m.Groups[1].Value));
 
                     // match spell group refs
-                    Match match = Spell.GroupRefExpr.Match(s.Desc);
-                    if (match.Success)
-                    {
-                        int id = Int32.Parse(match.Groups[1].Value);
-                        // negate id on excluded spells so that we don't set extlevels on them
-                        //if (s.Contains("Exclude"))
-                        //    id = -id;
-                        //groups.FindAll(delegate(Spell x) { return x.GroupID == id; }).ForEach(delegate(Spell x) { linked.Add(x.ID); });
-                    }
                 }
 
                 aa.LinksTo = linked.ToArray();
