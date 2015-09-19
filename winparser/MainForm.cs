@@ -94,8 +94,7 @@ namespace winparser
             html.AppendFormat("<p>Loaded <strong>{0}</strong> spells from {1}.</p></html>", Spells.Count, SpellPath);
             html.Append("<p>Use the search button to perform a search on this spell file based on the filters on the left.");
             html.Append("<p>Use the compare button to compare two different spell files and show the differences. e.g. test server vs live server spells.");
-            html.Append("<p>Tip: You can use the up/down arrow keys when the cursor is in the Class/Has Effect/Category fields to quickly try different searches.");
-            html.Append("<p>Tip: This parser is an open source application and accepts updates and corrections here: <a href='http://code.google.com/p/eqspellparser/' class='ext' target='_top'>http://code.google.com/p/eqspellparser/</a>");
+            html.Append("<p>Tip: This parser is an open source application. Visit <a href='https://bitbucket.org/raidloot/eqspellparser' class='ext' target='_top'>https://bitbucket.org/raidloot/eqspellparser</a> for more information.");
             ShowHtml(html);
         }
 
