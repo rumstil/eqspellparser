@@ -49,6 +49,7 @@ namespace Everquest
         See_Invis = 13,
         Enduring_Breath = 14,
         Current_Mana_Repeating = 15,
+        Pacify = 18,
         Blind = 20,
         Stun = 21,
         Charm = 22,
@@ -74,6 +75,7 @@ namespace Everquest
         Levitate = 57,
         Illusion = 58,
         Damage_Shield = 59,
+        Identify = 61,
         Memory_Blur = 63,
         Stun_Spin = 64,
         Summon_Skeleton_Pet = 71,
@@ -138,7 +140,10 @@ namespace Everquest
         Stun_Resist_Chance = 195,
         Taunt = 199,
         Proc_Rate = 200,
+        Rampage = 205,
         AE_Taunt = 206,
+        AE_Attack = 211,
+        Frenzied_Devastation = 212,
         Slay_Undead = 219,
         Weapon_Damage_Bonus = 220,
         Back_Block_Chance = 222,
@@ -153,6 +158,7 @@ namespace Everquest
         Shroud_Of_Stealth = 256,
         Triple_Backstab_Chance = 258,
         Combat_Stability = 259, // ac soft cap. AA and a few shaman spells
+        No_Fizzle = 265,
         Song_Range = 270,
         Flurry = 279,
         Spell_Damage_Bonus = 286,
@@ -165,7 +171,9 @@ namespace Everquest
         Movement_Speed_Cap = 290,
         Frontal_Stun_Resist_Chance = 293, // AA
         Critical_Nuke_Chance = 294,
-        Archery_Damage = 301, // AA, not sure which
+        Spell_Damage_Taken  = 296,
+        Ranged_Damage = 301, 
+        Base_Spell_Damage = 303,
         Avoid_Riposte_Chance = 304,
         Damage_Shield_Taken = 305,
         Teleport_To_Bind = 309,
@@ -174,32 +182,75 @@ namespace Everquest
         Targets_Target_Hate = 321,
         Gate_to_Home_City = 322,
         Defensive_Proc = 323,
+        Blood_Magic = 324,
         Crit_Hit_Damage = 330,
         Summon_To_Corpse = 332,
         Block_Matching_Spell = 335,
-        XP_Gain = 337,
+        XP_Gain_Mod = 337,
         Casting_Trigger = 339,
         Shield_Equip_Hate_Mod = 349, // AA
         Mana_Burn = 350,
+        Summon_Aura = 351,
+        Aura_Slots = 353,
+        Silence_With_Limits = 357,
         Current_Mana = 358,
         Cast_On_Death = 361,
         Triple_Attack = 364,
+        Cast_On_Killshot = 365,
+        Group_Shielding = 366,
         Corruption_Counter = 369,
         Corruption_Resist = 370,
         Melee_Delay = 371,
+        Foraging_Skill = 372,
+        Cast_Always_On_Fade = 373,
+        Cast_With_Chance = 374,
         Crit_DoT_Damage = 375,
+        Fling = 376,
+        Cast_If_Not_Cured = 377,
+        Resist_Other_Effect = 378,
         Push = 379,
+        Fling_To_Self = 381,
+        Inhibit_Effect = 382,
         Cast_On_Spell = 383,
+        Fling_To_Target = 384,
+        Limit_Group = 385,
+        Cast_On_Curer = 386,
+        Cast_On_Cured = 387,
+        Summon_All_Corpses = 388,
+        Reset_Recast_Timer = 389,
+        Lockout_Recast_Timer = 390,
+        Limit_Max_Mana = 391,
         Healing_Bonus = 392,
-        Healing_Taken = 393,
-        Healing_Taken2 = 394,
-        Crit_DoT_Chance = 395,
+        Healing_Taken_Pct = 393,
+        Healing_Taken = 394,
+        Crit_Incoming_Heal_Chance = 395,
+        Base_Healing = 396,
+        Pet_Melee_Mitigation = 397,
         Pet_Duration = 398,
         Twincast_Chance = 399,
         Heal_From_Mana = 400,
-        Two_Hand_Blunt_Block_Chance = 405, // AA
+        Ignite_Mana = 401,
+        Ignite_Endurance = 402,
+        Limit_Spell_Class = 403,
+        Limit_Spell_Subclass = 404,
+        Staff_Block_Chance = 405, 
+        Cast_On_Max_Hits = 406,
+        Cap_HP = 408,
+        Cap_Mana = 409,
+        Cap_End = 410,
+        Limit_Player_Class = 411,
+        Limit_Race = 412,
         Song_Effectiveness = 413,
+        Limit_Casting_Skill = 414,
+        Limit_Item_Class = 415,
+        AC_v2 = 416,
+        Current_Mana_Repeating_v2 = 417,
         Weapon_Damage_Bonus_v2 = 418,
+        Max_Hits_Counter = 421,
+        Limit_Max_Hits_Min = 422,
+        Limit_Max_Hits_Type = 423,
+        Gravitate = 424,
+        Fly = 425,
         Teleport_to_Caster_Anchor = 437,
         Teleport_to_Player_Anchor = 438,
         Lock_Aggro = 444,
@@ -1620,7 +1671,7 @@ namespace Everquest
                 case 249:
                     // 1-Handed weapon - Primary Hand: (damage * delay * level * 80) / 400000
                     // 1-Handed weapon - Secondary Hand: [Primary Hand Formula * Base1 of Sinister Strike SPA]
-                    return Spell.FormatCount("Add Offhand Weapon Damage Mod", base1);
+                    return Spell.FormatCount("Offhand Weapon Damage Mod", base1);
                 case 250:
                     // not sure about this one
                     return Spell.FormatPercent("Defensive Proc Rate", base1);
@@ -1735,7 +1786,7 @@ namespace Everquest
                 case 300:
                     return "Summon Doppelganger: " + Extra;
                 case 301:
-                    return Spell.FormatPercent("Range Damage", base1);
+                    return Spell.FormatPercent("Ranged Damage", base1);
                 case 302:
                     // see also 124. only used on a few AA
                     return Spell.FormatPercent("Base Spell Damage", base1);
@@ -1934,7 +1985,8 @@ namespace Everquest
                 case 372:
                     return String.Format("Foraging Skill ({0})", base1);
                 case 373:
-                    // this appears to be used when a spell is removed via any method: times out, cured, rune depleted, max hits, mez break
+                    // this appears to be used when a spell is removed via any method: times out, cured, rune depleted, max hits, mez break, etc...
+                    // devs call this a "doom" effect
                     return String.Format("Cast: [Spell {0}] on Fade", base1);
                 case 374:
                     if (base1 < 100)
@@ -1948,7 +2000,7 @@ namespace Everquest
                 case 377:
                     return String.Format("Cast: [Spell {0}] if Not Cured", base1);
                 case 378:
-                    return Spell.FormatPercent("Chance to Resist " + Spell.FormatEnum((SpellEffect)base2) + " Effects", value);
+                    return Spell.FormatPercent("Chance to Resist " + Spell.FormatEnum((SpellEffect)base2) + " Effects", base1);
                 case 379:
                     if (base2 > 0)
                         return String.Format("Push {0}' in Direction: {1}", base1, base2);
@@ -1977,8 +2029,7 @@ namespace Everquest
                 case 389:
                     return "Reset Recast Timers";
                 case 390:
-                    // what unit? seconds?
-                    return String.Format("Set Recast Timers to {0}", value);
+                    return "Lockout Recast Timers";
                 case 391:
                     return String.Format("Limit Max Mana Cost: {0}", base1);
                 case 392:
@@ -1986,12 +2037,12 @@ namespace Everquest
                 case 393:
                     return Spell.FormatPercentRange("Healing Taken", base1, base2);
                 case 394:
-                    // affected by focus limit rules
                     return Spell.FormatCount("Healing Taken", base1);
                 case 395:
                     return Spell.FormatPercent("Chance to Crit Incoming Heal", value);
                 case 396:
-                    // used on type 3 augments 
+                    // used on type 3 augments
+                    // is added before crit multipliers
                     return Spell.FormatCount("Base Healing", base1);
                 case 397:
                     return Spell.FormatCount("Pet Melee Mitigation", base1);
@@ -2009,9 +2060,9 @@ namespace Everquest
                 case 402:
                     return String.Format("Decrease Current HP by up to {0} ({1} HP per 1 Target End)", Math.Floor(base1 * base2 / -10f), base2 / -10f);
                 case 403:
-                    return String.Format("Limit Spell Category: {0}{1}", base1 >= 0 ? "" : "Exclude ", Spell.FormatEnum((SpellCategory)Math.Abs(base1)));
+                    return String.Format("Limit Spell Class: {0}{1}", base1 >= 0 ? "" : "Exclude ", Spell.FormatEnum((SpellCategory)Math.Abs(base1)));
                 case 404:
-                    return String.Format("Limit Spell Subcategory: {0}{1}", base1 >= 0 ? "" : "Exclude ", Math.Abs(base1));
+                    return String.Format("Limit Spell Subclass: {0}{1}", base1 >= 0 ? "" : "Exclude ", Math.Abs(base1));
                 case 405:
                     return Spell.FormatPercent("Staff Block Chance", base1);
                 case 406:
@@ -2039,7 +2090,7 @@ namespace Everquest
                 case 413:
                     return Spell.FormatPercent("Spell Effectiveness", value);
                 case 414:
-                    return String.Format("Limit Bard Skill: {0}", Spell.FormatEnum((SpellSkill)base1));
+                    return String.Format("Limit Casting Skill: {0}", Spell.FormatEnum((SpellSkill)base1));
                 case 416:
                     // SPA 416 functions exactly like SPA 1, it was added so that we could avoid stacking conflicts with only 12 spell slots. - Dzarn
                     return Spell.FormatCount("AC v2", (int)(value / (10f / 3f)));
@@ -2153,12 +2204,12 @@ namespace Everquest
                     // some spells are tagged as non focusable (field 197) this overrides that
                     return "Limit Type: Include Non-Focusable";
                 case 464:
-                    // this chance is additive with the owner's passive pet flurry chance AA abilities.
-                    // how does this differ from 280?
                     return Spell.FormatPercent("Pet Rampage Chance", base1);
                 case 465:
                     return Spell.FormatPercent("Pet AE Rampage Chance", base1);
                 case 466:
+                    // this chance is additive with the owner's passive pet flurry chance AA abilities.
+                    // how does this differ from 280?
                     return Spell.FormatPercent("Pet Flurry Chance", base1);
                 case 467:
                     return Spell.FormatCount("Damage Shield Taken", base1);
