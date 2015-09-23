@@ -8,7 +8,7 @@ with lightning speed, for a brief time. Additional ranks increase your offensive
 capabilities and cause the transition into the wolf to heal many of your wounds.
 ```
 
-what the parser shows:
+Compare this with the parser description for the same spell:
 
 ```
 [16038] Guardian of the Forest
@@ -28,27 +28,29 @@ Text: The power of the forest surges through your muscles.
 
 #Web Version#
 
-The latest version of this parser is always running here: http://www.raidloot.com/Spells.aspx
+The easiest way to use the parser is via the web version here:
+
+http://www.raidloot.com/Spells.aspx
 
 
-#Windows Version#
+#Downloadable Version#
 
-If you want to parse test or beta server spells you will need to download the parser and run it on your own machine.
+If you want to parse historical, test or beta server spell data you will need to download the parser and run it on your own machine.
 
-Download the parser here: 
-https://bitbucket.org/raidloot/eqspellparser/downloads/parser20150722.zip
-
-The zip file contains two applications to help you read the EQ spell file:
+The download file contains two applications to help you read the EQ spell file:
 
 - winparser.exe is the user friendly Windows version of the parser.
 
 - parser.exe is the command line version of the parser for people that need to export results to a text file.
 
-In order to run the parser on your computer you will need to have Microsoft .NET Framework 3.5 installed. Windows 7 comes with the framework installed. The easiest way to tell if it will work is just to run it. If the parser crashes or gives an error, then you probably need to download the framework from Microsoft here:
+In order to run the parser on your computer you will need to have Microsoft .NET Framework 3.5 installed (this is a part of Windows but it doesn't come installed on all versions of windows). If you run the parser and it gives a strange error message, then you probably need to download the framework from Microsoft here:
 
 http://www.microsoft.com/downloads/details.aspx?FamilyId=333325FD-AE52-4E35-B531-508D977D32A6&displaylang=en
 
 
 #How To Help#
 
-If you have any corrections or ideas for improvements you can email me at raidloot@gmail.com.
+You can help improve this parser even if you're not a programmer. What I need most, is corrections for incorrect or incomplete parsing.
+
+You can contact me at raidloot@gmail.com 
+
