@@ -99,14 +99,14 @@ namespace Everquest
         Translocate = 104,
         All_Resists = 111,
         Summon_Mount = 113,
-        Aggro_Mult = 114,
+        Hate_Mod = 114,
         Curse_Counter = 116,
         Melee_Haste_v3 = 119,
         Spell_Damage_Focus = 124,
         Healing_Focus = 125,
         Haste_Focus = 127,
         Duration_Focus = 128,
-        Ability_Aggro_Mult = 130,
+        Hate_Mod_Spells = 130,
         Mana_Cost_Focus = 132,
         Current_HP_Percent = 147,
         Stacking_Blocker = 148,
@@ -1408,8 +1408,7 @@ namespace Everquest
                 case 129:
                     return Spell.FormatPercent("Spell Range", base1);
                 case 130:
-                    // i think this affects all special attacks. bash/kick/frenzy/etc...
-                    // "If this SPA is on a shield then add hate a second time for a bash attack = Damage * ThisRoll (*2 if the PC is a warrior).] Applied before SPA 114 or 444" - Dzarn
+                    // i think this affects all special attacks (bash/kick/frenzy/etc...) and unlike 114 it checks focus limit rules
                     return Spell.FormatPercentRange("Spell and Bash Hate", base1, base2);
                 case 131:
                     return Spell.FormatPercentRange("Chance of Using Reagent", base1, base2, true);
