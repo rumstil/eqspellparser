@@ -1558,8 +1558,12 @@ namespace Everquest
                 case 193:
                     return String.Format("{0} Attack for {1} with {2}% Accuracy Mod", Spell.FormatEnum(Skill), base1, base2);
                 case 194:
-                    // cancel all aggro. aka Fade
-                    return String.Format("Cancel Aggro ({0}% Chance)", value);
+                    // aka Fade
+                    // if successful and target is outside the hardcoded 30' distance restriction the linked spell will be cast
+                    // base=75 was invalid data before base2 was used as a spell id link (ignored in case we are parsing an old spell file)
+                    if (base2 > 0 && base2 != 75)
+                        return String.Format("Cancel Aggro {2} ({0}% Chance) and Cast: [Spell {1}] on Success", base1, base2, maxlevel);
+                    return String.Format("Cancel Aggro {1} ({0}% Chance)", base1, maxlevel);
                 case 195:
                     // 100 is full resist. not sure why some spells have more
                     return String.Format("Stun Resist ({0})", value);
