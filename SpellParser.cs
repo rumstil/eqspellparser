@@ -2011,7 +2011,7 @@ namespace Everquest
                 case 380:
                     return String.Format("Push back {0}' and up {1}'", base2, base1);
                 case 381:
-                    return String.Format("Fling to Self ({0}' away)", base1);
+                    return String.Format("Fling to Self ({0}' away)", base1) + maxlevel;
                 case 382:
                     return String.Format("Inhibit Effect: {0}", Spell.FormatEnum((SpellEffect)base2), base2);
                 case 383:
