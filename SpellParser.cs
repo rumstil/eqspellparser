@@ -2115,7 +2115,7 @@ namespace Everquest
                 case 423:
                     return String.Format("Limit Max Hits Type: {0}", Spell.FormatEnum((SpellMaxHits)base1));
                 case 424:
-                    return String.Format("Gradual {0} to {2}' away (Force={1})", base1 > 0 ? "Push" : "Pull", Math.Abs(base1), base2);
+                    return String.Format("Gradual {0} to {2}' away (Force={1})", base1 > 0 ? "Push" : "Pull", Math.Abs(base1), base2) + maxlevel;
                 case 425:
                     return "Fly";
                 case 426:
