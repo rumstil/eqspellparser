@@ -552,9 +552,20 @@ namespace Everquest
         End_Below_29_Percent = 827,
         Regular_Server = 836,
         Progression_Server = 837,
+
         Humanoid_Level_84_Max = 842,
         Humanoid_Level_86_Max = 843,
         Humanoid_Level_88_Max = 844,
+
+        Level_90_Max = 860,
+        Level_92_Max = 861,
+        Level_94_Max = 862,
+        Level_95_Max = 863,
+        Level_97_Max = 864,
+        Level_99_Max = 865,
+        Level_100_Max = 869,
+        Level_102_Max = 870,
+        Level_104_Max = 871,
 
         Between_Level_1_and_75 = 1000,
         Between_Level_76_and_85 = 1001,
@@ -563,9 +574,9 @@ namespace Everquest
 
         HP_Less_Than_80_Percent = 1004,
 
-        // these are backwards, may be corrected later
-        Mana_Below_20_Percent = 38311,
-        Mana_Below_10_Percent = 38312
+        // [38311] Mana Reserve is tagged with both, not sure which is which
+        Mana_Below_10_Percent = 38311,
+        Mana_Below_20_Percent = 38312
     }
 
     public enum SpellZoneRestrict
@@ -2160,10 +2171,9 @@ namespace Everquest
                 case 441:
                     return String.Format("Cancel if Moved {0}", base1);
                 case 442:
-                    return String.Format("Cast: [Spell {0}] if {1}", base1, Spell.FormatEnum((SpellTargetRestrict)base2));
-                case 443:
-                    // one-time cast when triggered. not sure why this isn't just handled by using a max hits counter
                     return String.Format("Cast: [Spell {0}] once if {1}", base1, Spell.FormatEnum((SpellTargetRestrict)base2));
+                case 443:
+                    return String.Format("Cast: [Spell {0}] once if Caster {1}", base1, Spell.FormatEnum((SpellTargetRestrict)base2));
                 case 444:
                     return "Lock Aggro on Caster and " + Spell.FormatPercent("Other Aggro", base2 - 100) + String.Format(" up to level {0}", base1);
                 case 445:
