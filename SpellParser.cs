@@ -3138,6 +3138,10 @@ namespace Everquest
 
             spell.ID = Convert.ToInt32(fields[0]);
             spell.Name = fields[1].Trim();
+
+            // replace roman numerals with digits (zero padded for sorting)
+            spell.Name = Regex.Replace(spell.Name, @"\s[IVXL]+$", x => " " + ParseRomanNumeral(x.Value.Substring(1)).ToString("D2"));
+
             //Target = fields[2];
             spell.Extra = fields[3];
             spell.LandOnSelf = fields[6];
@@ -3262,9 +3266,9 @@ namespace Everquest
             // 206 Animation Variation 
             spell.GroupID = ParseInt(fields[207]);
             spell.Rank = ParseInt(fields[208]); // rank 1/5/10. a few auras do not have this set properly
-            if (spell.Rank == 5 || spell.Name.EndsWith("II"))
+            if (spell.Rank == 5 || spell.Name.EndsWith("II") || spell.Name.EndsWith("02"))
                 spell.Rank = 2;
-            if (spell.Rank == 10 || spell.Name.EndsWith("III"))
+            if (spell.Rank == 10 || spell.Name.EndsWith("III") || spell.Name.EndsWith("03"))
                 spell.Rank = 3;
             // 209 No Resist Boolean = ignore SPA 180 resist?
             // 210 SpellBook Scribable Boolean
@@ -3377,6 +3381,22 @@ namespace Everquest
                     return (int)Enum.Parse(typeof(SpellClassesLong), names[i]);
 
             return 0;
+        }
+
+        /// <summary>
+        /// Parse roman numerals up to 50. Returns 0 if the numeral could not be parsed.
+        /// </summary>
+        private static int ParseRomanNumeral(string num)
+        {
+            var roman = new string[] { 
+                "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X" ,
+                "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX",
+                "XXI", "XXII", "XXIII", "XXIV", "XXV", "XXVI", "XXVII", "XXVIII", "XXIX", "XXX",
+                "XXXI", "XXXII", "XXXIII", "XXXIV", "XXXV", "XXXVI", "XXXVII", "XXXVIII", "XXXIX", "XL",
+                "XLI", "XLII", "XLIII", "XLIV", "XLV", "XLVI", "XLVII", "XLVIII", "XLIX", "L",
+            };
+
+            return Array.IndexOf(roman, num.ToUpper()) + 1;
         }
 
     }
