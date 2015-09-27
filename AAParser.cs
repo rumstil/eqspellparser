@@ -70,7 +70,7 @@ namespace Everquest
         public int TotalCost;
         public SpellClassesMask ClassesMask;
         public int SpellID;
-        public int SpellType;
+        public int TimerID;
         public int Recast;
         public int Tab; // 1=general, 2=archetype, 3=class
         public int Category;
@@ -193,7 +193,7 @@ namespace Everquest
                     aa.TotalCost = ParseInt(fields[10]);
                     aa.SpellID = ParseInt(fields[11]);
                     aa.Recast = ParseInt(fields[12]);
-                    aa.SpellType = ParseInt(fields[13]);
+                    aa.TimerID = ParseInt(fields[13]);
                     aa.Tab = ParseInt(fields[14]);
                     aa.Expansion = ParseInt(fields[15]);
                     aa.Category = ParseInt(fields[16]);
