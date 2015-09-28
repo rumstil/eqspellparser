@@ -20,7 +20,7 @@ namespace winparser
     {
         private const int MAX_RESULTS = 2500;
 
-        private SpellCache Spells;
+        private SpellCache Cache;
 
         public string SpellPath;
         public List<Spell> Results;
@@ -84,14 +84,15 @@ namespace winparser
 
             Cursor.Current = Cursors.WaitCursor;
 
-            Spells = new SpellCache(Path.GetFileName(spellPath), SpellParser.LoadFromFile(spellPath, descPath));
+            Cache = new SpellCache();
+            Cache.LoadSpells(spellPath, descPath);
             SearchClass_TextChanged(this, null);
             AutoSearch.Enabled = false;
 
             Cursor.Current = Cursors.Default;
 
             var html = InitHtml();
-            html.AppendFormat("<p>Loaded <strong>{0}</strong> spells from {1}.</p></html>", Spells.Count, SpellPath);
+            html.AppendFormat("<p>Loaded <strong>{0}</strong> spells from {1}.</p></html>", Cache.SpellList.Count(), SpellPath);
             html.Append("<p>Use the search button to perform a search on this spell file based on the filters on the left.");
             html.Append("<p>Use the compare button to compare two different spell files and show the differences. e.g. test server vs live server spells.");
             html.Append("<p>This parser is an open source application. Visit <a href='https://bitbucket.org/raidloot/eqspellparser' class='ext' target='_top'>https://bitbucket.org/raidloot/eqspellparser</a> for more information.");
@@ -163,7 +164,7 @@ namespace winparser
 
             var filter = GetFilter();
 
-            Results = Spells.Search(filter).ToList();
+            Results = Cache.Search(filter).ToList();
 
             // filter ranks
             //if (filter.Rank != 0)
@@ -181,16 +182,16 @@ namespace winparser
                 VisibleResults.Add(s.ID);
 
             // always add forward refs so that links can be clicked
-            Spells.AddForwardRefs(Results);
+            Cache.AddForwardRefs(Results);
 
             // optionally add back refs
             if (filter.AddBackRefs)
             { 
-                Spells.AddBackRefs(Results);
-                Spells.AddForwardRefs(Results); // some of the back refs will require new forward refs
+                Cache.AddBackRefs(Results);
+                Cache.AddForwardRefs(Results); // some of the back refs will require new forward refs
             }
 
-            Spells.Sort(Results, filter);
+            Cache.Sort(Results, filter);
         }
 
         /// <summary>
@@ -339,14 +340,14 @@ namespace winparser
             text = Spell.SpellRefExpr.Replace(text, m =>
             {
                 int id = Int32.Parse(m.Groups[1].Value);
-                string name = Spells.GetSpellName(id) ?? String.Format("[Spell {0}]", id);
+                string name = Cache.GetSpellName(id) ?? String.Format("[Spell {0}]", id);
                 return String.Format("<a href='#spell{0}' onclick='showSpell({0}, this); return false;'>{1}</a>", id, name);
             });
 
             text = Spell.GroupRefExpr.Replace(text, m =>
             {
                 int id = Int32.Parse(m.Groups[1].Value);
-                string name = Spells.GetSpellGroupName(id) ?? String.Format("[Group {0}]", id);
+                string name = Cache.GetSpellGroupName(id) ?? String.Format("[Group {0}]", id);
                 return String.Format("<a href='#group{0}' onclick='showGroup({0}, this); return false;'>{1}</a>", id, name);
             });
 
@@ -455,8 +456,8 @@ namespace winparser
         {
             // perform the same search on both spell files
             var filter = GetFilter();
-            Results = Spells.Search(filter).ToList();
-            other.Results = other.Spells.Search(filter).ToList();
+            Results = Cache.Search(filter).ToList();
+            other.Results = other.Cache.Search(filter).ToList();
 
             MainForm oldVer = this;
             MainForm newVer = other;
@@ -467,8 +468,8 @@ namespace winparser
             }
 
             // these functions generates the comparison text for each spell
-            Func<Spell, string> getOldText = x => x.ToString() + "\n" + oldVer.Spells.InsertSpellNames(String.Join("\n", x.Details())) + "\n\n";
-            Func<Spell, string> getNewText = x => x.ToString() + "\n" + newVer.Spells.InsertSpellNames(String.Join("\n", x.Details())) + "\n\n";
+            Func<Spell, string> getOldText = x => x.ToString() + "\n" + oldVer.Cache.InsertSpellNames(String.Join("\n", x.Details())) + "\n\n";
+            Func<Spell, string> getNewText = x => x.ToString() + "\n" + newVer.Cache.InsertSpellNames(String.Join("\n", x.Details())) + "\n\n";
             var diffs = Compare(oldVer.Results, newVer.Results, getOldText, getNewText);
 
             var html = InitHtml();
@@ -568,7 +569,7 @@ namespace winparser
         private void SearchClass_TextChanged(object sender, EventArgs e)
         {
             // cancel if spells haven't been loaded yet
-            if (Spells == null)
+            if (Cache == null)
                 return;
 
             // whenever the class is changed refresh the list of categories so that it only shows categories that class can cast
@@ -577,7 +578,7 @@ namespace winparser
             {
                 SearchLevel.Enabled = true;
 
-                var cat = Spells.Where(x => x.Levels[cls] > 0).SelectMany(x => x.Categories).Distinct().ToList();
+                var cat = Cache.SpellList.Where(x => x.Levels[cls] > 0).SelectMany(x => x.Categories).Distinct().ToList();
 
                 // add the root categories. e.g. for "Utility Beneficial/Combat Innates/Illusion: Other" add "Utility Beneficial"
                 int i = 0;
@@ -596,7 +597,7 @@ namespace winparser
             {
                 SearchLevel.Enabled = false;
                 SearchCategory.Items.Clear();
-                SearchCategory.Items.AddRange(Spells.SelectMany(x => x.Categories).Distinct().ToArray());
+                SearchCategory.Items.AddRange(Cache.SpellList.SelectMany(x => x.Categories).Distinct().ToArray());
             }
             SearchCategory.Items.Add("AA");
             SearchCategory.Items.Add("");

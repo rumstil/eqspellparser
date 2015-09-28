@@ -137,35 +137,75 @@ namespace Everquest
 
     }
 
-
     /// <summary>
-    /// Encapsulates a simple spell list to provide some search and cross referencing abilities.
+    /// A spell and AA container with some search and cross referencing helpers.
     /// </summary>
-    public class SpellCache : IEnumerable<Spell>
+    public class SpellCache 
     {
-
-        private string path;
-        private List<Spell> spells;
+        private List<Spell> spellList;
         private Dictionary<int, Spell> spellsById;
-        //private Dictionary<string, Spell> spellsByName;
         private ILookup<int, Spell> spellsByGroup;
 
-        public string Path { get { return path; } }
-        //public IEnumerable<Spell> List { get { return spells; } }
-        public int Count { get { return spells.Count; } }
+        //public string SpellPath { get; private set; }
+        public IEnumerable<Spell> SpellList { get { return spellList; } }
 
-        public SpellCache(string path, List<Spell> list)
+        private List<AA> aaList;
+
+        public IEnumerable<AA> AAList { get { return aaList; } }
+
+        public SpellCache()
         {
-            this.path = path;
-            spells = list;
-            spellsById = list.ToDictionary(x => x.ID);
-            //spellsByName = list.ToDictionary(x => x.Name);
-            spellsByGroup = list.Where(x => x.GroupID != 0).ToLookup(x => x.GroupID);
+            spellList = new List<Spell>();
+            aaList = new List<AA>();
+        }
+
+        public void LoadSpells(string spellPath, string descPath)
+        {
+            spellList = SpellParser.LoadFromFile(spellPath, descPath);
+            spellsById = spellList.ToDictionary(x => x.ID);
+            spellsByGroup = spellList.Where(x => x.GroupID != 0).ToLookup(x => x.GroupID);
+        }
+
+        public void LoadAA(string aaPath, string descPath)
+        {
+            if (spellList.Count == 0)
+                throw new Exception("AA must be loaded after spells because they include spell references.");
+
+            aaList = AAParser.LoadFromFile(aaPath, descPath);
+
+            // for each AA build a list of referenced spells - this will be used to include associated spells in search results
+            foreach (var aa in aaList)
+            {
+                var linked = new List<int>(10);
+                if (aa.SpellID > 0)
+                    linked.Add(aa.SpellID);
+
+                foreach (var s in aa.Slots.Where(x => x.Desc != null))
+                {
+                    // match spell refs
+                    var match = Spell.SpellRefExpr.Match(s.Desc);
+                    if (match.Success)
+                    {
+                        int id = Int32.Parse(match.Groups[1].Value);
+                        linked.Add(id);
+                    }
+
+                    // match spell group refs
+                    match = Spell.GroupRefExpr.Match(s.Desc);
+                    if (match.Success)
+                    {
+                        int id = Int32.Parse(match.Groups[1].Value);
+                        linked.AddRange(spellsByGroup[id].Select(x => x.ID));
+                    }
+                }
+
+                aa.LinksTo = linked.Distinct().ToArray();
+            }
         }
 
         public IEnumerable<Spell> Search(SpellSearchFilter filter)
         {
-            return filter.Apply(spells);
+            return filter.Apply(spellList);
         }
 
         public string GetSpellName(int id)
@@ -180,8 +220,18 @@ namespace Everquest
         {
             Spell s = spellsByGroup[id].FirstOrDefault();
             if (s != null)
-                return "Group - " + s.Name;
+                return "Group - " + StripRank(s.Name);
             return null;
+        }
+
+        /// <summary>
+        /// Strip any digit or roman numeral rank from the end of a spell name.
+        /// </summary>
+        private string StripRank(string name)
+        {
+            name = Regex.Replace(name, @"\s\(?\d+\)?$", ""); // (3) 
+            name = Regex.Replace(name, @"\s(Rk\. )?[IVX]+$", ""); // Rk. III
+            return name;
         }
 
         /// <summary>
@@ -239,7 +289,7 @@ namespace Everquest
                         return 1;
                     int comp = a.Levels[cls] - b.Levels[cls];
                     if (comp == 0)
-                        comp = String.Compare(TrimNumerals(a.Name), TrimNumerals(b.Name));
+                        comp = String.Compare(StripRank(a.Name), StripRank(b.Name));
                     if (comp == 0)
                         comp = a.ID - b.ID;
                     return comp;
@@ -250,7 +300,7 @@ namespace Everquest
             {
                 list.Sort((a, b) =>
                 {
-                    int comp = String.Compare(TrimNumerals(a.Name), TrimNumerals(b.Name));
+                    int comp = String.Compare(StripRank(a.Name), StripRank(b.Name));
                     if (comp == 0)
                         comp = a.ID - b.ID;
                     return comp;
@@ -308,7 +358,7 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Expand a spell list to include spells that make reference to the results.
+        /// Expand a spell list to include spells that make references to the results.
         /// </summary> 
         public void AddBackRefs(List<Spell> list)
         {
@@ -320,7 +370,7 @@ namespace Everquest
             // do not include not produce back refs for spells that are heavily reference. 
             // e.g. complete heal is referenced by hundreds of focus spells (we wouldn't want to add those focus spells to the results)
             var ignore = list.Where(x => x.RefCount > 10).Select(x => x.ID).ToList();
-            foreach (var spell in spells)
+            foreach (var spell in spellList)
             {
                 foreach (int id in spell.LinksTo)
                     if (!ignore.Contains(id) && included.Contains(id) && !included.Contains(spell.ID))
@@ -331,37 +381,7 @@ namespace Everquest
             }
         }
 
-        private string TrimNumerals(string text)
-        {
-            // trim rank
-            int i = text.IndexOf("Rk.");
-            if (i > 0)
-                text = text.Substring(0, i - 1);
 
-            // trim numerals
-            text = text.TrimEnd(' ', 'X', 'V', 'I');
-
-            return text;
-        }
-
-
-        #region IEnumerable<Spell> Members
-
-        public IEnumerator<Spell> GetEnumerator()
-        {
-            return spells.GetEnumerator();
-        }
-
-        #endregion
-
-        #region IEnumerable Members
-
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return spells.GetEnumerator();
-        }
-
-        #endregion
     }
 
 

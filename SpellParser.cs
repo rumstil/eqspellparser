@@ -1092,11 +1092,11 @@ namespace Everquest
         static public readonly Regex ItemRefExpr = new Regex(@"\[Item\s(\d+)\]");
         static public readonly Regex AARefExpr = new Regex(@"\[AA\s(\d+)\]");
 
-        static public readonly Regex FocusAmount = new Regex(@"(.+) by (\d+)%(?: to (\d+)%)?");
-        static public readonly Regex FocusPetAmount = new Regex(@"(Increase Pet Power) \((\d+)\)");
-        static public readonly Regex FocusResist = new Regex(@"Limit Resist: (.+)");
-        static public readonly Regex FocusBenDet = new Regex(@"Limit Type: (.+)");
-        static public readonly Regex FocusLevel = new Regex(@"Limit Max Level: (\d+).+lose (\d+)% per level");
+        static private readonly Regex FocusAmount = new Regex(@"(.+) by (\d+)%(?: to (\d+)%)?");
+        static private readonly Regex FocusPetAmount = new Regex(@"(Increase Pet Power) \((\d+)\)");
+        static private readonly Regex FocusResist = new Regex(@"Limit Resist: (.+)");
+        static private readonly Regex FocusBenDet = new Regex(@"Limit Type: (.+)");
+        static private readonly Regex FocusLevel = new Regex(@"Limit Max Level: (\d+).+lose (\d+)% per level");
 
 
 
@@ -1599,6 +1599,7 @@ namespace Everquest
                 case 205:
                     return String.Format("Rampage ({0})", base1);
                 case 206:
+                    // places you [base1] points of hate higher than all of the taunted targets around you - Dzarn
                     return String.Format("AE Taunt ({0})", base1);
                 case 207:
                     return "Flesh to Bone Chips";
@@ -3139,8 +3140,11 @@ namespace Everquest
             spell.ID = Convert.ToInt32(fields[0]);
             spell.Name = fields[1].Trim();
 
-            // replace roman numerals with digits (zero padded for sorting)
-            spell.Name = Regex.Replace(spell.Name, @"\s[IVXL]+$", x => " " + ParseRomanNumeral(x.Value.Substring(1)).ToString("D2"));
+            // replace roman numerals with digits (zero padded for sorting) in AA names 
+            //spell.Name = Regex.Replace(spell.Name, @"\s[IVXL]+$", x => " " + ParseRomanNumeral(x.Value.Substring(1)).ToString("D2"));
+
+            // append digit translation of roman numeral spell ranks
+            spell.Name = Regex.Replace(spell.Name, @"\s[IVXL]+$", x => " " + x.Groups[0].Value + " (" + ParseRomanNumeral(x.Value.Substring(1)) +  ")");
 
             //Target = fields[2];
             spell.Extra = fields[3];

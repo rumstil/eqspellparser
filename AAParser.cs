@@ -146,7 +146,9 @@ namespace Everquest
         }
     }
 
-
+    /// <summary>
+    /// Load AA data from a data file. Unlike the spell data, this file is not distributed with the game - this is just my own adhoc data file format.
+    /// </summary>
     public static class AAParser
     {
         static public List<AA> LoadFromFile(string aaPath, string descPath)
@@ -236,36 +238,7 @@ namespace Everquest
                     list.Add(aa);
                 }
 
-            BuildSpellLinks(list);
-
             return list;
-        }
-
-        /// <summary>
-        /// Build a list of each spell that is referenced by the AAs. This will later be used to include associated spells in search results.
-        /// </summary>
-        static private void BuildSpellLinks(List<AA> list)
-        {
-            foreach (AA aa in list)
-            {
-                List<int> linked = new List<int>(10);
-                if (aa.SpellID > 0)
-                    linked.Add(aa.SpellID);
-
-                foreach (var s in aa.Slots.Where(x => x.Desc != null))
-                {
-                    // match spell refs
-                    var matches = Spell.SpellRefExpr.Matches(s.Desc);
-                    foreach (Match m in matches)
-                        if (m.Success)
-                            linked.Add(Int32.Parse(m.Groups[1].Value));
-
-                    // match spell group refs
-                }
-
-                aa.LinksTo = linked.ToArray();
-            }
-
         }
 
         static int ParseInt(string s)

@@ -78,6 +78,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\AAParser.cs">
+      <Link>AAParser.cs</Link>
+    </Compile>
     <Compile Include="..\Patcher.cs">
       <Link>Patcher.cs</Link>
     </Compile>
