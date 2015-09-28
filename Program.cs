@@ -14,12 +14,12 @@ namespace parser
 {
     class Program
     {
-        static SpellCache spells;
-
-        static string SpellFilename = LaunchpadManifest.SPELL_FILE;
+        static SpellCache cache;
 
         static void Main(string[] args)
         {
+            var path = LaunchpadManifest.SPELL_FILE;
+
             try
             {
                 int dec = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalDigits;
@@ -41,20 +41,21 @@ namespace parser
 
                 if (File.Exists(args[0]))
                 {
-                    SpellFilename = args[0];
+                    path = args[0];
                     args[0] = "all";
                 }
 
-                if (!File.Exists(SpellFilename))
+                if (!File.Exists(path))
                     DownloadPatchFiles(null);
 
-                Console.Error.Write("Loading {0}... ", SpellFilename);
-                spells = new SpellCache(Path.GetFileName(SpellFilename), SpellParser.LoadFromFile(SpellFilename, SpellFilename.Replace("spells_us", "dbstr_us")));
-                Console.Error.WriteLine("{0} spells", spells.Count);
+                Console.Error.Write("Loading {0}... ", path);
+                cache = new SpellCache();
+                cache.LoadSpells(path, path.Replace("spells_us", "dbstr_us")); 
+                Console.Error.WriteLine("{0} spells", cache.SpellList.Count());
 
                 // perform search based on command line parameters                
-                string type = args.Length >= 1 ? args[0].ToLower() : null;
-                string value = args.Length >= 2 ? args[1] : null;
+                var type = args.Length >= 1 ? args[0].ToLower() : null;
+                var value = args.Length >= 2 ? args[1] : null;
                 Console.Error.Write("Searching for {0} {1}... ", type, value);
                 var results = Search(type, value);
 
@@ -62,7 +63,7 @@ namespace parser
                 {
                     Console.Error.WriteLine("{0} results", results.Count);
                     Console.Error.WriteLine();
-                    spells.AddForwardRefs(results);
+                    cache.AddForwardRefs(results);
                     Show(results);
                 }
 
@@ -81,25 +82,27 @@ namespace parser
         {
             IEnumerable<Spell> results = null;
 
+            var q = cache.SpellList;
+
             if (field == "all")
-                results = spells;
+                results = q;
             //results = list.Where(x => (int)x.TargetRestrict > 0).OrderBy(x => x.TargetRestrict);
 
             // search by effect type
             if (field == "type" || field == "spa")
-                results = spells.Where(x => x.HasEffect(value, 0));
+                results = q.Where(x => x.HasEffect(value, 0));
 
             // search by id
             if (field == "id")
-                results = spells.Where(x => x.ID.ToString() == value);
+                results = q.Where(x => x.ID.ToString() == value);
 
             // search by group
             if (field == "group")
-                results = spells.Where(x => x.GroupID.ToString() == value);
+                results = q.Where(x => x.GroupID.ToString() == value);
 
             // search by name
             if (field == "name")
-                results = spells.Where(x => x.Name.IndexOf(value, StringComparison.CurrentCultureIgnoreCase) >= 0).OrderBy(x => x.Name);
+                results = q.Where(x => x.Name.IndexOf(value, StringComparison.InvariantCultureIgnoreCase) >= 0).OrderBy(x => x.Name);
 
             // search by class
             if (field == "class")
@@ -107,16 +110,16 @@ namespace parser
                 int i = SpellParser.ParseClass(value) - 1;
                 if (i < 0)
                     throw new Exception("Unknown class: " + value);
-                results = spells.Where(x => x.ExtLevels[i] > 0 && x.ExtLevels[i] < 255).OrderBy(x => x.Levels[i]).ThenBy(x => x.ID);
+                results = q.Where(x => x.ExtLevels[i] > 0 && x.ExtLevels[i] < 255).OrderBy(x => x.Levels[i]).ThenBy(x => x.ID);
             }
 
             // search by target
             if (field == "target")
-                results = spells.Where(x => x.Target.ToString().Equals(value, StringComparison.CurrentCultureIgnoreCase));
+                results = q.Where(x => x.Target.ToString().Equals(value, StringComparison.InvariantCultureIgnoreCase));
 
             // debugging: search the unknown field 
             if (field == "unknown")
-                results = spells.Where(x => x.Unknown > 0).OrderBy(x => x.Unknown);
+                results = q.Where(x => x.Unknown > 0).OrderBy(x => x.Unknown);
 
 
             return results.ToList();
@@ -131,7 +134,7 @@ namespace parser
             {
                 Console.WriteLine(spell);
                 foreach (string s in spell.Details())
-                    Console.WriteLine(spells.InsertSpellNames(s));
+                    Console.WriteLine(cache.InsertSpellNames(s));
                 if (!String.IsNullOrEmpty(spell.Desc))
                     Console.WriteLine(spell.Desc);
                 Console.WriteLine();
