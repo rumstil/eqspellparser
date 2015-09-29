@@ -517,6 +517,7 @@ namespace Everquest
         HP_Between_45_and_55_Percent = 403,
         HP_Between_55_and_65_Percent = 404,
         HP_Above_99_Percent = 412,
+        Mana_Above_10_Percent = 429,
         //Has_Mana = 412, // guess based on Suppressive Strike
         HP_Below_5_Percent = 501,
         HP_Below_10_Percent = 502,
@@ -992,7 +993,7 @@ namespace Everquest
         public int Endurance;
         public int EnduranceUpkeep;
         public int DurationTicks;
-        public bool DurationExtendable;
+        public bool Focusable;
         public SpellSlot[] Slots;  
         //public byte Level;
         public byte[] Levels; // casting level for each of the 16 classes
@@ -1046,7 +1047,7 @@ namespace Everquest
         public bool DurationFrozen; // in guildhall/lobby
         public bool Dispelable;
         public bool PersistAfterDeath;
-        public bool ShortDuration; // song window
+        public bool SongWindow; 
         public bool CancelOnSit;
         public bool Sneaking;
         public int[] CategoryDescID; // most AAs don't have these set
@@ -2618,8 +2619,12 @@ namespace Everquest
             //if (ResistPerLevel != 0)
             //    result.Add("Resist Per Level: " + ResistPerLevel + ", Cap: " + ResistCap);
 
+            // this includes both spell and AA focuses
+            if (ClassesMask != 0)
+                result.Add("Focusable: " + (Focusable ? "Yes" : "No"));
+
             // only nukes and DoT can trigger spell damage shields
-            // no points showing it for NPC spells since NPCs will never take significant damage via incoming spell DS 
+            // no points showing it for NPC spells since NPCs will never take significant damage from nuking players
             if (!Beneficial && ClassesMask != 0 && HasEffect("Decrease Current HP", 0))
                 result.Add("Trigger Spell DS: " + (Feedbackable ? "Yes" : "No"));
 
@@ -2639,9 +2644,10 @@ namespace Everquest
 
             if (DurationTicks > 0)
                 result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)"
-                    + (Beneficial && ClassesMask != SpellClassesMask.BRD ? ", Extendable: " + (DurationExtendable ? "Yes" : "No") : "")
+                    + (SongWindow ? " Song" : "")
+                    + (Beneficial && ClassesMask != SpellClassesMask.BRD ? ", Extendable: " + (Focusable ? "Yes" : "No") : "")
                     + ", Dispelable: " + (Dispelable ? "Yes" : "No")
-                    + (!Beneficial && DurationTicks > 10 ? ", Allow Fast Regen: " + (AllowFastRegen ? "Yes" : "No") : "")  // it applies on <10 ticks, but there really is no need to show it
+                    + (!Beneficial && DurationTicks > 10 ? ", Allow Fast Regen: " + (AllowFastRegen ? "Yes" : "No") : "")  // it applies on <10 ticks, but there really is no need to show it for short term debuffs 
                     + (PersistAfterDeath ? ", Persist After Death" : "")); // pretty rare, so only shown when it's used
             else if (AEDuration >= 2500)
                 result.Add("AE Waves: " + AEDuration / 2500);
@@ -3215,7 +3221,7 @@ namespace Everquest
                 spell.Recourse = String.Format("[Spell {0}]", spell.RecourseID);
             // 152 Small Targets Only 
             // 153 Persistent particle effects 
-            spell.ShortDuration = ParseBool(fields[154]);
+            spell.SongWindow = ParseBool(fields[154]);
             spell.DescID = ParseInt(fields[155]);
             spell.CategoryDescID[0] = ParseInt(fields[156]);
             spell.CategoryDescID[1] = ParseInt(fields[157]);
@@ -3258,7 +3264,7 @@ namespace Everquest
             spell.ConeStartAngle = ParseInt(fields[194]);
             spell.ConeEndAngle = ParseInt(fields[195]);
             spell.Sneaking = ParseBool(fields[196]);
-            spell.DurationExtendable = !ParseBool(fields[197]);
+            spell.Focusable = !ParseBool(fields[197]);
             // 198 No Detrimental Spell Aggro Boolean
             // 199 Show Wear Off Message Boolean
             spell.DurationFrozen = ParseBool(fields[200]);

@@ -293,7 +293,7 @@ namespace winparser
 
                 html.AppendFormat("<td>{0} {1}</td>", FormatTime(spell.RecastTime), spell.RecastTime > 0 && spell.TimerID > 0 ? " T" + spell.TimerID : "");
 
-                html.AppendFormat("<td>{0}{1}</td>", FormatTime(spell.DurationTicks * 6), spell.DurationTicks > 0 && spell.DurationExtendable ? "+" : "");
+                html.AppendFormat("<td>{0}{1}</td>", FormatTime(spell.DurationTicks * 6), spell.DurationTicks > 0 && spell.Focusable ? "+" : "");
 
                 if (!spell.Beneficial)
                     html.AppendFormat("<td>{0} {1}</td>", spell.ResistType, spell.ResistMod != 0 ? spell.ResistMod.ToString() : "");
