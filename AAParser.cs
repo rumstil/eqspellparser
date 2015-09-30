@@ -77,6 +77,7 @@ namespace Everquest
         public int Expansion;
         public AASlot[] Slots;
         public AAReq[] Req;
+        public DateTime UpdatedOn;
 
 
         // these fields are initialized after loading
@@ -234,6 +235,8 @@ namespace Everquest
                     }
                     aa.Req = req.ToArray();
                     */
+
+                    aa.UpdatedOn = DateTime.Parse(fields[19], CultureInfo.InvariantCulture);
 
                     list.Add(aa);
                 }
