@@ -113,7 +113,7 @@ namespace Everquest
         Divine_Intervention_With_Heal = 150,
         Suspend_Pet = 151,
         Summon_Swarm_Pet = 152,
-        Cure_Detrimental = 154,
+        Dispel_Detrimental = 154,
         Reflect_Spell = 158,
         Spell_Rune = 161,
         Melee_Rune = 162,
@@ -162,8 +162,8 @@ namespace Everquest
         Song_Range = 270,
         Flurry = 279,
         Spell_Damage_Bonus = 286,
-        Dispel_Detrimental = 291,
-        Movement_Speed_AA = 271,
+        Purify = 291,
+        Innate_Movement_Speed = 271, // AA
         Critical_DoT_Chance = 273,
         Critical_Heal_Chance = 274,
         Double_Special_Attack_Chance = 283, // monk specials
@@ -188,6 +188,7 @@ namespace Everquest
         Block_Matching_Spell = 335,
         XP_Gain_Mod = 337,
         Casting_Trigger = 339,
+        Interrupt_Casting = 343,
         Shield_Equip_Hate_Mod = 349, // AA
         Mana_Burn = 350,
         Summon_Aura = 351,
@@ -208,7 +209,8 @@ namespace Everquest
         Fling = 376,
         Cast_If_Not_Cured = 377,
         Resist_Other_Effect = 378,
-        Push = 379,
+        Directional_Shadowstep = 379,
+        PushBackUp = 380,
         Fling_To_Self = 381,
         Inhibit_Effect = 382,
         Cast_On_Spell = 383,
@@ -571,7 +573,7 @@ namespace Everquest
         Between_Level_1_and_75 = 1000,
         Between_Level_76_and_85 = 1001,
         Between_Level_86_and_95 = 1002,
-        Between_Level_96_and_100 = 1003,
+        Between_Level_96_and_105 = 1003,
 
         HP_Less_Than_80_Percent = 1004,
 
@@ -1612,7 +1614,10 @@ namespace Everquest
                 case 210:
                     return String.Format("Pet Shielding for {0}s", base1 * 12);
                 case 211:
-                    return String.Format("AE Attack ({0})", base1);
+                    // % chance applies individually to each mob in radius
+                    //if (base2 > 0)
+                    //    return String.Format("AE Attack ({0}% Chance) for {0}% Damage", base1, base2);
+                    return Spell.FormatPercent("Chance to AE Attack", base1);
                 case 212:
                     return Spell.FormatPercent("Chance to Critical Nuke", base1) + " and " + Spell.FormatPercent("Spell Mana Cost v2", base2);
                 case 213:
@@ -1779,7 +1784,7 @@ namespace Everquest
                 case 290:
                     return Spell.FormatCount("Movement Speed Cap", value);
                 case 291:
-                    return String.Format("Dispel Detrimental ({0})", value);
+                    return String.Format("Purify ({0})", value);
                 case 292:
                     return String.Format("Strikethrough v2 ({0})", base1);
                 case 293:
@@ -1893,6 +1898,7 @@ namespace Everquest
                     // compare with 383 which is modified by casting time of triggering spell
                     return String.Format("Cast: [Spell {0}] on Spell Use ({1}% Chance)", base2, base1);
                 case 340:
+                    // how is this different than 374?
                     if (base1 < 100)
                         return String.Format("Cast: [Spell {0}] ({1}% Chance)", base2, base1);
                     return String.Format("Cast: [Spell {0}]", base2);
@@ -2005,6 +2011,7 @@ namespace Everquest
                     // devs call this a "doom" effect
                     return String.Format("Cast: [Spell {0}] on Fade", base1);
                 case 374:
+                    // very few spells have base1 < 100
                     if (base1 < 100)
                         return String.Format("Cast: [Spell {0}] ({1}% Chance)", base2, base1);
                     return String.Format("Cast: [Spell {0}]", base2);
@@ -2018,11 +2025,17 @@ namespace Everquest
                 case 378:
                     return Spell.FormatPercent("Chance to Resist " + Spell.FormatEnum((SpellEffect)base2) + " Effects", base1);
                 case 379:
-                    if (base2 > 0)
-                        return String.Format("Push {0}' in Direction: {1}", base1, base2);
-                    return String.Format("Push forward {0}'", value);
+                    if (base2 == 0)
+                        return String.Format("Shadowstep Forward {0}'", base1);
+                    if (base2 == 90)
+                        return String.Format("Shadowstep Right {0}'", base1);
+                    if (base2 == 180)
+                        return String.Format("Shadowstep Back {0}'", base1);
+                    if (base2 == 270)
+                        return String.Format("Shadowstep Left {0}'", base1);
+                    return String.Format("Shadowstep {0}' and {1} Degrees", base1, base2);
                 case 380:
-                    return String.Format("Push back {0}' and up {1}'", base2, base1);
+                    return String.Format("Push Back {0}' and Up {1}'", base2, base1);
                 case 381:
                     return String.Format("Fling to Self ({0}' away)", base1) + maxlevel;
                 case 382:
@@ -2218,6 +2231,9 @@ namespace Everquest
                 case 460:
                     // some spells are tagged as non focusable (field 197) this overrides that
                     return "Limit Type: Include Non-Focusable";
+                case 463:
+                    // same as /shield command?
+                    return Spell.FormatPercent("Melee Shielding: {0}%", base1);
                 case 464:
                     return Spell.FormatPercent("Pet Rampage Chance", base1);
                 case 465:
@@ -2230,8 +2246,20 @@ namespace Everquest
                     return Spell.FormatCount("Damage Shield Taken", base1);
                 case 468:
                     return Spell.FormatPercent("Damage Shield Taken", base1);
+                case 469:
+                    // 469/470 seem to be similar to spa 340/374 except the cast a spell by group ID rather than spell ID
+                    // cast the highest rank spell that has been acquired?
+                    // the chance on this is shared with other chance SPAs (i.e. only 1 can be cast)?
+                    return String.Format("Cast: [Group {0}] ({1}% Chance)", base2, base1);
+                case 470:
+                    // cast the highest rank spell that has been acquired?
+                    // the chance on this is independant of other chance SPAs (i.e. each one has it's own chance to cast)?
+                    if (base1 < 100)
+                        return String.Format("Cast: [Group {0}] ({1}% Chance)", base2, base1);
+                    return String.Format("Cast: [Group {0}]", base2);
                 case 471:
-                    return String.Format("Double Melee Round ({0})", base1);
+                    // repeat the entire melee round. i.e. main attack, double attack, triple
+                    return Spell.FormatPercent("Chance to Repeat Melee Round", base1);
 
             }
 
@@ -2658,7 +2686,7 @@ namespace Everquest
                 result.Add("Push: " + PushBack + "'");
 
             if (HateMod != 0)
-                result.Add("Hate Mod: " + (HateMod > 0 ? "+" : "") + HateMod);
+                result.Add("Hate Mod: " + HateMod.ToString("+#;-#;0"));
 
             if (HateOverride != 0)
                 result.Add("Hate: " + HateOverride);
