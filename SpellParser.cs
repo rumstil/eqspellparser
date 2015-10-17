@@ -1621,11 +1621,9 @@ namespace Everquest
                 case 212:
                     return Spell.FormatPercent("Chance to Critical Nuke", base1) + " and " + Spell.FormatPercent("Spell Mana Cost v2", base2);
                 case 213:
-                    return String.Format("Increase Pet Power v2 ({0})", value);
+                    return Spell.FormatPercent("Pet Max HP", base1);
                 case 214:
-                    if (Math.Abs(value) >= 100)
-                        value = (int)(value / 100f);
-                    return Spell.FormatPercent("Max HP", value);
+                    return Spell.FormatPercent("Max HP", value / 100f);
                 case 215:
                     return Spell.FormatPercent("Pet Chance to Avoid Melee", base1);
                 case 216:
@@ -1726,7 +1724,7 @@ namespace Everquest
                     return String.Format("Reduce [AA {0}] Timer by {1}", base2, FormatTime(base1));
                 case 265:
                     // value of zero should negate effects of Mastery of the Past
-                    return String.Format("No Fizzle up to level {0}", value);
+                    return String.Format("No Fizzle up to level {0}", base1);
                 case 266:
                     return Spell.FormatPercent("Chance of Additional 2H Attack", value);
                 case 267:
@@ -2235,13 +2233,13 @@ namespace Everquest
                     // same as /shield command?
                     return Spell.FormatPercent("Melee Shielding: {0}%", base1);
                 case 464:
-                    return Spell.FormatPercent("Pet Rampage Chance", base1);
+                    return Spell.FormatPercent("Pet Chance to Rampage", base1);
                 case 465:
-                    return Spell.FormatPercent("Pet AE Rampage Chance", base1);
+                    return Spell.FormatPercent("Pet Chance to AE Rampage", base1);
                 case 466:
                     // this chance is additive with the owner's passive pet flurry chance AA abilities.
                     // how does this differ from 280?
-                    return Spell.FormatPercent("Pet Flurry Chance", base1);
+                    return Spell.FormatPercent("Pet Chance to Flurry", base1);
                 case 467:
                     return Spell.FormatCount("Damage Shield Taken", base1);
                 case 468:
@@ -3178,7 +3176,7 @@ namespace Everquest
             //spell.Name = Regex.Replace(spell.Name, @"\s[IVXL]+$", x => " " + ParseRomanNumeral(x.Value.Substring(1)).ToString("D2"));
 
             // append digit translation of roman numeral spell ranks
-            spell.Name = Regex.Replace(spell.Name, @"\s[IVXL]+$", x => " " + x.Groups[0].Value + " (" + ParseRomanNumeral(x.Value.Substring(1)) +  ")");
+            //spell.Name = Regex.Replace(spell.Name, @"\s[IVXL]+$", x => " " + x.Groups[0].Value + " (" + ParseRomanNumeral(x.Value.Substring(1)) +  ")");
 
             //Target = fields[2];
             spell.Extra = fields[3];

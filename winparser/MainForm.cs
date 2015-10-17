@@ -310,6 +310,9 @@ namespace winparser
                 if (spell.HateOverride != 0)
                     html.AppendFormat("Hate: {0}<br/>", spell.HateOverride);
 
+                if (spell.HateMod != 0)
+                    html.AppendFormat("Hate Mod: {0:+#;-#;0}<br/>", spell.HateMod);
+
                 if (spell.PushBack != 0)
                     html.AppendFormat("Push: {0}<br/>", spell.PushBack);
 
