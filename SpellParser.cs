@@ -1623,7 +1623,7 @@ namespace Everquest
                 case 213:
                     return Spell.FormatPercent("Pet Max HP", base1);
                 case 214:
-                    return Spell.FormatPercent("Max HP", value / 100f);
+                    return Spell.FormatPercent("Max HP", base1 / 100f);
                 case 215:
                     return Spell.FormatPercent("Pet Chance to Avoid Melee", base1);
                 case 216:
@@ -2072,7 +2072,9 @@ namespace Everquest
                     // is added before crit multipliers
                     return Spell.FormatCount("Base Healing", base1);
                 case 397:
-                    return Spell.FormatCount("Pet Melee Mitigation", base1);
+                    // sturdy companion AA
+                    // does this work like defensive disc (168) for warriors?
+                    return Spell.FormatPercent("Pet Melee Mitigation", base1 / 100f);
                 case 398:
                     return String.Format("Increase Pet Duration by {0}s", base1 / 1000);
                 case 399:
