@@ -32,7 +32,8 @@ namespace Everquest
         Veil_of_Alaris,
         Rain_of_Fear,
         Call_of_the_Forsaken,
-        The_Darkened_Sea
+        The_Darkened_Sea,
+        The_Broken_Mirror
     }
 
     public struct AASlot
