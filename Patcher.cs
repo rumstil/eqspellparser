@@ -6,6 +6,7 @@ using System.Text;
 // Launchpad files are all LZMA compressed. I've included it as binary for easier building of this project.
 // SevenZip (lzma.dll) is compiled from v9.20 of the LZMA SDK http://www.7-zip.org/sdk.html
 using SevenZip;
+using System.Globalization;
 
 namespace Everquest
 {
@@ -32,12 +33,13 @@ namespace Everquest
                 {
                     // Launchpad files are LZMA compressed
                     Decompress(inStream, outStream);
-                    Console.Error.WriteLine("   {2} [{0} bytes] {1}", outStream.Length, web.ResponseHeaders["Last-Modified"], saveToPath);
+                    Console.Error.WriteLine("   {2} [{0:#,#} bytes] {1}", outStream.Length, web.ResponseHeaders["Last-Modified"], saveToPath);
                     Console.Error.WriteLine();
                 }
 
+                // this timestamp may be different than what was reported in the manifest
                 DateTime lastMod;
-                if (DateTime.TryParse(web.ResponseHeaders["Last-Modified"], out lastMod))
+                if (DateTime.TryParse(web.ResponseHeaders["Last-Modified"], CultureInfo.InvariantCulture, DateTimeStyles.None, out lastMod))
                     File.SetLastWriteTimeUtc(saveToPath, lastMod);
             }
         }
