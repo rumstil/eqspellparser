@@ -146,7 +146,7 @@ namespace Everquest
         private Dictionary<int, Spell> spellsById;
         private ILookup<int, Spell> spellsByGroup;
 
-        //public string SpellPath { get; private set; }
+        public string SpellPath { get; private set; }
         public IEnumerable<Spell> SpellList { get { return spellList; } }
 
         private List<AA> aaList;
@@ -161,6 +161,7 @@ namespace Everquest
 
         public void LoadSpells(string spellPath, string descPath)
         {
+            SpellPath = spellPath;
             spellList = SpellParser.LoadFromFile(spellPath, descPath);
             spellsById = spellList.ToDictionary(x => x.ID);
             spellsByGroup = spellList.Where(x => x.GroupID != 0).ToLookup(x => x.GroupID);
@@ -230,7 +231,7 @@ namespace Everquest
         private string StripRank(string name)
         {
             name = Regex.Replace(name, @"\s\(?\d+\)?$", ""); // (3) 
-            name = Regex.Replace(name, @"\s(Rk\. )?[IVX]+$", ""); // Rk. III
+            name = Regex.Replace(name, @"\s(Rk\.\s)?[IVX]+$", ""); // Rk. III
             return name;
         }
 
