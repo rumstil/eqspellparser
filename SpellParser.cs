@@ -2168,11 +2168,8 @@ namespace Everquest
                 case 432:
                     return Spell.FormatCount("Trophy Slots", base1);
                 case 433:
-                    return Spell.FormatPercent("Chance to Critical DoT v2", base1) + String.Format(" up to level {0} (lose {1}% per level)", max, base2);
-                case 434:
-                    return Spell.FormatPercent("Chance to Critical Heal v2", base1) + String.Format(" up to level {0} (lose {1}% per level)", max, base2);
-                case 435:
-                    return Spell.FormatPercent("Chance to Critical HoT v2", base1) + String.Format(" up to level {0} (lose {1}% per level)", max, base2);
+                    // similar to 220 except the values get lowered with faster weapons 
+                    return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus v2", base1);
                 case 436:
                     return "Beneficial Countdown Hold";
                 case 437:
@@ -2248,12 +2245,10 @@ namespace Everquest
                     return Spell.FormatPercent("Damage Shield Taken", base1);
                 case 469:
                     // 469/470 seem to be similar to spa 340/374 except the cast a spell by group ID rather than spell ID
-                    // cast the highest rank spell that has been acquired?
-                    // the chance on this is shared with other chance SPAs (i.e. only 1 can be cast)?
+                    // is the chance on this shared with other chance SPAs (i.e. only 1 can be cast)?
                     return String.Format("Cast: [Group {0}] ({1}% Chance)", base2, base1);
                 case 470:
-                    // cast the highest rank spell that has been acquired?
-                    // the chance on this is independant of other chance SPAs (i.e. each one has it's own chance to cast)?
+                    // is the chance on this independant of other chance SPAs (i.e. each one has it's own chance to cast)?
                     if (base1 < 100)
                         return String.Format("Cast: [Group {0}] ({1}% Chance)", base2, base1);
                     return String.Format("Cast: [Group {0}]", base2);
