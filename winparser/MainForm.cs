@@ -247,17 +247,34 @@ namespace winparser
             foreach (var spell in list)
             {
                 html.AppendFormat("<p id='spell{0}' class='spell group{1} {3}'><strong>{2}</strong><br/>", spell.ID, spell.GroupID, spell.ToString(), visible(spell) ? "" : "hidden");
-                foreach (var line in spell.Details())
-                    html.Append(InsertSpellRefLinks(line) + "<br/>");
+                
+                //foreach (var line in spell.Details())
+                //    html.Append(InsertSpellRefLinks(line) + "<br/>");
+
+                foreach (string s in spell.Details())
+                {
+                    var slot = Regex.Replace(s, @"(\d+): .*", m =>
+                    {
+                        int i = Int32.Parse(m.Groups[1].Value) - 1;
+                        if (i < 0 || i >= spell.Slots.Length)
+                            return "Unknown Index " + i;
+                        return String.Format("{0}: <span title=\"SPA={2} Base1={3} Base2={4} Max={5} Calc={6}\">{1}</span>", i + 1, spell.Slots[i].Desc, spell.Slots[i].SPA, spell.Slots[i].Base1, spell.Slots[i].Base2, spell.Slots[i].Max, spell.Slots[i].Calc);
+                    });
+
+                    html.Append(InsertSpellRefLinks(slot));
+                    html.Append("<br/>");
+                }
+
                 if (spell.Desc != null)
                     html.Append(spell.Desc);
+
                 html.Append("</p>");
             }
         }
 
         private void ShowAsTable(IEnumerable<Spell> list, Func<Spell, bool> visible, StringBuilder html)
         {
-            html.Append("<table style='table-layout: fixed; width: 89em;'>");
+            html.Append("<table style='table-layout: fixed;'>");
             html.Append("<thead><tr>");
             html.Append("<th style='width: 4em;'>ID</th>");
             html.Append("<th style='width: 18em;'>Name</th>");
@@ -268,7 +285,7 @@ namespace winparser
             html.Append("<th style='width: 4em;'>Duration</th>");
             html.Append("<th style='width: 6em;'>Resist</th>");
             html.Append("<th style='width: 5em;'>Target</th>");
-            html.Append("<th style='width: 30em;'>Effects</th>");
+            html.Append("<th style='min-width: 30em;'>Effects</th>");
             html.Append("</tr></thead>");
 
             foreach (var spell in list)
@@ -291,9 +308,9 @@ namespace winparser
 
                 html.AppendFormat("<td>{0}s</td>", spell.CastingTime);
 
-                html.AppendFormat("<td>{0} {1}</td>", FormatTime(spell.RecastTime), spell.RecastTime > 0 && spell.TimerID > 0 ? " T" + spell.TimerID : "");
+                html.AppendFormat("<td>{0} {1}</td>", Spell.FormatTime(spell.RecastTime), spell.RecastTime > 0 && spell.TimerID > 0 ? " T" + spell.TimerID : "");
 
-                html.AppendFormat("<td>{0}{1}</td>", FormatTime(spell.DurationTicks * 6), spell.DurationTicks > 0 && spell.Focusable ? "+" : "");
+                html.AppendFormat("<td>{0}{1}</td>", Spell.FormatTime(spell.DurationTicks * 6), spell.DurationTicks > 0 && spell.Focusable ? "+" : "");
 
                 if (!spell.Beneficial)
                     html.AppendFormat("<td>{0} {1}</td>", spell.ResistType, spell.ResistMod != 0 ? spell.ResistMod.ToString() : "");
@@ -338,8 +355,6 @@ namespace winparser
 
         private string InsertSpellRefLinks(string text)
         {
-            text = HtmlEncode(text);
-
             text = Spell.SpellRefExpr.Replace(text, m =>
             {
                 int id = Int32.Parse(m.Groups[1].Value);
@@ -392,19 +407,6 @@ namespace winparser
         {
             // i don't think .net has a html encoder outside of the system.web assembly
             return text.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
-        }
-
-        private string FormatTime(float seconds)
-        {
-            if (seconds < 120)
-                return seconds.ToString("0.##") + "s";
-
-            if (seconds <= 7200)
-                return (seconds / 60f).ToString("0.#") + "m";
-
-            var ts = new TimeSpan(0, 0, (int)seconds);
-            return ts.Hours + "h" + ts.Minutes + "m";
-            //return new TimeSpan(0, 0, (int)seconds).ToString().TrimStart('0');
         }
 
         private string FormatEnum(object o)
