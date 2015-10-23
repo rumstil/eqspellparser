@@ -47,7 +47,7 @@ namespace winparser
             foreach (var f in files)
             {
                 item = new ListViewItem(f.Name);
-                item.SubItems.Add(f.Length.ToString());
+                item.SubItems.Add(f.Length.ToString("#,#"));
                 item.SubItems.Add(CountFields(f.Name).ToString());
                 listView1.Items.Add(item);
             }
@@ -72,7 +72,7 @@ namespace winparser
             }
 
             var f = new MainForm();
-            f.Load(spellPath, spellPath.Replace("spells_us", "dbstr_us"));
+            f.Load(spellPath, spellPath.Replace("spells_us", "dbstr_us"), spellPath.Replace("spells_us", "SpellStackingGroups"));
             f.Show();
 
             // DoEvents is a bit naughty because we could reenter this method on a double click, but it gives the browser a chance to init
@@ -107,6 +107,11 @@ namespace winparser
             var desc = manifest.FindFile(LaunchpadManifest.SPELLDESC_FILE);
             desc.Name = desc.Name.Replace(".txt", "-" + spell.LastModified.ToString("yyyy-MM-dd") + server + ".txt");
             LaunchpadPatcher.DownloadFile(desc.Url, desc.Name);
+
+            // same for the stacking file
+            var stack = manifest.FindFile(LaunchpadManifest.SPELLSTACK_FILE);
+            stack.Name = stack.Name.Replace(".txt", "-" + spell.LastModified.ToString("yyyy-MM-dd") + server + ".txt");
+            LaunchpadPatcher.DownloadFile(stack.Url, stack.Name);
             
             Status.Text = String.Format("Downloaded {0} {1}", spell.Name, spell.LastModified.ToString());
 

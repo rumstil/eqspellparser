@@ -1073,6 +1073,7 @@ namespace Everquest
         public bool CombatSkill;
         public int ResistPerLevel;
         public int ResistCap;
+        public string[] Stacking;
 
         public int[] LinksTo;
         public int RefCount; // number of spells that link to this
@@ -1112,6 +1113,7 @@ namespace Everquest
             ConsumeItemCount = new int[4];
             FocusID = new int[4];
             CategoryDescID = new int[3];
+            Stacking = new string[0];
         }
 
         /// <summary>
@@ -2639,12 +2641,15 @@ namespace Everquest
             else
                 result.Add("Resist: Beneficial, Blockable: " + (BeneficialBlockable ? "Yes" : "No"));
 
+            if (Stacking.Length > 0)
+                result.Add("Stacking: " + String.Join(", ", Stacking));
+
+
             //if (ResistPerLevel != 0)
             //    result.Add("Resist Per Level: " + ResistPerLevel + ", Cap: " + ResistCap);
 
             // this includes both spell and AA focuses
-            if (ClassesMask != 0)
-                result.Add("Focusable: " + (Focusable ? "Yes" : "No"));
+            result.Add("Focusable: " + (Focusable ? "Yes" : "No"));
 
             // only nukes and DoT can trigger spell damage shields
             // no points showing it for NPC spells since NPCs will never take significant damage from nuking players
@@ -3015,11 +3020,14 @@ namespace Everquest
         /// <summary>
         /// Load spell list from the EQ spell definition files.
         /// </summary>
-        static public List<Spell> LoadFromFile(string spellPath, string descPath)
+        static public List<Spell> LoadFromFile(string spellPath, string descPath, string stackPath)
         {
+            // the spell file is required. the other files are optional 
+            if (!File.Exists(spellPath))
+                throw new FileNotFoundException("Could not open spell file.", spellPath);
+
             List<Spell> list = new List<Spell>(50000);
             Dictionary<int, Spell> listById = new Dictionary<int, Spell>(50000);
-            //Dictionary<int, Spell> listByGroup = new Dictionary<int, Spell>(30000);
 
             // load description text file
             var desc = new Dictionary<string, string>(50000);
@@ -3027,9 +3035,9 @@ namespace Everquest
                 using (var text = File.OpenText(descPath))
                     while (!text.EndOfStream)
                     {
-                        string line = text.ReadLine();
-                        string[] fields = line.Split('^');
-                        if (fields.Length < 3)
+                        var line = text.ReadLine();
+                        var fields = line.Split('^');
+                        if (fields.Length < 3 || line.StartsWith("#"))
                             continue;
 
                         // 0 = id within type
@@ -3044,60 +3052,87 @@ namespace Everquest
                         // type 12 = body type
                         // type 16 = aug slot desc
                         // type 18 = currency
+                        // type 40 = spell stacking group
                         desc[fields[1] + "/" + fields[0]] = fields[2].Trim();
                     }
 
             // load spell definition file
-            if (File.Exists(spellPath))
-                using (var text = File.OpenText(spellPath))
-                    while (!text.EndOfStream)
-                    {
-                        string line = text.ReadLine();
-                        string[] fields = line.Split('^');
-                        Spell spell = LoadSpell(fields);
+            using (var text = File.OpenText(spellPath))
+                while (!text.EndOfStream)
+                {
+                    var line = text.ReadLine();
+                    var fields = line.Split('^');
+                    var spell = LoadSpell(fields);
 
 #if !LimitMemoryUse
-                        // all spells can be grouped into up to 2 categories (type 5 in db_str)
-                        // ignore the "timer" categories because they are frequently wrong
-                        List<string> cat = new List<string>();
-                        string c1;
-                        string c2;
-                        if (desc.TryGetValue("5/" + spell.CategoryDescID[0], out c1))
-                        {
-                            // sub category 1
-                            if (desc.TryGetValue("5/" + spell.CategoryDescID[1], out c2) && !c2.StartsWith("Timer"))
-                                cat.Add(c1 + "/" + c2);
+                    // all spells can be grouped into up to 2 categories (type 5 in db_str)
+                    // ignore the "timer" categories because they are frequently wrong
+                    List<string> cat = new List<string>();
+                    string c1;
+                    string c2;
+                    if (desc.TryGetValue("5/" + spell.CategoryDescID[0], out c1))
+                    {
+                        // sub category 1
+                        if (desc.TryGetValue("5/" + spell.CategoryDescID[1], out c2) && !c2.StartsWith("Timer"))
+                            cat.Add(c1 + "/" + c2);
 
-                            // sub category 2
-                            if (desc.TryGetValue("5/" + spell.CategoryDescID[2], out c2) && !c2.StartsWith("Timer"))
-                                cat.Add(c1 + "/" + c2);
+                        // sub category 2
+                        if (desc.TryGetValue("5/" + spell.CategoryDescID[2], out c2) && !c2.StartsWith("Timer"))
+                            cat.Add(c1 + "/" + c2);
 
-                            // general category if no subcategories are defined
-                            if (cat.Count == 0)
-                                cat.Add(c1);
-                        }
+                        // general category if no subcategories are defined
+                        if (cat.Count == 0)
+                            cat.Add(c1);
+                    }
 
-                        // add a timer category 
-                        if (spell.TimerID > 0)
-                            cat.Add("Timer " + spell.TimerID.ToString("D2"));
-                        spell.Categories = cat.ToArray();
+                    // add a timer category 
+                    if (spell.TimerID > 0)
+                        cat.Add("Timer " + spell.TimerID.ToString("D2"));
+                    spell.Categories = cat.ToArray();
 #endif
 
-                        if (!desc.TryGetValue("6/" + spell.DescID, out spell.Desc))
-                            spell.Desc = null;
+                    if (!desc.TryGetValue("6/" + spell.DescID, out spell.Desc))
+                        spell.Desc = null;
 
-                        list.Add(spell);
-                        listById[spell.ID] = spell;
-                        //if (spell.GroupID > 0)
-                        //    listByGroup[spell.GroupID] = spell;
+                    list.Add(spell);
+                    listById[spell.ID] = spell;
+                    //if (spell.GroupID > 0)
+                    //    listByGroup[spell.GroupID] = spell;
+                }
+
+            // load spell stacking file
+            // my guess is that this was made a separate file because a single spell can be part of multiple spell stacking groups
+            if (File.Exists(stackPath))
+                using (var text = File.OpenText(stackPath))
+                    while (!text.EndOfStream)
+                    {
+                        var line = text.ReadLine();
+                        var fields = line.Split('^');
+                        if (fields.Length < 4 || line.StartsWith("#"))
+                            continue;
+
+                        var id = ParseInt(fields[0]);
+                        var group = fields[1];
+                        var rank = fields[2];
+                        
+                        if (!listById.ContainsKey(id))
+                            continue;
+                        var spell = listById[id];
+
+                        if (desc.ContainsKey("40/" + group))
+                            group = desc["40/" + group];
+
+                        var stacking = spell.Stacking.ToList();
+                        stacking.Add(group + " " + rank);
+                        spell.Stacking = stacking.ToArray();
                     }
 
             // second pass fixes that require the entire spell list to be loaded already
-            List<Spell> groups = list.FindAll(delegate(Spell x) { return x.GroupID > 0; });
+            List<Spell> groups = list.FindAll(x => x.GroupID > 0);
             foreach (Spell spell in list)
             {
                 // get list of linked spells
-                List<int> linked = new List<int>(10);
+                var linked = new List<int>(10);
                 if (spell.RecourseID != 0)
                     linked.Add(spell.RecourseID);
 
@@ -3105,20 +3140,19 @@ namespace Everquest
                     if (s.Desc != null)
                     {
                         // match spell refs
-                        MatchCollection matches = Spell.SpellRefExpr.Matches(s.Desc);
-                        foreach (Match m in matches)
-                            if (m.Success)
-                                linked.Add(Int32.Parse(m.Groups[1].Value));
+                        Match match = Spell.SpellRefExpr.Match(s.Desc);
+                        if (match.Success)
+                            linked.Add(Int32.Parse(match.Groups[1].Value));
 
                         // match spell group refs
-                        Match match = Spell.GroupRefExpr.Match(s.Desc);
+                        match = Spell.GroupRefExpr.Match(s.Desc);
                         if (match.Success)
                         {
                             int id = Int32.Parse(match.Groups[1].Value);
                             // negate id on excluded spells so that we don't set extlevels on them
                             if (s.Desc.Contains("Exclude"))
                                 id = -id;
-                            groups.FindAll(delegate(Spell x) { return x.GroupID == id; }).ForEach(delegate(Spell x) { linked.Add(x.ID); });
+                            groups.FindAll(x => x.GroupID == id).ForEach(delegate(Spell x) { linked.Add(x.ID); });
                         }
                     }
 
