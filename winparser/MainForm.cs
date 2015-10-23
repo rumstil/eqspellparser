@@ -77,7 +77,7 @@ namespace winparser
                 Application.Exit();
         }
 
-        public new void Load(string spellPath, string descPath)
+        public new void Load(string spellPath, string descPath, string stackPath)
         {
             SpellPath = spellPath;
             Text = spellPath;
@@ -85,7 +85,7 @@ namespace winparser
             Cursor.Current = Cursors.WaitCursor;
 
             Cache = new SpellCache();
-            Cache.LoadSpells(spellPath, descPath);
+            Cache.LoadSpells(spellPath, descPath, stackPath);
             SearchClass_TextChanged(this, null);
             AutoSearch.Enabled = false;
 

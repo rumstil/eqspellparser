@@ -159,10 +159,10 @@ namespace Everquest
             aaList = new List<AA>();
         }
 
-        public void LoadSpells(string spellPath, string descPath)
+        public void LoadSpells(string spellPath, string descPath, string stackPath)
         {
             SpellPath = spellPath;
-            spellList = SpellParser.LoadFromFile(spellPath, descPath);
+            spellList = SpellParser.LoadFromFile(spellPath, descPath, stackPath);
             spellsById = spellList.ToDictionary(x => x.ID);
             spellsByGroup = spellList.Where(x => x.GroupID != 0).ToLookup(x => x.GroupID);
         }

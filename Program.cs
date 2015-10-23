@@ -50,7 +50,7 @@ namespace parser
 
                 Console.Error.Write("Loading {0}... ", path);
                 cache = new SpellCache();
-                cache.LoadSpells(path, path.Replace("spells_us", "dbstr_us")); 
+                cache.LoadSpells(path, path.Replace("spells_us", "dbstr_us"), path.Replace("spells_us", "SpellStackingGroups")); 
                 Console.Error.WriteLine("{0} spells", cache.SpellList.Count());
 
                 // perform search based on command line parameters                
