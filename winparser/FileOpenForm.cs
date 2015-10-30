@@ -119,7 +119,7 @@ namespace winparser
             if (item == null)
             {
                 item = new ListViewItem(spell.Name);
-                item.SubItems.Add(spell.UncompressedSize.ToString());
+                item.SubItems.Add(spell.UncompressedSize.ToString("#,#"));
                 item.SubItems.Add(CountFields(spell.Name).ToString());
                 listView1.Items.Add(item);                
             }

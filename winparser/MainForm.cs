@@ -86,6 +86,7 @@ namespace winparser
 
             Cache = new SpellCache();
             Cache.LoadSpells(spellPath, descPath, stackPath);
+            SearchCategory.Items.AddRange(Cache.SpellList.SelectMany(x => x.Categories).Distinct().ToArray());
             SearchClass_TextChanged(this, null);
             AutoSearch.Enabled = false;
 
@@ -248,12 +249,9 @@ namespace winparser
             {
                 html.AppendFormat("<p id='spell{0}' class='spell group{1} {3}'><strong>{2}</strong><br/>", spell.ID, spell.GroupID, spell.ToString(), visible(spell) ? "" : "hidden");
                 
-                //foreach (var line in spell.Details())
-                //    html.Append(InsertSpellRefLinks(line) + "<br/>");
-
-                foreach (string s in spell.Details())
+                foreach (var line in spell.Details())
                 {
-                    var slot = Regex.Replace(s, @"(\d+): .*", m =>
+                    var slot = Regex.Replace(line, @"(\d+): .*", m =>
                     {
                         int i = Int32.Parse(m.Groups[1].Value) - 1;
                         if (i < 0 || i >= spell.Slots.Length)
@@ -577,35 +575,10 @@ namespace winparser
             if (Cache == null)
                 return;
 
-            // whenever the class is changed refresh the list of categories so that it only shows categories that class can cast
+            // only show level filter when a class is selected
             int cls = SpellParser.ParseClass(SearchClass.Text) - 1;
-            if (cls >= 0)
-            {
-                SearchLevel.Enabled = true;
+            SearchLevel.Enabled = (cls >= 0);
 
-                var cat = Cache.SpellList.Where(x => x.Levels[cls] > 0).SelectMany(x => x.Categories).Distinct().ToList();
-
-                // add the root categories. e.g. for "Utility Beneficial/Combat Innates/Illusion: Other" add "Utility Beneficial"
-                int i = 0;
-                while (i < cat.Count)
-                {
-                    var parts = cat[i].Split('/');
-                    if (!cat.Contains(parts[0]))
-                        cat.Add(parts[0]);
-                    i++;
-                }
-
-                SearchCategory.Items.Clear();
-                SearchCategory.Items.AddRange(cat.ToArray());
-            }
-            else
-            {
-                SearchLevel.Enabled = false;
-                SearchCategory.Items.Clear();
-                SearchCategory.Items.AddRange(Cache.SpellList.SelectMany(x => x.Categories).Distinct().ToArray());
-            }
-            SearchCategory.Items.Add("AA");
-            SearchCategory.Items.Add("");
             SearchText_TextChanged(sender, e); 
         }
 
