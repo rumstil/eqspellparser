@@ -263,8 +263,10 @@ namespace Everquest
         Absorb_DoT_Damage = 450,
         Absorb_Melee_Damage = 451,
         Absorb_Spell_Damage = 452,
+        Resource_Tap = 457,
         Faction_Hit = 458,
         Hit_Damage_v2 = 459,
+        Repeat_Melee_Round_Chance = 471
     }
 
     public enum SpellSkill
@@ -579,7 +581,9 @@ namespace Everquest
 
         // [38311] Mana Reserve is tagged with both, not sure which is which
         Mana_Below_10_Percent = 38311,
-        Mana_Below_20_Percent = 38312
+        Mana_Below_20_Percent = 38312,
+
+        Caster_or_Priest = 49529
     }
 
     public enum SpellZoneRestrict
@@ -1692,7 +1696,7 @@ namespace Everquest
                 case 249:
                     // 1-Handed weapon - Primary Hand: (damage * delay * level * 80) / 400000
                     // 1-Handed weapon - Secondary Hand: [Primary Hand Formula * Base1 of Sinister Strike SPA]
-                    return Spell.FormatCount("Offhand Weapon Damage Mod", base1);
+                    return Spell.FormatPercent("Offhand Weapon Damage Bonus", base1);
                 case 250:
                     // not sure about this one
                     return Spell.FormatPercent("Defensive Proc Rate", base1);
@@ -1924,7 +1928,8 @@ namespace Everquest
                     // increases weapon damage when a shield is equiped
                     return Spell.FormatPercent("Damage When Shield Equiped", base1);
                 case 350:
-                    Mana = base1; // hack
+                    if (base1 > Mana)
+                        Mana = base1; // hack
                     return String.Format("Mana Burn up to {0} damage", base1 * -base2 / 10);
                 case 351:
                     // the actual aura spell effect reference doesn't seem to be stored in the spell file so we have to handle this SPA
