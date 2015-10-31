@@ -372,7 +372,7 @@
             // 
             // SearchClass
             // 
-            this.SearchClass.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            this.SearchClass.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Append;
             this.SearchClass.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
             this.SearchClass.FormattingEnabled = true;
             this.SearchClass.Location = new System.Drawing.Point(12, 108);

@@ -228,7 +228,7 @@ namespace winparser
 
         private StringBuilder InitHtml()
         {
-            var html = new StringBuilder();
+            var html = new StringBuilder(1200000);
             html.AppendLine(winparser.Properties.Resources.HtmlTemplate);
 
             return html;
