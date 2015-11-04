@@ -1928,8 +1928,7 @@ namespace Everquest
                     // increases weapon damage when a shield is equiped
                     return Spell.FormatPercent("Damage When Shield Equiped", base1);
                 case 350:
-                    if (base1 > Mana)
-                        Mana = base1; // hack
+                    Mana = base1; // hack
                     return String.Format("Mana Burn up to {0} damage", base1 * -base2 / 10);
                 case 351:
                     // the actual aura spell effect reference doesn't seem to be stored in the spell file so we have to handle this SPA
@@ -2088,6 +2087,7 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Twincast", value);
                 case 400:
                     // e.g. Channels the power of sunlight, consuming up to #1 mana to heal your group.
+                    // this effect doesn't cause hate - it was added to divine arb as a non-aggro heal
                     Mana = base1; // a bit misleading since the spell will cast with 0 mana and scale the heal
                     Target = SpellTarget.Caster_Group; // total hack but makes sense for current spells
                     return String.Format("Increase Current HP by up to {0} ({1} HP per 1 Mana)", Math.Floor(base1 * base2 / 10f), base2 / 10f);
@@ -3117,19 +3117,33 @@ namespace Everquest
                             continue;
 
                         var id = ParseInt(fields[0]);
+                        Spell spell = null;
+                        if (!listById.TryGetValue(id, out spell))
+                            continue;
+
                         var group = fields[1];
                         var rank = fields[2];
-                        
-                        if (!listById.ContainsKey(id))
-                            continue;
-                        var spell = listById[id];
 
                         if (desc.ContainsKey("40/" + group))
                             group = desc["40/" + group];
 
-                        var stacking = spell.Stacking.ToList();
-                        stacking.Add(group + " " + rank);
-                        spell.Stacking = stacking.ToArray();
+                        group += " " + rank;
+
+                        // type 6 = non-override stacking group; only one can be active at a time and new procs won't overwrite old ones that are still active
+                        var type = fields[3];
+                        if (type == "6")
+                            group += " (Non-Overide)";
+
+                        if (spell.Stacking.Length == 0)
+                        {
+                            spell.Stacking = new string[] { group };
+                        }
+                        else
+                        {
+                            var stacking = spell.Stacking.ToList();
+                            stacking.Add(group);
+                            spell.Stacking = stacking.ToArray();
+                        }
                     }
 
             // second pass fixes that require the entire spell list to be loaded already
