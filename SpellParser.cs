@@ -1928,7 +1928,8 @@ namespace Everquest
                     // increases weapon damage when a shield is equiped
                     return Spell.FormatPercent("Damage When Shield Equiped", base1);
                 case 350:
-                    Mana = base1; // hack
+                    if (base1 > Mana)
+                        Mana = base1; // hack
                     return String.Format("Mana Burn up to {0} damage", base1 * -base2 / 10);
                 case 351:
                     // the actual aura spell effect reference doesn't seem to be stored in the spell file so we have to handle this SPA
