@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Linq;
 
 
 namespace Everquest
@@ -3038,7 +3039,7 @@ namespace Everquest
             // load description text file
             var desc = new Dictionary<string, string>(50000);
             if (File.Exists(descPath))
-                using (var text = File.OpenText(descPath))
+                using (var text = PossiblyCompressedFile.OpenText(descPath))
                     while (!text.EndOfStream)
                     {
                         var line = text.ReadLine();
@@ -3063,7 +3064,7 @@ namespace Everquest
                     }
 
             // load spell definition file
-            using (var text = File.OpenText(spellPath))
+            using (var text = PossiblyCompressedFile.OpenText(spellPath))
                 while (!text.EndOfStream)
                 {
                     var line = text.ReadLine();
@@ -3109,7 +3110,7 @@ namespace Everquest
             // load spell stacking file
             // my guess is that this was made a separate file because a single spell can be part of multiple spell stacking groups
             if (File.Exists(stackPath))
-                using (var text = File.OpenText(stackPath))
+                using (var text = PossiblyCompressedFile.OpenText(stackPath))
                     while (!text.EndOfStream)
                     {
                         var line = text.ReadLine();
@@ -3486,6 +3487,25 @@ namespace Everquest
             return Array.IndexOf(roman, num.ToUpper()) + 1;
         }
 
+    }
+
+    /// <summary>
+    /// Provides transparent gzip decompression on files that may compressed.
+    /// The game doesn't ever store spells files in gzip format but I added this in case someone wants to keep lots of versioned spell files around and save space.
+    /// </summary>
+    public static class PossiblyCompressedFile
+    {
+        public static StreamReader OpenText(string path)
+        {
+            if (path.EndsWith(".gz"))
+            {
+                // todo: should I buffer the uncompressed stream?
+                var stream = new GZipStream(File.OpenRead(path), CompressionMode.Decompress);
+                return new StreamReader(stream);
+            }
+
+            return File.OpenText(path);
+        }
     }
 
 }
