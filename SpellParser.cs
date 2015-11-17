@@ -1331,8 +1331,8 @@ namespace Everquest
                     return "Gravity Flux";
                 case 85:
                     if (base2 != 0)
-                        return String.Format("Add Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
-                    return String.Format("Add Proc: [Spell {0}]", base1);
+                        return String.Format("Add Melee Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
+                    return String.Format("Add Melee Proc: [Spell {0}]", base1);
                 case 86:
                     return String.Format("Decrease Social Radius to {0}", value) + maxlevel;
                 case 87:
@@ -1733,7 +1733,7 @@ namespace Everquest
                     // value of zero should negate effects of Mastery of the Past
                     return String.Format("No Fizzle up to level {0}", base1);
                 case 266:
-                    return Spell.FormatPercent("Chance of Additional 2H Attack", value);
+                    return Spell.FormatPercent("Chance of Additional 2H Attack", base1);
                 case 267:
                     return String.Format("Enable Pet Ability: {0}", base2);
                 case 268:
@@ -1812,7 +1812,7 @@ namespace Everquest
                 case 300:
                     return "Summon Doppelganger: " + Extra;
                 case 301:
-                    return Spell.FormatPercent("Ranged Damage", base1);
+                    return Spell.FormatPercent("Archery Damage", base1);
                 case 302:
                     // see also 124. only used on a few AA
                     return Spell.FormatPercent("Base Spell Damage", base1);
@@ -1922,7 +1922,7 @@ namespace Everquest
                 case 346:
                     return String.Format("Limit Headshot Level: {0}", base1);
                 case 347:
-                    return Spell.FormatPercent("Chance to Double Ranged Attack", base1);
+                    return Spell.FormatPercent("Chance of Additional Archery Attack", base1);
                 case 348:
                     return String.Format("Limit Min Mana Cost: {0}", base1);
                 case 349:
@@ -2267,7 +2267,7 @@ namespace Everquest
 
             }
 
-            return String.Format("Unknown Effect: {0} Base1={1} Base2={2} Max={3} Calc={4} Value={5}", spa, base1, base2, max, calc, value);
+            return String.Format("Unknown Effect: SPA {0} Base1={1} Base2={2} Max={3} Calc={4} Value={5}", spa, base1, base2, max, calc, value);
         }
 
         /// <summary>
