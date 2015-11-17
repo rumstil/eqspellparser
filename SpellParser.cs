@@ -267,7 +267,8 @@ namespace Everquest
         Resource_Tap = 457,
         Faction_Hit = 458,
         Hit_Damage_v2 = 459,
-        Repeat_Melee_Round_Chance = 471
+        Repeat_Melee_Round_Chance = 471,
+        Pet_Crit_Hit_Damage = 474
     }
 
     public enum SpellSkill
@@ -1881,7 +1882,7 @@ namespace Everquest
                     return String.Format("Absorb Damage using Mana: {0}%", value);
                 case 330:
                     // additive with innate crit multiplier
-                    return Spell.FormatPercent("Critical " + Spell.FormatEnum((SpellSkill)base2) + " Damage", value) + " of Base Damage";
+                    return Spell.FormatPercent("Critical " + Spell.FormatEnum((SpellSkill)base2) + " Damage", base1) + " of Base Damage";
                 case 331:
                     return Spell.FormatPercent("Chance to Salvage Components", value);
                 case 332:
@@ -2264,6 +2265,9 @@ namespace Everquest
                 case 471:
                     // repeat the entire melee round. i.e. main attack, double attack, triple
                     return Spell.FormatPercent("Chance to Repeat Melee Round", base1);
+                case 474:
+                    // similar to 330
+                    return Spell.FormatPercent("Pet Critical Hit Damage", base1) + " of Base Damage";
 
             }
 
