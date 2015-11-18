@@ -1597,8 +1597,9 @@ namespace Everquest
                 case 199:
                     return String.Format("Taunt ({0})", value);
                 case 200:
-                    // melee/range/defensive?
-                    return Spell.FormatPercent("Proc Rate", value);
+                    // affects worn melee/range weapon procs
+                    // doesn't affect 85, 429. pretty sure 201 is also unaffected
+                    return Spell.FormatPercent("Worn Proc Rate", base1);
                 case 201:
                     return String.Format("Add Range Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
                 case 202:
@@ -1727,7 +1728,7 @@ namespace Everquest
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkillCap)base2) + " Cap", value);
                 case 263:
                     // ability to train tradeskills over 200 is limited to 1 by default
-                    return Spell.FormatCount("Extra Tradeskill Specialization", base1);
+                    return Spell.FormatCount("Ability to Specialize Tradeskills", base1);
                 case 264:
                     return String.Format("Reduce [AA {0}] Timer by {1}", base2, FormatTime(base1));
                 case 265:
@@ -1873,7 +1874,7 @@ namespace Everquest
                 case 325:
                     return Spell.FormatPercent("Chance to Remain Hidden When Hit By AE", base1);
                 case 326:
-                    return Spell.FormatCount("Memorized Spell Slots", base1);
+                    return Spell.FormatCount("Spell Memorization Gems", base1);
                 case 327:
                     return Spell.FormatCount("Buff Slots", base1);
                 case 328:
