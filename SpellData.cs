@@ -964,7 +964,7 @@ namespace Everquest
 
     #endregion
 
-    public struct SpellSlot
+    public sealed class SpellSlot
     {
         public int SPA;
         public int Base1;
@@ -990,7 +990,7 @@ namespace Everquest
         public int EnduranceUpkeep;
         public int DurationTicks;
         public bool Focusable;
-        public SpellSlot[] Slots;
+        public List<SpellSlot> Slots;
         //public byte Level;
         public byte[] Levels; // casting level for each of the 16 classes
         public byte[] ExtLevels; // similar to levels but assigns levels for side effect spells that don't have levels defined (e.g. a proc effect will get the level of it's proc buff)
@@ -1092,7 +1092,7 @@ namespace Everquest
 
         public Spell()
         {
-            Slots = new SpellSlot[12];
+            Slots = new List<SpellSlot>(12);
             Levels = new byte[16];
             ExtLevels = new byte[16];
             ConsumeItemID = new int[4];
@@ -1103,9 +1103,8 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Parse a spell effect. Each spell has 12 effect slots. Devs refer to these as SPAs.
-        /// Attributes like ID, Skill, Extra, DurationTicks are referenced and should be set before
-        /// calling this function.
+        /// Each spell can have a number of slots for variable spell effects. The game developers call these "SPAs".
+        /// TODO: this should be a static function but it makes references to spell attributes like ID, Skill, Extra, DurationTicks and in a few cases even modifies the Mana attribute.
         /// </summary>
         public string ParseEffect(int spa, int base1, int base2, int max, int calc, int level)
         {
@@ -2701,7 +2700,7 @@ namespace Everquest
             //if (!String.IsNullOrEmpty(Category))
             //    result.Add("Category: " + Category);
 
-            for (int i = 0; i < Slots.Length; i++)
+            for (int i = 0; i < Slots.Count; i++)
                 if (Slots[i].Desc != null)
                     result.Add(String.Format("{0}: {1}", i + 1, Slots[i].Desc));
 
@@ -2774,13 +2773,13 @@ namespace Everquest
         /// <summary>
         /// Search all effect slots using a SPA match.
         /// </summary>
-        /// <param name="slot">0 to check all slots, or a value between 1 and 12.</param>
+        /// <param name="slot">0 to check all slots, or a non zero value to check a specific slot.</param>
         public bool HasEffect(int spa, int slot)
         {
-            if (slot > 0 && slot <= Slots.Length)
+            if (slot > 0 && slot <= Slots.Count)
                 return Slots[slot - 1].SPA == spa;
 
-            for (int i = 0; i < Slots.Length; i++)
+            for (int i = 0; i < Slots.Count; i++)
                 if (Slots[i].SPA == spa)
                     return true;
 
@@ -2791,17 +2790,17 @@ namespace Everquest
         /// Search all effect slots using a text match.
         /// </summary>
         /// <param name="desc">Effect to search for. Can be text or a integer representing an SPA.</param>
-        /// <param name="slot">0 to check all slots, or a value between 1 and 12.</param>
+        /// <param name="slot">0 to check all slots, or a non zero value to check a specific slot.</param>
         public bool HasEffect(string text, int slot)
         {
             int spa;
             if (Int32.TryParse(text, out spa))
                 return HasEffect(spa, slot);
 
-            if (slot > 0 && slot <= Slots.Length)
+            if (slot > 0 && slot <= Slots.Count)
                 return Slots[slot - 1].Desc != null && Slots[slot - 1].Desc.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0;
 
-            for (int i = 0; i < Slots.Length; i++)
+            for (int i = 0; i < Slots.Count; i++)
                 if (Slots[i].Desc != null && Slots[i].Desc.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0)
                     return true;
 
@@ -2811,13 +2810,13 @@ namespace Everquest
         /// <summary>
         /// Search all effect slots using a regular expression.
         /// </summary>
-        /// <param name="slot">0 to check all slots, or a value between 1 and 12.</param>
+        /// <param name="slot">0 to check all slots, or a non zero value to check a specific slot.</param>
         public bool HasEffect(Regex re, int slot)
         {
-            if (slot > 0 && slot <= Slots.Length)
+            if (slot > 0 && slot <= Slots.Count)
                 return Slots[slot - 1].Desc != null && re.IsMatch(Slots[slot - 1].Desc);
 
-            for (int i = 0; i < Slots.Length; i++)
+            for (int i = 0; i < Slots.Count; i++)
                 if (Slots[i].Desc != null && re.IsMatch(Slots[i].Desc))
                     return true;
 
@@ -2831,7 +2830,7 @@ namespace Everquest
         public int ScoreEffect(Regex re)
         {
             int score = 0;
-            for (int i = 0; i < Slots.Length; i++)
+            for (int i = 0; i < Slots.Count; i++)
                 if (Slots[i].Desc != null)
                 {
                     Match m = re.Match(Slots[i].Desc);
@@ -2917,7 +2916,7 @@ namespace Everquest
         /*
         static private string FormatDesc()
         {
-            // Spell descriptions include references to 12 spell attributes. e.g.
+            // Spell descriptions include references to spell slots. e.g.
             // #7 = base1 for slot 7
             // @7 = calc(base1) for slot 7
             // $7 = base2 for slot 7

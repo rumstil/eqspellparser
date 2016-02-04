@@ -212,7 +212,7 @@ namespace Everquest
             // 124 CANCELONSIT
             spell.CancelOnSit = ParseBool(fields[124]);
             // 125 DIETY_AGNOSTIC .. 141 DIETY_VEESHAN
-            string[] gods = new string[] { 
+            string[] gods = { 
                 "Agnostic", "Bertox", "Brell", "Cazic", "Erollisi", "Bristlebane", "Innoruuk", "Karana", "Mithanial", "Prexus", 
                 "Quellious", "Rallos", "Rodcet", "Solusek", "Tribunal", "Tunare", "Veeshan" };
             for (int i = 0; i < gods.Length; i++)
@@ -373,17 +373,13 @@ namespace Everquest
             spell.BetaOnly = ParseBool(fields[235]);
             // 236 SPELL_SUBGROUP
 
-            // debug stuff
-            //spell.Unknown = ParseFloat(fields[209]);
-
-
             // each spell has 12 effect slots which have 5 attributes each
             // 20..31 - slot 1..12 base1 effect
             // 32..43 - slot 1..12 base2 effect
             // 44..55 - slot 1..12 max effect
             // 70..81 - slot 1..12 calc forumla data
             // 86..97 - slot 1..12 spa/type
-            for (int i = 0; i < spell.Slots.Length; i++)
+            for (int i = 0; i < 12; i++)
             {
                 int spa = ParseInt(fields[86 + i]);
                 int calc = ParseInt(fields[70 + i]);
@@ -391,8 +387,14 @@ namespace Everquest
                 int base1 = ParseInt(fields[20 + i]);
                 int base2 = ParseInt(fields[32 + i]);
 
-                spell.Slots[i] = new SpellSlot() { SPA = spa, Base1 = base1, Base2 = base2, Max = max, Calc = calc };
-                spell.Slots[i].Desc = spell.ParseEffect(spa, base1, base2, max, calc, MAX_LEVEL);
+                spell.Slots.Add(new SpellSlot { 
+                    SPA = spa, 
+                    Base1 = base1, 
+                    Base2 = base2, 
+                    Max = max, 
+                    Calc = calc, 
+                    Desc = spell.ParseEffect(spa, base1, base2, max, calc, MAX_LEVEL) 
+                });
 
 #if DEBUG
                 if (spell.Slots[i].Desc != null)
@@ -400,17 +402,10 @@ namespace Everquest
                     spell.Slots[i].Desc = String.Format("SPA {0} Base1={1} Base2={2} Max={3} Calc={4} --- ", spa, base1, base2, max, calc) + spell.Slots[i].Desc;
                 }
 #endif
-
-                // debug stuff: detect difference in value/base1 for spells where i'm not sure which one should be used and have chosen one arbitrarily
-                //int[] uses_value = new int[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 15, 21, 24, 35, 36, 46, 47, 48, 49, 50, 55, 58, 59, 69, 79, 92, 97, 100, 111, 116, 158, 159, 164, 165, 166, 169, 184, 189, 190, 192, 262, 334, 417};
-                //int[] uses_base1 = new int[] { 32, 64, 109, 148, 149, 193, 254, 323, 360, 374, 414 };
-                //int value = Spell.CalcValue(calc, base1, max, 0, 90);
-                //if (value != base1 && Array.IndexOf(uses_value, spa) < 0 && Array.IndexOf(uses_base1, spa) < 0)
-                //    Console.Error.WriteLine(String.Format("SPA {1} {0} has diff value/base1: {2}/{3} calc: {4}", spell.Name, spa, value, base1, calc));
             }
 
-
             // debug stuff
+            //spell.Unknown = ParseFloat(fields[209]);
             //if (spell.ID == 21683) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
             //if (fields[198] != "0") Console.WriteLine("\n\n===\n{0} {1}", fields[198], String.Join("\n", spell.Details()));
 
