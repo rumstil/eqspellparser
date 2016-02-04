@@ -964,16 +964,6 @@ namespace Everquest
 
     #endregion
 
-    public sealed class FocusEffect
-    {
-        public string Type;
-        public int Min;
-        public int Max;
-        public int MaxLevel;
-        public int MaxLevelLoss;
-        public int[] AtLevel;
-    }
-
     public struct SpellSlot
     {
         public int SPA;
@@ -1077,7 +1067,7 @@ namespace Everquest
         public bool CombatSkill;
         public int ResistPerLevel;
         public int ResistCap;
-        public string[] Stacking;
+        public List<string> Stacking;
 
         public int[] LinksTo;
         public int RefCount; // number of spells that link to this
@@ -1099,14 +1089,6 @@ namespace Everquest
         static public readonly Regex GroupRefExpr = new Regex(@"\[Group\s(\d+)\]");
         static public readonly Regex ItemRefExpr = new Regex(@"\[Item\s(\d+)\]");
         static public readonly Regex AARefExpr = new Regex(@"\[AA\s(\d+)\]");
-
-        static private readonly Regex FocusAmount = new Regex(@"(.+) by (\d+)%(?: to (\d+)%)?");
-        static private readonly Regex FocusPetAmount = new Regex(@"(Increase Pet Power) \((\d+)\)");
-        static private readonly Regex FocusResist = new Regex(@"Limit Resist: (.+)");
-        static private readonly Regex FocusBenDet = new Regex(@"Limit Type: (.+)");
-        static private readonly Regex FocusLevel = new Regex(@"Limit Max Level: (\d+).+lose (\d+)% per level");
-
-
 
         public Spell()
         {
@@ -2858,85 +2840,6 @@ namespace Everquest
                 }
 
             return score;
-        }
-
-        /*
-        public Focus HasFocus(string type, params string[] limit)
-        {
-            // focus effects are always in the first slot
-            if (Slots[0] == null || !Slots[0].StartsWith(type))
-                return null;
-
-            // check that the limits exist
-            if (!limit.All(x => Slots.Contains(x)))
-                return null;
-
-            var focus = new Focus();
-            focus.Type = type;
-            
-            var amount = FocusAmount.Match(Slots[0]);
-            focus.Min = Int32.Parse(amount.Groups[1].Value);
-            focus.Max = focus.Min;
-            if (amount.Groups.Count > 2)
-                focus.Max = Int32.Parse(amount.Groups[2].Value);
-
-            var level = Slots.Where(x => x != null).Select(x => FocusLevel.Match(x)).FirstOrDefault(x => x.Success);
-            if (level != null)
-            {
-                focus.Level = Int32.Parse(level.Groups[1].Value);
-            }
-
-            var bendet = Slots.Where(x => x != null).Select(x => FocusBenDet.Match(x)).FirstOrDefault(x => x.Success);
-
-            return focus;
-        }
-        */
-
-        /// <summary>
-        /// If the spell is a focus effect return the details of the focus.
-        /// </summary>
-        public FocusEffect FocusEffect()
-        {
-            if (Slots[0].Desc == null)
-                return null;
-
-            var amount = FocusAmount.Match(Slots[0].Desc);
-            if (!amount.Success)
-                amount = FocusPetAmount.Match(Slots[0].Desc);
-            if (!amount.Success)
-                return null;
-
-            var focus = new FocusEffect();
-            focus.Type = amount.Groups[1].Value;
-            focus.Min = focus.Max = Int32.Parse(amount.Groups[2].Value);
-            if (amount.Groups[3].Success)
-            {
-                focus.Max = Int32.Parse(amount.Groups[3].Value);
-            }
-
-            focus.AtLevel = Enumerable.Repeat(focus.Max, 105).ToArray();
-            var level = Slots.Where(x => x.Desc != null).Select(x => FocusLevel.Match(x.Desc)).FirstOrDefault(x => x.Success);
-            if (level != null)
-            {
-                focus.MaxLevel = Int32.Parse(level.Groups[1].Value);
-                focus.MaxLevelLoss = Int32.Parse(level.Groups[2].Value);
-                for (int i = focus.MaxLevel; i <= focus.AtLevel.Length; i++)
-                    focus.AtLevel[i - 1] = (int)Math.Max(0, Math.Truncate(focus.Max - focus.Max * (i - focus.MaxLevel) * focus.MaxLevelLoss / 100f));
-            }
-
-            var bendet = Slots.Where(x => x.Desc != null).Select(x => FocusBenDet.Match(x.Desc)).FirstOrDefault(x => x.Success);
-            var resist = Slots.Where(x => x.Desc != null).Select(x => FocusResist.Match(x.Desc)).FirstOrDefault(x => x.Success);
-            if (resist != null)
-            {
-                // if there's a resist filter then we don't need to add /detrimental since that's a given
-                focus.Type += "/" + resist.Groups[1].Value;
-            }
-            else if (bendet != null && focus.Type != "Increase Healing")
-            {
-                focus.Type += "/" + bendet.Groups[1].Value;
-            }
-
-            return focus;
         }
 
         static private string FormatEnum(Enum e)
