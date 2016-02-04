@@ -87,6 +87,9 @@
     <Compile Include="..\SpellCache.cs">
       <Link>SpellCache.cs</Link>
     </Compile>
+    <Compile Include="..\SpellData.cs">
+      <Link>SpellData.cs</Link>
+    </Compile>
     <Compile Include="..\SpellParser.cs">
       <Link>SpellParser.cs</Link>
     </Compile>
