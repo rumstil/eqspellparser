@@ -22,8 +22,8 @@ namespace Everquest
             if (!File.Exists(spellPath))
                 throw new FileNotFoundException("Could not open spell file.", spellPath);
 
-            List<Spell> list = new List<Spell>(50000);
-            Dictionary<int, Spell> listById = new Dictionary<int, Spell>(50000);
+            var list = new List<Spell>(50000);
+            var listById = new Dictionary<int, Spell>(50000);
 
             // load description text file
             var desc = new Dictionary<string, string>(50000);
@@ -63,7 +63,7 @@ namespace Everquest
 #if !LimitMemoryUse
                     // all spells can be grouped into up to 2 categories (type 5 in db_str)
                     // ignore the "timer" categories because they are frequently wrong
-                    List<string> cat = new List<string>();
+                    var cat = new List<string>();
                     string c1;
                     string c2;
                     if (desc.TryGetValue("5/" + spell.CategoryDescID[0], out c1))
@@ -92,8 +92,6 @@ namespace Everquest
 
                     list.Add(spell);
                     listById[spell.ID] = spell;
-                    //if (spell.GroupID > 0)
-                    //    listByGroup[spell.GroupID] = spell;
                 }
 
             // load spell stacking file
@@ -108,12 +106,13 @@ namespace Everquest
                             continue;
 
                         var id = ParseInt(fields[0]);
+                        var group = fields[1];
+                        var rank = fields[2];
+                        var type = fields[3];
+
                         Spell spell = null;
                         if (!listById.TryGetValue(id, out spell))
                             continue;
-
-                        var group = fields[1];
-                        var rank = fields[2];
 
                         if (desc.ContainsKey("40/" + group))
                             group = desc["40/" + group];
@@ -121,20 +120,10 @@ namespace Everquest
                         group += " " + rank;
 
                         // type 6 = non-override stacking group; only one can be active at a time and new procs won't overwrite old ones that are still active
-                        var type = fields[3];
                         if (type == "6")
                             group += " (Non-Overide)";
 
-                        if (spell.Stacking.Length == 0)
-                        {
-                            spell.Stacking = new string[] { group };
-                        }
-                        else
-                        {
-                            var stacking = spell.Stacking.ToList();
-                            stacking.Add(group);
-                            spell.Stacking = stacking.ToArray();
-                        }
+                        spell.Stacking.Add(group);
                     }
 
 
@@ -146,174 +135,243 @@ namespace Everquest
         /// </summary>
         static Spell LoadSpell(string[] fields)
         {
-            Spell spell = new Spell();
+            var spell = new Spell();
 
+            // 0 SPELLINDEX
             spell.ID = Convert.ToInt32(fields[0]);
+            // 1 SPELLNAME
             spell.Name = fields[1].Trim();
-
-            // replace roman numerals with digits (zero padded for sorting) in AA names 
-            //spell.Name = Regex.Replace(spell.Name, @"\s[IVXL]+$", x => " " + ParseRomanNumeral(x.Value.Substring(1)).ToString("D2"));
-
-            // append digit translation of roman numeral spell ranks
-            //spell.Name = Regex.Replace(spell.Name, @"\s[IVXL]+$", x => " " + x.Groups[0].Value + " (" + ParseRomanNumeral(x.Value.Substring(1)) +  ")");
-
-            //Target = fields[2];
+            // 2 ACTORTAG
+            // 3 NPC_FILENAME
             spell.Extra = fields[3];
+            // 4 CASTERMETXT
+            // 5 CASTEROTHERTXT
+            // 6 CASTEDMETXT
             spell.LandOnSelf = fields[6];
+            // 7 CASTEDOTHERTXT
             spell.LandOnOther = fields[7];
-            //Wear Off Message = fields[8];
+            // 8 SPELLGONE
+            // 9 RANGE
             spell.Range = ParseInt(fields[9]);
+            // 10 IMPACTRADIUS
             spell.AERange = ParseInt(fields[10]);
+            // 11 OUTFORCE
             spell.PushBack = ParseFloat(fields[11]);
+            // 12 UPFORCE
             spell.PushUp = ParseFloat(fields[12]);
+            // 13 CASTINGTIME
             spell.CastingTime = ParseFloat(fields[13]) / 1000f;
+            // 14 RECOVERYDELAY
             spell.RestTime = ParseFloat(fields[14]) / 1000f;
+            // 15 SPELLDELAY
             spell.RecastTime = ParseFloat(fields[15]) / 1000f;
+            // 16 DURATIONBASE
+            // 17 DURATIONCAP
             spell.DurationTicks = Spell.CalcDuration(ParseInt(fields[16]), ParseInt(fields[17]), MAX_LEVEL);
+            // 18 IMPACTDURATION
             spell.AEDuration = ParseInt(fields[18]);
+            // 19 MANACOST
             spell.Mana = ParseInt(fields[19]);
-
-            // 56 = icon
-            // 57 = icon
-
+            // 20 BASEAFFECT1 .. BASEAFFECT12
+            // 32 BASE_EFFECT2_1 .. BASE_EFFECT2_12
+            // 44 AFFECT1CAP .. AFFECT12CAP
+            // 56 IMAGENUMBER
+            // 57 MEMIMAGENUMBER
+            // 58 EXPENDREAGENT1 .. 61 EXPENDREAGENT4
+            // 62 EXPENDQTY1 .. 65 EXPENDQTY4
+            // 66 NOEXPENDREAGENT1 .. 69 NOEXPENDREAGENT4
             for (int i = 0; i < 3; i++)
             {
                 spell.ConsumeItemID[i] = ParseInt(fields[58 + i]);
                 spell.ConsumeItemCount[i] = ParseInt(fields[62 + i]);
                 spell.FocusID[i] = ParseInt(fields[66 + i]);
             }
-
-            //Light_Type = fields[82];
+            // 82 LIGHTTYPE
+            // 83 BENEFICIAL
             spell.Beneficial = ParseBool(fields[83]);
-            //Activated (AAs?) = fields[84];
+            // 84 ACTIVATED
+            // 85 RESISTTYPE
             spell.ResistType = (SpellResist)ParseInt(fields[85]);
+            // 86 SPELLAFFECT1 .. SPELLAFFECT12
+            // 98 TYPENUMBER
             spell.Target = (SpellTarget)ParseInt(fields[98]);
-            // 99 =  base difficulty fizzle adjustment?
+            // 99 BASEDIFFICULTY = fizzle?
+            // 100 CASTINGSKILL
             spell.Skill = (SpellSkill)ParseInt(fields[100]);
+            // 101 ZONETYPE
             spell.Zone = (SpellZoneRestrict)ParseInt(fields[101]);
-            //Environment Type = fields[102];
-            //Time of Day = fields[103]; Day, Night, Both
-
-            // each spell has a different casting level for all 16 classes
+            // 102 ENVIRONMENTTYPE
+            // 103 TIMEOFDAY
+            // 104 WARRIORMIN .. BERSERKERMIN
             for (int i = 0; i < spell.Levels.Length; i++)
                 spell.Levels[i] = (byte)ParseInt(fields[104 + i]);
-
-            //Casting Animation = fields[120];
-            //Target Animation = fields[121];
-            //Travel Type = fields[122];
-            //SPA ID = fields[123];
+            // 120 CASTINGANIM
+            // 121 TARGETANIM
+            // 122 TRAVELTYPE
+            // 123 SPELLAFFECTINDEX
+            // 124 CANCELONSIT
             spell.CancelOnSit = ParseBool(fields[124]);
-
-            // 125..141 deity casting restrictions
-            string[] gods = new string[] { "Agnostic", "Bertox", "Brell", "Cazic", "Erollisi", "Bristlebane", "Innoruuk", "Karana", "Mithanial", "Prexus", 
+            // 125 DIETY_AGNOSTIC .. 141 DIETY_VEESHAN
+            string[] gods = new string[] { 
+                "Agnostic", "Bertox", "Brell", "Cazic", "Erollisi", "Bristlebane", "Innoruuk", "Karana", "Mithanial", "Prexus", 
                 "Quellious", "Rallos", "Rodcet", "Solusek", "Tribunal", "Tunare", "Veeshan" };
             for (int i = 0; i < gods.Length; i++)
                 if (ParseBool(fields[125 + i]))
                     spell.Deity += gods[i] + " ";
-
-            // 142 NPC Do Not Cast 
-            // 143 AI PT Bonus
+            // 142 NPC_NO_CAST
+            // 143 AI_PT_BONUS
+            // 144 NEW_ICON
             spell.Icon = ParseInt(fields[144]);
+            // 145 SPELL_EFFECT_INDEX
+            // 146 NO_INTERRUPT
             spell.Interruptable = !ParseBool(fields[146]);
+            // 147 RESIST_MOD
             spell.ResistMod = ParseInt(fields[147]);
-            //spell.StackableDoT = !ParseBool(fields[148]);
-            // 149 = deletable
+            // 148 NOT_STACKABLE_DOT
+            // 149 DELETE_OK
+            // 150 REFLECT_SPELLINDEX
             spell.RecourseID = ParseInt(fields[150]);
-            // 151 = used to prevent a nuke from being partially resisted.
-            // also, it prevents or allows a player to resist a spell fully if they resist "part" of its components.
-            spell.PartialResist = ParseBool(fields[151]);
             if (spell.RecourseID != 0)
                 spell.Recourse = String.Format("[Spell {0}]", spell.RecourseID);
-            // 152 Small Targets Only 
-            // 153 Persistent particle effects 
+            // 151 NO_PARTIAL_SAVE = used to prevent a nuke from being partially resisted. it also prevents or allows a player to resist a spell fully if they resist "part" of its components.
+            spell.PartialResist = ParseBool(fields[151]);
+            // 152 SMALL_TARGETS_ONLY
+            // 153 USES_PERSISTENT_PARTICLES
+            // 154 BARD_BUFF_BOX
             spell.SongWindow = ParseBool(fields[154]);
+            // 155 DESCRIPTION_INDEX
             spell.DescID = ParseInt(fields[155]);
+            // 156 PRIMARY_CATEGORY
             spell.CategoryDescID[0] = ParseInt(fields[156]);
+            // 157 SECONDARY_CATEGORY_1
             spell.CategoryDescID[1] = ParseInt(fields[157]);
+            // 158 SECONDARY_CATEGORY_2
             spell.CategoryDescID[2] = ParseInt(fields[158]);
-            // 159 NPC Does not Require LoS
-            spell.Feedbackable = ParseBool(fields[160]); // (Triggers spell damage shield. This is mostly used on procs and non nukes, so it's not that useful to show)
+            // 159 NO_NPC_LOS - NPC Does not Require LoS
+            // 160 FEEDBACKABLE - Triggers spell damage shield. This is mostly used on procs and non nukes, so it's not that useful to show
+            spell.Feedbackable = ParseBool(fields[160]); 
+            // 161 REFLECTABLE
             spell.Reflectable = ParseBool(fields[161]);
+            // 162 HATE_MOD
             spell.HateMod = ParseInt(fields[162]);
+            // 163 RESIST_PER_LEVEL
             spell.ResistPerLevel = ParseInt(fields[163]);
+            // 164 RESIST_CAP
             spell.ResistCap = ParseInt(fields[164]);
-            // 165 Useable On Objects Boolean
+            // 165 AFFECT_INANIMATE - Can be cast on objects
+            // 166 STAMINA_COST
             spell.Endurance = ParseInt(fields[166]);
+            // 167 TIMER_INDEX
             spell.TimerID = ParseInt(fields[167]);
+            // 168 IS_SKILL
             spell.CombatSkill = ParseBool(fields[168]);
-            // 169 Attack Open = all 0
-            // 170 Defense Open = all 0
-            // 171 Skill Open = all 0
-            // 172 NPC Error Open= all 0
+            // 169 ATTACK_OPENING
+            // 170 DEFENSE_OPENING
+            // 171 SKILL_OPENING
+            // 172 NPC_ERROR_OPENING
+            // 173 SPELL_HATE_GIVEN
             spell.HateOverride = ParseInt(fields[173]);
+            // 174 ENDUR_UPKEEP
             spell.EnduranceUpkeep = ParseInt(fields[174]);
+            // 175 LIMITED_USE_TYPE
             spell.MaxHitsType = (SpellMaxHits)ParseInt(fields[175]);
+            // 176 LIMITED_USE_COUNT
             spell.MaxHits = ParseInt(fields[176]);
-            // 177 PVP Resist Mod = 197 values.
-            // 178 PVP Resist Level = 20 values. looks similar to calc values
-            // 179 PVP Resist Cap = 266 values.
-            // 180 Spell Category = 185 values.
-            // 181 PVP Duration= 19 values. looks similar to duration calc values
-            // 182 PVP Duration = 115 values.
-            // 183 No Pet = 3 values. 0, 1, 2
-            // 184 Cast While Sitting Boolean
+            // 177 PVP_RESIST_MOD
+            // 178 PVP_RESIST_PER_LEVEL
+            // 179 PVP_RESIST_CAP
+            // 180 GLOBAL_GROUP
+            // 181 PVP_DURATION
+            // 182 PVP_DURATION_CAP
+            // 183 PCNPC_ONLY_FLAG
+            // 184 CAST_NOT_STANDING
+            // 185 CAN_MGB
             spell.MGBable = ParseBool(fields[185]);
+            // 186 NO_DISPELL
             spell.Dispelable = !ParseBool(fields[186]);
-            // 187 NPC Mem Category = npc stuff
-            // 188 NPC Usefulness = 192 values.
+            // 187 NPC_MEM_CATEGORY
+            // 188 NPC_USEFULNESS
+            // 189 MIN_RESIST
             spell.MinResist = ParseInt(fields[189]);
+            // 190 MAX_RESIST
             spell.MaxResist = ParseInt(fields[190]);
+            // 191 MIN_SPREAD_TIME
             spell.MinViralTime = ParseInt(fields[191]);
+            // 192 MAX_SPREAD_TIME
             spell.MaxViralTime = ParseInt(fields[192]);
-            // 193 Particle Duration Time = 124 values. nimbus type effects
+            // 193 DURATION_PARTICLE_EFFECT
+            // 194 CONE_START_ANGLE
             spell.ConeStartAngle = ParseInt(fields[194]);
+            // 195 CONE_END_ANGLE
             spell.ConeEndAngle = ParseInt(fields[195]);
+            // 196 SNEAK_ATTACK
             spell.Sneaking = ParseBool(fields[196]);
+            // 197 NOT_FOCUSABLE
             spell.Focusable = !ParseBool(fields[197]);
-            // 198 No Detrimental Spell Aggro Boolean
-            // 199 Show Wear Off Message Boolean
+            // 198 NO_DETRIMENTAL_SPELL_AGGRO
+            // 199 SHOW_WEAR_OFF_MESSAGE
+            // 200 IS_COUNTDOWN_HELD
             spell.DurationFrozen = ParseBool(fields[200]);
+            // 201 SPREAD_RADIUS
             spell.ViralRange = ParseInt(fields[201]);
+            // 202 BASE_EFFECTS_FOCUS_CAP
             spell.SongCap = ParseInt(fields[202]);
-            // 203 Stacks With Self = melee specials
-            // 204 Not Shown To Player Boolean
-            spell.BeneficialBlockable = !ParseBool(fields[205]); // for beneficial spells
-            // 206 Animation Variation 
+            // 203 STACKS_WITH_SELF
+            // 204 NOT_SHOWN_TO_PLAYER
+            // 205 NO_BUFF_BLOCK
+            spell.BeneficialBlockable = !ParseBool(fields[205]);
+            // 206 ANIM_VARIATION
+            // 207 SPELL_GROUP
             spell.GroupID = ParseInt(fields[207]);
+            // 208 SPELL_GROUP_RANK
             spell.Rank = ParseInt(fields[208]); // rank 1/5/10. a few auras do not have this set properly
             if (spell.Rank == 5 || spell.Name.EndsWith("II") || spell.Name.EndsWith("02"))
                 spell.Rank = 2;
             if (spell.Rank == 10 || spell.Name.EndsWith("III") || spell.Name.EndsWith("03"))
                 spell.Rank = 3;
-            // 209 No Resist Boolean = ignore SPA 180 resist?
-            // 210 SpellBook Scribable Boolean
+            // 209 NO_RESIST - ignore SPA 180 resist?
+            // 210 ALLOW_SPELLSCRIBE
+            // 211 SPELL_REQ_ASSOCIATION_ID
             spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[211]);
+            // 212 BYPASS_REGEN_CHECK
             spell.AllowFastRegen = ParseBool(fields[212]);
-            spell.CastOutOfCombat = !ParseBool(fields[213]); //Cast in Combat
-            // 214 Cast Out of Combat Boolean
-            // 215 Show DoT Message Boolean
-            // 216 Invalid Boolean
+            // 213 CAN_CAST_IN_COMBAT
+            spell.CastOutOfCombat = !ParseBool(fields[213]);
+            // 214 CAN_CAST_OUT_OF_COMBAT
+            // 215 SHOW_DOT_MESSAGE
+            // 216 INVALID
+            // 217 OVERRIDE_CRIT_CHANCE
             spell.CritOverride = ParseInt(fields[217]);
+            // 218 MAX_TARGETS
             spell.MaxTargets = ParseInt(fields[218]);
-            // 219 No Effect from Spell Damage / Heal Amount on Items Boolean
+            // 219 NO_HEAL_DAMAGE_ITEM_MOD
+            // 220 CASTER_REQUIREMENT_ID
             spell.CasterRestrict = (SpellTargetRestrict)ParseInt(fields[220]);
-            // 221 = spell class. 13 sequential values.
-            // 222 = spell subclass. 57 sequential values.
-            // 223 AI Valid Targets = 9 values. looks like a character class mask? 2013-3-13 Hand of Piety can now crit again.
+            // 221 SPELL_CLASS
+            // 222 SPELL_SUBCLASS
+            // 223 AI_VALID_TARGETS
+            // 224 NO_STRIP_ON_DEATH
             spell.PersistAfterDeath = ParseBool(fields[224]);
-            // 225 = song slope?
-            // 226 = song offset?
-            // range multiplier seems to be an integer so far
+            // 225 BASE_EFFECTS_FOCUS_SLOPE
+            // 226 BASE_EFFECTS_FOCUS_OFFSET
+            // 227 DISTANCE_MOD_CLOSE_DIST
             spell.RangeModCloseDist = ParseInt(fields[227]);
+            // 228 DISTANCE_MOD_CLOSE_MULT
             spell.RangeModCloseMult = ParseInt(fields[228]);
+            // 229 DISTANCE_MOD_FAR_DIST
             spell.RangeModFarDist = ParseInt(fields[229]);
+            // 230 DISTANCE_MOD_FAR_MULT
             spell.RangeModFarMult = ParseInt(fields[230]);
+            // 231 MIN_RANGE
             spell.MinRange = ParseInt(fields[231]);
+            // 232 NO_REMOVE
             spell.CannotRemove = ParseBool(fields[232]);
-            //spell.Recourse Type = fields[233];
+            // 233 SPELL_RECOURSE_TYPE
+            // 234 ONLY_DURING_FAST_REGEN
             spell.CastInFastRegen = ParseBool(fields[234]);
+            // 235 IS_BETA_ONLY
             spell.BetaOnly = ParseBool(fields[235]);
-            //Spell Subgoup = fields[236];
+            // 236 SPELL_SUBGROUP
 
             // debug stuff
             //spell.Unknown = ParseFloat(fields[209]);
@@ -350,9 +408,6 @@ namespace Everquest
                 //if (value != base1 && Array.IndexOf(uses_value, spa) < 0 && Array.IndexOf(uses_base1, spa) < 0)
                 //    Console.Error.WriteLine(String.Format("SPA {1} {0} has diff value/base1: {2}/{3} calc: {4}", spell.Name, spa, value, base1, calc));
             }
-
-            //if (spell.Unknown != 0)
-            //    spell.ResistType = SpellResist.Unresistable;
 
 
             // debug stuff

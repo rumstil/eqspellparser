@@ -1099,7 +1099,7 @@ namespace Everquest
             ConsumeItemCount = new int[4];
             FocusID = new int[4];
             CategoryDescID = new int[3];
-            Stacking = new string[0];
+            Stacking = new List<string>();
         }
 
         /// <summary>
@@ -2547,7 +2547,7 @@ namespace Everquest
         /// </summary>
         public string[] Details()
         {
-            List<string> result = new List<string>(20);
+            var result = new List<string>(20);
             //Action<string> Add = delegate(string s) { result.Add(s); };
 
 
@@ -2633,8 +2633,8 @@ namespace Everquest
             else
                 result.Add("Resist: Beneficial, Blockable: " + (BeneficialBlockable ? "Yes" : "No"));
 
-            if (Stacking.Length > 0)
-                result.Add("Stacking: " + String.Join(", ", Stacking));
+            if (Stacking.Count > 0)
+                result.Add("Stacking: " + String.Join(", ", Stacking.ToArray()));
 
 
             //if (ResistPerLevel != 0)
