@@ -6,6 +6,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text.RegularExpressions;
 
+
 namespace Everquest
 {
     /// <summary>
@@ -136,68 +137,6 @@ namespace Everquest
                         }
                     }
 
-            // second pass fixes that require the entire spell list to be loaded already
-            List<Spell> groups = list.FindAll(x => x.GroupID > 0);
-            foreach (Spell spell in list)
-            {
-                // get list of linked spells
-                var linked = new List<int>(10);
-                if (spell.RecourseID != 0)
-                    linked.Add(spell.RecourseID);
-
-                foreach (var s in spell.Slots)
-                    if (s.Desc != null)
-                    {
-                        // match spell refs
-                        Match match = Spell.SpellRefExpr.Match(s.Desc);
-                        if (match.Success)
-                            linked.Add(Int32.Parse(match.Groups[1].Value));
-
-                        // match spell group refs
-                        match = Spell.GroupRefExpr.Match(s.Desc);
-                        if (match.Success)
-                        {
-                            int id = Int32.Parse(match.Groups[1].Value);
-                            // negate id on excluded spells so that we don't set extlevels on them
-                            if (s.Desc.Contains("Exclude"))
-                                id = -id;
-                            groups.FindAll(x => x.GroupID == id).ForEach(delegate(Spell x) { linked.Add(x.ID); });
-                        }
-                    }
-
-                // process each of the linked spells
-                foreach (int id in linked)
-                {
-                    Spell target = null;
-                    if (listById.TryGetValue(id, out target))
-                    {
-                        target.RefCount++;
-
-                        // a lot of side effect spells do not have a level on them. this will copy the level of the referring spell
-                        // onto the side effect spell so that the spell will be searchable when filtering by class.
-                        // e.g. Jolting Swings Strike has no level so it won't show up in a ranger search even though Jolting Swings will show up
-                        // we create this separate array and never display it because modifying the levels array would imply different functionality
-                        // e.g. some spells purposely don't have levels assigned so that they are not affected by focus spells
-                        for (int i = 0; i < spell.Levels.Length; i++)
-                        {
-                            if (target.ExtLevels[i] == 0 && spell.Levels[i] != 0)
-                                target.ExtLevels[i] = spell.Levels[i];
-
-                            // apply in the reverse direction too. this will probably only be useful for including type3 augs
-                            // todo: check if this includes too many focus spells
-                            //if (spell.ExtLevels[i] == 0 && target.Levels[i] != 0)
-                            //    spell.ExtLevels[i] = target.Levels[i];
-                        }
-                    }
-                }
-
-                // revert negated IDs on excluded spells/groups
-                for (int i = 0; i < linked.Count; i++)
-                    if (linked[i] < 0)
-                        linked[i] = -linked[i];
-
-                spell.LinksTo = linked.ToArray();
-            }
 
             return list;
         }
@@ -394,7 +333,7 @@ namespace Everquest
                 int base1 = ParseInt(fields[20 + i]);
                 int base2 = ParseInt(fields[32 + i]);
 
-                spell.Slots[i] = new SpellSlot() { SPA  = spa, Base1 = base1, Base2 = base2, Max = max, Calc = calc };
+                spell.Slots[i] = new SpellSlot() { SPA = spa, Base1 = base1, Base2 = base2, Max = max, Calc = calc };
                 spell.Slots[i].Desc = spell.ParseEffect(spa, base1, base2, max, calc, MAX_LEVEL);
 
 #if DEBUG
