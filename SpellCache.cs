@@ -142,40 +142,103 @@ namespace Everquest
     /// </summary>
     public class SpellCache 
     {
-        private List<Spell> spellList;
-        private Dictionary<int, Spell> spellsById;
-        private ILookup<int, Spell> spellsByGroup;
+        public List<Spell> SpellList;
+        private Dictionary<int, Spell> SpellsById;
+        private ILookup<int, Spell> SpellsByGroup;
 
         public string SpellPath { get; private set; }
-        public IEnumerable<Spell> SpellList { get { return spellList; } }
 
-        private List<AA> aaList;
+        public List<AA> AAList;
 
-        public IEnumerable<AA> AAList { get { return aaList; } }
 
         public SpellCache()
         {
-            spellList = new List<Spell>();
-            aaList = new List<AA>();
+            SpellList = new List<Spell>();
+            AAList = new List<AA>();
         }
 
         public void LoadSpells(string spellPath, string descPath, string stackPath)
         {
             SpellPath = spellPath;
-            spellList = SpellParser.LoadFromFile(spellPath, descPath, stackPath);
-            spellsById = spellList.ToDictionary(x => x.ID);
-            spellsByGroup = spellList.Where(x => x.GroupID != 0).ToLookup(x => x.GroupID);
+            SpellList = SpellParser.LoadFromFile(spellPath, descPath, stackPath);
+            SpellsById = SpellList.ToDictionary(x => x.ID);
+            SpellsByGroup = SpellList.Where(x => x.GroupID != 0).ToLookup(x => x.GroupID);
+
+            // init LinksTo cross references for each spell
+            foreach (var spell in SpellList)
+            {
+                var linked = new List<int>(10);
+
+                // add recourse link
+                if (spell.RecourseID != 0)
+                    linked.Add(spell.RecourseID);
+
+                // add spell slot links
+                foreach (var s in spell.Slots)
+                    if (s.Desc != null)
+                    {
+                        // match spell refs
+                        var match = Spell.SpellRefExpr.Match(s.Desc);
+                        if (match.Success)
+                            linked.Add(Int32.Parse(match.Groups[1].Value));
+
+                        // match spell group refs
+                        match = Spell.GroupRefExpr.Match(s.Desc);
+                        if (match.Success)
+                        {
+                            int id = Int32.Parse(match.Groups[1].Value);
+                            // for excluded spells temporarily negate id on excluded spells so that we don't set extlevels on them
+                            if (s.Desc.Contains("Exclude"))
+                                id = -id;
+                            foreach (var ls in SpellsByGroup[id])
+                                linked.Add(ls.ID);
+                        }
+                    }
+
+                // process each of the linked spells
+                foreach (int id in linked)
+                {
+                    Spell target = null;
+                    if (SpellsById.TryGetValue(id, out target))
+                    {
+                        target.RefCount++;
+
+                        // a lot of side effect spells do not have a level on them. this will copy the level of the referring spell
+                        // onto the side effect spell so that the spell will be searchable when filtering by class.
+                        // e.g. Jolting Swings Strike has no level so it won't show up in a ranger search even though Jolting Swings will show up
+                        // we create this separate array and never display it because modifying the levels array would imply different functionality
+                        // e.g. some spells purposely don't have levels assigned so that they are not affected by focus spells
+                        for (int i = 0; i < spell.Levels.Length; i++)
+                        {
+                            if (target.ExtLevels[i] == 0 && spell.Levels[i] != 0)
+                                target.ExtLevels[i] = spell.Levels[i];
+
+                            // apply in the reverse direction too. this will probably only be useful for including type3 augs
+                            // todo: check if this includes too many focus spells
+                            //if (spell.ExtLevels[i] == 0 && target.Levels[i] != 0)
+                            //    spell.ExtLevels[i] = target.Levels[i];
+                        }
+                    }
+                }
+
+                // revert negated IDs on excluded spells/groups
+                for (int i = 0; i < linked.Count; i++)
+                    if (linked[i] < 0)
+                        linked[i] = -linked[i];
+
+                spell.LinksTo = linked.ToArray();
+            }        
         }
 
         public void LoadAA(string aaPath, string descPath)
         {
-            if (spellList.Count == 0)
+            if (SpellList.Count == 0)
                 throw new Exception("AA must be loaded after spells because they include spell references.");
 
-            aaList = AAParser.LoadFromFile(aaPath, descPath);
+            AAList = AAParser.LoadFromFile(aaPath, descPath);
 
             // for each AA build a list of referenced spells - this will be used to include associated spells in search results
-            foreach (var aa in aaList)
+            foreach (var aa in AAList)
             {
                 var linked = new List<int>(10);
                 if (aa.SpellID > 0)
@@ -196,7 +259,7 @@ namespace Everquest
                     if (match.Success)
                     {
                         int id = Int32.Parse(match.Groups[1].Value);
-                        linked.AddRange(spellsByGroup[id].Select(x => x.ID));
+                        linked.AddRange(SpellsByGroup[id].Select(x => x.ID));
                     }
                 }
 
@@ -206,20 +269,20 @@ namespace Everquest
 
         public IEnumerable<Spell> Search(SpellSearchFilter filter)
         {
-            return filter.Apply(spellList);
+            return filter.Apply(SpellList);
         }
 
         public string GetSpellName(int id)
         {
             Spell s;
-            if (spellsById.TryGetValue(id, out s))
+            if (SpellsById.TryGetValue(id, out s))
                 return s.Name;
             return null;
         }
 
         public string GetSpellGroupName(int id)
         {
-            Spell s = spellsByGroup[id].FirstOrDefault();
+            Spell s = SpellsByGroup[id].FirstOrDefault();
             if (s != null)
                 return "Group - " + StripRank(s.Name);
             return null;
@@ -351,7 +414,7 @@ namespace Everquest
                     {
                         included.Add(id);
                         Spell linked;
-                        if (spellsById.TryGetValue(id, out linked))
+                        if (SpellsById.TryGetValue(id, out linked))
                             list.Add(linked);
                     }
             }
@@ -371,7 +434,7 @@ namespace Everquest
             // do not include not produce back refs for spells that are heavily reference. 
             // e.g. complete heal is referenced by hundreds of focus spells (we wouldn't want to add those focus spells to the results)
             var ignore = list.Where(x => x.RefCount > 10).Select(x => x.ID).ToList();
-            foreach (var spell in spellList)
+            foreach (var spell in SpellList)
             {
                 foreach (int id in spell.LinksTo)
                     if (!ignore.Contains(id) && included.Contains(id) && !included.Contains(spell.ID))
