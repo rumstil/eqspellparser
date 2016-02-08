@@ -62,79 +62,6 @@ namespace Everquest
             EffectSlot = new int?[3];
         }
 
-        /// <summary>
-        /// Apply this search filter to a list of spells and return the matches.
-        /// </summary>
-        public IEnumerable<Spell> Apply(IEnumerable<Spell> spells)
-        {
-            if (ClassMaxLevel == 0)
-                ClassMinLevel = 1;
-            if (ClassMaxLevel == 0)
-                ClassMaxLevel = 255;
-            
-            IEnumerable<Spell> query = spells;
-
-            // if the spell text filter is an integer then just do a quick search by ID and ignore the other filters
-            int id;
-            if (Int32.TryParse(Text, out id))
-                return query.Where(x => x.ID == id || x.GroupID == id);
-
-            //  spell name and description are checked for literal text    
-            if (!String.IsNullOrEmpty(Text))
-                query = query.Where(x => x.ID.ToString() == Text || x.Name.IndexOf(Text, StringComparison.InvariantCultureIgnoreCase) >= 0 || (x.Desc != null && x.Desc.IndexOf(Text, StringComparison.InvariantCultureIgnoreCase) >= 0));
-
-            // level filter is only used when a class is selected
-            int levelArrayIndex = SpellParser.ParseClass(Class) - 1;
-            if (Class == "Any PC")
-            {
-                query = query.Where(x => x.ClassesMask != 0);
-            }
-            else if (Class == "Non PC")
-            {
-                //query = query.Where(x => x.ClassesMask == 0);
-                query = query.Where(x => x.ExtLevels.All(y => y == 0));
-            }
-            else if (!String.IsNullOrEmpty(Class) && Category != "AA")
-            {
-                if (levelArrayIndex >= 0)
-                    query = query.Where(x => x.ClassesLevels != "ALL/254" && x.ExtLevels[levelArrayIndex] >= ClassMinLevel && x.ExtLevels[levelArrayIndex] <= ClassMaxLevel);
-            }
-
-            if (!String.IsNullOrEmpty(Category))
-            {
-                if (Category == "AA" && levelArrayIndex >= 0)
-                    query = query.Where(x => x.ExtLevels[levelArrayIndex] == 254);
-                else if (Category == "AA")
-                    query = query.Where(x => x.ExtLevels.Any(y => y == 254));
-                else
-                    query = query.Where(x => x.Categories.Any(y => y.StartsWith(Category, StringComparison.InvariantCultureIgnoreCase)));
-            }
-
-            // effect filter can be a literal string or a regex
-            for (int i = 0; i < Effect.Length; i++)
-                if (!String.IsNullOrEmpty(Effect[i]))
-                {
-                    string effect = null;
-                    if (CommonEffects.ContainsKey(Effect[i]))
-                        effect = CommonEffects[Effect[i]];
-
-                    if (!String.IsNullOrEmpty(effect))
-                    {
-                        var re = new Regex(effect, RegexOptions.IgnoreCase);
-                        int? slot = EffectSlot[i];
-                        query = query.Where(x => x.HasEffect(re, slot ?? 0));
-                    }
-                    else
-                    {
-                        string text = Effect[i];
-                        int? slot = EffectSlot[i];
-                        query = query.Where(x => x.HasEffect(text, slot ?? 0));
-                    }
-                }
-
-            return query;
-        }
-
     }
 
     /// <summary>
@@ -142,11 +69,11 @@ namespace Everquest
     /// </summary>
     public class SpellCache 
     {
+        public string SpellPath { get; private set; }
+
         public List<Spell> SpellList;
         private Dictionary<int, Spell> SpellsById;
         private ILookup<int, Spell> SpellsByGroup;
-
-        public string SpellPath { get; private set; }
 
         public List<AA> AAList;
 
@@ -269,7 +196,73 @@ namespace Everquest
 
         public IEnumerable<Spell> Search(SpellSearchFilter filter)
         {
-            return filter.Apply(SpellList);
+            //return filter.Apply(SpellList);
+            if (filter.ClassMaxLevel == 0)
+                filter.ClassMinLevel = 1;
+            if (filter.ClassMaxLevel == 0)
+                filter.ClassMaxLevel = 255;
+
+            IEnumerable<Spell> query = SpellList;
+
+            // if the spell text filter is an integer then just do a quick search by ID and ignore the other filters
+            int id;
+            if (Int32.TryParse(filter.Text, out id))
+                return query.Where(x => x.ID == id || x.GroupID == id);
+
+            //  spell name and description are checked for literal text    
+            if (!String.IsNullOrEmpty(filter.Text))
+                query = query.Where(x => x.ID.ToString() == filter.Text || x.Name.IndexOf(filter.Text, StringComparison.InvariantCultureIgnoreCase) >= 0 || (x.Desc != null && x.Desc.IndexOf(filter.Text, StringComparison.InvariantCultureIgnoreCase) >= 0));
+
+            // level filter is only used when a class is selected
+            int levelArrayIndex = SpellParser.ParseClass(filter.Class) - 1;
+            if (filter.Class == "Any PC")
+            {
+                query = query.Where(x => x.ClassesMask != 0);
+            }
+            else if (filter.Class == "Non PC")
+            {
+                //query = query.Where(x => x.ClassesMask == 0);
+                query = query.Where(x => x.ExtLevels.All(y => y == 0));
+            }
+            else if (!String.IsNullOrEmpty(filter.Class) && filter.Category != "AA")
+            {
+                if (levelArrayIndex >= 0)
+                    query = query.Where(x => x.ClassesLevels != "ALL/254" && x.ExtLevels[levelArrayIndex] >= filter.ClassMinLevel && x.ExtLevels[levelArrayIndex] <= filter.ClassMaxLevel);
+            }
+
+            if (!String.IsNullOrEmpty(filter.Category))
+            {
+                if (filter.Category == "AA" && levelArrayIndex >= 0)
+                    query = query.Where(x => x.ExtLevels[levelArrayIndex] == 254);
+                else if (filter.Category == "AA")
+                    query = query.Where(x => x.ExtLevels.Any(y => y == 254));
+                else
+                    query = query.Where(x => x.Categories.Any(y => y.StartsWith(filter.Category, StringComparison.InvariantCultureIgnoreCase)));
+            }
+
+            // effect filter can be a literal string or a regex
+            for (int i = 0; i < filter.Effect.Length; i++)
+                if (!String.IsNullOrEmpty(filter.Effect[i]))
+                {
+                    string effect = null;
+                    if (SpellSearchFilter.CommonEffects.ContainsKey(filter.Effect[i]))
+                        effect = SpellSearchFilter.CommonEffects[filter.Effect[i]];
+
+                    if (!String.IsNullOrEmpty(effect))
+                    {
+                        var re = new Regex(effect, RegexOptions.IgnoreCase);
+                        int? slot = filter.EffectSlot[i];
+                        query = query.Where(x => x.HasEffect(re, slot ?? 0));
+                    }
+                    else
+                    {
+                        string text = filter.Effect[i];
+                        int? slot = filter.EffectSlot[i];
+                        query = query.Where(x => x.HasEffect(text, slot ?? 0));
+                    }
+                }
+
+            return query;
         }
 
         public string GetSpellName(int id)
