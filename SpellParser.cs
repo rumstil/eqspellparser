@@ -16,7 +16,7 @@ namespace Everquest
     {
         public const int MAX_LEVEL = 105;
 
-        static public List<Spell> LoadFromFile(string spellPath, string descPath, string stackPath)
+        static public List<Spell> LoadFromFile(string spellPath)
         {
             // the spell file is required. the other files are optional 
             if (!File.Exists(spellPath))
@@ -27,6 +27,7 @@ namespace Everquest
 
             // load description text file
             var desc = new Dictionary<string, string>(50000);
+            var descPath = spellPath.Replace("spells_us", "dbstr_us");
             if (File.Exists(descPath))
                 using (var text = PossiblyCompressedFile.OpenText(descPath))
                     while (!text.EndOfStream)
@@ -96,6 +97,7 @@ namespace Everquest
 
             // load spell stacking file
             // my guess is that this was made a separate file because a single spell can be part of multiple spell stacking groups
+            var stackPath = spellPath.Replace("spells_us", "SpellStackingGroups");
             if (File.Exists(stackPath))
                 using (var text = PossiblyCompressedFile.OpenText(stackPath))
                     while (!text.EndOfStream)

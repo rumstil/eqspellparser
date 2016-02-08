@@ -72,7 +72,7 @@ namespace winparser
             }
 
             var f = new MainForm();
-            f.Load(spellPath, spellPath.Replace("spells_us", "dbstr_us"), spellPath.Replace("spells_us", "SpellStackingGroups"));
+            f.Load(spellPath);
             f.Show();
 
             // DoEvents is a bit naughty because we could reenter this method on a double click, but it gives the browser a chance to init
