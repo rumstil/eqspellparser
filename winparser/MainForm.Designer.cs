@@ -112,20 +112,6 @@
             this.SearchEffectSlot3.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
             this.SearchEffectSlot3.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
             this.SearchEffectSlot3.FormattingEnabled = true;
-            this.SearchEffectSlot3.Items.AddRange(new object[] {
-            "",
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            "10",
-            "11",
-            "12"});
             this.SearchEffectSlot3.Location = new System.Drawing.Point(159, 246);
             this.SearchEffectSlot3.Name = "SearchEffectSlot3";
             this.SearchEffectSlot3.Size = new System.Drawing.Size(75, 23);
@@ -138,20 +124,6 @@
             this.SearchEffectSlot2.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
             this.SearchEffectSlot2.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
             this.SearchEffectSlot2.FormattingEnabled = true;
-            this.SearchEffectSlot2.Items.AddRange(new object[] {
-            "",
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            "10",
-            "11",
-            "12"});
             this.SearchEffectSlot2.Location = new System.Drawing.Point(159, 212);
             this.SearchEffectSlot2.Name = "SearchEffectSlot2";
             this.SearchEffectSlot2.Size = new System.Drawing.Size(75, 23);
@@ -206,20 +178,6 @@
             this.SearchEffectSlot1.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
             this.SearchEffectSlot1.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
             this.SearchEffectSlot1.FormattingEnabled = true;
-            this.SearchEffectSlot1.Items.AddRange(new object[] {
-            "",
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            "10",
-            "11",
-            "12"});
             this.SearchEffectSlot1.Location = new System.Drawing.Point(159, 178);
             this.SearchEffectSlot1.Name = "SearchEffectSlot1";
             this.SearchEffectSlot1.Size = new System.Drawing.Size(75, 23);

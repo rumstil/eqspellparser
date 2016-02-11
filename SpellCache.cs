@@ -102,7 +102,7 @@ namespace Everquest
 
                 // add spell slot links
                 foreach (var s in spell.Slots)
-                    if (s.Desc != null)
+                    if (s != null)
                     {
                         // match spell refs
                         var match = Spell.SpellRefExpr.Match(s.Desc);
