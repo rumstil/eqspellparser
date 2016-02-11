@@ -66,6 +66,7 @@ namespace Everquest
 
     /// <summary>
     /// A spell and AA container with some search and cross referencing helpers.
+    /// You don't need to use this class if all you want to do is to parse the spell data and dump it to console or a file.
     /// </summary>
     public class SpellCache 
     {

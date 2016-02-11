@@ -478,11 +478,18 @@ AFFECTNUMBER AFFECTNAME
 471 Double Melee Round (PC Only) 
 
 
+spells_us.txt Field List (179 fields)
+===============================================================================
+
+TODO....
 
 
-spells_us.txt Field List
-===================================
+
+spells_us.txt Field List (238 fields)
+===============================================================================
 https://forums.station.sony.com/eq/index.php?threads/enumerated-spa-list.206288/page-2#post-3101242
+
+This format became obsolete with the 2016-02-10 test server patch which switched to a 179 field spell file.
 
 0 SPELLINDEX
 1 SPELLNAME
