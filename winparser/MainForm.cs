@@ -52,6 +52,14 @@ namespace winparser
             SearchEffect3.Items.AddRange(SpellSearchFilter.CommonEffects.Keys.ToArray());
             SearchEffect3.Items.Add("");
 
+            SearchEffectSlot1.Items.Add("");
+            SearchEffectSlot1.Items.AddRange(Enumerable.Range(1, 20).Select(x => x.ToString()).ToArray());
+            SearchEffectSlot2.Items.Add("");
+            SearchEffectSlot2.Items.AddRange(Enumerable.Range(1, 20).Select(x => x.ToString()).ToArray());
+            SearchEffectSlot3.Items.Add("");
+            SearchEffectSlot3.Items.AddRange(Enumerable.Range(1, 20).Select(x => x.ToString()).ToArray());
+
+
             //SearchBrowser.ObjectForScripting = this;
             DefaultFilter = GetFilter();
         }
@@ -338,7 +346,7 @@ namespace winparser
                     html.AppendFormat("Recourse: {0}<br/>", InsertSpellRefLinks(String.Format("[Spell {0}]", spell.RecourseID)));
 
                 for (int i = 0; i < spell.Slots.Count; i++)
-                    if (spell.Slots[i].Desc != null)
+                    if (spell.Slots[i] != null)
                         html.AppendFormat("{0}: <span title=\"SPA={2} Base1={3} Base2={4} Max={5} Calc={6}\">{1}</span><br/>", i + 1, InsertSpellRefLinks(spell.Slots[i].Desc), spell.Slots[i].SPA, spell.Slots[i].Base1, spell.Slots[i].Base2, spell.Slots[i].Max, spell.Slots[i].Calc);
 
                 html.Append("</td>");

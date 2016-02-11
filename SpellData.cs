@@ -1092,7 +1092,7 @@ namespace Everquest
 
         public Spell()
         {
-            Slots = new List<SpellSlot>(12);
+            Slots = new List<SpellSlot>(6); // first grow will make it a list of 12
             Levels = new byte[16];
             ExtLevels = new byte[16];
             ConsumeItemID = new int[4];
@@ -1108,7 +1108,7 @@ namespace Everquest
         /// </summary>
         public string ParseEffect(int spa, int base1, int base2, int max, int calc, int level)
         {
-            // type 254 indicates an unused slot
+            // type 254 indicates an unused slot and end of slots (i.e. all the rest will also be 254)
             if (spa == 254)
                 return null;
 
@@ -1441,9 +1441,9 @@ namespace Everquest
                     return String.Format("Limit Max Casting Time: {0}s", base1 / 1000f);
                 case 145:
                     return String.Format("Teleport to {0}", Extra);
-                case 146:
-                    // has not been implemented in the game
-                    return Spell.FormatCount("Electricity Resist", value);
+                //case 146: as of 2016-2-10 a lot of teleport spells have 2 or 3 SPA 146 effects. perhaps it's x, y, z coordinates?
+                case 146: 
+                    return null;
                 case 147:
                     //return String.Format("Increase Current HP by {1} Max: {0}% ", value, max);
                     return FormatPercent("Current HP", value) + String.Format(" up to {0}", max);
@@ -1726,7 +1726,6 @@ namespace Everquest
                 case 271:
                     // each 0.7 points seems to equal 10% normal run speed
                     return Spell.FormatPercent("Innate Movement Speed", base1 / 0.7f);
-                //return String.Format("Movement Speed Mod ({0})", base1);
                 case 272:
                     return Spell.FormatPercent("Spell Casting Skill", value);
                 case 273:
@@ -2251,7 +2250,7 @@ namespace Everquest
 
             }
 
-            return String.Format("Unknown Effect: SPA {0} Base1={1} Base2={2} Max={3} Calc={4} Value={5}", spa, base1, base2, max, calc, value);
+            return String.Format("Unknown SPA={0} Base1={1} Base2={2} Max={3} Calc={4} Value={5}", spa, base1, base2, max, calc, value);
         }
 
         /// <summary>
@@ -2701,7 +2700,7 @@ namespace Everquest
             //    result.Add("Category: " + Category);
 
             for (int i = 0; i < Slots.Count; i++)
-                if (Slots[i].Desc != null)
+                if (Slots[i] != null)
                     result.Add(String.Format("{0}: {1}", i + 1, Slots[i].Desc));
 
             if (!String.IsNullOrEmpty(LandOnSelf))
@@ -2776,11 +2775,11 @@ namespace Everquest
         /// <param name="slot">0 to check all slots, or a non zero value to check a specific slot.</param>
         public bool HasEffect(int spa, int slot)
         {
-            if (slot > 0 && slot <= Slots.Count)
-                return Slots[slot - 1].SPA == spa;
+            if (slot > 0)
+                return slot <= Slots.Count && Slots[slot - 1] != null && Slots[slot - 1].SPA == spa;
 
             for (int i = 0; i < Slots.Count; i++)
-                if (Slots[i].SPA == spa)
+                if (Slots[i] != null && Slots[i].SPA == spa)
                     return true;
 
             return false;
@@ -2797,11 +2796,11 @@ namespace Everquest
             if (Int32.TryParse(text, out spa))
                 return HasEffect(spa, slot);
 
-            if (slot > 0 && slot <= Slots.Count)
-                return Slots[slot - 1].Desc != null && Slots[slot - 1].Desc.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0;
+            if (slot > 0)
+                return slot <= Slots.Count && Slots[slot - 1] != null && Slots[slot - 1].Desc.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0;
 
             for (int i = 0; i < Slots.Count; i++)
-                if (Slots[i].Desc != null && Slots[i].Desc.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0)
+                if (Slots[i] != null && Slots[i].Desc.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0)
                     return true;
 
             return false;
@@ -2813,11 +2812,11 @@ namespace Everquest
         /// <param name="slot">0 to check all slots, or a non zero value to check a specific slot.</param>
         public bool HasEffect(Regex re, int slot)
         {
-            if (slot > 0 && slot <= Slots.Count)
-                return Slots[slot - 1].Desc != null && re.IsMatch(Slots[slot - 1].Desc);
+            if (slot > 0)
+                return slot <= Slots.Count && Slots[slot - 1] != null && re.IsMatch(Slots[slot - 1].Desc);
 
             for (int i = 0; i < Slots.Count; i++)
-                if (Slots[i].Desc != null && re.IsMatch(Slots[i].Desc))
+                if (Slots[i] != null && re.IsMatch(Slots[i].Desc))
                     return true;
 
             return false;
@@ -2831,7 +2830,7 @@ namespace Everquest
         {
             int score = 0;
             for (int i = 0; i < Slots.Count; i++)
-                if (Slots[i].Desc != null)
+                if (Slots[i] != null)
                 {
                     Match m = re.Match(Slots[i].Desc);
                     if (m.Success)
