@@ -1441,8 +1441,9 @@ namespace Everquest
                     return String.Format("Limit Max Casting Time: {0}s", base1 / 1000f);
                 case 145:
                     return String.Format("Teleport to {0}", Extra);
-                //case 146: as of 2016-2-10 a lot of teleport spells have 2 or 3 SPA 146 effects. perhaps it's x, y, z coordinates?
-                case 146: 
+                case 146:
+                    // x, y, z, heading coordinates on slots 1, 2, 3, 4
+                    //return String.Format("Set position to {0}", base1);
                     return null;
                 case 147:
                     //return String.Format("Increase Current HP by {1} Max: {0}% ", value, max);
@@ -1533,7 +1534,9 @@ namespace Everquest
                     // hundred hands effect. how is this different than 371?
                     return Spell.FormatPercent("Weapon Delay", base1 / 10f);
                 case 183:
-                    return Spell.FormatPercent("Skill Check for " + Spell.FormatEnum((SpellSkill)base2), value);
+                    // according to prathun this effect does nothing
+                    //return Spell.FormatPercent("Skill Check for " + Spell.FormatEnum((SpellSkill)base2), value);
+                    return null;
                 case 184:
                     if ((SpellSkill)base2 != SpellSkill.Hit)
                         return Spell.FormatPercent("Chance to Hit with " + Spell.FormatEnum((SpellSkill)base2), value);
@@ -1556,6 +1559,7 @@ namespace Everquest
                 case 192:
                     return Spell.FormatCount("Hate", value) + repeating + range;
                 case 193:
+                    // max = alternate attack value when in PvP
                     return String.Format("{0} Attack for {1} with {2}% Accuracy Mod", Spell.FormatEnum(Skill), base1, base2);
                 case 194:
                     // aka Fade
@@ -2244,9 +2248,22 @@ namespace Everquest
                 case 471:
                     // repeat the entire melee round. i.e. main attack, double attack, triple
                     return Spell.FormatPercent("Chance to Repeat Melee Round", base1);
+                case 472:
+                    return String.Format("Buy AA Rank ({0})", base1);
+                case 473:
+                    return Spell.FormatPercent("Chance to Double Backstab From Front", base1);
                 case 474:
                     // similar to 330
                     return Spell.FormatPercent("Pet Critical Hit Damage", base1) + " of Base Damage";
+                case 475:
+                    // only activates if the spell is being cast from memory rather than an item
+                    return String.Format("Cast: [Spell {0}] if not click", base1);
+                case 476:
+                    return String.Format("Weapon Stance ({0})", base1);
+                case 477:
+                    return String.Format("Hatelist To Top Index ({0})", base1);
+                case 478:
+                    return String.Format("Hatelist To Tail Index ({0})", base1);
 
             }
 

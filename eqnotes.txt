@@ -476,6 +476,13 @@ AFFECTNUMBER AFFECTNAME
 469 Chance Best in Spell Group
 470 Trigger Best in Spell Group
 471 Double Melee Round (PC Only) 
+472 Buy AA Rank
+473 Double Backstab From Front
+474 Pet Crit Melee Damage% (Owner)
+475 Trigger Spell Non-Item
+476 Weapon Stance
+477 Hatelist To Top Index
+478 Hatelist To Tail Index
 
 
 spells_us.txt Field List (179 fields)
