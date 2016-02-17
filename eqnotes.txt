@@ -16,7 +16,7 @@ AFFECTNUMBER AFFECTNAME
 9 WIS
 10 CHA
 11 Melee Speed
-12 Invis
+12 Invisibility
 13 See Invis
 14 Enduring Breath
 15 Mana
@@ -43,7 +43,7 @@ AFFECTNUMBER AFFECTNAME
 36 Poison
 37 DetectHostile
 38 DetectMagic
-39 DetectPoison
+39 NoTwincast
 40 Invulnerability
 41 Banish
 42 Shadow Step
@@ -55,7 +55,7 @@ AFFECTNUMBER AFFECTNAME
 48 Resist Poison
 49 Resist Disease
 50 Resist Magic
-51 Detect Traps
+51 Detect (Switch) Traps
 52 Detect Undead
 53 Detect Summoned
 54 Detect Animals
@@ -63,7 +63,7 @@ AFFECTNUMBER AFFECTNAME
 56 True North
 57 Levitation
 58 Change Form
-59 Reflect Damage
+59 Damage Attackers (DS)
 60 TransferItem
 61 Identify
 62 Item ID
@@ -86,17 +86,17 @@ AFFECTNUMBER AFFECTNAME
 79 InstantHP
 80 Enchant:Light
 81 Resurrect
-82 SummonPlayer
+82 Summon Target
 83 Portal
 84 Hp-NPC-ONLY
-85 ContactAbility
+85 Contact Ability (Melee Proc)
 86 NPC-Help-Radius
 87 Telescope
-88 CombatPortal
+88 Combat Portal
 89 Height
 90 IgnorePet
 91 SummonCorpse
-92 Instant Hate
+92 Hate (On Spell Land)
 93 WeatherControl
 94 Fragile
 95 Sacrifice
@@ -105,18 +105,18 @@ AFFECTNUMBER AFFECTNAME
 98 Bard Haste
 99 Root
 100 DOT Heals
-101 Complete Heal
+101 Complete Heal (Residual Buff)
 102 Pet No Fear
 103 Summon Pet
 104 Translocate
-105 Anti-Gate
+105 Anti-Gate (NPC Only)
 106 BeastLordPet
-107 AlterNPCLevel
+107 Alter Pet Level
 108 Familiar
 109 CreateItemInBag
-110 IncreaseArchery
+110 Ranger Archery Accuracy %
 111 Resistances
-112 SetCastingLevel
+112 Adjust Casting Skill (Fizzles)
 113 SummonMount
 114 Modify Hate
 115 Cornucopia
@@ -149,22 +149,22 @@ AFFECTNUMBER AFFECTNAME
 142 Ff_LevelMin
 143 Ff_CastTimeMin
 144 Ff_CastTimeMax
-145 NPC Warder Banish
-146 ResistElectricity
+145 Portal NPC Warder Banish
+146 Portal Locations
 147 Percent Heal
 148 StackingBlocker
 149 StripVirtualSlot
-150 DeathPact
+150 Divine Intervention/Death Pact
 151 PocketPet
 152 PetSwarm
-153 DamageBalance
+153 Damage Balance
 154 Cancel Negative
 155 PoP Resurrect
 156 Mirror
 157 Feedback
 158 Reflect
 159 Mod all Stats
-160 Sobriety
+160 Inebriation | Sobriety
 161 Spell Guard
 162 Melee Guard
 163 Absorb Hit
@@ -173,8 +173,8 @@ AFFECTNUMBER AFFECTNAME
 166 Object - Picklock
 167 Fc_Pet
 168 Defensive
-169 Critical Melee
-170 Critical spell
+169 Critical Melee (PC Only)
+170 Spell Crit Damage
 171 Crippling Blow
 172 Evasion
 173 Riposte
@@ -187,82 +187,82 @@ AFFECTNUMBER AFFECTNAME
 180 Sanctification
 181 Fearless
 182 Hundred Hands
-183 Skill Increase Chance
+183 UNUSED - Skill Increase Chance
 184 Accuracy %
-185 Skill Damage Mod
+185 Skill Damage Mod 1
 186 Min Damage Done Mod
 187 Mana Balance
 188 Block
 189 Endurance
 190 Max Endurance
 191 Amnesia
-192 Hate
+192 Hate (Duration Only)
 193 Skill Attack
 194 Fade
-195 Stun Resist
-196 Strikethrough
+195 Stun Resist (Melee+Spell)
+196 Deprecated (strikethrough)
 197 Skill Damage Taken
 198 Instant Endurance
 199 Taunt
-200 Proc Chance
+200 Weapon Proc Chance
 201 Ranged Proc
 202 IllusionOther
 203 MassBuff
 204 Group Fear Immunity
-205 Rampage
-206 AETaunt
+205 AE Rampage Instant (PC Only)
+206 AE Taunt
 207 Flesh to Bone
 208 Purge Poison
 209 Cancel Beneficial
-210 PetShield
-211 AEMelee
-212 Frenzied Devastation
+210 Shield Caster
+211 AE Melee (PC Only)
+212 Fc_FrenziedDevastation
 213 Pet % HP
 214 HP Max Percent
-215 Pet Avoidance
-216 AccuracyAmt
+215 Pet Avoidance %
+216 Melee Accuracy Amt
 217 Headshot
-218 Pet Crit Melee
+218 Pet Crit Melee Chance (Owner)
 219 SlayUndead
-220 Skill Damage Amt
+220 Skill Min_Damage Amt 1
 221 ReduceWeight
 222 BlockBehind
-223 Double Riposte
+223 Double Riposte (Broken)
 224 AddRiposte
-225 GiveDblAtk
+225 Give Double Attack
 226 2hbash
 227 ReduceSkillTimer
 228 ReduceFallDmg
 229 CastThroughStun
-230 IncreaseShieldDist
+230 Increase Shield Distance
 231 StunBashChance
-232 DivineSave
+232 Divine Save
 233 Metabolism
 234 Poison Mastery
 235 FocusChannelling
 236 Free Pet
 237 PetAffinity
-238 PermanentIllusion
+238 Permanent Illusion
 239 Stonewall
 240 String Unbreakable
-241 ImproveReclaimEnergy
+241 Improve Reclaim Energy
 242 IncreaseChanceMemwipe
 243 NoBreakCharmChance
 244 RootBreakChance
-245 TrapCircumvention
+245 Trap Circumvention
 246 Lung Capacity
 247 IncreaseSkillCap
 248 ExtraSpecialization
-249 OffhandMin
-250 SpellProcChance
+249 Offhand Weapon MinDamage Bonus
+250 Increase ContactAbility Chance
 251 EndlessQuiver
-252 BackstabFront
-253 ChaoticStab
+252 Backstab FullDamage From Front
+253 Chaotic Stab
 254 NoSpell
 255 Shielding Duration Mod
-256 ShroudOfStealth
-257 GivePetHold
-258 TripleBackstab
+256 Shroud of Stealth
+257 DEPRECATED - GivePetHold
+258 Triple Backstab
 259 ACLimitMod
 260 AddInstrumentMod
 261 SongModCap
@@ -273,47 +273,47 @@ AFFECTNUMBER AFFECTNAME
 266 AddExtraAttackChance (2h)
 267 AddPetCommands
 268 AlcFailRate
-269 BandagePercLimit
-270 BardSongRange
+269 Bandage Max HP Limit %
+270 Bard Song Beneficial Radius %
 271 BaseRunMod
-272 CastingLevel
+272 Bard Song Level
 273 Critical DoT
 274 CriticalHeal
-275 CriticalMend
+275 Critical Mend %
 276 DualWieldAmt
 277 ExtraDIChance
 278 FinishingBlow
-279 FlurryChance
-280 PetFlurryChance
+279 FlurryChance (PC Only)
+280 Pet Flurry Chance (Owner)
 281 GivePetFeign
-282 IncreaseBandageAmt
+282 Increase Bandage Heal %
 283 SpecialAttackChain
 284 LoHSetHeal
-285 NoMoveCheckSneak
+285 Allow Hide/Evade While Moving
 286 Fc_Damage_Amt
 287 Fc_DurationMod (static)
-288 AddProcHit
+288 Add Proc Hit (AA)
 289 Doom Effect
-290 IncreaseMovementCap
+290 Increase Movement Cap
 291 Purify
-292 Strikethrough2
-293 StunResist2
-294 SpellCritChance
+292 Strikethrough
+293 StunResist2 (Melee)
+294 Spell Crit Chance
 295 ReduceTimerSpecial
-296 Fc_Damage_%_Incoming
-297 Fc_Damage_Amt_Incoming
+296 Fc_Spell_Damage_%_Incoming
+297 Fc_Spell_Damage_Amt_Incoming
 298 Height (Small)
-299 Wake the Dead
+299 Wake the Dead 1 (Corpse Class)
 300 Doppelganger
 301 Increase Range Damage
 302 Fc_Damage_%_Crit
 303 Fc_Damage_Amt_Crit
 304 Secondary Riposte Mod
-305 Mitigate Damage Shield
-306 Wake The Dead 2
+305 Mitigate Damage Shield Offhand
+306 Wake the Dead 2 (File Class)
 307 Appraisal
 308 Zone Suspend Minion
-309 Gate Caster's Bindpoint
+309 Teleport Caster's Bindpoint
 310 Fc_ReuseTimer
 311 Ff_CombatSkill
 312 Observer
@@ -322,7 +322,7 @@ AFFECTNUMBER AFFECTNAME
 315 Improved Invis Undead
 316 Improved Invis Animals
 317 Worn Regen Cap
-318 Worn Mana Cap
+318 Worn Mana Regen Cap
 319 Critical HP Regen
 320 Shield Block Chance
 321 Reduce Target Hate
@@ -379,16 +379,16 @@ AFFECTNUMBER AFFECTNAME
 372 Grant Foraging
 373 Doom Always
 374 Trigger Spell
-375 Critical DoT Damage Mod
+375 Critical DoT Damage Mod %
 376 Fling
 377 Doom Entity
 378 Resist Other SPA
 379 Directional Shadowstep
-380 Knockback Explosive
-381 Fling to Self
+380 Knockback Explosive (PC Only)
+381 Fling Target to Caster
 382 Suppression
 383 Fc_CastProcNormalized
-384 Fling to Target
+384 Fling Caster to Target
 385 Ff_WhichSpellGroup
 386 Doom Dispeller
 387 Doom Dispellee
@@ -401,7 +401,7 @@ AFFECTNUMBER AFFECTNAME
 394 Fc_Heal_Amt_Incoming
 395 Fc_Heal_%_Crit
 396 Fc_Heal_Amt_Crit
-397 Pet_Amt_Mitigation
+397 Pet Add AC
 398 Fc_Swarm_Pet_Duration
 399 Fc_Twincast
 400 Healburn
@@ -422,8 +422,8 @@ AFFECTNUMBER AFFECTNAME
 415 Ff_ItemClass
 416 AC_2
 417 Mana_2
-418 Increased_Skill_Damage_2
-419 Contact_Ability_2
+418 Skill Min_Damage Amt 2
+419 Contact Ability 2 (Melee Proc)
 420 Fc_Limit_Use
 421 Fc_Limit_Use_Amt
 422 Ff_Limit_Use_Min
@@ -431,16 +431,16 @@ AFFECTNUMBER AFFECTNAME
 424 Gravitate
 425 Fly
 426 AddExtTargetSlots
-427 Skill_Proc
-428 Skill_Proc_Modifier
-429 Skill_Proc_Success
+427 Skill Proc (Attempt)
+428 Proc Skill Modifier
+429 Skill Proc (Success)
 430 PostEffect
 431 PostEffectData
 432 ExpandMaxActiveTrophyBenefits
-433 CriticalDotDecay
-434 CriticalHealDecay
-435 CriticalRegenDecay
-436 Beneficial Countdown Hold
+433 Normalized Skill Min_Dmg Amt 1
+434 Normalized Skill Min_Dmg Amt 2
+435 Fragile Defense
+436 Toggle Freeze Buff Timers
 437 Teleport to Anchor
 438 Translocate to Anchor
 439 Assassinate
@@ -475,7 +475,7 @@ AFFECTNUMBER AFFECTNAME
 468 DS Mitigation Percentage
 469 Chance Best in Spell Group
 470 Trigger Best in Spell Group
-471 Double Melee Round (PC Only) 
+471 Double Melee Round (PC Only)
 472 Buy AA Rank
 473 Double Backstab From Front
 474 Pet Crit Melee Damage% (Owner)
