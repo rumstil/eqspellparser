@@ -262,7 +262,7 @@ namespace winparser
                     var slot = Regex.Replace(line, @"(\d+): .*", m =>
                     {
                         int i = Int32.Parse(m.Groups[1].Value) - 1;
-                        if (i < 0 || i >= spell.Slots.Count)
+                        if (i < 0 || i >= spell.Slots.Count || spell.Slots[i] == null)
                             return "Unknown Index " + i;
                         return String.Format("{0}: <span title=\"SPA={2} Base1={3} Base2={4} Max={5} Calc={6}\">{1}</span>", i + 1, spell.Slots[i].Desc, spell.Slots[i].SPA, spell.Slots[i].Base1, spell.Slots[i].Base2, spell.Slots[i].Max, spell.Slots[i].Calc);
                     });
