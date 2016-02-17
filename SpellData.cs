@@ -2267,7 +2267,7 @@ namespace Everquest
                     return Spell.FormatPercent("Pet Critical Hit Damage", base1) + " of Base Damage";
                 case 475:
                     // only activates if the spell is being cast from memory rather than an item
-                    return String.Format("Cast: [Spell {0}] if not click", base1);
+                    return String.Format("Cast: [Spell {0}] if not click", base2);
                 case 476:
                     return String.Format("Weapon Stance ({0})", base1);
                 case 477:
