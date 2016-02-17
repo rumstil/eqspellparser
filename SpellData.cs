@@ -1569,9 +1569,11 @@ namespace Everquest
                         return String.Format("Cancel Aggro {2} ({0}% Chance) and Cast: [Spell {1}] on Success", base1, base2, maxlevel);
                     return String.Format("Cancel Aggro {1} ({0}% Chance)", base1, maxlevel);
                 case 195:
+                    // melee + spell
                     // 100 is full resist. not sure why some spells have more
                     return String.Format("Stun Resist ({0})", value);
                 case 196:
+                    // no longer used
                     return String.Format("Srikethrough ({0})", value);
                 case 197:
                     return Spell.FormatPercent(Spell.FormatEnum((SpellSkill)base2) + " Damage Taken", value);
@@ -1684,8 +1686,9 @@ namespace Everquest
                     // 1-Handed weapon - Secondary Hand: [Primary Hand Formula * Base1 of Sinister Strike SPA]
                     return Spell.FormatPercent("Offhand Weapon Damage Bonus", base1);
                 case 250:
-                    // not sure about this one
-                    return Spell.FormatPercent("Defensive Proc Rate", base1);
+                    // increase chance of spa 85 
+                    // compare with 200 which increase worn proc rate
+                    return Spell.FormatPercent("Melee Proc Rate", base1);
                 case 251:
                     // endless quiver AA
                     return Spell.FormatPercent("Chance of Using Ammo", -base1);
@@ -1698,6 +1701,7 @@ namespace Everquest
                 case 256:
                     return "Shroud of Stealth";
                 case 257:
+                    // no longer used
                     return "Enable Pet Ability: Hold";
                 case 258:
                     return Spell.FormatPercent("Chance to Triple Backstab", value);
@@ -1731,7 +1735,7 @@ namespace Everquest
                     // each 0.7 points seems to equal 10% normal run speed
                     return Spell.FormatPercent("Innate Movement Speed", base1 / 0.7f);
                 case 272:
-                    return Spell.FormatPercent("Spell Casting Skill", value);
+                    return Spell.FormatPercent("Song Casting Skill", value);
                 case 273:
                     return Spell.FormatPercent("Chance to Critical DoT", base1) + maxlevel;
                 case 274:
@@ -1752,7 +1756,7 @@ namespace Everquest
                 case 281:
                     return Spell.FormatPercent("Pet Chance to Feign Death", base1);
                 case 282:
-                    return Spell.FormatCount("Bandage Amount", base1);
+                    return Spell.FormatPercent("Bandage Amount", base1);
                 case 283:
                     // only special monks attack skills?
                     return Spell.FormatPercent("Chance to Double Special Attack", base1);
@@ -1777,6 +1781,7 @@ namespace Everquest
                 case 292:
                     return String.Format("Strikethrough v2 ({0})", base1);
                 case 293:
+                    // melee only
                     // clenched jaw aa. 75 seems to be full resist
                     return String.Format("Stun Resist v2 ({0})", base1);
                 case 294:
@@ -1811,13 +1816,13 @@ namespace Everquest
                 case 305:
                     return Spell.FormatPercent("Offhand Damage Shield Taken", base1);
                 case 306:
-                    return String.Format("Summon Pet: {0} x {1} for {2}s", Extra, base1, max);
+                    return String.Format("Wake the Dead: {0} x {1} for {2}s", Extra, base1, max);
                 case 307:
                     return "Appraisal";
                 case 308:
                     return "Suspend Minion";
                 case 309:
-                    return "Teleport to Bind";
+                    return "Teleport to Caster's Bind";
                 case 310:
                     return String.Format("Reduce Timer by {0}", FormatTime(base1 / 1000f));
                 case 311:
@@ -2125,8 +2130,8 @@ namespace Everquest
                 case 419:
                     // this is used for potions. how is it different than 85? maybe proc rate?
                     if (base2 != 0)
-                        return String.Format("Add Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
-                    return String.Format("Add Proc: [Spell {0}]", base1);
+                        return String.Format("Add Melee Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
+                    return String.Format("Add Melee Proc: [Spell {0}]", base1);
                 case 421:
                     return Spell.FormatCount("Max Hits Counter", base1);
                 case 422:
@@ -2163,6 +2168,11 @@ namespace Everquest
                 case 433:
                     // similar to 220 except the values get lowered with faster weapons 
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus v2", base1);
+                case 434:
+                    // similar to 220 except the values get lowered with faster weapons 
+                    return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus v3", base1);
+                case 435:
+                    return String.Format("Fragile Defense ({0})", base1);
                 case 436:
                     return "Beneficial Countdown Hold";
                 case 437:
