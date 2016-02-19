@@ -1638,6 +1638,8 @@ namespace Everquest
                 case 222:
                     return Spell.FormatPercent("Chance to Block from Back", base1);
                 case 224:
+                    if (base2 > 0)
+                        return Spell.FormatPercent("Chance to Additional Riposte with " + Spell.FormatEnum((SpellSkill)base2), base1);
                     return Spell.FormatPercent("Chance to Additional Riposte", base1);
                 case 225:
                     return Spell.FormatCount("Double Attack Skill", base1);
