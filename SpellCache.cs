@@ -40,10 +40,13 @@ namespace Everquest
             CommonEffects.Add("Shrink", @"Decrease Player Size");
             CommonEffects.Add("Rune", "Absorb");
             CommonEffects.Add("Pacify", @"Decrease Social Radius");
+            CommonEffects.Add("Fade", @"Cancel Aggro");
+            CommonEffects.Add("Defensive", @"Increase Melee Mitigation");
             CommonEffects.Add("Damage Shield", @"Increase Damage Shield by (\d+)");
             CommonEffects.Add("Mana Regen", @"Increase Current Mana by (\d+)");
-            CommonEffects.Add("Add Proc", @"(?:Add Proc)|(?:Add Skill Proc)");
+            CommonEffects.Add("Add Proc", @"Add (?:Melee|Weapon|Skill|Range) Proc");
             CommonEffects.Add("Add Spell Proc", @"Cast.+on Spell Use");
+            CommonEffects.Add("Debuff", @"Decrease (Chance of (?!Charm Breaking)|\w+ Resist|\w{2,3} by|Melee Haste|Damage Shield by)");
 
             // literal text suggestions (these words appear in parsed text so they don't need to be regexes)
             CommonEffects.Add("Charm", null);
