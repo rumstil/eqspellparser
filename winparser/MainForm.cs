@@ -184,21 +184,19 @@ namespace winparser
             //        Results.RemoveAll(x => x.Rank == 2 || x.Rank == 3);
             //}
 
-            // track search results before we add referenced spells 
-            // so that we know what to show/hide by defeault
-            VisibleResults = new HashSet<int>();
-            foreach (var s in Results)
-                VisibleResults.Add(s.ID);
+            // optionally add back refs
+            if (filter.AddBackRefs)
+                Cache.AddBackRefs(Results);
+
+            // hide anything that isn't in the results yet. additional spells will only be shown when a link is clicked
+            VisibleResults = new HashSet<int>(Results.Select(x => x.ID));
+
+            // if we are filtering by class then auto hide all spells that aren't castable by that class
+            //int i = SpellParser.ParseClass(filter.Class) - 1;
+            //VisibleResults = new HashSet<int>(i >= 0 ? Results.Where(x => x.Levels[i] != 0).Select(x => x.ID) : Results.Select(x => x.ID));
 
             // always add forward refs so that links can be clicked
             Cache.AddForwardRefs(Results);
-
-            // optionally add back refs
-            if (filter.AddBackRefs)
-            { 
-                Cache.AddBackRefs(Results);
-                Cache.AddForwardRefs(Results); // some of the back refs will require new forward refs
-            }
 
             Cache.Sort(Results, filter);
         }
@@ -208,7 +206,7 @@ namespace winparser
         /// </summary>
         private void ShowResults()
         {
-            SearchNotes.Text = String.Format("{0} results", IncludeRelated.Checked ? Results.Count : VisibleResults.Count);
+            SearchNotes.Text = String.Format("{0} results", VisibleResults.Count);
 
             var html = InitHtml();
 
@@ -221,7 +219,8 @@ namespace winparser
                 if (Results.Count > MAX_RESULTS)
                     html.Append(String.Format("<p>Too many results -- only the first {0} will be shown.</p>", MAX_RESULTS));
 
-                Func<Spell, bool> visible = spell => IncludeRelated.Checked || VisibleResults.Contains(spell.ID);
+                //Func<Spell, bool> visible = spell => IncludeRelated.Checked || VisibleResults.Contains(spell.ID);
+                Func<Spell, bool> visible = spell => VisibleResults.Contains(spell.ID);
 
 
                 if (DisplayText.Checked)
