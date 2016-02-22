@@ -70,7 +70,7 @@ namespace Everquest
     /// </summary>
     public class SpellCache 
     {
-        public string SpellPath { get; private set; }
+        public string SpellPath { get; set; }
 
         public List<Spell> SpellList;
         private Dictionary<int, Spell> SpellsById;
@@ -92,7 +92,8 @@ namespace Everquest
             SpellsById = SpellList.ToDictionary(x => x.ID);
             SpellsByGroup = SpellList.Where(x => x.GroupID != 0).ToLookup(x => x.GroupID);
 
-            // init LinksTo cross references for each spell
+            // fill LinksTo array for each spells - this will be used to include associated spells in search results
+            // excluded spell IDs will be negated 
             foreach (var spell in SpellList)
             {
                 var linked = new List<int>(10);
@@ -105,25 +106,26 @@ namespace Everquest
                 foreach (var s in spell.Slots)
                     if (s != null)
                     {
+                        bool exclude = s.Desc.Contains("Exclude");
+
                         // match spell refs
                         var match = Spell.SpellRefExpr.Match(s.Desc);
                         if (match.Success)
-                            linked.Add(Int32.Parse(match.Groups[1].Value));
+                        {
+                            int id = Int32.Parse(match.Groups[1].Value);
+                            linked.Add(exclude ? -id : id);
+                        }
 
                         // match spell group refs
                         match = Spell.GroupRefExpr.Match(s.Desc);
                         if (match.Success)
                         {
                             int id = Int32.Parse(match.Groups[1].Value);
-                            // for excluded spells temporarily negate id on excluded spells so that we don't set extlevels on them
-                            if (s.Desc.Contains("Exclude"))
-                                id = -id;
-                            foreach (var ls in SpellsByGroup[id])
-                                linked.Add(ls.ID);
+                            linked.AddRange(SpellsByGroup[id].Select(x => exclude ? -x.ID : x.ID));
                         }
                     }
 
-                // process each of the linked spells
+                // for each spell that is referenced, update ExtLevels if the spells isn't already flagged as usable by the class
                 foreach (int id in linked)
                 {
                     Spell target = null;
@@ -149,11 +151,6 @@ namespace Everquest
                     }
                 }
 
-                // revert negated IDs on excluded spells/groups
-                for (int i = 0; i < linked.Count; i++)
-                    if (linked[i] < 0)
-                        linked[i] = -linked[i];
-
                 spell.LinksTo = linked.ToArray();
             }        
         }
@@ -165,7 +162,8 @@ namespace Everquest
 
             AAList = AAParser.LoadFromFile(aaPath, descPath);
 
-            // for each AA build a list of referenced spells - this will be used to include associated spells in search results
+            // fill LinksTo array for each AA - this will be used to include associated spells in search results
+            // excluded spell IDs will be negated 
             foreach (var aa in AAList)
             {
                 var linked = new List<int>(10);
@@ -174,12 +172,14 @@ namespace Everquest
 
                 foreach (var s in aa.Slots.Where(x => x.Desc != null))
                 {
+                    bool exclude = s.Desc.Contains("Exclude");
+
                     // match spell refs
                     var match = Spell.SpellRefExpr.Match(s.Desc);
                     if (match.Success)
                     {
                         int id = Int32.Parse(match.Groups[1].Value);
-                        linked.Add(id);
+                        linked.Add(exclude ? -id : id);
                     }
 
                     // match spell group refs
@@ -187,12 +187,27 @@ namespace Everquest
                     if (match.Success)
                     {
                         int id = Int32.Parse(match.Groups[1].Value);
-                        linked.AddRange(SpellsByGroup[id].Select(x => x.ID));
+                        linked.AddRange(SpellsByGroup[id].Select(x => exclude ? -x.ID : x.ID));
                     }
                 }
 
                 aa.LinksTo = linked.Distinct().ToArray();
             }
+
+            // update ExtLevels to 254 for the class if the spells isn't already flagged as usable
+            foreach (var aa in AAList)
+                foreach (var id in aa.LinksTo)
+                {
+                    Spell spell;
+                    if (SpellsById.TryGetValue(id, out spell))
+                        for (int i = 0; i < spell.Levels.Length; i++)
+                        {
+                            // todo: exclude spells? e.g. Spell Casting Reinforcement has two excludes
+                            int mask = 1 << i;
+                            if (spell.Levels[i] == 0 && ((int)aa.ClassesMask & mask) != 0)
+                                spell.Levels[i] = 254;
+                        }                        
+                }
         }
 
         public IEnumerable<Spell> Search(SpellSearchFilter filter)
@@ -391,7 +406,7 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Expand a spell list to include spells that the existing list makes references to.
+        /// Expand a spell list to include spells that are referenced by the original list.
         /// </summary>                
         public void AddForwardRefs(List<Spell> list)
         {
@@ -403,7 +418,7 @@ namespace Everquest
             {
                 Spell spell = list[i++];
 
-                foreach (int id in spell.LinksTo)
+                foreach (int id in spell.LinksTo.Select(x => x < 0 ? -x : x))
                     if (!included.Contains(id))
                     {
                         included.Add(id);
@@ -416,7 +431,7 @@ namespace Everquest
         }
 
         /// <summary>
-        /// Expand a spell list to include spells that make references to the results.
+        /// Expand a spell list to include spells that make references to the original list.
         /// </summary> 
         public void AddBackRefs(List<Spell> list)
         {
@@ -425,7 +440,7 @@ namespace Everquest
 
             var included = new HashSet<int>(list.Select(x => x.ID));
 
-            // do not include not produce back refs for spells that are heavily reference. 
+            // do not include back refs for spells that are heavily referenced. 
             // e.g. complete heal is referenced by hundreds of focus spells (we wouldn't want to add those focus spells to the results)
             var ignore = list.Where(x => x.RefCount > 10).Select(x => x.ID).ToList();
             foreach (var spell in SpellList)
