@@ -37,20 +37,18 @@ http://www.raidloot.com/Spells.aspx
 
 If you want to parse historical, test or beta server spell data you will need to download the parser and run it on your own machine.
 
-The download file contains two applications to help you read the EQ spell file:
+https://bitbucket.org/raidloot/eqspellparser/downloads/parser.zip
 
-- winparser.exe is the user friendly Windows version of the parser.
+The download file contains winparser.exe which can open up spell files to be parsed on your own computer.
 
-- parser.exe is the command line version of the parser for people that need to export results to a text file.
+On Windows 8 or newer, the first time you run the parser will you get a "Windows protected your PC" alert. This is called SmartScreen and protects your PC from running programs from unrecognized publishers - which is what I am. If you want to run the parser you will need to click the "More Info" link on the popup and then "Run anyway".
 
-In order to run the parser on your computer you will need to have Microsoft .NET Framework 3.5 installed (this is a part of Windows but it doesn't come installed on all versions of windows). If you run the parser and it gives a strange error message, then you probably need to download the framework from Microsoft here:
+You will also need to have Microsoft .NET Framework 3.5 installed to run the parser. This is a windows add-on that you may be missing if you have an older version of windows. If you run the parser and it doesn't work for you, download the required windows update from here:
 
 http://www.microsoft.com/downloads/details.aspx?FamilyId=333325FD-AE52-4E35-B531-508D977D32A6&displaylang=en
 
 
 #How To Help#
 
-You can help improve this parser even if you're not a programmer. What I need most, is corrections for incorrect or incomplete parsing.
-
-You can contact me at raidloot@gmail.com 
+You can help improve this parser even if you're not a programmer. If you discover spell descriptions that you think are incorrect or incomplete please send me an email at raidloot@gmail.com with an explanation or a link to more information.
 
