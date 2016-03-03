@@ -284,6 +284,14 @@ namespace Everquest
             return query;
         }
 
+        public Spell GetSpell(int id)
+        {
+            Spell s;
+            if (SpellsById.TryGetValue(id, out s))
+                return s;
+            return null;
+        }
+
         public string GetSpellName(int id)
         {
             Spell s;
