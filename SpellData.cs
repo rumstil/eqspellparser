@@ -186,7 +186,7 @@ namespace Everquest
         Summon_To_Corpse = 332,
         Block_Matching_Spell = 335,
         XP_Gain_Mod = 337,
-        Casting_Trigger = 339,
+        Spell_Proc = 339,
         Interrupt_Casting = 343,
         Shield_Equip_Hate_Mod = 349, // AA
         Mana_Burn = 350,
@@ -1179,8 +1179,8 @@ namespace Everquest
                 case 20:
                     return "Blind";
                 case 21:
-                    if (base2 != base1 && base2 != 0)
-                        return String.Format("Stun NPC for {0:0.##}s (PC for {1:0.##}s)", base1 / 1000f, base2 / 1000f) + maxlevel;
+                    //if (base2 != base1 && base2 != 0)
+                    //    return String.Format("Stun for {0:0.##}s ({1:0.##}s in PvP)", base1 / 1000f, base2 / 1000f) + maxlevel;
                     return String.Format("Stun for {0:0.##}s", base1 / 1000f) + maxlevel;
                 case 22:
                     return "Charm" + maxlevel;
@@ -1519,7 +1519,8 @@ namespace Everquest
                 case 176:
                     return Spell.FormatPercent("Chance to Dual Wield", value);
                 case 177:
-                    return Spell.FormatPercent("Chance to Double Attack", value);
+                    // this is multiplicative
+                    return Spell.FormatPercent("Chance to Double Attack", base1);
                 case 178:
                     return String.Format("Lifetap from Weapon Damage: {0}%", value);
                 case 179:
@@ -1559,7 +1560,8 @@ namespace Everquest
                 case 192:
                     return Spell.FormatCount("Hate", value) + repeating + range;
                 case 193:
-                    // max = alternate attack value when in PvP
+                    //if (max != 0)
+                    //    return String.Format("{0} Attack for {1} ({2} in PvP) with {3}% Accuracy Mod", Spell.FormatEnum(Skill), base1, max, base2);
                     return String.Format("{0} Attack for {1} with {2}% Accuracy Mod", Spell.FormatEnum(Skill), base1, base2);
                 case 194:
                     // aka Fade
@@ -1639,10 +1641,11 @@ namespace Everquest
                     return Spell.FormatPercent("Chance to Block from Back", base1);
                 case 224:
                     if (base2 > 0)
-                        return Spell.FormatPercent("Chance to Additional Riposte with " + Spell.FormatEnum((SpellSkill)base2), base1);
-                    return Spell.FormatPercent("Chance to Additional Riposte", base1);
+                        return Spell.FormatPercent("Chance of Additional Riposte with " + Spell.FormatEnum((SpellSkill)base2), base1);
+                    return Spell.FormatPercent("Chance of Additional Riposte", base1);
                 case 225:
-                    return Spell.FormatCount("Double Attack Skill", base1);
+                    // this is additive. 100 = 100% chance
+                    return Spell.FormatPercent("Chance to Double Attack", base1) + " (Additive)";
                 case 226:
                     // allows bash while weilding a 2h weapon
                     return "Add Two-Handed Bash Ability";
@@ -2039,9 +2042,12 @@ namespace Everquest
                     return String.Format("Inhibit Effect: {0}", Spell.FormatEnum((SpellEffect)base2), base2);
                 case 383:
                     // chance % modified by the cast time of the spell cast that triggers the proc, whereas 339 is not
-                    // i'm just going to list a few samples here since the forumula is too much information
+                    // according to Beimeith:
+                    // Cast Time < 2.5 then multiplier = 0.25
+                    // Cast Time > 2.5 and < 7 then multiplier = 0.167 * (Cast Time - 1)
+                    // Cast Time > 7 then multiplier = 1 * Cast Time / 7
                     string sample383 = String.Format(" e.g. Cast Time 2s={0}% 3s={1:F1}% 4s={2:F1}% 5s={3:F1}%", 0.25 * (base1 / 10), 0.334 * (base1 / 10), 0.5 * (base1 / 10), 0.668 * (base1 / 10));
-                    return String.Format("Cast: [Spell {0}] on Spell Use (Base {1}% Chance)", base2, base1 / 10) + sample383;
+                    return String.Format("Cast: [Spell {0}] on Spell Use (Base1={1})", base2, base1 / 10) + sample383;
                 case 384:
                     return "Fling to Target";
                 case 385:
