@@ -29,24 +29,24 @@ namespace Everquest
             CommonEffects = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
 
             // some effect types are described differently by the parser than what players commonly call them
-            CommonEffects.Add("Cure", @"Decrease \w+ Counter by (\d+)");
-            CommonEffects.Add("Heal", @"Increase Current HP by ([1-9]\d+)(?!.*(?:per tick))"); // 1-9 to exclude spells with "Increase Current HP by 0" 
-            CommonEffects.Add("HoT", @"Increase Current HP by (\d+) per tick");
-            CommonEffects.Add("Nuke", @"Decrease Current HP by (\d+)(?!.*(?:per tick))");
-            CommonEffects.Add("DoT", @"Decrease Current HP by (\d+) per tick");
-            CommonEffects.Add("Haste", @"Increase Melee Haste (?:v3 )?by (\d+)");
-            CommonEffects.Add("Slow", @"(?:Decrease Melee Haste)|(?:Increase Melee Delay) by (\d+)");
-            CommonEffects.Add("Snare", @"Decrease Movement Speed by (\d+)");
-            CommonEffects.Add("Shrink", @"Decrease Player Size");
-            CommonEffects.Add("Rune", "Absorb");
-            CommonEffects.Add("Pacify", @"Decrease Social Radius");
-            CommonEffects.Add("Fade", @"Cancel Aggro");
-            CommonEffects.Add("Defensive", @"Increase Melee Mitigation");
-            CommonEffects.Add("Damage Shield", @"Increase Damage Shield by (\d+)");
-            CommonEffects.Add("Mana Regen", @"Increase Current Mana by (\d+)");
-            CommonEffects.Add("Add Proc", @"Add (?:Melee|Weapon|Skill|Range) Proc");
-            CommonEffects.Add("Add Spell Proc", @"Cast.+on Spell Use");
-            CommonEffects.Add("Debuff", @"Decrease (Chance of (?!Charm Breaking)|\w+ Resist|\w{2,3} by|Melee Haste|Damage Shield by)");
+            CommonEffects.Add("Cure", @"^Decrease \w+ Counter by (\d+)");
+            CommonEffects.Add("Heal", @"^Increase Current HP by ([1-9]\d+)(?!.*(?:per tick))"); // 1-9 to exclude spells with "Increase Current HP by 0" 
+            CommonEffects.Add("HoT", @"^Increase Current HP by (\d+) per tick");
+            CommonEffects.Add("Nuke", @"^Decrease Current HP by (\d+)(?!.*(?:per tick))");
+            CommonEffects.Add("DoT", @"^Decrease Current HP by (\d+) per tick");
+            CommonEffects.Add("Haste", @"^Increase Melee Haste (?:v3 )?by (\d+)");
+            CommonEffects.Add("Slow", @"^(?:Decrease Melee Haste)|(?:Increase Melee Delay) by (\d+)");
+            CommonEffects.Add("Snare", @"^Decrease Movement Speed by (\d+)");
+            CommonEffects.Add("Shrink", @"^Decrease Player Size");
+            CommonEffects.Add("Rune", "^Absorb");
+            CommonEffects.Add("Pacify", @"^Decrease Social Radius");
+            CommonEffects.Add("Fade", @"^Cancel Aggro");
+            CommonEffects.Add("Defensive", @"^Increase Melee Mitigation");
+            CommonEffects.Add("Damage Shield", @"^Increase Damage Shield by (\d+)");
+            CommonEffects.Add("Mana Regen", @"^Increase Current Mana by (\d+)");
+            CommonEffects.Add("Add Proc", @"^Add (?:Melee|Weapon|Skill|Range) Proc");
+            CommonEffects.Add("Add Spell Proc", @"^Cast.+on Spell Use");
+            CommonEffects.Add("Debuff", @"^Decrease (Chance of (?!Charm Breaking)|\w+ Resist|\w{2,3} by|Melee Haste|Damage Shield by)");
 
             // literal text suggestions (these words appear in parsed text so they don't need to be regexes)
             CommonEffects.Add("Charm", null);
