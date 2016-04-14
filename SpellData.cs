@@ -2282,7 +2282,14 @@ namespace Everquest
                     return String.Format("Hatelist To Top Index ({0})", base1);
                 case 478:
                     return String.Format("Hatelist To Tail Index ({0})", base1);
-
+                //479 Ff_Value_Min
+                //480 Ff_Value_Max
+                //481 Fc_Cast_Spell_On_Land
+                //482 Skill Base Damage Mod
+                //483 Fc_Spell_Damage_%_IncomingPC
+                //484 Fc_Spell_Damage_Amt_IncomingPC
+                //485 Ff_CasterClass
+                //486 Ff_Same_Caster
             }
 
             return String.Format("Unknown SPA={0} Base1={1} Base2={2} Max={3} Calc={4} Value={5}", spa, base1, base2, max, calc, value);
