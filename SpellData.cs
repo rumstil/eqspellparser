@@ -1796,9 +1796,11 @@ namespace Everquest
                     else
                         return Spell.FormatPercent("Chance to Critical Nuke", base1);
                 case 296:
-                    return Spell.FormatPercentRange("Spell Damage Taken", base1, base2);
+                    // applied pre-crit
+                    return Spell.FormatPercentRange("Base Spell Damage Taken", base1, base2);
                 case 297:
-                    return Spell.FormatCount("Spell Damage Taken", base1);
+                    // applied pre-crit
+                    return Spell.FormatCount("Base Spell Damage Taken", base1);
                 case 298:
                     return Spell.FormatPercent("Pet Size", value - 100);
                 case 299:
@@ -2279,15 +2281,19 @@ namespace Everquest
                 case 476:
                     return String.Format("Weapon Stance ({0})", base1);
                 case 477:
-                    return String.Format("Hatelist To Top Index ({0})", base1);
+                    return String.Format("Move to top of Hatelist ({0}% Chance)", base1);
                 case 478:
-                    return String.Format("Hatelist To Tail Index ({0})", base1);
+                    return String.Format("Move to bottom of Hatelist ({0}% Chance)", base1);
                 //479 Ff_Value_Min
                 //480 Ff_Value_Max
                 //481 Fc_Cast_Spell_On_Land
                 //482 Skill Base Damage Mod
-                //483 Fc_Spell_Damage_%_IncomingPC
-                //484 Fc_Spell_Damage_Amt_IncomingPC
+                case 483:
+                    return Spell.FormatPercentRange("Spell Damage Taken", base1, base2);
+                case 484:
+                    // Modifies incoming spell damage by Base1 points. Applies post-crit for both instant damage and DoTs.
+                    // Differs from 297 which applies pre-crit to both instant damage and DoTs. 
+                    return Spell.FormatCount("Spell Damage Taken", base1);
                 //485 Ff_CasterClass
                 //486 Ff_Same_Caster
             }

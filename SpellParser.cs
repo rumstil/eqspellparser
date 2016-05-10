@@ -334,7 +334,7 @@ namespace Everquest
                 spell.Rank = 2;
             if (spell.Rank == 10 || spell.Name.EndsWith("III") || spell.Name.EndsWith("03"))
                 spell.Rank = 3;
-            // 145 NO_RESIST - ignore SPA 120 resist?
+            // 145 NO_RESIST - ignore SPA 180 resist
             // 146 ALLOW_SPELLSCRIBE
             // 147 SPELL_REQ_ASSOCIATION_ID
             spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[147]);
@@ -626,7 +626,7 @@ namespace Everquest
                 spell.Rank = 2;
             if (spell.Rank == 10 || spell.Name.EndsWith("III") || spell.Name.EndsWith("03"))
                 spell.Rank = 3;
-            // 149 NO_RESIST - ignore SPA 120 resist?
+            // 149 NO_RESIST - ignore SPA 180 resist
             // 150 ALLOW_SPELLSCRIBE
             // 151 SPELL_REQ_ASSOCIATION_ID
             spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[151]);
