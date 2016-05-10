@@ -326,6 +326,9 @@ namespace winparser
 
                 html.Append("<td>");
 
+                if (spell.Stacking != null && spell.Stacking.Count > 0)
+                    html.AppendFormat("Stacking: {0}<br/>", String.Join(", ", spell.Stacking.ToArray()));
+
                 if (spell.MaxHits > 0)
                     html.AppendFormat("Max Hits: {0} {1}<br/>", spell.MaxHits, FormatEnum(spell.MaxHitsType));
 
