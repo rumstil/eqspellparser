@@ -31,9 +31,9 @@ namespace Everquest
             // some effect types are described differently by the parser than what players commonly call them
             CommonEffects.Add("Cure", @"^Decrease \w+ Counter by (\d+)");
             CommonEffects.Add("Heal", @"^Increase Current HP by ([1-9]\d+)(?!.*(?:per tick))"); // 1-9 to exclude spells with "Increase Current HP by 0" 
-            CommonEffects.Add("HoT", @"^Increase Current HP by (\d+) per tick");
+            CommonEffects.Add("HoT", @"^Increase Current HP by (\d+) per tick|\sHoT\s");
             CommonEffects.Add("Nuke", @"^Decrease Current HP by (\d+)(?!.*(?:per tick))");
-            CommonEffects.Add("DoT", @"^Decrease Current HP by (\d+) per tick");
+            CommonEffects.Add("DoT", @"^Decrease Current HP by (\d+) per tick|\sDoT\s");
             CommonEffects.Add("Haste", @"^Increase Melee Haste (?:v3 )?by (\d+)");
             CommonEffects.Add("Slow", @"^(?:Decrease Melee Haste)|(?:Increase Melee Delay) by (\d+)");
             CommonEffects.Add("Snare", @"^Decrease Movement Speed by (\d+)");
