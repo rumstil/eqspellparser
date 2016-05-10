@@ -19,7 +19,7 @@ namespace Everquest
         public int ClassMaxLevel { get; set; }
         public string Category { get; set; }
         public int Rank { get; set; }
-        
+
         // these are for post search processing:
         //public bool AddForwardRefs { get; set; }
         public bool AddBackRefs { get; set; }
@@ -71,7 +71,7 @@ namespace Everquest
     /// A spell and AA container with some search and cross referencing helpers.
     /// You don't need to use this class if all you want to do is to parse the spell data and dump it to console or a file.
     /// </summary>
-    public class SpellCache 
+    public class SpellCache
     {
         public string SpellPath { get; set; }
 
@@ -155,7 +155,7 @@ namespace Everquest
                 }
 
                 spell.LinksTo = linked.ToArray();
-            }        
+            }
         }
 
         public void LoadAA(string aaPath, string descPath)
@@ -209,7 +209,7 @@ namespace Everquest
                             int mask = 1 << i;
                             if (spell.Levels[i] == 0 && ((int)aa.ClassesMask & mask) != 0)
                                 spell.Levels[i] = 254;
-                        }                        
+                        }
                 }
         }
 
@@ -230,7 +230,10 @@ namespace Everquest
 
             //  spell name and description are checked for literal text    
             if (!String.IsNullOrEmpty(filter.Text))
-                query = query.Where(x => x.ID.ToString() == filter.Text || x.Name.IndexOf(filter.Text, StringComparison.InvariantCultureIgnoreCase) >= 0 || (x.Desc != null && x.Desc.IndexOf(filter.Text, StringComparison.InvariantCultureIgnoreCase) >= 0));
+                query = query.Where(x => x.ID.ToString() == filter.Text
+                    || x.Name.IndexOf(filter.Text, StringComparison.InvariantCultureIgnoreCase) >= 0
+                    || (x.Stacking != null && x.Stacking.Any(y => y.IndexOf(filter.Text, StringComparison.InvariantCultureIgnoreCase) >= 0))
+                    || (x.Desc != null && x.Desc.IndexOf(filter.Text, StringComparison.InvariantCultureIgnoreCase) >= 0));
 
             // level filter is only used when a class is selected
             int levelArrayIndex = SpellParser.ParseClass(filter.Class) - 1;
