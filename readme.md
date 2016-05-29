@@ -37,7 +37,7 @@ http://www.raidloot.com/Spells.aspx
 
 If you want to parse historical, test or beta server spell data you will need to download the parser and run it on your own machine.
 
-https://bitbucket.org/raidloot/eqspellparser/downloads/parser.zip
+https://s3.amazonaws.com/raidloot/parser.zip
 
 The download file contains winparser.exe which can open up spell files to be parsed on your own computer.
 
