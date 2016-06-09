@@ -1,0 +1,13 @@
+*.suo
+*.user
+*.pdb
+*.exe
+Bin/
+Debug/
+
+
+
+spells_us*.txt*
+dbstr_us*.txt*
+SpellStackingGroups*.txt*
+

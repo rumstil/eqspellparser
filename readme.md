@@ -35,7 +35,7 @@ http://www.raidloot.com/Spells.aspx
 
 #Downloadable Version#
 
-If you want to parse historical, test or beta server spell data you will need to download the parser and run it on your own machine.
+If you want to parse historical, test or beta server spell data you will need to download the parser and run it on your own computer.
 
 https://s3.amazonaws.com/raidloot/parser.zip
 
