@@ -155,6 +155,9 @@ namespace Everquest
     {
         static public List<AA> LoadFromFile(string aaPath, string descPath)
         {
+            // aa file is not versioned
+            var version = DateTime.Today.ToString(Spell.DateVersionFormat);
+
             var desc = new Dictionary<string, string>(50000);
             if (File.Exists(descPath))
                 using (var text = File.OpenText(descPath))
@@ -214,7 +217,7 @@ namespace Everquest
                         int base2 = ParseInt(slotsArray[i + 2]);
                         var slot = new AASlot() { SPA = spa, Base1 = base1, Base2 = base2 };
 
-                        slot.Desc = spell.ParseEffect(spa, base1, base2, 0, 100, aa.ReqLevel);
+                        slot.Desc = spell.ParseEffect(spa, base1, base2, 0, 100, aa.ReqLevel, version);
 #if DEBUG
                         //spadesc = String.Format("SPA {0} Base1={1} Base2={2} --- {3}", spa, base1, base2, spadesc);
 #endif

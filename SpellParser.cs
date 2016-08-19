@@ -17,11 +17,13 @@ namespace Everquest
         /// Load all spells from spells_us.txt.
         /// This method only takes the path to the main spells_us.txt. It will attempt to load supporting files as long as they are in the same folder and use the same naming convention.
         /// </summary>
-        static public List<Spell> LoadFromFile(string spellPath)
+        public static List<Spell> LoadFromFile(string spellPath)
         {
             // the spell file is required. the other files are optional 
             if (!File.Exists(spellPath))
                 throw new FileNotFoundException("Could not open spell file.", spellPath);
+
+            var version = GetFileVersion(spellPath);
 
             var list = new List<Spell>(50000);
             var listById = new Dictionary<int, Spell>(50000);
@@ -51,14 +53,14 @@ namespace Everquest
             foreach (var fields in LoadFields(spellPath))
             {
                 // file format has changed over time - pick the best parser
-                Func<string[], Spell> parser = ParseSpell;
+                Func<string[], string, Spell> parser = ParseSpell;
                 if (fields.Length == 179)
                     parser = ParseSpell20160413;
                 if (fields.Length > 220)
                     parser = ParseSpell20160210;
 
                 // parser the spell
-                var spell = parser(fields);
+                var spell = parser(fields, version);
 
                 list.Add(spell);
                 listById[spell.ID] = spell;
@@ -124,6 +126,19 @@ namespace Everquest
             return list;
         }
 
+        static string GetFileVersion(string path)
+        {
+            // use the file timestamp as the version string (this is not perfect because file timestamps can be accidentally changed)
+            var version = File.GetLastWriteTime(path).ToString(Spell.DateVersionFormat);
+
+            // also check the filename for a date version string. e.g. spells_us-2016-01-01.txt
+            var versionInName = Regex.Match(Path.GetFileName(path), @"\d\d\d\d-\d\d-\d\d");
+            if (versionInName.Success)
+                version = versionInName.Groups[0].Value;
+
+            return version;
+        }
+
         /// <summary>
         /// Load fields from a delimited text file.
         /// </summary>
@@ -146,7 +161,7 @@ namespace Everquest
         /// This handles the current file format.
         /// This format started with 174 fields.
         /// </summary>
-        static Spell ParseSpell(string[] fields)
+        static Spell ParseSpell(string[] fields, string version)
         {
             var spell = new Spell();
 
@@ -391,7 +406,7 @@ namespace Everquest
                 int base2 = ParseInt(slotfields[3]);
                 int calc = ParseInt(slotfields[4]);
                 int max = ParseInt(slotfields[5]);
-                string desc = spell.ParseEffect(spa, base1, base2, max, calc, MAX_LEVEL);
+                string desc = spell.ParseEffect(spa, base1, base2, max, calc, MAX_LEVEL, version);
 
                 // unused slot, no more to follow
                 if (spa == 254)
@@ -434,7 +449,7 @@ namespace Everquest
         /// This handles the old file format which became obsolete with the 2016-04-13 test server patch.
         /// This format only had 179 fields.
         /// </summary>
-        static Spell ParseSpell20160413(string[] fields)
+        static Spell ParseSpell20160413(string[] fields, string version)
         {
             var spell = new Spell();
 
@@ -684,7 +699,7 @@ namespace Everquest
                 int base2 = ParseInt(slotfields[3]);
                 int calc = ParseInt(slotfields[4]);
                 int max = ParseInt(slotfields[5]);
-                string desc = spell.ParseEffect(spa, base1, base2, max, calc, MAX_LEVEL);
+                string desc = spell.ParseEffect(spa, base1, base2, max, calc, MAX_LEVEL, version);
 
                 // unused slot, no more to follow
                 if (spa == 254)
@@ -727,7 +742,7 @@ namespace Everquest
         /// This handles the old file format which became obsolete with the 2016-02-10 test server patch.
         /// This format grew to 239 fields at it's final iteration.
         /// </summary>
-        static Spell ParseSpell20160210(string[] fields)
+        static Spell ParseSpell20160210(string[] fields, string version)
         {
             var spell = new Spell();
 
@@ -980,7 +995,7 @@ namespace Everquest
                 int max = ParseInt(fields[44 + i]);
                 int base1 = ParseInt(fields[20 + i]);
                 int base2 = ParseInt(fields[32 + i]);
-                string desc = spell.ParseEffect(spa, base1, base2, max, calc, MAX_LEVEL);
+                string desc = spell.ParseEffect(spa, base1, base2, max, calc, MAX_LEVEL, version);
 
                 // unused slot, no more to follow
                 if (spa == 254)
@@ -1055,7 +1070,7 @@ namespace Everquest
         /// <summary>
         /// Parse roman numerals up to 50. Returns 0 if the numeral could not be parsed.
         /// </summary>
-        private static int ParseRomanNumeral(string num)
+        static int ParseRomanNumeral(string num)
         {
             var roman = new string[] { 
                 "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X" ,

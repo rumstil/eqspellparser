@@ -1068,6 +1068,7 @@ namespace Everquest
         public int ResistPerLevel;
         public int ResistCap;
         public List<string> Stacking;
+        //public string Version;
 
         public int[] LinksTo;
         public int RefCount; // number of spells that link to this
@@ -1085,10 +1086,12 @@ namespace Everquest
         /// [Group 123]    is a reference to spell group 123
         /// [Item 123]     is a reference to item 123
         /// [AA 123]     is a reference to AA group 123
-        static public readonly Regex SpellRefExpr = new Regex(@"\[Spell\s(\d+)\]");
-        static public readonly Regex GroupRefExpr = new Regex(@"\[Group\s(\d+)\]");
-        static public readonly Regex ItemRefExpr = new Regex(@"\[Item\s(\d+)\]");
-        static public readonly Regex AARefExpr = new Regex(@"\[AA\s(\d+)\]");
+        public static readonly Regex SpellRefExpr = new Regex(@"\[Spell\s(\d+)\]");
+        public static readonly Regex GroupRefExpr = new Regex(@"\[Group\s(\d+)\]");
+        public static readonly Regex ItemRefExpr = new Regex(@"\[Item\s(\d+)\]");
+        public static readonly Regex AARefExpr = new Regex(@"\[AA\s(\d+)\]");
+
+        public static readonly string DateVersionFormat = "yyyy-MM-dd";
 
         public Spell()
         {
@@ -1106,7 +1109,7 @@ namespace Everquest
         /// Each spell can have a number of slots for variable spell effects. The game developers call these "SPAs".
         /// TODO: this should be a static function but it makes references to spell attributes like ID, Skill, Extra, DurationTicks and in a few cases even modifies the Mana attribute.
         /// </summary>
-        public string ParseEffect(int spa, int base1, int base2, int max, int calc, int level)
+        public string ParseEffect(int spa, int base1, int base2, int max, int calc, int level, string version)
         {
             // type 254 indicates an unused slot and end of slots (i.e. all the rest will also be 254)
             if (spa == 254)
@@ -1122,6 +1125,8 @@ namespace Everquest
 
             // some effects are capped at a max level
             string maxlevel = (max > 0) ? String.Format(" up to level {0}", max) : null;
+
+            Func<string, bool> versionLessThan = date => String.Compare(version, date) < 0;
 
             //Func<string, string> FormatCount = delegate(string name) { return ((value > 0) ? "Increase " : "Decrease ") + name + " by " + Math.Abs(value); };
 
@@ -1522,7 +1527,9 @@ namespace Everquest
                     // this is multiplicative
                     return Spell.FormatPercent("Chance to Double Attack", base1);
                 case 178:
-                    return String.Format("Lifetap from Weapon Damage: {0}%", value);
+                    if (versionLessThan("2016-08-16"))
+                        return String.Format("Lifetap from Weapon Damage: {0}%", base1);
+                    return String.Format("Lifetap from Weapon Damage: {0}%", base1 / 10f);
                 case 179:
                     return String.Format("Instrument Modifier: {0} {1}", Skill, value);
                 case 180:
@@ -2305,7 +2312,7 @@ namespace Everquest
         /// Calculate a duration.
         /// </summary>
         /// <returns>Numbers of ticks (6 second units)</returns>
-        static public int CalcDuration(int calc, int max, int level)
+        public static int CalcDuration(int calc, int max, int level)
         {
             int value = 0;
 
@@ -2385,7 +2392,7 @@ namespace Everquest
         /// <summary>
         /// Calculate a level/tick scaled value.
         /// </summary>
-        static public int CalcValue(int calc, int base1, int max, int tick, int level)
+        public static int CalcValue(int calc, int base1, int max, int tick, int level)
         {
             if (calc == 0)
                 return base1;
@@ -2553,7 +2560,7 @@ namespace Everquest
         /// <summary>
         /// Calculate the min/max values for a scaled value.
         /// </summary>
-        static public string CalcValueRange(int calc, int base1, int max, int duration, int level)
+        public static string CalcValueRange(int calc, int base1, int max, int duration, int level)
         {
             int start = CalcValue(calc, base1, max, 1, level);
             int finish = Math.Abs(CalcValue(calc, base1, max, duration, level));
@@ -2898,7 +2905,7 @@ namespace Everquest
             return type;
         }
 
-        static public string FormatTime(float seconds)
+        public static string FormatTime(float seconds)
         {
             if (seconds < 120)
                 return seconds.ToString("0.##") + "s";
@@ -2959,6 +2966,7 @@ namespace Everquest
 
             return String.Format("{0} {1} by {2:0.#}% to {3:0.#}%", max < 0 ? "Decrease" : "Increase", name, Math.Abs(min), Math.Abs(max));
         }
+
 
         /*
         static private string FormatDesc()
