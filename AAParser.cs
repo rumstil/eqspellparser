@@ -33,7 +33,8 @@ namespace Everquest
         Rain_of_Fear,
         Call_of_the_Forsaken,
         The_Darkened_Sea,
-        The_Broken_Mirror
+        The_Broken_Mirror,
+        Empires_of_Kunark
     }
 
     public struct AASlot

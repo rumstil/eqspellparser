@@ -615,9 +615,11 @@ namespace Everquest
         Old_Centaur = 16,
         Trakanon = 19,
         Venril_Sathir = 20,
+        Old_Evil_Eye = 21,
         Froglok = 27,
         Old_Gargoyle = 29,
         Gelatinous_Cube = 31,
+        Old_Gnoll = 39,
         Old_Wolf = 42,
         Black_Spirit_Wolf = (42 << 16) + 1,
         White_Spirit_Wolf = (42 << 16) + 2,
@@ -642,6 +644,9 @@ namespace Everquest
         Old_Drake = 89,
         Old_Alligator = 91,
         Old_Cazic_Thule = 95,
+        Cockatrice = 96,
+        Old_Vampire = 98,
+        Old_Amygdalan = 99,
         Old_Dervish = 100,
         Tadpole = 102,
         Old_Kedge = 103,
@@ -661,8 +666,14 @@ namespace Everquest
         Invisible_Man = 127,
         Iksar = 128,
         Vah_Shir = 130,
+        Old_Sarnak = 131,
+        Old_Drolvarg = 133,
         Mosquito = 134,
+        Rhinoceros = 135,
+        Xalgoz = 136,
         Kunark_Goblin = 137,
+        Yeti = 138,
+        Kunark_Giant = 140,
         Nearby_Object = 142,
         Erollisi_Marr = 150,
         Tribunal = 151,
@@ -913,7 +924,8 @@ namespace Everquest
         Cursed_Siren = 769,
         Tyrannosaurus = 771,
         Ankylosaurus = 774,
-        Thaell_Ew = 785
+        Thaell_Ew = 785,
+        Drolvarg = 843,
     }
 
     public enum SpellFaction
@@ -1620,7 +1632,7 @@ namespace Everquest
                     // % chance applies individually to each mob in radius
                     //if (base2 > 0)
                     //    return String.Format("AE Attack ({0}% Chance) for {0}% Damage", base1, base2);
-                    return Spell.FormatPercent("Chance to AE Attack", base1);
+                    return Spell.FormatPercent("Chance to AE Attack", base1) + (base2 != 100 ? String.Format(" with {0}% Damage", base2) : "");
                 case 212:
                     return Spell.FormatPercent("Chance to Critical Nuke", base1) + " and " + Spell.FormatPercent("Spell Mana Cost v2", base2);
                 case 213:
@@ -2273,8 +2285,9 @@ namespace Everquest
                         return String.Format("Cast: [Group {0}] ({1}% Chance)", base2, base1);
                     return String.Format("Cast: [Group {0}]", base2);
                 case 471:
-                    // repeat the entire melee round. i.e. main attack, double attack, triple
-                    return Spell.FormatPercent("Chance to Repeat Melee Round", base1);
+                    // add an extra melee round. i.e. main attack, double attack, triple
+                    // this is sort of like 211 AE attack except it was added to nerf DPS by only affecting the current target
+                    return Spell.FormatPercent("Chance to Repeat Melee Round", base1) + (base2 != 100 ? String.Format(" with {0}% Damage", base2) : "");
                 case 472:
                     return String.Format("Buy AA Rank ({0})", base1);
                 case 473:
