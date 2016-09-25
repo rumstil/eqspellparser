@@ -437,7 +437,7 @@ namespace Everquest
 
             // debug stuff
             //spell.Unknown = ParseFloat(fields[209]);
-            //if (spell.ID == 21683) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
+            //if (spell.ID == 49149) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
             //if (fields[198] != "0") Console.WriteLine("\n\n===\n{0} {1}", fields[198], String.Join("\n", spell.Details()));
 
             spell.Prepare();

@@ -2196,6 +2196,10 @@ namespace Everquest
                     return Spell.FormatCount("Trophy Slots", base1);
                 case 433:
                     // similar to 220 except the values get lowered with faster weapons 
+                    // Dzarn: When calculating the delay associated to SPA 433:
+                    // Weapon skills: Weapon * Haste
+                    // Skill attacks: Hasted delay of the button
+                    // SPA 193: 30 second delay is assumed
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus v2", base1);
                 case 434:
                     // similar to 220 except the values get lowered with faster weapons 
@@ -2622,7 +2626,7 @@ namespace Everquest
                 result.Add("Classes: " + ClassesLevels);
                 // the skill field is full of random values for spells that aren't PC castable so it's best to hide it 
                 if (SongCap > 0)
-                    result.Add("Skill: " + FormatEnum(Skill) + ", Cap: " + SongCap);
+                    result.Add("Skill: " + FormatEnum(Skill) + ", Instrument Cap: " + SongCap + '%');
                 else if (CombatSkill)
                     result.Add("Skill: " + FormatEnum(Skill) + " (Combat Skill)");
                 else
