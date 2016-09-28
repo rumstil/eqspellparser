@@ -361,6 +361,7 @@ namespace Everquest
 
     public enum SpellSkillCap
     {
+        Base_Stats = -1,
         STR = 0,
         STA = 1,
         AGI = 2,
@@ -1658,6 +1659,8 @@ namespace Everquest
                     return Spell.FormatPercent("Weight", -base1);
                 case 222:
                     return Spell.FormatPercent("Chance to Block from Back", base1);
+                case 223:
+                    return Spell.FormatPercent("Chance to Double Riposte", base1);
                 case 224:
                     if (base2 > 0)
                         return Spell.FormatPercent("Chance of Additional Riposte with " + Spell.FormatEnum((SpellSkill)base2), base1);
@@ -2621,14 +2624,15 @@ namespace Everquest
             //Action<string> Add = delegate(string s) { result.Add(s); };
 
 
+            // the skill field is full of random values for spells that aren't PC castable so it only makes sense to show it for PC spells
             if (!String.IsNullOrEmpty(ClassesLevels))
             {
                 result.Add("Classes: " + ClassesLevels);
-                // the skill field is full of random values for spells that aren't PC castable so it's best to hide it 
-                if (SongCap > 0)
-                    result.Add("Skill: " + FormatEnum(Skill) + ", Instrument Cap: " + SongCap + '%');
-                else if (CombatSkill)
+                
+                if (CombatSkill)
                     result.Add("Skill: " + FormatEnum(Skill) + " (Combat Skill)");
+                else if (SongCap > 0)
+                    result.Add("Skill: " + FormatEnum(Skill) + ", Max Focus: " + SongCap + '%');
                 else
                     result.Add("Skill: " + FormatEnum(Skill));
             }
@@ -2755,6 +2759,9 @@ namespace Everquest
 
             if (CritOverride > 0)
                 result.Add("Max Crit Chance: " + CritOverride + "%");
+
+            //if (SongCap > 0)
+            //    result.Add("Max Song Focus: " + SongCap + "%");
 
             if (MaxHits > 0)
                 result.Add("Max Hits: " + MaxHits + " " + FormatEnum((SpellMaxHits)MaxHitsType));

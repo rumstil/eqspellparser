@@ -15,7 +15,7 @@ namespace Everquest
         /// <param name="server">null for the live servers. "-test" for test server.</param>
         public static void DownloadManifest(string server, string saveToPath)
         {
-            string url = String.Format("http://manifest.patch.station.sony.com/patch/sha/manifest/eq/eq-en{0}/live/eq-en{0}.sha.soe", server);
+            string url = String.Format("http://manifest.patch.daybreakgames.com/patch/sha/manifest/eq/eq-en{0}/live/eq-en{0}.sha.soe", server);
             DownloadFile(url, saveToPath);
         }
 
@@ -104,7 +104,7 @@ namespace Everquest
 
         public FileInfo FindFile(string name)
         {
-            string root = "http://eq.patch.station.sony.com/patch/sha/eq/eq.sha.zs";
+            string root = "http://eq.patch.daybreakgames.com/patch/sha/eq/eq.sha.zs";
 
             // set file position to the location of the filename
             // if any of the other important attributes preceeded the filename (as they can) then this will fail to load them 
