@@ -2314,7 +2314,8 @@ namespace Everquest
                 //479 Ff_Value_Min
                 //480 Ff_Value_Max
                 //481 Fc_Cast_Spell_On_Land
-                //482 Skill Base Damage Mod
+                case 482:
+                    return Spell.FormatPercent("Base " + Spell.FormatEnum((SpellSkill)base2) + " Damage", base1);
                 case 483:
                     return Spell.FormatPercentRange("Spell Damage Taken", base1, base2);
                 case 484:
