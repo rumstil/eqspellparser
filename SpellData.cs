@@ -2257,7 +2257,7 @@ namespace Everquest
                 case 457:
                     // offical name is "Resource Tap." Formula is base1 / 1000 * damage value. Example: 88001 damage, base1 = 100. 100 / 1000 = .1 * 88001.
                     // simply dividing by 10 gives the same result.
-                    return string.Format("Return {0}% of Damage as {1}", base1 / 10, new string[] { "HP", "Mana", "Endurance" }[base2 % 3]) + (max > 0 ? String.Format(", Max Per Hit: {0}", max) : "");
+                    return string.Format("Return {0}% of Damage as {1}", base1 / 10f, new [] { "HP", "Mana", "Endurance" }[base2 % 3]) + (max > 0 ? String.Format(", Max Per Hit: {0}", max) : "");
                 case 458:
                     // -100 = no faction hit, 100 = double faction
                     return Spell.FormatPercent("Faction Hit", base1);
