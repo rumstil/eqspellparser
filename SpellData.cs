@@ -1910,9 +1910,10 @@ namespace Everquest
                 case 334:
                     return Spell.FormatCount("Current HP", value) + repeating + range + " (If Target Not Moving)";
                 case 335:
+                    // block next spell that matches limits
                     if (base1 < 100)
-                        return String.Format("Block Next Matching Spell ({0}% Chance)", base1);
-                    return "Block Next Matching Spell";
+                        return String.Format("Block Next Spell ({0}% Chance)", base1);
+                    return "Block Next Spell";
                 case 337:
                     return Spell.FormatPercent("Experience Gain", value);
                 case 338:
@@ -2125,7 +2126,7 @@ namespace Everquest
                 case 405:
                     return Spell.FormatPercent("Staff Block Chance", base1);
                 case 406:
-                    return String.Format("Cast: [Spell {0}] on Max Hits", base1);
+                    return String.Format("Cast: [Spell {0}] on Max Hits Used", base1);
                 case 407:
                     // this is a guess. haven't tested this
                     return String.Format("Cast: [Spell {0}] on Hit By Spell", base1);
@@ -2267,6 +2268,12 @@ namespace Everquest
                 case 460:
                     // some spells are tagged as non focusable (field 197) this overrides that
                     return "Limit Type: Include Non-Focusable";
+                case 461:
+                    // similar to 302
+                    return Spell.FormatPercentRange("Base Spell Damage v2", base1, base2);
+                case 462:
+                    // similar to 286?
+                    return Spell.FormatCount("Spell Damage Bonus v2", base1);
                 case 463:
                     // same as /shield command?
                     return Spell.FormatPercent("Melee Shielding: {0}%", base1);
@@ -2311,9 +2318,20 @@ namespace Everquest
                     return String.Format("Move to top of Hatelist ({0}% Chance)", base1);
                 case 478:
                     return String.Format("Move to bottom of Hatelist ({0}% Chance)", base1);
-                //479 Ff_Value_Min
-                //480 Ff_Value_Max
-                //481 Fc_Cast_Spell_On_Land
+                case 479:
+                    if (base1 < 0)
+                        return String.Format("Limit Max Value: {0}", -base1);
+                    return String.Format("Limit Min Value: {0}", base1);
+                case 480:
+                    if (base1 < 0)
+                        return String.Format("Limit Min Value: {0}", -base1);
+                    return String.Format("Limit Max Value: {0}", base1);
+                case 481:
+                    // similar to 407 except maybe it checks limits?
+                    if (base1 < 100)
+                        return String.Format("Cast: [Spell {0}] on Hit By Spell ({1}% Chance)", base2, base1);
+                    return String.Format("Cast: [Spell {0}] on Hit By Spell", base2);
+
                 case 482:
                     return Spell.FormatPercent("Base " + Spell.FormatEnum((SpellSkill)base2) + " Damage", base1);
                 case 483:
@@ -2322,11 +2340,15 @@ namespace Everquest
                     // Modifies incoming spell damage by Base1 points. Applies post-crit for both instant damage and DoTs.
                     // Differs from 297 which applies pre-crit to both instant damage and DoTs. 
                     return Spell.FormatCount("Spell Damage Taken", base1);
-                //485 Ff_CasterClass
-                //486 Ff_Same_Caster
+                case 485:
+                    // 411 seems to limit by the target's class
+                    // this seems to limit by the caster's class
+                    return String.Format("Limit Caster Class: {0}", (SpellClassesMask)(base1 >> 1));
+                case 486:
+                    return "Limit: Same Caster";
             }
 
-            return String.Format("Unknown SPA={0} Base1={1} Base2={2} Max={3} Calc={4} Value={5}", spa, base1, base2, max, calc, value);
+            return String.Format("Unknown SPA {0} Base1={1} Base2={2} Max={3} Calc={4} Value={5}", spa, base1, base2, max, calc, value);
         }
 
         /// <summary>

@@ -25,11 +25,11 @@ namespace Everquest
 
             var version = GetFileVersion(spellPath);
 
-            var list = new List<Spell>(50000);
-            var listById = new Dictionary<int, Spell>(50000);
+            var list = new List<Spell>(60000);
+            var listById = new Dictionary<int, Spell>(60000);
 
             // load description strings file
-            var desc = new Dictionary<string, string>(50000);
+            var desc = new Dictionary<string, string>(60000);
             var descPath = spellPath.Replace("spells_us", "dbstr_us");
             foreach (var fields in LoadFields(descPath))
             {

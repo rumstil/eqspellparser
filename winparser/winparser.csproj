@@ -127,7 +127,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\HtmlTemplate.txt" />
-    <None Include="winparser.config" />
+    <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">

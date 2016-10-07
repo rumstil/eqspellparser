@@ -22,7 +22,8 @@ namespace winparser
             if (servers != null)
             {
                 Button clone = DownloadBtn;
-                foreach (var s in servers.Split(','))
+                var list = servers.Replace(" ", "").Split(',');
+                foreach (var s in list)
                 {
                     var button = new Button();
                     button.Size = clone.Size;
