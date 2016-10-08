@@ -56,9 +56,8 @@
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="lzma, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\lzma.dll</HintPath>
+    <Reference Include="lzma">
+      <HintPath>..\core\lzma.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
@@ -78,19 +77,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\AAParser.cs">
+    <Compile Include="..\core\AAParser.cs">
       <Link>AAParser.cs</Link>
     </Compile>
-    <Compile Include="..\Patcher.cs">
+    <Compile Include="..\core\Patcher.cs">
       <Link>Patcher.cs</Link>
     </Compile>
-    <Compile Include="..\SpellCache.cs">
+    <Compile Include="..\core\SpellCache.cs">
       <Link>SpellCache.cs</Link>
     </Compile>
-    <Compile Include="..\SpellData.cs">
+    <Compile Include="..\core\SpellData.cs">
       <Link>SpellData.cs</Link>
     </Compile>
-    <Compile Include="..\SpellParser.cs">
+    <Compile Include="..\core\SpellParser.cs">
       <Link>SpellParser.cs</Link>
     </Compile>
     <Compile Include="DiffMatchPatch.cs" />
