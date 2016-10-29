@@ -1,13 +1,16 @@
 *.suo
 *.user
 *.pdb
-*.exe
+*.exe*
+*.vshost.exe.*
 Bin/
+Obj/
 Debug/
+Release/
 
 
 
 spells_us*.txt*
 dbstr_us*.txt*
 SpellStackingGroups*.txt*
-
+manifest.dat

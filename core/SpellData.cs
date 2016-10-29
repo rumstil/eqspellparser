@@ -2320,12 +2320,12 @@ namespace Everquest
                     return String.Format("Move to bottom of Hatelist ({0}% Chance)", base1);
                 case 479:
                     if (base1 < 0)
-                        return String.Format("Limit Max Value: {0}", -base1);
-                    return String.Format("Limit Min Value: {0}", base1);
+                        return String.Format("Limit Max Value: {0} {1} SPA", -base1, Spell.FormatEnum((SpellEffect)base2));
+                    return String.Format("Limit Min Value: {0} {1} SPA", base1, Spell.FormatEnum((SpellEffect)base2));
                 case 480:
                     if (base1 < 0)
-                        return String.Format("Limit Min Value: {0}", -base1);
-                    return String.Format("Limit Max Value: {0}", base1);
+                        return String.Format("Limit Min Value: {0} {1} SPA", -base1, Spell.FormatEnum((SpellEffect)base2));
+                    return String.Format("Limit Max Value: {0} {1} SPA", base1, Spell.FormatEnum((SpellEffect)base2));
                 case 481:
                     // similar to 407 except maybe it checks limits?
                     if (base1 < 100)
