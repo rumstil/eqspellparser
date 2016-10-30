@@ -7,7 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 
-namespace Everquest
+namespace EQSpellParser
 {
     #region Enums
 

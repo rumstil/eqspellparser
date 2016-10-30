@@ -8,7 +8,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using Everquest;
+using EQSpellParser;
+
 
 namespace winparser
 {

@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 
 
-namespace Everquest
+namespace EQSpellParser
 {
     public static class SpellParser
     {

@@ -8,7 +8,8 @@ using System.Text;
 using SevenZip;
 using System.Globalization;
 
-namespace Everquest
+
+namespace EQSpellParser
 {
     public class LaunchpadPatcher
     {

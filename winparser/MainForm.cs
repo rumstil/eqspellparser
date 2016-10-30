@@ -11,7 +11,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using DiffMatchPatch;
-using Everquest;
+using EQSpellParser;
+
 
 namespace winparser
 {

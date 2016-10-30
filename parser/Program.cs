@@ -7,7 +7,7 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using Everquest;
+using EQSpellParser;
 
 
 namespace parser

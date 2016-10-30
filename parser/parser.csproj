@@ -72,21 +72,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\core\AAParser.cs">
-      <Link>AAParser.cs</Link>
-    </Compile>
-    <Compile Include="..\core\Patcher.cs">
-      <Link>Patcher.cs</Link>
-    </Compile>
-    <Compile Include="..\core\SpellCache.cs">
-      <Link>SpellCache.cs</Link>
-    </Compile>
-    <Compile Include="..\core\SpellData.cs">
-      <Link>SpellData.cs</Link>
-    </Compile>
-    <Compile Include="..\core\SpellParser.cs">
-      <Link>SpellParser.cs</Link>
-    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -106,6 +91,12 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\core\EQSpellParser.csproj">
+      <Project>{64207f72-0af8-4852-aa38-af0b072d4c24}</Project>
+      <Name>EQSpellParser</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
