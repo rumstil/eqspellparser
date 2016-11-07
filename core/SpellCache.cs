@@ -211,6 +211,20 @@ namespace EQSpellParser
                                 spell.Levels[i] = 254;
                         }
                 }
+
+            // for Empires of Kunark the devs have improved all AA descriptions a great deal
+            // this means we can improve spell descriptions by using their AA description when appropriate
+            // aa.Slots.Length <= 1 ensures the AA doesn't do much other than cast a spell
+            /*
+            foreach (var aa in AAList)
+                if (aa.LinksTo.Length == 1 && aa.Slots.Length <= 1 && aa.Desc != null)
+                {
+                    Spell spell;
+                    if (SpellsById.TryGetValue(aa.LinksTo[0], out spell))
+                        if (spell.Desc == null || aa.Desc.Length >= spell.Desc.Length)
+                            spell.Desc = aa.Desc;
+                }
+            */
         }
 
         public IEnumerable<Spell> Search(SpellSearchFilter filter)

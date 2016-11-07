@@ -86,6 +86,20 @@ namespace EQSpellParser
         public Spell Spell;
         public int[] LinksTo;
 
+        public string TabName
+        {
+            get
+            {
+                if (Tab == 1 && Category == 11) return "ItemClick";
+                if (Tab == 1) return "General";
+                if (Tab == 2) return "Archetype";
+                if (Tab == 3) return "Class";
+                if (Tab == 4) return "Special";
+                if (Tab == 5) return "Focus";
+                return "Unknown";
+            }
+        }
+
         public AA()
         {
             Slots = new AASlot[0];
@@ -156,10 +170,7 @@ namespace EQSpellParser
     {
         static public List<AA> LoadFromFile(string aaPath, string descPath)
         {
-            // aa file is not versioned
-            var version = DateTime.Today.ToString(Spell.DateVersionFormat);
-
-            var desc = new Dictionary<string, string>(50000);
+            var desc = new Dictionary<string, string>(60000);
             if (File.Exists(descPath))
                 using (var text = File.OpenText(descPath))
                     while (!text.EndOfStream)
@@ -192,7 +203,7 @@ namespace EQSpellParser
                     aa.GroupID = ParseInt(fields[1]);
                     aa.PrevID = ParseInt(fields[2]);
                     desc.TryGetValue("1/" + fields[3], out aa.Name);
-                    //desc.TryGetValue("4/" + fields[4], out aa.Desc); // save memory for now
+                    desc.TryGetValue("4/" + fields[4], out aa.Desc); // save memory for now
                     aa.Rank = ParseInt(fields[5]);
                     aa.MaxRank = ParseInt(fields[6]);
                     aa.ClassesMask = (SpellClassesMask)ParseInt(fields[7]);
@@ -218,7 +229,7 @@ namespace EQSpellParser
                         int base2 = ParseInt(slotsArray[i + 2]);
                         var slot = new AASlot() { SPA = spa, Base1 = base1, Base2 = base2 };
 
-                        slot.Desc = spell.ParseEffect(spa, base1, base2, 0, 100, aa.ReqLevel, version);
+                        slot.Desc = spell.ParseEffect(spa, base1, base2, 0, 100, aa.ReqLevel);
 #if DEBUG
                         //spadesc = String.Format("SPA {0} Base1={1} Base2={2} --- {3}", spa, base1, base2, spadesc);
 #endif

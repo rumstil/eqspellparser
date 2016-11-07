@@ -53,7 +53,7 @@ namespace EQSpellParser
             foreach (var fields in LoadFields(spellPath))
             {
                 // file format has changed over time - pick the best parser
-                Func<string[], string, Spell> parser = ParseSpell;
+                Func<string[], int, Spell> parser = ParseSpell;
                 if (fields.Length == 179)
                     parser = ParseSpell20160413;
                 if (fields.Length > 220)
@@ -126,17 +126,20 @@ namespace EQSpellParser
             return list;
         }
 
-        static string GetFileVersion(string path)
+        /// <summary>
+        /// Return file date as an integer. e.g. Feb 1, 2016 -> 20160201
+        /// </summary>
+        static int GetFileVersion(string path)
         {
             // use the file timestamp as the version string (this is not perfect because file timestamps can be accidentally changed)
-            var version = File.GetLastWriteTime(path).ToString(Spell.DateVersionFormat);
+            var version = File.GetLastWriteTime(path).ToString("yyyyMMdd");
 
             // also check the filename for a date version string. e.g. spells_us-2016-01-01.txt
             var versionInName = Regex.Match(Path.GetFileName(path), @"\d\d\d\d-\d\d-\d\d");
             if (versionInName.Success)
-                version = versionInName.Groups[0].Value;
+                version = versionInName.Groups[0].Value.Replace("-", "");
 
-            return version;
+            return Int32.Parse(version);
         }
 
         /// <summary>
@@ -161,9 +164,10 @@ namespace EQSpellParser
         /// This handles the current file format.
         /// This format started with 174 fields.
         /// </summary>
-        static Spell ParseSpell(string[] fields, string version)
+        static Spell ParseSpell(string[] fields, int version)
         {
             var spell = new Spell();
+            spell.Version = version;
 
             // 0 SPELLINDEX
             spell.ID = Convert.ToInt32(fields[0]);
@@ -350,6 +354,7 @@ namespace EQSpellParser
             if (spell.Rank == 10 || spell.Name.EndsWith("III") || spell.Name.EndsWith("03"))
                 spell.Rank = 3;
             // 145 NO_RESIST - ignore SPA 180 resist
+            spell.NoSanctification = ParseBool(fields[145]);
             // 146 ALLOW_SPELLSCRIBE
             // 147 SPELL_REQ_ASSOCIATION_ID
             spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[147]);
@@ -406,23 +411,18 @@ namespace EQSpellParser
                 int base2 = ParseInt(slotfields[3]);
                 int calc = ParseInt(slotfields[4]);
                 int max = ParseInt(slotfields[5]);
-                string desc = spell.ParseEffect(spa, base1, base2, max, calc, MAX_LEVEL, version);
 
                 // unused slot, no more to follow
                 if (spa == 254)
                     break;
 
                 // unused slot, but there are more to follow
-                if (desc == null)
-                    continue;
+                //if (desc == null)
+                //    continue;
 
                 // make sure there is space for this slot (and any others that may have been skipped)
                 while (spell.Slots.Count <= i)
                     spell.Slots.Add(null);
-
-#if DEBUG
-                desc = String.Format("SPA {0} Base1={1} Base2={2} Max={3} Calc={4} --- ", spa, base1, base2, max, calc) + desc;
-#endif
 
                 spell.Slots[i] = new SpellSlot
                 {
@@ -431,12 +431,10 @@ namespace EQSpellParser
                     Base2 = base2,
                     Max = max,
                     Calc = calc,
-                    Desc = desc
                 };
             }
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[209]);
             //if (spell.ID == 49149) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
             //if (fields[198] != "0") Console.WriteLine("\n\n===\n{0} {1}", fields[198], String.Join("\n", spell.Details()));
 
@@ -449,9 +447,10 @@ namespace EQSpellParser
         /// This handles the old file format which became obsolete with the 2016-04-13 test server patch.
         /// This format only had 179 fields.
         /// </summary>
-        static Spell ParseSpell20160413(string[] fields, string version)
+        static Spell ParseSpell20160413(string[] fields, int version)
         {
             var spell = new Spell();
+            spell.Version = version;
 
             // 0 SPELLINDEX
             spell.ID = Convert.ToInt32(fields[0]);
@@ -642,6 +641,7 @@ namespace EQSpellParser
             if (spell.Rank == 10 || spell.Name.EndsWith("III") || spell.Name.EndsWith("03"))
                 spell.Rank = 3;
             // 149 NO_RESIST - ignore SPA 180 resist
+            spell.NoSanctification = ParseBool(fields[149]);
             // 150 ALLOW_SPELLSCRIBE
             // 151 SPELL_REQ_ASSOCIATION_ID
             spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[151]);
@@ -699,23 +699,18 @@ namespace EQSpellParser
                 int base2 = ParseInt(slotfields[3]);
                 int calc = ParseInt(slotfields[4]);
                 int max = ParseInt(slotfields[5]);
-                string desc = spell.ParseEffect(spa, base1, base2, max, calc, MAX_LEVEL, version);
 
                 // unused slot, no more to follow
                 if (spa == 254)
                     break;
 
                 // unused slot, but there are more to follow
-                if (desc == null)
-                    continue;
+                //if (desc == null)
+                //    continue;
 
                 // make sure there is space for this slot (and any others that may have been skipped)
                 while (spell.Slots.Count <= i)
                     spell.Slots.Add(null);
-
-#if DEBUG
-                desc = String.Format("SPA {0} Base1={1} Base2={2} Max={3} Calc={4} --- ", spa, base1, base2, max, calc) + desc;
-#endif
 
                 spell.Slots[i] = new SpellSlot
                 {
@@ -724,12 +719,10 @@ namespace EQSpellParser
                     Base2 = base2,
                     Max = max,
                     Calc = calc,
-                    Desc = desc
                 };
             }
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[209]);
             //if (spell.ID == 21683) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
             //if (fields[198] != "0") Console.WriteLine("\n\n===\n{0} {1}", fields[198], String.Join("\n", spell.Details()));
 
@@ -740,11 +733,12 @@ namespace EQSpellParser
         /// <summary>
         /// Load a single spell from the spell file.
         /// This handles the old file format which became obsolete with the 2016-02-10 test server patch.
-        /// This format grew to 239 fields at it's final iteration.
+        /// This format grew to 239 fields in it's final iteration.
         /// </summary>
-        static Spell ParseSpell20160210(string[] fields, string version)
+        static Spell ParseSpell20160210(string[] fields, int version)
         {
             var spell = new Spell();
+            spell.Version = version;
 
             // 0 SPELLINDEX
             spell.ID = Convert.ToInt32(fields[0]);
@@ -939,6 +933,7 @@ namespace EQSpellParser
             if (spell.Rank == 10 || spell.Name.EndsWith("III") || spell.Name.EndsWith("03"))
                 spell.Rank = 3;
             // 209 NO_RESIST - ignore SPA 180 resist?
+            spell.NoSanctification = ParseBool(fields[209]);
             // 210 ALLOW_SPELLSCRIBE
             // 211 SPELL_REQ_ASSOCIATION_ID
             spell.TargetRestrict = (SpellTargetRestrict)ParseInt(fields[211]);
@@ -995,22 +990,17 @@ namespace EQSpellParser
                 int max = ParseInt(fields[44 + i]);
                 int base1 = ParseInt(fields[20 + i]);
                 int base2 = ParseInt(fields[32 + i]);
-                string desc = spell.ParseEffect(spa, base1, base2, max, calc, MAX_LEVEL, version);
 
                 // unused slot, no more to follow
                 if (spa == 254)
                     break;
 
                 // unused slot, but there are more to follow
-                if (desc == null)
-                {
-                    spell.Slots.Add(null);
-                    continue;
-                }
-
-#if DEBUG
-                desc = String.Format("SPA {0} Base1={1} Base2={2} Max={3} Calc={4} --- ", spa, base1, base2, max, calc) + desc;
-#endif
+                //if (desc == null)
+                //{
+                //    spell.Slots.Add(null);
+                //    continue;
+                //}
 
                 spell.Slots.Add(new SpellSlot
                 {
@@ -1019,12 +1009,10 @@ namespace EQSpellParser
                     Base2 = base2,
                     Max = max,
                     Calc = calc,
-                    Desc = desc
                 });
             }
 
             // debug stuff
-            //spell.Unknown = ParseFloat(fields[209]);
             //if (spell.ID == 21683) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
             //if (fields[198] != "0") Console.WriteLine("\n\n===\n{0} {1}", fields[198], String.Join("\n", spell.Details()));
 

@@ -727,6 +727,10 @@ Otherwise, spell effect applies damage.  Calculate partial resist.
      If partial resist modifier is greater than 100, set partial resist modifier to 100.
      Spell may land.  A partial resist modifier of 0 means resist spell.  A partial resist modifier of 100 means spell lands for full.  Anything inbetween means that the spell lands partially, and the partial resist modifier is used to calculate resulting damage.
 
+--
+
+There are various ways that an NPC can be assigned a spell to cast: a script call, spell innate, contact innate, auto memorization, or a spell list.  The last one, the spell list, allows us to override the spell's natural resist mod.  This isn't data that you can parse, (the spell data file is an anomaly as far as pushing EverQuest's nuts and bolts out to the client), since the spell list and NPC aren't player facing.  In this case, the NPC in question is probably using spell list 11, which has a -740 resist mod for Clawing Darkness.
+
 
 AC
 =====================================================

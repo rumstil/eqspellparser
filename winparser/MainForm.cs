@@ -105,7 +105,9 @@ namespace winparser
             html.AppendFormat("<p>Loaded <strong>{0}</strong> spells from {1}.</p></html>", Cache.SpellList.Count(), SpellPath);
             html.Append("<p>Use the search button to perform a search on this spell file based on the filters on the left.");
             html.Append("<p>Use the compare button to compare two different spell files and show the differences. e.g. test server vs live server spells.");
-            html.AppendFormat("<p>This parser is an open source application. Visit <a href='{0}' class='ext' target='_top'>{0}</a> for more information.", "https://github.com/rumstil/eqspellparser");
+            html.AppendFormat("<p>This parser is an open source application. Visit <a href='{0}' class='ext' target='_top'>{0}</a> to download updates.", "https://github.com/rumstil/eqspellparser");
+            //html.Append("<p>Nov 8 2017 - Some spells will now show as 'Mostly Unresistable'. This means they are unresistable by standard resists and can only be resisted by Sanctification/Mystical Shielding AA or SPA 180 spells.");
+
             ShowHtml(html);
         }
 
@@ -319,7 +321,7 @@ namespace winparser
                 html.AppendFormat("<td>{0}{1}</td>", Spell.FormatTime(spell.DurationTicks * 6), spell.DurationTicks > 0 && spell.Focusable ? "+" : "");
 
                 if (!spell.Beneficial)
-                    html.AppendFormat("<td>{0} {1}</td>", spell.ResistType, spell.ResistMod != 0 ? spell.ResistMod.ToString() : "");
+                    html.AppendFormat("<td>{0} {1}</td>", Spell.FormatEnum(spell.ResistType), spell.ResistMod != 0 ? spell.ResistMod.ToString() : "");
                 else
                     html.Append("<td class='note'>n/a</td>");
 
@@ -347,6 +349,9 @@ namespace winparser
 
                 if (spell.RecourseID != 0)
                     html.AppendFormat("Recourse: {0}<br/>", InsertSpellRefLinks(String.Format("[Spell {0}]", spell.RecourseID)));
+
+                if (spell.AEDuration >= 2500)
+                    html.AppendFormat("AE Waves: {0}<br/>", spell.AEDuration / 2500);
 
                 for (int i = 0; i < spell.Slots.Count; i++)
                     if (spell.Slots[i] != null)
