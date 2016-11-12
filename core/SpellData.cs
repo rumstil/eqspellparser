@@ -1445,7 +1445,7 @@ namespace EQSpellParser
                 case 119:
                     return Spell.FormatPercent("Melee Haste v3", value);
                 case 120:
-                    return Spell.FormatPercent("Healing Taken", base1); // no min/max range
+                    return Spell.FormatPercent("Healing Taken", base1) + " (Before Crit)"; // no min/max range
                 case 121:
                     // damages the target whenever it hits something
                     return Spell.FormatCount("Reverse Damage Shield", -value);
@@ -1454,9 +1454,10 @@ namespace EQSpellParser
                 case 123:
                     return "Screech";
                 case 124:
-                    return Spell.FormatPercentRange("Spell Damage", base1, base2);
+                    // crits for DoTs, but not DDs.
+                    return Spell.FormatPercentRange("Spell Damage", base1, base2) + " (Before DoT Crit)";
                 case 125:
-                    return Spell.FormatPercentRange("Healing", base1, base2);
+                    return Spell.FormatPercentRange("Healing", base1, base2) + " (Before Crit)";
                 case 126:
                     return Spell.FormatPercentRange("Spell Resist Rate", base1, base2, true);
                 case 127:
@@ -1554,7 +1555,8 @@ namespace EQSpellParser
                 case 167:
                     return String.Format("Increase Pet Power ({0})", value);
                 case 168:
-                    // defensive disc/how is this different than an endless rune?
+                    // defensive disc. how is this different than an endless rune?
+                    // maybe it only mitigates the DI portion of the hit?
                     return Spell.FormatPercent("Melee Mitigation", -value);
                 case 169:
                     if ((SpellSkill)base2 != SpellSkill.Hit)
@@ -1848,7 +1850,7 @@ namespace EQSpellParser
                     // is added after all other multipliers (focus, crit, etc..)
                     // for DoTs it adds base1/ticks to each tick.
                     // SPA 286 and 303 work the same way but 286 does not crit and 303 does. - Beimeith
-                    return Spell.FormatCount("Spell Damage Bonus", base1);
+                    return Spell.FormatCount("Spell Damage", base1) + " (After Crit)";
                 case 287:
                     return String.Format("Increase Duration by {0}s", base1 * 6);
                 case 288:
@@ -1877,9 +1879,10 @@ namespace EQSpellParser
                 case 296:
                     // incoming damage % SPAs 296 and 483 multiply against what is essentially (spell-data's base value * spa 413) 
                     // rather than the focused value - Dzarn
-                    return Spell.FormatPercentRange("Base Spell Damage Taken", base1, base2);
+                    return Spell.FormatPercentRange("Spell Damage Taken", base1, base2) + " (Before Crit)";
                 case 297:
-                    return Spell.FormatCount("Base Spell Damage Taken", base1);
+                    // doesn't use focused value
+                    return Spell.FormatCount("Spell Damage Taken", base1) + " (Before Crit)";
                 case 298:
                     return Spell.FormatPercent("Pet Size", value - 100);
                 case 299:
@@ -1889,14 +1892,13 @@ namespace EQSpellParser
                 case 301:
                     return Spell.FormatPercent("Archery Damage", base1);
                 case 302:
-                    // see also 124. only used on a few AA
-                    // should this be a range?
-                    return Spell.FormatPercent("Base Spell Damage", base1);
+                    // see also 124. only used on a few AA (like chromatic haze)
+                    return Spell.FormatPercentRange("Spell Damage", base1, base2) + " (Before Crit)";
                 case 303:
-                    // used on type 3 augments
                     // is added before crit multipliers, but after SPA 296 and 302 (and maybe 124)?
                     // for DoTs it adds base1/ticks to each tick.
-                    return Spell.FormatCount("Base Spell Damage", base1);
+                    // SPA 286 and 303 work the same way but 286 does not crit and 303 does. - Beimeith
+                    return Spell.FormatCount("Spell Damage", base1) + " (Before Crit)";
                 case 304:
                     // this may just be chance to avoid offhand riposte
                     return Spell.FormatPercent("Chance to Avoid Offhand Riposte", -base1);
@@ -2153,18 +2155,19 @@ namespace EQSpellParser
                 case 391:
                     return String.Format("Limit Max Mana Cost: {0}", base1);
                 case 392:
-                    return Spell.FormatCount("Healing Bonus", base1);
+                    // 392 is the nocrit version and 396 is the crit version. - Beimeith
+                    return Spell.FormatCount("Healing", base1) + " (After Crit)";
                 case 393:
+                    // mostly used on war/pal self discs
+                    // like 120 which is before crit - maybe this is after crit?
                     return Spell.FormatPercentRange("Healing Taken", base1, base2);
                 case 394:
-                    // applied pre-crit
-                    return Spell.FormatCount("Healing Taken", base1);
+                    return Spell.FormatCount("Healing Taken", base1) + " (Before Crit)";
                 case 395:
-                    return Spell.FormatPercent("Chance to Crit Incoming Heal", value);
+                    return Spell.FormatPercentRange("Healing", base1, base2) + " (Before Crit)";
                 case 396:
-                    // used on type 3 augments
-                    // is added before crit multipliers
-                    return Spell.FormatCount("Base Healing", base1);
+                    // 392 is the nocrit version and 396 is the crit version. - Beimeith
+                    return Spell.FormatCount("Healing", base1) + " (Before Crit)";
                 case 397:
                     // will use the player AC formula for comparison with buffs but maybe they aren't comparable?
                     return Spell.FormatCount("Pet AC", (int)(value / (10f / 3f)));
@@ -2331,14 +2334,14 @@ namespace EQSpellParser
                     // same as 185, created to stack
                     return Spell.FormatPercent(Spell.FormatEnum((SpellSkill)base2) + " Damage v2", base1);
                 case 460:
-                    // some spells are tagged as non focusable (field 197) this overrides that
+                    // some spells are tagged as non focusable - this overrides that
                     return "Limit Type: Include Non-Focusable";
                 case 461:
-                    // similar to 302
-                    return Spell.FormatPercentRange("Base Spell Damage v2", base1, base2);
+                    // Crits for DoTs and DDs. Calculated AFTER 413 BEFORE 124, 302. - Beimeith 
+                    return Spell.FormatPercentRange("Spell Damage v2", base1, base2) + " (Before Crit)";
                 case 462:
-                    // similar to 286?
-                    return Spell.FormatCount("Spell Damage Bonus v2", base1);
+                    // SPA 462 appears to be the equivalent of SPA286 and added for stacking purposes. - Beimeith 
+                    return Spell.FormatCount("Spell Damage v2", base1) + " (After Crit)";
                 case 463:
                     // same as /shield command?
                     return Spell.FormatPercent("Melee Shielding: {0}%", base1);
@@ -2397,14 +2400,14 @@ namespace EQSpellParser
                 case 483:
                     // incoming damage % SPAs 296 and 483 multiply against what is essentially (spell-data's base value * spa 413) 
                     // rather than the focused value - Dzarn
-                    return Spell.FormatPercentRange("Spell Damage Taken", base1, base2);
+                    return Spell.FormatPercentRange("Spell Damage Taken", base1, base2) + " (After Crit)";
                 case 484:
                     // Modifies incoming spell damage by Base1 points. Applies post-crit for both instant damage and DoTs.
                     // Differs from 297 which applies pre-crit to both instant damage and DoTs. - Dzarn
-                    return Spell.FormatCount("Spell Damage Taken", base1);
+                    return Spell.FormatCount("Spell Damage Taken", base1) + " (After Crit)";
                 case 485:
-                    // 411 seems to limit by the target's class
-                    // this seems to limit by the caster's class
+                    // this is used on incoming focuses to limit by the caster's class
+                    // 411 is used on outgoing focuses
                     return String.Format("Limit Caster Class: {0}", (SpellClassesMask)(base1 >> 1));
                 case 486:
                     if (base1 == 0)
@@ -3049,11 +3052,11 @@ namespace EQSpellParser
             return score;
         }
 
-        public static string FormatEnum(Enum e)             
+        public static string FormatEnum(Enum e)
         {
             string type = e.ToString().Replace("_", " ").Trim();
 
-            
+
             if (Regex.IsMatch(type, @"^-?\d+$"))
                 type = "Type " + type; // undefined numeric enum
 
