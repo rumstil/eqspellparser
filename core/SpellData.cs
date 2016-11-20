@@ -30,6 +30,14 @@ namespace EQSpellParser
         ALL = 65535
     }
 
+    [Flags]
+    public enum SpellClassesMaskLong
+    {
+        Warrior = 1, Cleric = 2, Paladin = 4, Ranger = 8, ShadowKnight = 16, Druid = 32, Monk = 64, Bard = 128, Rogue = 256,
+        Shaman = 512, Necro = 1024, Wizard = 2048, Mage = 4096, Enchanter = 8192, Beastlord = 16384, Berserker = 32768,
+        ALL = 65535
+    }
+
     public enum SpellEffect
     {
         Current_HP = 0,
@@ -77,6 +85,7 @@ namespace EQSpellParser
         Identify = 61,
         Memory_Blur = 63,
         Stun_Spin = 64,
+        Reclaim_Pet = 68,
         Summon_Skeleton_Pet = 71,
         Feign_Death = 74,
         Current_HP_Non_Repeating = 79,
@@ -126,7 +135,7 @@ namespace EQSpellParser
         Dodge_Chance = 174,
         Parry_Chance = 175,
         Lifetap_From_Weapon = 178,
-        Spell_Resist_Chance = 180,
+        Spell_Resist_Chance = 180, // sanctification
         Weapon_Delay = 182,
         Hit_Chance = 184,
         Hit_Damage = 185,
@@ -151,6 +160,7 @@ namespace EQSpellParser
         Double_Attack_Skill = 225,
         Persistent_Casting_AA = 229, // cast through stun
         Divine_Intervention = 232,
+        Reclaim_Pet_v2 = 241,
         Lung_Capacity = 246,
         Frontal_Backstab_Chance = 252,
         Frontal_Backstab_Min_Damage = 253,
@@ -957,10 +967,10 @@ namespace EQSpellParser
 
     public enum SpellFaction
     {
-        SHIP_Workshop = 1178,
-        Kithicor_Good = 1204, // army of light
-        Kithicor_Evil = 1205, // army of obliteration
-        Ancient_Iksar = 1229
+        SoF_SHIP_Workshop = 1178,
+        SoD_Kithicor_Good = 1204, // army of light
+        SoD_Kithicor_Evil = 1205, // army of obliteration
+        SoD_Ancient_Iksar = 1229
     }
 
     public enum SpellMaxHits
@@ -1066,7 +1076,7 @@ namespace EQSpellParser
         public SpellMaxHits MaxHitsType;
         public int MaxTargets;
         public int RecourseID;
-        public string Recourse;
+        //public string Recourse;
         public int TimerID;
         public int ViralRange;
         public int MinViralTime;
@@ -1147,6 +1157,8 @@ namespace EQSpellParser
             CategoryDescID = new int[3];
             Stacking = new List<string>();
         }
+
+        public string Recourse { get { if (RecourseID != 0) return String.Format("[Spell {0}]", RecourseID); return null; } }
 
         public string ParseEffect(SpellSlot slot, int level)
         {
@@ -1331,7 +1343,7 @@ namespace EQSpellParser
                 case 67:
                     return "Eye of Zomm";
                 case 68:
-                    return "Reclaim Pet";
+                    return "Reclaim Pet Mana";
                 case 69:
                     return Spell.FormatCount("Max HP", value) + range;
                 case 71:
@@ -1589,7 +1601,7 @@ namespace EQSpellParser
                     return String.Format("Instrument Modifier: {0} {1}", Skill, value);
                 case 180:
                     // devs call this Sanctification
-                    // AA is called mystical shielding is 5%, fervor of the dark reign / sanctity of the keepers is 2%.
+                    // mystical shielding AA is 5%, fervor of the dark reign / sanctity of the keepers is 2%.
                     return Spell.FormatPercent("Chance to Resist Spell", value);
                 case 181:
                     return Spell.FormatPercent("Chance to Resist Fear Spell", value);
@@ -1635,7 +1647,7 @@ namespace EQSpellParser
                 case 195:
                     // melee + spell
                     // 100 is full resist. not sure why some spells have more
-                    return String.Format("Stun Resist ({0})", value);
+                    return Spell.FormatPercent("Chance to Resist Any Stun", base1);
                 case 196:
                     // no longer used
                     return String.Format("Srikethrough ({0})", value);
@@ -1644,7 +1656,9 @@ namespace EQSpellParser
                 case 198:
                     return Spell.FormatCount("Current Endurance", value);
                 case 199:
-                    return String.Format("Taunt ({0})", value);
+                    // base1 is the success rate but only the mercenary taunt is not 100%
+                    // base2 is the extra aggro at the top of the hate list
+                    return String.Format("Taunt with {0} Hate Mod", base2);
                 case 200:
                     // affects worn melee/range weapon procs
                     // doesn't affect 85, 429. pretty sure 201 is also unaffected
@@ -1658,10 +1672,11 @@ namespace EQSpellParser
                 case 204:
                     return String.Format("Group Fear Immunity for {0}s", base1 * 10);
                 case 205:
+                    // strike everything in a radius with a single primary hand combat round
                     return String.Format("Rampage ({0})", base1);
                 case 206:
                     // places you [base1] points of hate higher than all of the taunted targets around you - Dzarn
-                    return String.Format("AE Taunt ({0})", base1);
+                    return String.Format("AE Taunt with {0} Hate Mod", base1);
                 case 207:
                     return "Flesh to Bone Chips";
                 case 209:
@@ -1685,13 +1700,17 @@ namespace EQSpellParser
                 case 216:
                     // should be a count rather than a percent (it's always called "points")
                     if ((SpellSkill)base2 != SpellSkill.Hit)
-                        return Spell.FormatPercent(Spell.FormatEnum((SpellSkill)base2) + " Accuracy", value);
-                    return Spell.FormatPercent("Accuracy", value);
+                        return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Accuracy", value);
+                    return Spell.FormatCount("Accuracy", value);
                 case 217:
                     return String.Format("Add Headshot Proc with up to {0} Damage", base2);
                 case 218:
                     return Spell.FormatPercent("Pet Chance to Critical Hit", value);
                 case 219:
+                    // Gives [Base1 <= 10000] chance to do (damage * [Base2/100]) to undead targets
+                    // [Properties: 3, 8, 12] on a critical hit. For stacking, Base1 is cumulative while Base2 
+                    // takes the highest value between spells or AAs. If successful, earlies out of the crit 
+                    // melee function before SPA 330 or 170 are considered. - Dzarn
                     return Spell.FormatPercent("Chance to Slay Undead", base1 / 100f) + String.Format(" with {0} Damage Mod", base2);
                 case 220:
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", base1);
@@ -1729,11 +1748,16 @@ namespace EQSpellParser
                 case 234:
                     return String.Format("Decrease Poison Application Time by {0}s", 10f - base1 / 1000f);
                 case 238:
+                    if (base1 == 3)
+                        return "Permanent Illusion (Persist After Death)";
                     return "Permanent Illusion";
                 case 237:
-                    return "Passive Pet Ability: Spell Affinity";
+                    return "Enable Pet Ability: Receive Group Buffs";
                 case 239:
                     return Spell.FormatPercent("Chance to Feign Death Through Spell Hit", base1);
+                case 241:
+                    // returns a random amount of mana spent to summon the pet
+                    return String.Format("Reclaim Pet Mana (Return 75% to {0}%)", base1);
                 case 242:
                     return Spell.FormatPercent("Chance to Memory Blur", base1);
                 case 243:
@@ -1869,7 +1893,7 @@ namespace EQSpellParser
                     return Spell.FormatPercent("Chance of Strikethrough", base1);
                 case 293:
                     // melee stun only, from any angle
-                    return Spell.FormatPercent("Chance to Resist Stun From Any Angle", base1);
+                    return Spell.FormatPercent("Chance to Resist Melee Stun", base1);
                 case 294:
                     // the base2 nuke damage increase only appears on 4 spells after the 2015-7-22 patch 
                     if (base2 > 0)
@@ -2053,6 +2077,15 @@ namespace EQSpellParser
                     if (ID == 32271) aura = 32257;
                     if (ID == 22510) aura = 22574;
                     if (ID == 22511) aura = 22575;
+                    // these 3 auras have different effects on normal and swarm pets
+                    if (ID == 49678) aura = 49700;
+                    if (ID == 49679) aura = 49701;
+                    if (ID == 49680) aura = 49702;
+                    //if (ID == 49678) aura = 49736;
+                    //if (ID == 49679) aura = 49737;
+                    //if (ID == 49680) aura = 49738;
+
+
 
                     if (Extra.StartsWith("IOQuicksandTrap85")) aura = 22655;
                     if (Extra.StartsWith("IOAuraCantataRk")) aura = 19713 + Rank;
@@ -2093,7 +2126,9 @@ namespace EQSpellParser
                 case 370:
                     return Spell.FormatCount("Corruption Resist", value);
                 case 371:
-                    return Spell.FormatPercent("Melee Delay", Math.Abs(value));
+                    // only used on slows - this lowers haste by a relative amount unlike other slows 
+                    // which cancel haste effects and use 100 - slow amount as the new attack speed
+                    return Spell.FormatPercent("Melee Haste v4", -value) + " (Incremental)";
                 case 372:
                     return Spell.FormatCount("Forage Skill Cap", base1);
                 case 373:
@@ -2324,8 +2359,7 @@ namespace EQSpellParser
                     // adds a % of your own hate using base1, per tick, scalable. Example: 1000 hate base1 = 50. Means you will be 1500 hate @ 1 tick, 2250 @ 2 ticks.
                     return Spell.FormatPercent("Current Hate", base1) + " per tick";
                 case 457:
-                    // offical name is "Resource Tap." Formula is base1 / 1000 * damage value. Example: 88001 damage, base1 = 100. 100 / 1000 = .1 * 88001.
-                    // simply dividing by 10 gives the same result.
+                    // offical name is "Resource Tap"
                     return string.Format("Return {0}% of Damage as {1}", base1 / 10f, new[] { "HP", "Mana", "Endurance" }[base2 % 3]) + (max > 0 ? String.Format(", Max Per Hit: {0}", max) : "");
                 case 458:
                     // -100 = no faction hit, 100 = double faction
@@ -2369,7 +2403,9 @@ namespace EQSpellParser
                 case 471:
                     // add an extra melee round. i.e. main attack, double attack, triple
                     // this is sort of like 211 AE attack except it was added to nerf DPS by only affecting the current target
-                    return Spell.FormatPercent("Chance to Repeat Primary Hand Round", base1) + (base2 != 100 ? String.Format(" with {0}% Damage", base2) : "");
+                    if (base2 != 100)
+                        return Spell.FormatPercent("Chance to Repeat Primary Hand Round", base1) + String.Format(" with {0}% Damage", base2);
+                    return Spell.FormatPercent("Chance to Repeat Primary Hand Round", base1);
                 case 472:
                     return String.Format("Buy AA Rank ({0})", base1);
                 case 473:
@@ -2813,7 +2849,9 @@ namespace EQSpellParser
             else
             {
                 result.Add("Resist: " + FormatEnum(ResistType) + (ResistMod != 0 ? " " + ResistMod : "")
-                    + (ResistType != SpellResist.Sanctification && !NoSanctification ? " or Sanctification" : "")
+                    //+ (ResistType != SpellResist.Sanctification && ResistType != SpellResist.Unresistable && !NoSanctification ? " or Sanctification" : "")
+                    // NoSanctification is rare so maybe it makes more sense to only show it when it's disabled
+                    + (NoSanctification ? ", No Sanctification" : "")
                     + (MinResist > 0 ? ", Min Resist Chance: " + MinResist / 2f + "%" : "")
                     + (MaxResist > 0 ? ", Max Resist Chance: " + MaxResist / 2f + "%" : ""));
                 // + (!PartialResist ? ", No Partials" : ""));
@@ -2967,8 +3005,10 @@ namespace EQSpellParser
                 ResistMod = 0;
                 MinResist = 0;
                 MaxResist = 0;
-                if (!NoSanctification)
-                    ResistType = SpellResist.Sanctification;
+                // if the spell is unresistable except for sanctification then change it's resist
+                // don't do this for PC spells because NPCs don't have sanctification
+                //if (!NoSanctification && ClassesMask == 0)
+                //    ResistType = SpellResist.Sanctification;
             }
 
             if (Zone != SpellZoneRestrict.Indoors && Zone != SpellZoneRestrict.Outdoors)

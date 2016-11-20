@@ -259,8 +259,6 @@ namespace EQSpellParser
             // 89 DELETE_OK
             // 90 REFLECT_SPELLINDEX
             spell.RecourseID = ParseInt(fields[90]);
-            if (spell.RecourseID != 0)
-                spell.Recourse = String.Format("[Spell {0}]", spell.RecourseID);
             // 91 NO_PARTIAL_SAVE = used to prevent a nuke from being partially resisted. it also prevents or allows a player to resist a spell fully if they resist "part" of its components.
             spell.PartialResist = ParseBool(fields[91]);
             // 92 SMALL_TARGETS_ONLY
@@ -542,8 +540,6 @@ namespace EQSpellParser
             // 89 DELETE_OK
             // 90 REFLECT_SPELLINDEX
             spell.RecourseID = ParseInt(fields[90]);
-            if (spell.RecourseID != 0)
-                spell.Recourse = String.Format("[Spell {0}]", spell.RecourseID);
             // 91 NO_PARTIAL_SAVE = used to prevent a nuke from being partially resisted. it also prevents or allows a player to resist a spell fully if they resist "part" of its components.
             spell.PartialResist = ParseBool(fields[91]);
             // 92 SMALL_TARGETS_ONLY
@@ -834,8 +830,6 @@ namespace EQSpellParser
             // 149 DELETE_OK
             // 150 REFLECT_SPELLINDEX
             spell.RecourseID = ParseInt(fields[150]);
-            if (spell.RecourseID != 0)
-                spell.Recourse = String.Format("[Spell {0}]", spell.RecourseID);
             // 151 NO_PARTIAL_SAVE = used to prevent a nuke from being partially resisted. it also prevents or allows a player to resist a spell fully if they resist "part" of its components.
             spell.PartialResist = ParseBool(fields[151]);
             // 152 SMALL_TARGETS_ONLY

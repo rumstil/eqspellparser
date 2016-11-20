@@ -136,6 +136,10 @@ namespace EQSpellParser
                     {
                         target.RefCount++;
 
+                        // only do this for spells that aren't already assigned to a class
+                        if (target.ClassesMask != 0)
+                            continue;
+
                         // a lot of side effect spells do not have a level on them. this will copy the level of the referring spell
                         // onto the side effect spell so that the spell will be searchable when filtering by class.
                         // e.g. Jolting Swings Strike has no level so it won't show up in a ranger search even though Jolting Swings will show up

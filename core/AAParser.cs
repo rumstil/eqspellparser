@@ -90,7 +90,8 @@ namespace EQSpellParser
         {
             get
             {
-                if (Tab == 1 && Category == 11) return "ItemClick";
+                if (Tab == 1 && Category == 6) return "Tradeskill";
+                if (Tab == 1 && Category == 11) return "Clickies";
                 if (Tab == 1) return "General";
                 if (Tab == 2) return "Archetype";
                 if (Tab == 3) return "Class";
