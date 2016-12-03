@@ -411,7 +411,8 @@ namespace EQSpellParser
         Golem = 5,
         Extraplanar = 6,
         UndeadPet = 8,
-        Vampyre = 12,
+        Raid_Giant = 9,
+        Vampire = 12,
         Atenha_Ra = 13,
         Greater_Akheva = 14,
         Khati_Sha = 15,
@@ -423,11 +424,40 @@ namespace EQSpellParser
         Insect = 22,
         Elemental = 24,
         Plant = 25,
-        Dragonkin = 26,
+        Dragon = 26,
         Summoned = 28,
-        Dragon = 29,
         Familiar = 31,
         Muramite = 34
+    }
+
+    // https://github.com/EQEmu/Server/blob/06dfba3c81fd8617f6e5838ec447d01c6def1819/common/races.h
+    public enum SpellRaceType
+    {
+        Human = 1,
+        Barbarian = 2,
+        Erudite = 3,
+        Wood_Elf = 4,
+        High_Elf = 5,
+        Dark_Elf = 6,
+        Half_Elf = 7,
+        Dwarf = 8,
+        Troll = 9,
+        Ogre = 10,
+        Halfling = 11,
+        Gnome = 12,
+        Gnoll = 39,
+        Lizard_Man = 51,
+        Grimling = 202,
+        Shissar = 217,
+        Akheva = 230,
+        Seru = 236,
+        Kyv = 409,
+        Drake = 432,
+        Sporali = 456,
+        Vampire = 466, // mayong related
+        Minotaur = 574,
+        Wereorc = 579,
+        Wyvern = 581,
     }
 
     public enum SpellTarget
@@ -2011,7 +2041,7 @@ namespace EQSpellParser
                     // compare with 383 where chance is modified by casting time
                     return String.Format("Cast: [Spell {0}] on Spell Use ({1}% Chance)", base2, base1);
                 case 340:
-                    // how is this different than 374?
+                    // when a spell has multiple 340 slots, only one has a chance to cast
                     if (base1 < 100)
                         return String.Format("Cast: [Spell {0}] ({1}% Chance)", base2, base1);
                     return String.Format("Cast: [Spell {0}]", base2);
@@ -2136,6 +2166,7 @@ namespace EQSpellParser
                     // devs call this a "doom" effect
                     return String.Format("Cast: [Spell {0}] on Fade", base1);
                 case 374:
+                    // when a spell has multiple 374 slots, each one has a chance to cast
                     // very few spells have base1 < 100
                     if (base1 < 100)
                         return String.Format("Cast: [Spell {0}] ({1}% Chance)", base2, base1);
@@ -2950,7 +2981,8 @@ namespace EQSpellParser
                     var slot = Slots[i];
                     slot.Desc = ParseEffect(slot, 105);
 #if DEBUG
-                    slot.Desc = String.Format("SPA {0} Base1={1} Base2={2} Max={3} Calc={4} --- ", slot.SPA, slot.Base1, slot.Base2, slot.Max, slot.Calc) + slot.Desc;
+                    if (slot.Desc != null)
+                        slot.Desc = String.Format("SPA {0} Base1={1} Base2={2} Max={3} Calc={4} --- ", slot.SPA, slot.Base1, slot.Base2, slot.Max, slot.Calc) + slot.Desc;
 #endif
                     // clear slots that weren't parsed (this will mostly be SPA 10) 
                     if (slot.Desc == null)
