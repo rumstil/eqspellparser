@@ -185,7 +185,7 @@ AFFECTNUMBER AFFECTNAME
 175 Parry
 176 Dual Wield
 177 Double Attack
-178 Melee Lifetap
+178 Melee Resource Drain
 179 Puretone
 180 Sanctification
 181 Fearless
@@ -204,7 +204,7 @@ AFFECTNUMBER AFFECTNAME
 194 Fade
 195 Stun Resist (Melee+Spell)
 196 Deprecated (strikethrough)
-197 Skill Damage Taken
+197 Skill Damage Taken Incoming
 198 Instant Endurance
 199 Taunt
 200 Weapon Proc Chance
@@ -230,7 +230,7 @@ AFFECTNUMBER AFFECTNAME
 220 Skill Min_Damage Amt 1
 221 ReduceWeight
 222 BlockBehind
-223 Double Riposte (Broken)
+223 Double Riposte
 224 AddRiposte
 225 Give Double Attack
 226 2hbash
@@ -352,7 +352,7 @@ AFFECTNUMBER AFFECTNAME
 342 No Panic
 343 Spell Interrupt
 344 Item Channeling
-345 Assassinate Max
+345 Assassinate Max Level / Chance
 346 Headshot Max
 347 Double Ranged Attack
 348 Ff_Mana_Min
@@ -446,7 +446,7 @@ AFFECTNUMBER AFFECTNAME
 436 Toggle Freeze Buff Timers
 437 Teleport to Anchor
 438 Translocate to Anchor
-439 Assassinate
+439 Assassinate Chance / DMG
 440 FinishingBlowMax
 441 Distance Removal
 442 Doom Req Target
@@ -494,7 +494,15 @@ AFFECTNUMBER AFFECTNAME
 484 Fc_Spell_Damage_Amt_IncomingPC
 485 Ff_CasterClass
 486 Ff_Same_Caster
-
+487 Extend Tradeskill Cap
+488 Defender Melee Force % (PC)
+489 Worn Endurance Regen Cap
+490 Ff_ReuseTimeMin
+491 Ff_ReuseTimeMax
+492 Ff_Endurance_Min
+493 Ff_Endurance_Max
+494 Pet Add Atk
+495 Ff_DurationMax
 
 
 spells_us.txt Field List (174 fields)

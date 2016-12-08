@@ -1626,7 +1626,10 @@ namespace EQSpellParser
                 case 178:
                     if (Version != 0 && Version < 20160816)
                         return String.Format("Lifetap from Weapon Damage: {0}%", base1);
+
                     return String.Format("Lifetap from Weapon Damage: {0}%", base1 / 10f);
+                // this has been renamed to resource tap. how does it differ from 457?
+                //return string.Format("Return {0}% of Damage as {1}", base1 / 10f, new[] { "HP", "Mana", "Endurance" }[base2 % 3]);
                 case 179:
                     return String.Format("Instrument Modifier: {0} {1}", Skill, value);
                 case 180:
@@ -2056,9 +2059,9 @@ namespace EQSpellParser
                 case 344:
                     return Spell.FormatPercent("Chance to Channel Item Procs", base1);
                 case 345:
-                    return String.Format("Limit Assassinate Level: {0}", base1);
+                    return String.Format("Limit Assassinate Level: {0} ({1})", base1, base2);
                 case 346:
-                    return String.Format("Limit Headshot Level: {0}", base1);
+                    return String.Format("Limit Headshot Level: {0} ({1})", base1, base2);
                 case 347:
                     return Spell.FormatPercent("Chance of Double Archery Attack", base1);
                 case 348:
@@ -2351,6 +2354,7 @@ namespace EQSpellParser
                     return "Teleport to their " + FormatEnum((SpellTeleport)base1);
                 case 439:
                     return String.Format("Add Assasinate Proc with up to {0} Damage", base2);
+                    //return String.Format("Add Assasinate Proc ({0}% Chance) with up to {1} Damage", base1 / 10f, base2);
                 case 440:
                     // base2 / 10 is max mob health
                     return String.Format("Limit Finishing Blow Level: {0}", base1);
@@ -2488,6 +2492,14 @@ namespace EQSpellParser
                 case 489:
                     return Spell.FormatCount("Endurance Regen Cap", base1);
                 // 490/491 - probably a limit based on recast timer
+                case 490:
+                    return String.Format("Limit Min Recast {0:0.##}s", base1 / 1000f);
+                case 491:
+                    return String.Format("Limit Max Recast {0:0.##}s", base1 / 1000f);
+                case 492:
+                    return String.Format("Limit Min Endurance Cost: {0}", base1);
+                case 493:
+                    return String.Format("Limit Max Endurance Cost: {0}", base1);
                 case 494:
                     return Spell.FormatCount("Pet ATK", base1);
                 case 495:
