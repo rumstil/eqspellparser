@@ -26,14 +26,14 @@ Duration: 60s (10 ticks), Extendable: Yes, Dispelable: Yes
 Text: The power of the forest surges through your muscles.
 ```
 
-#Web Version#
+# Web Version #
 
 The easiest way to use the parser is via the web version here:
 
 http://www.raidloot.com/Spells.aspx
 
 
-#Downloadable Version#
+# Downloadable Version #
 
 If you want to parse historical, test or beta server spell data you will need to download the parser and run it on your own computer.
 
@@ -48,7 +48,9 @@ You will also need to have Microsoft .NET Framework 3.5 installed to run the par
 http://www.microsoft.com/downloads/details.aspx?FamilyId=333325FD-AE52-4E35-B531-508D977D32A6&displaylang=en
 
 
-#How To Help#
+# How To Help #
 
-You can help improve this parser even if you're not a programmer. If you discover spell descriptions that you think are incorrect or incomplete please send me an email at raidloot@gmail.com with an explanation or a link to more information.
+You can help improve this parser even if you're not a programmer.
+
+This parser is an attempt to gather the collected knowledge of players into a formal set of rules. If you discover spell descriptions that you think are incorrect or incomplete please send me an email at raidloot@gmail.com.
 

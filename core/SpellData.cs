@@ -277,7 +277,8 @@ namespace EQSpellParser
         Faction_Hit = 458,
         Hit_Damage_v2 = 459,
         Repeat_Melee_Round_Chance = 471,
-        Pet_Crit_Hit_Damage = 474
+        Pet_Crit_Hit_Damage = 474,
+        Crit_Hit_Damage_Bonus = 496
     }
 
     public enum SpellSkill
@@ -2506,7 +2507,9 @@ namespace EQSpellParser
                     // Limit Max Duration Base1 Ticks
                     // is this the same as 141 with a base1 duration?
                     return String.Format("Limit Max Duration: {0}s", base1 * 6);
-
+                case 496:
+                    // description calls this "non-cumulative" but it would probably be better described as "non-stacking"
+                    return Spell.FormatPercent("Critical " + Spell.FormatEnum((SpellSkill)base2) + " Damage", base1) + " of Base Damage (Non Stacking)";
 
             }
 
