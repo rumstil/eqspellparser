@@ -278,7 +278,7 @@ namespace EQSpellParser
         Hit_Damage_v2 = 459,
         Repeat_Melee_Round_Chance = 471,
         Pet_Crit_Hit_Damage = 474,
-        Crit_Hit_Damage_Bonus = 496
+        Crit_Hit_Damage_NonStacking = 496
     }
 
     public enum SpellSkill
