@@ -1917,6 +1917,7 @@ namespace EQSpellParser
                     return String.Format("Add " + Spell.FormatEnum((SpellSkill)base2) + " Proc ({1}% Chance)", base2, base1 / 10f);
                 case 289:
                     // this only triggers if the spell times out. compare with 373
+                    // 2017-04-19 set max=2 on some spells (e.g. Chill of the Visionary) 
                     return String.Format("Cast: [Spell {0}] on Duration Fade", base1);
                 case 290:
                     return Spell.FormatCount("Movement Speed Cap", value);
@@ -2118,15 +2119,22 @@ namespace EQSpellParser
                     //if (ID == 49678) aura = 49736;
                     //if (ID == 49679) aura = 49737;
                     //if (ID == 49680) aura = 49738;
-
-
-
+                    
                     if (Extra.StartsWith("IOQuicksandTrap85")) aura = 22655;
                     if (Extra.StartsWith("IOAuraCantataRk")) aura = 19713 + Rank;
-                    if (Extra.StartsWith("IOEncEchoProc95Rk")) aura = 30179 + Rank;
                     if (Extra.StartsWith("IORogTrapAggro92Rk")) aura = 26111 + Rank;
+                    if (Extra.StartsWith("IOEncEchoProc95Rk")) aura = 30179 + Rank;
                     if (Extra.StartsWith("IOEncEchoProc100Rk")) aura = 36227 + Rank;
                     if (Extra.StartsWith("IOEncEchoProc105Rk")) aura = 45018 + Rank;
+
+                    // 2017-4-19 patch renamed auras
+                    if (Extra.StartsWith("PCIObMagS17L085TrapPetAug")) aura = 22655;
+                    if (Extra.StartsWith("PCIObBrdS17L082AuraRegenRk")) aura = 19713 + Rank;
+                    if (Extra.StartsWith("PCIObRogS19L092TrapAggroRk")) aura = 26111 + Rank;
+                    if (Extra.StartsWith("PCIObEncS19L095EchoCastProcRk")) aura = 30179 + Rank;
+                    if (Extra.StartsWith("PCIObEncS20L100EchoCastProcRk")) aura = 36227 + Rank;
+                    if (Extra.StartsWith("PCIObEncS21L105EchoCastProcRk")) aura = 45018 + Rank;
+
 
                     return String.Format("Aura Effect: [Spell {0}] ({1})", aura, Extra);
                 case 353:
@@ -2262,6 +2270,8 @@ namespace EQSpellParser
                 case 405:
                     return Spell.FormatPercent("Staff Block Chance", base1);
                 case 406:
+                    // 2017-04-19 set max=1 on some spells (e.g. Bosquestalker's Alliance) 
+                    // perhaps this affects if the target or the caster is credited with the spell?
                     return String.Format("Cast: [Spell {0}] if Max Hits Used", base1);
                 case 407:
                     // this is a guess. haven't tested this
