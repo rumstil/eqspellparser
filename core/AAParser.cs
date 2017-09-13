@@ -8,8 +8,35 @@ using System.Text.RegularExpressions;
 
 namespace EQSpellParser
 {
-
     public enum AAExpansion
+    {
+        EQ = 0,
+        RoK,
+        SoV,
+        SoL,
+        PoP,
+        LoY,
+        LDoN,
+        GoD,
+        OoW,
+        DoN,
+        DoD,
+        PoR,
+        TSS,
+        TBS,
+        SoF,
+        SoD,
+        UF,
+        HoT,
+        VoA,
+        RoF,
+        CotF,
+        TDS,
+        TBM,
+        EoK
+    }
+
+    public enum AAExpansionLong
     {
         Original = 0,
         Ruins_of_Kunark,

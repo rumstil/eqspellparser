@@ -1207,15 +1207,23 @@ namespace EQSpellParser
                 return null;
 
             // many SPAs use a scaled value based on either current tick or caster level
-            int value = CalcValue(calc, base1, max, 1, level);
-            string range = CalcValueRange(calc, base1, max, DurationTicks, level);
+            var value = CalcValue(calc, base1, max, 1, level);
+            var range = CalcValueRange(calc, base1, max, DurationTicks, level);
             //Func<int> base1_or_value = delegate() { Debug.WriteLineIf(base1 != value, "SPA " + spa + " value uncertain"); return base1; };
 
             // some hp/mana/end/hate effects repeat for each tick of the duration
             string repeating = (DurationTicks > 0) ? " per tick" : null;
 
             // some effects are capped at a max level
-            string maxlevel = (max > 0) ? String.Format(" up to level {0}", max) : null;
+            string absmax = (max > 0) ? String.Format(" up to level {0}", max) : null;
+
+            string varmax = null;
+            if (Version != 0 && Version < 20170912)
+                varmax = absmax;
+            else if (max > 1000)
+                varmax = String.Format(" up to level {0}", max - 1000);
+            else if (max != 0)
+                varmax = String.Format(" up to level {0}", max.ToString("+ #;- #;0"));
 
             //Func<string, string> FormatCount = delegate(string name) { return ((value > 0) ? "Increase " : "Decrease ") + name + " by " + Math.Abs(value); };
 
@@ -1277,13 +1285,13 @@ namespace EQSpellParser
                 case 21:
                     //if (base2 != base1 && base2 != 0)
                     //    return String.Format("Stun for {0:0.##}s ({1:0.##}s in PvP)", base1 / 1000f, base2 / 1000f) + maxlevel;
-                    return String.Format("Stun for {0:0.##}s", base1 / 1000f) + maxlevel;
+                    return String.Format("Stun for {0:0.##}s", base1 / 1000f) + absmax;
                 case 22:
                     if (base2 > 0)
-                        return "Charm" + maxlevel + String.Format(" with {0}% Chance of Memory Blur", base2);
-                    return "Charm" + maxlevel;
+                        return "Charm" + absmax + String.Format(" with {0}% Chance of Memory Blur", base2);
+                    return "Charm" + absmax;
                 case 23:
-                    return "Fear" + maxlevel;
+                    return "Fear" + absmax;
                 case 24:
                     return Spell.FormatCount("Stamina Loss", value);
                 case 25:
@@ -1300,9 +1308,9 @@ namespace EQSpellParser
                     return "Invisibility to Animals (Unstable)";
                 case 30:
                     // how close can you get before the mob aggroes you
-                    return String.Format("Decrease Aggro Radius to {0}", value) + maxlevel;
+                    return String.Format("Decrease Aggro Radius to {0}", value) + absmax;
                 case 31:
-                    return "Mesmerize" + maxlevel;
+                    return "Mesmerize" + absmax;
                 case 32:
                     // calc 100 = summon a stack? (based on item stack size) Pouch of Quellious, Quiver of Marr
                     //return String.Format("Summon: [Item {0}] x {1} {2} {3}", base1, calc, max, base2);
@@ -1365,8 +1373,8 @@ namespace EQSpellParser
                     return String.Format("Memory Blur ({0}% Chance)", Math.Min(value + 40, 100));
                 case 64:
                     if (base2 != base1 && base2 != 0)
-                        return String.Format("Stun and Spin NPC for {0:0.##}s (PC for {1:0.##}s)", base1 / 1000f, base2 / 1000f) + maxlevel;
-                    return String.Format("Stun and Spin for {0:0.##}s", base1 / 1000f) + maxlevel;
+                        return String.Format("Stun and Spin NPC for {0:0.##}s (PC for {1:0.##}s)", base1 / 1000f, base2 / 1000f) + absmax;
+                    return String.Format("Stun and Spin for {0:0.##}s", base1 / 1000f) + absmax;
                 case 65:
                     return "Infravision";
                 case 66:
@@ -1412,7 +1420,7 @@ namespace EQSpellParser
                         return String.Format("Add Melee Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
                     return String.Format("Add Melee Proc: [Spell {0}]", base1);
                 case 86:
-                    return String.Format("Decrease Social Radius to {0}", value) + maxlevel;
+                    return String.Format("Decrease Social Radius to {0}", value) + absmax;
                 case 87:
                     return Spell.FormatPercent("Magnification", value);
                 case 88:
@@ -1568,8 +1576,8 @@ namespace EQSpellParser
                 case 154:
                     // +0.5% per level difference
                     if (base2 != 0)
-                        return String.Format("Decrease Detrimental Duration by 50% ({0}% Chance)", base1 / 10) + maxlevel;
-                    return String.Format("Dispel Detrimental ({0}% Chance)", base1 / 10) + maxlevel;
+                        return String.Format("Decrease Detrimental Duration by 50% ({0}% Chance)", base1 / 10) + absmax;
+                    return String.Format("Dispel Detrimental ({0}% Chance)", base1 / 10) + absmax;
                 case 156:
                     return "Illusion: Target";
                 case 157:
@@ -1676,8 +1684,8 @@ namespace EQSpellParser
                     // if successful and target is outside the hardcoded 30' distance restriction the linked spell will be cast
                     // base=75 was invalid data before base2 was used as a spell id link (ignored in case we are parsing an old spell file)
                     if (base2 > 0 && base2 != 75)
-                        return String.Format("Cancel Aggro {2} ({0}% Chance) and Cast: [Spell {1}] on Success", base1, base2, maxlevel);
-                    return String.Format("Cancel Aggro {1} ({0}% Chance)", base1, maxlevel);
+                        return String.Format("Cancel Aggro {2} ({0}% Chance) and Cast: [Spell {1}] on Success", base1, base2, varmax);
+                    return String.Format("Cancel Aggro {1} ({0}% Chance)", base1, varmax);
                 case 195:
                     // melee + spell
                     // 100 is full resist. not sure why some spells have more
@@ -1716,8 +1724,8 @@ namespace EQSpellParser
                 case 209:
                     // +0.5% per level difference
                     if (base2 != 0)
-                        return String.Format("Decrease Beneficial Duration by 50% ({0}% Chance)", base1 / 10) + maxlevel;
-                    return String.Format("Dispel Beneficial ({0}% Chance)", base1 / 10) + maxlevel;
+                        return String.Format("Decrease Beneficial Duration by 50% ({0}% Chance)", base1 / 10) + absmax;
+                    return String.Format("Dispel Beneficial ({0}% Chance)", base1 / 10) + absmax;
                 case 210:
                     return String.Format("Pet Shielding for {0}s", base1 * 12);
                 case 211:
@@ -1875,14 +1883,14 @@ namespace EQSpellParser
                     if (base2 == 0)
                         base2 = 100;
                     if (max > 0)
-                        maxlevel += String.Format(" (lose {0}% per level)", base2);
-                    return Spell.FormatPercent("Chance to Critical DoT", base1) + maxlevel;
+                        absmax += String.Format(" (lose {0}% per level)", base2);
+                    return Spell.FormatPercent("Chance to Critical DoT", base1) + absmax;
                 case 274:
                     if (base2 == 0)
                         base2 = 100;
                     if (max > 0)
-                        maxlevel += String.Format(" (lose {0}% per level)", base2);
-                    return Spell.FormatPercent("Chance to Critical Heal", base1) + maxlevel;
+                        absmax += String.Format(" (lose {0}% per level)", base2);
+                    return Spell.FormatPercent("Chance to Critical Heal", base1) + absmax;
                 case 275:
                     return Spell.FormatPercent("Chance to Critical Mend", base1);
                 case 276:
@@ -1994,8 +2002,8 @@ namespace EQSpellParser
                     if (base2 == 0)
                         base2 = 100;
                     if (max > 0)
-                        maxlevel += String.Format(" (lose {0}% per level)", base2);
-                    return Spell.FormatPercent("Chance to Critical HoT", base1) + maxlevel;
+                        absmax += String.Format(" (lose {0}% per level)", base2);
+                    return Spell.FormatPercent("Chance to Critical HoT", base1) + absmax;
                 case 320:
                     // % chance to block incoming melee attacks with your shield
                     return Spell.FormatPercent("Shield Block Chance", base1);
@@ -2205,7 +2213,7 @@ namespace EQSpellParser
                 case 380:
                     return String.Format("Push Back {0}' and Up {1}'", base2, base1);
                 case 381:
-                    return String.Format("Fling to Self ({0}' away)", base1) + maxlevel;
+                    return String.Format("Fling to Self ({0}' away)", base1) + varmax;
                 case 382:
                     return String.Format("Inhibit Effect: {0}", Spell.FormatEnum((SpellEffect)base2), base2);
                 case 383:
@@ -2319,7 +2327,7 @@ namespace EQSpellParser
                 case 423:
                     return String.Format("Limit Max Hits Type: {0}", Spell.FormatEnum((SpellMaxHits)base1));
                 case 424:
-                    return String.Format("Gradual {0} to {2}' away (Force={1})", base1 > 0 ? "Push" : "Pull", Math.Abs(base1), base2) + maxlevel;
+                    return String.Format("Gradual {0} to {2}' away (Force={1})", base1 > 0 ? "Push" : "Pull", Math.Abs(base1), base2) + varmax;
                 case 425:
                     return "Fly";
                 case 426:
@@ -2442,10 +2450,11 @@ namespace EQSpellParser
                     // is the chance on this shared with other chance SPAs (i.e. only 1 can be cast)?
                     return String.Format("Cast: [Group {0}] ({1}% Chance)", base2, base1);
                 case 470:
+                    // cast highest rank of a spell group - if you don't have any in your spellbook, nothing will be cast
                     // is the chance on this independant of other chance SPAs (i.e. each one has it's own chance to cast)?
                     if (base1 < 100)
-                        return String.Format("Cast: [Group {0}] ({1}% Chance)", base2, base1);
-                    return String.Format("Cast: [Group {0}]", base2);
+                        return String.Format("Cast: [Group {0}] (Highest Rank) ({1}% Chance)", base2, base1);
+                    return String.Format("Cast: [Group {0}] (Highest Rank) ", base2);
                 case 471:
                     // add an extra melee round. i.e. main attack, double attack, triple
                     // this is sort of like 211 AE attack except it was added to nerf DPS by only affecting the current target
@@ -2938,9 +2947,9 @@ namespace EQSpellParser
                 result.Add("Casting: " + CastingTime.ToString() + "s" + rest);
 
             if (DurationTicks > 0)
-                result.Add("Duration: " + FormatTime(DurationTicks * 6) + " (" + DurationTicks + " ticks)"
+                result.Add("Duration: " + FormatTime(DurationTicks * 6) + (Focusable ? "+" : "") + " (" + DurationTicks + " ticks)"
                     + (SongWindow ? " Song" : "")
-                    + (Beneficial && ClassesMask != SpellClassesMask.BRD ? ", Extendable: " + (Focusable ? "Yes" : "No") : "")
+                    //+ (Beneficial && ClassesMask != SpellClassesMask.BRD ? ", Extendable: " + (Focusable ? "Yes" : "No") : "") // already indicated by "+" symbol above and "focusable" line
                     + ", Dispelable: " + (Dispelable ? "Yes" : "No")
                     //+ (!Beneficial && DurationTicks > 10 ? ", Allow Fast Regen: " + (AllowFastRegen ? "Yes" : "No") : "")  // it applies on <10 ticks, but there really is no need to show it for short term debuffs 
                     + (PersistAfterDeath ? ", Persist After Death" : "")); // pretty rare, so only shown when it's used
@@ -3017,10 +3026,10 @@ namespace EQSpellParser
             // build a string of classes that can use this spell
             ClassesLevels = String.Empty;
             ClassesMask = 0;
+
             bool All254 = true;
             for (int i = 0; i < Levels.Length; i++)
             {
-                // level 255 means the class can't use this spell (except for bards)
                 if (Levels[i] == 255)
                     Levels[i] = 0;
                 if (Levels[i] != 254 && (i + 1) != (int)SpellClasses.BRD)
@@ -3035,6 +3044,8 @@ namespace EQSpellParser
             ClassesLevels = ClassesLevels.TrimStart();
             if (All254)
                 ClassesLevels = "ALL/254";
+
+
 
             if (MaxHitsType == SpellMaxHits.None || (DurationTicks == 0 && !Name.Contains("Aura")))
                 MaxHits = 0;

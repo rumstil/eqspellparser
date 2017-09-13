@@ -14,3 +14,5 @@ spells_us*.txt*
 dbstr_us*.txt*
 SpellStackingGroups*.txt*
 manifest.dat
+*.zip
+*.gz
