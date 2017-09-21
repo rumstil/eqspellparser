@@ -501,6 +501,7 @@ namespace EQSpellParser
         Target_AE_No_Players_Pets = 50 // blanket of forgetfullness. beneficial, AE mem blur, with max targets
     }
 
+    // these are found as type 39 in the dbstr file
     public enum SpellTargetRestrict
     {
         Caster = 3, // (any NPC with mana) guess
@@ -529,6 +530,10 @@ namespace EQSpellParser
         Undead_HP_Less_Than_10_Percent = 124,
         Clockwork_HP_Less_Than_45_Percent = 125,
         Wisp_HP_Less_Than_10_Percent = 126,
+        Melee_Class_Except_Bard = 127,
+        Pure_Melee_Class = 128,
+        Pure_Caster_Class = 129,
+        Hybrid_Class = 130,
         Warrior = 131,
         Cleric = 132,
         Paladin = 133,
@@ -550,7 +555,7 @@ namespace EQSpellParser
         HP_Above_75_Percent = 201,
         HP_Less_Than_20_Percent = 203, // dupe of 504
         HP_Less_Than_50_Percent = 204,
-        //HP_Less_Than_50_Percent = 205,
+        HP_Less_Than_75_Percent = 205,
         Not_In_Combat = 216,
         At_Least_1_Pet_On_Hatelist = 221,
         At_Least_2_Pets_On_Hatelist = 222,
@@ -579,12 +584,29 @@ namespace EQSpellParser
         Between_10_To_14_Pets_On_Hatelist = 263,
         More_Than_14_Pets_On_Hatelist = 264,
         Chain_Plate_Classes = 304,
+        HP_Between_5_and_9_Percent = 350,
+        HP_Between_10_and_14_Percent = 351,
+        HP_Between_15_and_19_Percent = 352,
+        HP_Between_20_and_24_Percent = 353,
+        HP_Between_25_and_29_Percent = 354,
+        HP_Between_30_and_34_Percent = 355,
+        HP_Between_30_and_39_Percent = 356,
+        HP_Between_40_and_44_Percent = 357,
+        HP_Between_40_and_49_Percent = 358,
+        HP_Between_50_and_54_Percent = 359,
+        HP_Between_50_and_59_Percent = 360,
+        HP_Between_5_and_15_Percent = 398,
         HP_Between_15_and_25_Percent = 399,
         HP_Between_1_and_25_Percent = 400,
         HP_Between_25_and_35_Percent = 401,
         HP_Between_35_and_45_Percent = 402,
         HP_Between_45_and_55_Percent = 403,
         HP_Between_55_and_65_Percent = 404,
+        HP_Between_65_and_75_Percent = 405,
+        HP_Between_75_and_85_Percent = 406,
+        HP_Between_85_and_95_Percent = 407,
+        HP_Above_45_Percent = 408,
+        HP_Above_55_Percent = 409,
         HP_Above_99_Percent = 412,
         Mana_Above_10_Percent = 429,
         //Has_Mana = 412, // guess based on Suppressive Strike
@@ -611,15 +633,31 @@ namespace EQSpellParser
         End_Below_40_Percent = 522,
         Mana_Below_40_Percent = 523,
         HP_Above_20_Percent = 524,
-
+        Humanoid2 = 601,
+        Werewolf2 = 602,
         Undead2 = 603, // vampiric too? Celestial Contravention Strike
-        Undead3 = 608,
-        Summoned2 = 624,
+        Giants2 = 604,
+        Constructs2 = 605,
+        Extraplanar = 606,
+        Summoned2 = 607,
+        UndeadPet = 608,
+        KaelGiant = 609,
+        Coldain = 610,
+        Summoned3 = 624,
+        Warders = 628,
+        VeeshanDragon = 630,
         Not_Undead_Or_Summoned = 635,
         Not_Plant = 636,
+        Not_Player = 700,
         Not_Pet = 701,
-        Undead4 = 818,
-        Not_Undead4 = 819,
+        Level_Above_42 = 800,
+        Treant = 815,
+        Bixie2 = 816,
+        Scarecrow = 817,
+        Vampire_or_Undead = 818,
+        Not_Vampire_or_Undead = 819,
+        Knight_Hybrid_Melee_Classes = 820,
+        Warrior_Caster_Priest_Classes = 821,
         End_Below_21_Percent = 825,
         End_Below_25_Percent = 826,
         End_Below_29_Percent = 827,
@@ -629,6 +667,9 @@ namespace EQSpellParser
         Humanoid_Level_84_Max = 842,
         Humanoid_Level_86_Max = 843,
         Humanoid_Level_88_Max = 844,
+
+        Has_Crystallized_Flame_Buff = 845,
+        Has_Incendiary_Ooze_Buff = 846,
 
         Level_90_Max = 860,
         Level_92_Max = 861,
@@ -644,14 +685,34 @@ namespace EQSpellParser
         Between_Level_76_and_85 = 1001,
         Between_Level_86_and_95 = 1002,
         Between_Level_96_and_105 = 1003,
-
         HP_Less_Than_80_Percent = 1004,
 
-        // [38311] Mana Reserve is tagged with both, not sure which is which
-        Mana_Below_10_Percent = 38311,
-        Mana_Below_20_Percent = 38312,
+        Level_Above_34 = 1474,
 
-        Caster_or_Priest = 49529
+        In_Two_Handed_Stance = 2000,
+        In_Dual_Wield_Handed_Stance = 2001,
+        In_Shield_Stance = 2002,
+        Not_In_Two_Handed_Stance = 2010,
+        Not_In_Dual_Wield_Handed_Stance = 2011,
+        Not_In_Shield_Stance = 2012,
+
+        No_Shroud_of_Prayer_Buff = 32339,
+
+        Mana_Below_20_Percent = 38311,
+        Mana_Above_50_Percent = 38312,
+
+        Completed_Achievement_Legendary_Answerer = 39281,
+        Missing_Achievement_Legendary_Answerer = 42280,
+
+        Caster_Priest_Classes = 49529,
+
+        No_Furious_Rampage_Buff = 49612,
+        // melee classes must be below 30% endurance and classes that use mana must be below 30% mana
+        Melee_Class_End_Below_30_Percent_or_Mana_Class_Mana_Below_30_Percent = 49573,
+        Mana_Below_30_Percent = 49809,
+
+        No_Harmonious_Precision_Buff = 50003,
+        No_Harmonious_Expanse_Buff = 50009
     }
 
     public enum SpellZoneRestrict
