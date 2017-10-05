@@ -89,6 +89,9 @@
     <Compile Include="..\core\SpellData.cs">
       <Link>SpellData.cs</Link>
     </Compile>
+    <Compile Include="..\core\SpellEnums.cs">
+      <Link>SpellEnums.cs</Link>
+    </Compile>
     <Compile Include="..\core\SpellParser.cs">
       <Link>SpellParser.cs</Link>
     </Compile>
