@@ -1,0 +1,53 @@
+
+Resists
+=================================================
+http://forums.daybreakgames.com/eqold/posts/list.m?start=150&topic_id=165000#2497269
+Prathun-Dev on 07/01/2010 15:54:35.
+
+Here we go.  If any of this is confusing or needs clarification, or if the formatting goes belly-up, I'll edit this post to make the spell resistance explanation as clear as possible.  In the interest of keeping the breakdown relatively simple, I've excluded special cases involving PvP or pets.  Let me know if you have any questions.
+
+Pull the spell's resist modifier value from the spell (or the spell list override, if one exists).
+Adjust the resist modifier for applicable focus effects.
+Check for fear immunity.  If roll is made, resist spell.
+Check for resistance to the spell effect.  If roll is made, resist spell.
+Check for Sanctification.  If roll is made and spell is not no_resist, resist spell.
+Calculate target's resistance chance applicable to this spell.
+     If spell's resist type is no_save, spell lands.
+     Otherwise, magic checks against magic, fire against fire, chromatic checks lowest, prismatic checks average, etc.  The capped resistance score is used.
+Set resist chance to 15 if the spell effect is a lull.
+Adjust resist chance for level difference between caster and target.
+     Set temp level difference to (target level - caster level).
+     If target is at least level 67 and target is an NPC, temp level difference is set to (66 - caster level) or 0, whichever is greater.
+     If target is a PC, and caster level is at least 21, and temp level difference is greater than 15, set temp level difference to 15.
+     If target is an NPC, and temp level difference is less than -9, set temp level difference to -9.
+     Set level modifier to (temp level difference * temp level difference / 2)
+     If temp level difference is negative, make level modifier negative.
+     If target is an NPC and caster is far below target's level, set level modifier to 1000.
+     Add level modifier to resist chance.
+Adjust resist chance for spell's resist modifier.
+If effect is damage and target is a non-mercenary NPC...
+     If target is at least level 67, level difference is set to (66 - caster level) or 0, whichever is greater.
+     If target is at least level 17 and level difference is greater than 0, add (2 * level difference) to resist chance.
+If resist chance is greater than spell's max resist and the max resist is not 0, set the resist chance to max resist.
+If resist chance is less than spell's min resist and the min resist is not 0, set the resist chance to min resist.
+Roll a random number between 0 and 200.
+If the roll is greater than the resist chance, spell lands.
+If the roll is not greater than the resist chance and the spell does not allow partial resists, resist spell.
+If spell effect does not apply damage, spell lands.
+Otherwise, spell effect applies damage.  Calculate partial resist.
+     If the resist chance is less than 1, set the resist chance to 1.
+     Partial resist modifier is set to ((150 * (resist chance - roll)) / resist chance).
+     If target is a non-mercenary NPC...
+          If target is higher level than caster, and target is at least level 17, and caster is level 50 or below, add 5 to partial resist modifier.
+          If target is at least level 30 and caster is level 50 or below, add (casterlevel - 25) to partial resist modifier.
+          If target's level is less than 15, subtract 5 from partial resist modifier.
+     If caster is an NPC...
+          If target is at least 20 levels higher than caster, add (level difference * 1.5) to partial resist modifier.
+     If partial resist modifier is less than 0, set partial resist modifier to 0.
+     If partial resist modifier is greater than 100, set partial resist modifier to 100.
+     Spell may land.  A partial resist modifier of 0 means resist spell.  A partial resist modifier of 100 means spell lands for full.  Anything inbetween means that the spell lands partially, and the partial resist modifier is used to calculate resulting damage.
+
+--
+
+There are various ways that an NPC can be assigned a spell to cast: a script call, spell innate, contact innate, auto memorization, or a spell list.  The last one, the spell list, allows us to override the spell's natural resist mod.  This isn't data that you can parse, (the spell data file is an anomaly as far as pushing EverQuest's nuts and bolts out to the client), since the spell list and NPC aren't player facing.  In this case, the NPC in question is probably using spell list 11, which has a -740 resist mod for Clawing Darkness.
+

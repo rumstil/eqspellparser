@@ -1,0 +1,50 @@
+
+Weapon Damage Bonus
+=======================
+https://forums.daybreakgames.com/eq/index.php?threads/test-update-09-17-15.226618/page-5#post-3326194
+
+September 17, 2015 - Dzarn
+
+To clarify the change to the weapon damage bonus formula:
+
+Do note that there was a bug in the item display window where the damage bonus on weapons was displaying as 1 point less than it should have.
+This has been corrected and the value displayed in the window is now the real primary hand value of the new formula.
+
+Previous to this patch - Old formulas use truncation:
+	1-Handed weapon - Primary Hand - Delay <= 39: 1 + [(level - 28) / 3]
+	1-Handed weapon - Primary Hand - Delay < 43: 2 + [(level - 28) / 3] + [(delay-40)/3]
+	1-Handed weapon - Primary Hand - Delay < 45: 3 + [(level - 28) / 3] + [(delay-40)/3]
+	1-Handed weapon - Primary Hand - Delay >= 45: 4 + [(level - 28) / 3] + [(delay-40)/3]
+
+	1-Handed weapon - Secondary Hand - No Sinister Strikes: 0
+	1-Handed weapon - Secondary Hand - Sinister Strikes: 1 + [(level - 40) / 3] * [delay/30]
+
+	2-Handed weapon - Delay <= 27: 1 + [(level - 28) / 3]
+	2-Handed weapon - Delay < 40: 1 + [(level - 28) / 3] + [(level - 30) / 5]
+	2-Handed weapon - Delay < 43: 2 + [(level - 28) / 3] + [(level - 30) / 5] + [(delay-40)/3]
+	2-Handed weapon - Delay < 45: 3 + [(level - 28) / 3] + [(level - 30) / 5] + [(delay-40)/3]
+	2-Handed weapon - Delay >= 45: 4 + [(level - 28) / 3] + [(level - 30) / 5] + [(delay-40)/3]
+
+
+Now with this patch the formulas are:
+	1-Handed weapon - Primary Hand: (damage * delay * level * 80) / 400000
+
+	1-Handed weapon - Secondary Hand: [Primary Hand Formula * Base1 of Sinister Strike SPA]
+
+	2-Handed weapon: (damage * delay * level * 110) / 400000
+
+
+The new formula is intended to better scale to modern weapons where delays are much lower and base damage values are much higher.
+It also allows sinister strikes to scale over time and should show a marked improvement in offhand damage.
+
+If the effect on very low level content ends up being a problem the formula may be reviewed for lower end worst-case situations.
+
+Note that players must be at least level 28 for the damage bonus to apply.
+This change also removed the restriction on what classes have weapon damage bonus applied, previously priests and intelligence casters were excluded. 
+
+
+September 24, 2015
+
+- Adjusted the weapon damage bonus formula to scale more gracefully for low damage weapons. This should result in damage bonus values that are more in line with the old formula for older items. 
+
+

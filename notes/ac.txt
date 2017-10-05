@@ -1,0 +1,254 @@
+
+AC
+=====================================================
+https://forums.daybreakgames.com/eq/index.php?threads/ac-vs-acv2.210028/
+Dzarn - Developer
+
+
+    Okay, this is something I've been researching over the last few days to present.
+    What is your 'Real AC'?
+    Or, When 'Mitigation AC' meets 'Avoidance AC'
+
+    Hopefully this will shed some light on the arcane calculations used to get the number you see in your inventory window versus the number used for some mitigation and avoidance purposes.
+
+    I'll preface this by saying that this may generate more questions than I am able to answer in the near future, but this is as complete of an answer as I can offer at the moment.
+
+    So you want to know what your 'Real AC' is? I'll step you through the calculations and explain why the number you see in your inventory window is not representative of what NPCs look at when they're hitting you in melee combat. It is a strong possibility that sometime in the future the number you see in your inventory window will be accurately reflective of the number we're going to calculate here, but this will hopefully be helpful in the meantime.
+
+    Note that unless explicitly stated otherwise all of these calculations are using integer math, so truncation will occur with each division.
+
+    Let's start with what we'll call your 'Displayed AC Value'. This is the number in your inventory window.
+
+    Displayed AC Value is equal to what we'll call your 'AC Sum' added to your 'Computed Defense' multiplied by 1000 then divided by 350 plus 497. What that looks like as an equation is:
+    (1000 * (ACSum + ComputedDefense)) / (350 + 497)
+
+    Because it's shorter, I'll now explain how to find your 'Computed Defense'. Think of the 'Computed Defense' as 'Avoidance AC', it is basically how hard it is to land a hit on you. Despite this fact, this value gets rolled into displayed AC. To calculate this, take your defense skill multiplied by 400 then divided by 225, add your 'Agility Bonus', add the capped sum of your 'Item Avoidance', then multiply this value based on your 'Drunkenness Reduction'. If this value is less than 1, return 1 instead. I'll display this as an equation then break down the steps in the next paragraphs:
+    Step1 = (DefenseSkill*400) / 225
+    Step2 = Step1 + 'Agility Bonus'
+    Step3 = Step2 + 'Item Avoidance'
+    Step4 = Step3 * 'Drunkenness Reduction'
+    If Step4 < 1: 'Computed Defense' = 1
+    Otherwise 'Computed Defense' = Step4.
+
+    Your 'Agility Bonus' is calculated as your 'Functional Agility' minus 40, multiplied by 8000 divided by 36000 added to your heroic agility divided by 10. Your 'Functional Agility' is defined as your capped stat + the amount of heroic Agility you have. I'll use the values on my avatar as an example, the second tab of my inventory window states that I have 1002/900 base agility +395 heroic agility. My 'Functional Agility' is 900+395, 1295, the value that is displayed on the first tab of my inventory window. In equation form it looks like:
+    Step1 = (8000 * (FunctionalAgility-40)) / 36000
+    Step2 = (HeroicAgility / 10)
+    'Agility Bonus' = Step1 + Step2
+
+    Your 'Item Avoidance' is the capped value of 'Avoidance' stat that you have from items. The cap is currently 100 points.
+
+    Your 'Drunkenness Reduction' is a multiplier that is applied if you are beyond a certain threshold of drunkenness. The amount of drunk you can be is a range from 0-200, each drink adds a fixed amount based on your alcohol tolerance skill but for the purposes of this equation only the 0-200 scale is relevant. This calculation uses float math so decimals are in play: If your drunkenness value divided by 2 (let's call it 'Value') is greater than 20.0 then you have a 'Reduction Multiplier' equal to 110 minus 'Value' divided by 100.0. If this 'Reduction Multiplier' is greater than 1.0, set it to 1.0. Multiply your 'Step3' value by this 'Reduction Multiplier' and truncate any decimal points. In equation form:
+    Value = HowDrunk / 2
+    Reduction = (110 - Value)/100.0
+    If Reduction > 1.0: Reduction = 1.0
+    Step4 = truncate(Step3*Reduction)
+
+    Now we've successfully calculated your 'Computed Defense' value, we're halfway there (kinda)!
+
+    Let's calculate your 'AC Sum'. It is in this portion of the equation that the number you see in your inventory window begins to diverge from what the server uses for combat calculations. I'll point out each location where these numbers diverge as we get to them.
+
+    Your 'AC Sum' is calculated with all of the following:
+    1. Your 'Base AC' value, which for players is equal to 0 but can be higher if you are a shroud.
+    2. The total AC stat you see on each item that you have equipped in your inventory window not including your ammo slot.
+    3. If you have a shield in your secondary slot, its value is included in step 2 but it is also recorded individually as a 'Shield AC' value.
+    4. Additionally if you have a shield equipped in your secondary slot, your heroic strength / 10 is added to your 'Shield AC' value.
+    5. Any AC from the drink you are consuming.
+    6. Any AC from the food you are consuming.
+    7. Any AC from a tribute item you have equipped.
+    8. Any AC from a trophy item you have equipped.
+    9. Any AC from a guild tribute item you have equipped.
+    10. Any AC from a guild trophy item you have equipped.
+
+    To put the above into an equation:
+    Step1 = 0 (base ac)
+    Step2 = Sum of all of the AC stat on every piece of gear you can see in you inventory (not ammo slot.)
+    Step3 = If equipping shield [AC stat on your shield + (HeroicSTR/10)]
+    Step4 = FoodAC + DrinkAC
+    Step5 = TributeItemAC + TrophyItemAC + GuildTributeItemAC + GuildTrophyItemAC
+    Step6 = Step1+Step2+Step4+Step5
+
+    Now 'EQ Math' comes into play. We're going to start doing things with the numbers that I don't have real answers for, but this is what happens. Take the sum you've got from the above steps and multiply that by 4 then divide by 3.
+    Step7 = (Step6 * 4) /3
+
+    The next step is the first point that the inventory window value you see and the server's calculated value can differ. There is some anti-twinking code in place that states that if you are below level 50 and the ac value we've calculated up to this point exceeds 25 + 6 times your level, cap your AC at 25 + 6 times your level. This only happens on the server and is not displayed in the inventory window however. In equation form:
+    Step8 (server) = if PlayerLevel < 50 and Step7 > (25 + (6*PlayerLevel)): = (25 + (6*PlayerLevel))
+    Step8 (server) = Otherwise: = Step7
+    Step8 (player) = Step7
+
+    Now we add your class and race bonuses to your AC value. This is another trip into 'EQ Math'. This step is relevant if you are a monk, a rogue, a beastlord, or an Iksar. If you are a monk the following data points come into play: Based on your level you have a hard cap on the amount of weight you can carry and you have a soft cap on the weight you can carry.
+    Level 15: HardCap 32: SoftCap 15
+    Level 30: HardCap 34: SoftCap 16
+    Level 45: HardCap 36: SoftCap 17
+    Level 51: HardCap 38: SoftCap 18
+    Level 55: HardCap 40: SoftCap 20
+    Level 60: HardCap 45: SoftCap 24
+    Level 62: HardCap 47: SoftCap 24
+    Level 64: HardCap 50: SoftCap 24
+    Level 65: HardCap 53: SoftCap 26
+    Level 70: HardCap 53: SoftCap 28
+    Level 75: HardCap 53: SoftCap 30
+    Level 80: HardCap 54: SoftCap 31
+    Level 85: HardCap 55: SoftCap 32
+    Level 90: HardCap 56: SoftCap 33
+    Level 95: HardCap 57: SoftCap 34
+    Level 100: HardCap 58: SoftCap 35
+
+    Staying under the hard cap allows you to receive an AC bonus that gets increasingly worse if you are over your soft cap. Going over your hard cap will cause you to incur an AC penalty however. The way this is calculated is as follows:
+
+    If your total weight is less than your (Hard Cap - 1) then your bonus starts out as (your level + 5). If your total weight is greater than your soft cap, then a 'Reduction' is applied, this reduction is a float so decimals will come into play. Your reduction is equal to your current weight minus your soft cap multiplied by 6.66667, this reduction is capped at 100.0 then your reduction is set equal to 100 minus reduction divided by 100. Your bonus is then multiplied by this reduction value and if it is less than 0 it is set equal to 0. As an equation:
+    ACBonus = PlayerLevel + 5
+    If Weight > SoftCap:
+    Reduction = (Weight - SoftCap) * 6.66667
+    If Reduction > 100.0: = 100.0
+    Reduction = (100 - Reduction) / 100
+    ACBonus = ACBonus*Reduction
+    If ACBonus < 0: = 0
+
+    After that occurs the AC bonus is multiplied by 4 and divided by 3, because 'EQ Math'. As an equation:
+    ACBonus = (4 * ACBonus) / 3
+
+    Now if the previous case was not true and it turns out that your total weight is greater than your (Hard Cap +1) then you will incur an AC penalty that can be as bad as (your level + 5). The 'Penalty Multiplier' is equal to your total weight minus 10 less than your hard cap then divided by 100.0, if this 'Penalty Multiplier' is greater than 1.00 then it is set to 1.00. Your penalty is multiplied by 4 then divided by 3 then multiplied by this 'Penalty Multiplier'. In equation form:
+    Penalty = PlayerLevel +5
+    Multiplier = (Weight - (HardCap-10.0))/100.0
+    If Multiplier > 1.0: = 1.0
+    Penalty = (4 * Penalty) / 3
+    Penalty = Multiplier * Penalty
+
+    At the end of all of that, either your penalty or your bonus is added to your 'Class AC Bonus' for monks. Now we move onto rogues. If you are a rogue and you are above level 30 and your 'Functional Agility' is greater than 75 you get AC bonuses! They are broken down more easily as an equation than in words:
+    LevelScaler = PlayerLevel - 26
+    If Agility < 80: ACBonus = (LevelScaler * 1) / 4
+    If Agility < 85: ACBonus = (LevelScaler * 2) / 4
+    If Agility < 90: ACBonus = (LevelScaler * 3) / 4
+    If Agility < 100: ACBonus = (LevelScaler * 4) / 4
+    If Agility >= 100: ACBonus = (LevelScaler * 5) / 4
+    If ACBonus > 12: = 12
+
+    If instead of a monk or a rogue you happen to be a beastlord that is above level 10 you get a slightly more generous bonus than rogues based on your level and agility. Again this is easier as an equation than in words:
+    LevelScaler = PlayerLevel - 6
+    If Agility < 80: ACBonus = (LevelScaler * 1) / 5
+    If Agility < 85: ACBonus = (LevelScaler * 2) / 5
+    If Agility < 90: ACBonus = (LevelScaler * 3) / 5
+    If Agility < 100: ACBonus = (LevelScaler * 4) / 5
+    If Agility >= 100: ACBonus = (LevelScaler * 5) / 5
+    If ACBonus > 16: = 16
+
+    In addition to these class bonuses there is also the bonus for being an Iksar. This was included to help balance the game for Iksars who could not wear plate armor. A time honored tradition that was followed for 2 out of our 21 releases. The Iksar AC bonus is equal to your level with a minimum value of 10 and a maximum value of 35. In equation form:
+    ACBonus = PlayerLevel
+    If ACBonus < 10: = 10
+    If ACBonus > 35: = 35
+
+    Now the sum of your class and racial bonus is returned back to the 'AC Sum' formula.
+    Step9 = Step8 + RaceClassBonus
+
+    Now if your AC is less than 0, we set it back to zero here. I suppose this would come into play if you were a monk with no armor, very low defense and a terribly high amount of weight.
+    If Step9 < 0: = 0
+
+    Now we come to the second point where your visible AC value could differ from what the server calculates. However it's not entirely relevant because this step only occurs if you are an NPC. I'll cover it anyway.
+
+    If you are an NPC, your base AC value is added to the calculated value up to this point, this is the value that designers put on NPCs to adjust for player attack values. You might notice in Plane of War that NPCs innately mitigate melee slightly better than in other zones. This is because PoWar uses AC values equivalent to player AC values (3000-4000) where 'most' of the creatures in game don't exceed 600 AC. In addition to this base AC value, if you are a summoned pet and your owner is a player, get the total amount of SPA 397 that they have. SPA 397 is essentially just pet AC. For reference, rank 18 of Sturdy Companion offers 3800 points of this SPA. In equation form, only relevant if you are an NPC or a pet:
+    Step10 (Server) = Step9 + NPCBaseAC
+    Step11 (Server) = Step10 + OwnersPetACAAs
+
+    Now we include both buffs and defense skill as part of your AC Sum. This calculation differs between silk classes and everyone else and is also the reason why we typically don't include the base value of AC buffs in spell descriptions, because they differ depending on the class that is looking at the buff. For silk classes which are enchanters, magicians, necromancers and wizards you add your defense skill divided by 2 to your ac as well as the total amount of SPA 3 [AC] and SPA 416 [AC2] divided by 3 to your ac. For any other classes you will add your defense skill divided by 3 and the total amount of SPA 3 and SPA 416 divided by 4 to your ac.
+
+    Now in addition to buffs there is also AC offered by AAs. Some important reference points at level 100 for those values are that each rank of Hero's Fortitude adds 10 ac and Armor of Wisdom offers a different amount of AC based on your classes broken down as follows:
+    Armor of Wisdom 18 - Bards, Clerics, Monks, Rangers: 650 ac
+    Armor of Wisdom 18 - Paladins, Shadowknights: 620 ac
+    Armor of Wisdom 18 - Beastlords, Berserkers, Rogues, Shaman: 720 ac
+    Armor of Wisdom 18 - Warriors: 610 ac
+    Armor of Wisdom 18 - Druids, Enchanters, Magicians, Necromancers, Wizards: 840 ac
+
+    In equation form:
+    Step12 = If Silk: DefenseSkill / 2
+    Step12 = Otherwise: DefenseSkill / 3
+    Step13 = If Silk: (SPA3Buffs + SPA416Buffs) / 3
+    Step13 = Otherwise: (SPA3Buffs + SPA416Buffs) / 4
+    Step14 = If brd,clr,mnk,rng: AOWTotal / 4
+    Step14 = If pal,shd: AOWTotal / 4
+    Step14 = If bst,ber,rog,shm: AOWTotal / 4
+    Step14 = If war: AOWTotal / 4
+    Step14 = If dru,enc,mag,nec,wiz: AOWTotal / 3
+    Step15 = If Silk: HerosFortTotal / 3
+    Step15 = Otherwise: HerosFortTotal / 4
+    Step16 = Step11 + Step12 + Step13 + Step14 + Step15
+
+    Now the next step is to calculate an agility bonus if your agility is over 70. This bonus is equal to your 'Functional Agility' / 20. Afterwards if your ac is less than 0, set it back to 0 again. In equation form:
+    Step17 = If FunctionalAgility > 70: = (FunctionalAgility / 20)
+    Step 18 = Step16 + Step17
+    If Step18 < 0: = 0
+
+    That was the last thing that the player facing calculation does, so you can return the step18 value to the 'Displayed AC Value' function and you should get the same number you see in your inventory window if all of the math was done right. However the next step that occurs is the most important difference between what you see in your inventory window and what goes into the combat calculations in game, this is where the 'soft cap' on AC is calculated.
+
+    The 'AC Soft Cap' is defined in a table for each class at each level. Each combination of those two data points has a 'Soft Cap' and a 'Post Cap Multiplier'. I'm only going to list the values for classes at level 100.
+    Enchanters, Magicians, Necromancers, Wizards: Cap 408 - Multiplier 0.25
+    Druids: Cap 418 - Multiplier 0.265
+    Beastlords, Berserkers, Rogues, Shaman: Cap 432 - Multiplier 0.28
+    Bards, Clerics, Monks: Cap 448 - Multiplier 0.3
+    Rangers: Cap 468 - Multiplier 0.315
+    Paladins, Shadowknights: Cap 488 - Multiplier 0.33
+    Warriors: Cap 510 - Multiplier 0.35
+
+    Based on your class you would take the Cap value then multiply it by the total amount of SPA 259 that you have, divide by 100 then add that back to the cap value. SPA 259 is primarily obtained through Combat Stability but there is a small additional amount granted via Physical Enhancement. For reference, rank 53 of Combat Stability is 80 points and Physical Enhancement is 2 points. In equation form:
+    Step19 (Server) = (ACCap * SPA259Total) / 100
+    Step20 (Server) = ACCap + Step19
+
+    Now we go back to the amount of 'Shield AC' that was calculated earlier in the function and add that to this newly calculated AC cap. This is what has lead to the traditional wisdom that AC on your shield is anywhere from 4 to 3 times as useful as AC anywhere else.
+    Step21 (Server) = Step3 + Step20
+
+    Now if your total AC is greater than the AC cap we just calculated (a likely scenario at anything but very low levels) we multiply the amount over the soft cap by your class' multiplier and add that to your calculated soft cap value to get your 'Real AC'.
+    If Step18 > Step21:
+    Step22 (Server) = Step18 - Step21
+    Step23 (Server) = Step21 + (Step22 * ClassMultiplier)
+    Step24 (Server) = Truncate(Step23)
+    'Mitigation AC' = Step24 (Server)
+
+    Otherwise:
+    'Mitigation AC' = Step18 (Server)
+    Some of the combat calculations now use your 'Mitigation AC' for some of the mitigation calculations (in conjunction with innumerable other things that are outside the scope of this post.)
+
+    While you may think of this number as 'Real AC', it is more accurate to say that it is your 'Mitigation AC' while your 'Displayed AC' is more of an obfuscated incomplete calculation.
+
+Dzarn, Wednesday at 10:03 PM
+#9 Last edited by Dzarn, Yesterday at 12:45 AM
+Andarriel, skien, Diptera and 44 others like this.
+Dzarn Developer
+
+    As a sort of walkthrough I'll go through the math listed in the above post with my avatar character to try and make sense of calculating your Displayed AC (via your Mitigation and Avoidance AC values.)
+
+    For the purposes of this demonstration: My avatar is a level 100 Dark Elf Shadow Knight with a mix of T1 CoTF Raid gear, most augments, access to all ranks of all available AAs, no special food or drink, no buffs, and no tribute or trophy effects of any kind. I have 395 heroic agility and 310 heroic strength while wearing a 350 ac shield.
+
+    Displayed AC: 10480 [Value displayed in inventory window]
+    (1000 * (ACSum + ComputedDefense)) / (350 + 497)
+    (1000 * (7767 + 1110)) / (847) = 10480
+
+    ComputedDefense: 1110
+    (390/400) / 225 = 693
+    (8000 * (1295 - 40)) / 36000 = 278
+    + 100 avoidance from items
+    0 Drunkenness
+
+    ACSum: 7767
+    5470 AC from all items in inventory window
+    350 base shield ac + 31 shield ac from heroic strength
+    0 from food, drink, tributes, trophies
+    (5470 * 4) / 3 = 7293
+    I'm above level 50 continue
+    No racial or class bonuses
+    I'm not an NPC or a pet
+    I'm not a silk class so:
+    7293 + (390/3) = 7423
+    Armor of Wisdom rank 18 for pal/sk: 7423 + (620/4) = 7578
+    Rank 50 of Hero's Fortitude: 7578 + (500/4) = 7703
+    Agi > 70: 7703 + (1295 / 20) = 7767
+    Return here for Displayed AC calculation.
+
+    Mitigation AC: 3413 [Value returned by 'ac compute' function on the server]
+    SK - Level 100: Cap 488: Multiplier: 0.33.
+    (488 * 82 / 100) = 400
+    488 + 400 = 888
+    888 + 381 (shield ac) = 1269 softcap
+    7767 > 1269 so:
+    7767-1269 = 6498
+    6498 * 0.33 = 2144
+    1269 + 2144 = 3413
+

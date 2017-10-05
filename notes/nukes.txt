@@ -1,0 +1,20 @@
+
+Critical Nukes
+=======================
+https://forums.daybreakgames.com/eq/index.php?threads/test-update-07-20-15.225079/
+
+July 20, 2015 - Hludwolf
+
+The old way critical damage was handled was as follows:
+- 0 meant no critical damage, 100 is "the same," anything over 100 is a bonus.
+- Only the best modifier from AAs was added, and only the best modifier from spells was added.
+- Black Wolf had a crit damage value of 200, which meant it added 100% to your critical damage if you had no AA modifiers. With AA modifiers, it would actually add 200%.
+
+The new way critical damage is handled is as follows:
+- 100% is the base inherent critical damage modifier. The new SPA is now strictly a modifier to this number.
+- Values below 0 mean less critical damage, 0 is "the same," and anything above 0 is a bonus.
+- All modifiers stack (assuming they are in different slots). This means you get the bonus from Fury of Magic added to Spell Casting Fury Mastery (and, with the upcoming test update, Spell Casting Fury). If you have multiple spells active, they add up as well.
+- To compensate for the "extra" 100% that used to be added when you had both a spell and an AA modifier active, we have (now) added a 100% modifier to Spell Casting Fury.
+- Black Wolf has a crit damage value of 100, which means it adds 100% to your critical damage. This can now stack with other active buffs, or you can time your buffs for maximum effect as you did before.
+
+

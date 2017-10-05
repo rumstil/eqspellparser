@@ -1,0 +1,54 @@
+
+Cures
+=======================
+
+Aristo:
+
+Cure Beneficial and Cure Detrimental have been changed to give us more control. In a nutshell, here's how it used to work:
+
+    Is there a value in base effect 1?
+
+    If so, add it to this formula: chance_to_remove = 90 + (caster_level - 50);
+
+    If chance_to_remove is above 95, set it to 95.
+
+    Use chance_to_remove as a percentage chance to remove a relevant spell (beneficial or detrimental).
+
+Effectively, if you were level 58 or above, it always had a 95% chance to remove an effect as long as base effect 1 was 1 or more.
+The new way uses values from 1-1000, where 1000 is "always remove." Most existing spells that used one of these effects were set to 950 (95%) so they will work functionally identically to the way they worked before (or better if you're below level 58).
+The one existing spell line that's been changed is the Splash of Sanctification line. Because it hits so many targets and has no limit on its reuse, it could cure entire raids nearly instantly, and as a reaction we started making most detrimental raid spells immune to the effect if we wanted them to stay on for any length of time. This was bad all around (why give you cures and then make everything immune), so hopefully this change will let us reopen that bit of design space.
+And for those of you who are curious, here's how the new data works for spell effects 154 and 209:
+
+    Base effect 1 - base percentage chance (x10) to remove an effect.
+
+    1 == .1% base chance to remove.
+
+    1000 == 100% base chance to remove.
+
+    Base effect 2 - flag - reduce duration instead of remove effect (unused so far)
+
+    0 == Remove the effect if the percentage roll succeeds.
+
+    any other value == Halve the duration of the effect if the percentage roll succeeds.
+
+    Effect Cap - Level cap at which this cure will no longer work (unused so far).
+
+    Caster of the effect that the cure is attempting to remove: caster
+
+    Caster of the cure that is attempting to remove an effect: curer
+
+    Caster is a raid boss at level 105. Curer is a level 100 player casting a cure spell with base effect 1 of 950 and effect cap of 103.
+
+    Caster is 2 levels higher than the cap, so the cure won't work.
+
+    Caster is a basepop mob at level 98. Curer is a level 100 player casting a cure spell with base effect 1 of 950 and effect cap of 105.
+
+    Curer is 2 levels higher than Caster, so the cure gets a 1% bonus to work (96% vs 95%).
+
+    Caster is a raid boss at level 103. Curer is a level 100 player casting a cure spell with base effect 1 of 950 and effect cap of 105.
+
+    Caster is 3 levels higher than Curer, so the cure gets a 1.5% penalty to work (93.5% vs 95%).
+
+Hope that clears things up.
+
+

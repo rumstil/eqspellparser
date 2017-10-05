@@ -33,7 +33,8 @@ namespace EQSpellParser
         CotF,
         TDS,
         TBM,
-        EoK
+        EoK,
+        RoS
     }
 
     public enum AAExpansionLong
@@ -61,7 +62,8 @@ namespace EQSpellParser
         Call_of_the_Forsaken,
         The_Darkened_Sea,
         The_Broken_Mirror,
-        Empires_of_Kunark
+        Empires_of_Kunark,
+        Ring_of_Scale
     }
 
     public struct AASlot
