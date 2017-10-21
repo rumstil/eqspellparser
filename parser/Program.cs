@@ -134,7 +134,7 @@ namespace parser
             {
                 Console.WriteLine(spell);
                 foreach (string s in spell.Details())
-                    Console.WriteLine(cache.InsertSpellNames(s));
+                    Console.WriteLine(cache.InsertRefNames(s));
                 if (!String.IsNullOrEmpty(spell.Desc))
                     Console.WriteLine(spell.Desc);
                 Console.WriteLine();

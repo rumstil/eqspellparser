@@ -340,9 +340,9 @@ namespace EQSpellParser
         }
 
         /// <summary>
-        /// Insert spell names. e.g. [Spell 13] -> Complete Heal [Spell 13]
+        /// Insert reference names. e.g. [Spell 13] -> Complete Heal [Spell 13]
         /// </summary>
-        public string InsertSpellNames(string text)
+        public string InsertRefNames(string text)
         {
             text = Spell.SpellRefExpr.Replace(text, m =>
             {
@@ -354,6 +354,14 @@ namespace EQSpellParser
             {
                 int id = Int32.Parse(m.Groups[1].Value);
                 return String.Format("{1} [Group {0}]", id, GetSpellGroupName(id));
+            });
+
+            text = Spell.ItemRefExpr.Replace(text, m =>
+            {
+                int id = Int32.Parse(m.Groups[1].Value);
+                if (Enum.IsDefined(typeof(SpellReagent), id))
+                    return String.Format("{1} [Item {0}]", id, ((SpellReagent)id).ToString().Replace('_', ' '));
+                return m.Groups[0].Value;
             });
 
             return text;
@@ -392,7 +400,14 @@ namespace EQSpellParser
                         return -1;
                     if (b.Levels[cls] > 0 && a.Levels[cls] == 0)
                         return 1;
-                    int comp = a.Levels[cls] - b.Levels[cls];
+                    // move AA to bottom of list
+                    if (a.Levels[cls] >= 250 && b.Levels[cls] < 250)
+                        return 1;
+                    if (b.Levels[cls] >= 250 && a.Levels[cls] < 250)
+                        return -1;
+                    // b-a = descending
+                    // a-b = ascending
+                    int comp = b.Levels[cls] - a.Levels[cls];
                     if (comp == 0)
                         comp = String.Compare(StripRank(a.Name), StripRank(b.Name));
                     if (comp == 0)

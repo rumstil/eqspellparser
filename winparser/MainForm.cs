@@ -248,6 +248,10 @@ namespace winparser
         {
             SearchBrowser.DocumentText = html.ToString();
 
+            //SearchBrowser.DocumentText = "";
+            //SearchBrowser.Document.Write(html.ToString());
+            //SearchBrowser.Refresh();
+
             //var path = Directory.GetCurrentDirectory() + "\\results.htm";
             //File.WriteAllText(path, html.ToString());
             //SearchBrowser.Navigate("file:///" + path);
@@ -269,7 +273,7 @@ namespace winparser
                         return String.Format("{0}: <span title=\"SPA={2} Base1={3} Base2={4} Max={5} Calc={6}\">{1}</span>", i + 1, spell.Slots[i].Desc, spell.Slots[i].SPA, spell.Slots[i].Base1, spell.Slots[i].Base2, spell.Slots[i].Max, spell.Slots[i].Calc);
                     });
 
-                    html.Append(InsertSpellRefLinks(slot));
+                    html.Append(InsertRefLinks(slot));
                     html.Append("<br/>");
                 }
 
@@ -335,6 +339,10 @@ namespace winparser
                 if (spell.MaxHits > 0)
                     html.AppendFormat("Max Hits: {0} {1}<br/>", spell.MaxHits, FormatEnum(spell.MaxHitsType));
 
+                for (int i = 0; i < spell.ConsumeItemID.Length; i++)
+                    if (spell.ConsumeItemID[i] > 0)
+                        html.AppendFormat("Consumes: {0} x {1}<br/>", InsertRefLinks(String.Format("[Item {0}]", spell.ConsumeItemID[i])), spell.ConsumeItemCount[i]);
+                
                 if (spell.HateOverride != 0)
                     html.AppendFormat("Hate: {0}<br/>", spell.HateOverride);
 
@@ -348,14 +356,14 @@ namespace winparser
                     html.AppendFormat("Rest: {0}s<br/>", spell.RestTime.ToString());
 
                 if (spell.RecourseID != 0)
-                    html.AppendFormat("Recourse: {0}<br/>", InsertSpellRefLinks(String.Format("[Spell {0}]", spell.RecourseID)));
+                    html.AppendFormat("Recourse: {0}<br/>", InsertRefLinks(String.Format("[Spell {0}]", spell.RecourseID)));
 
                 if (spell.AEDuration >= 2500)
                     html.AppendFormat("AE Waves: {0}<br/>", spell.AEDuration / 2500);
 
                 for (int i = 0; i < spell.Slots.Count; i++)
                     if (spell.Slots[i] != null)
-                        html.AppendFormat("{0}: <span title=\"SPA={2} Base1={3} Base2={4} Max={5} Calc={6}\">{1}</span><br/>", i + 1, InsertSpellRefLinks(spell.Slots[i].Desc), spell.Slots[i].SPA, spell.Slots[i].Base1, spell.Slots[i].Base2, spell.Slots[i].Max, spell.Slots[i].Calc);
+                        html.AppendFormat("{0}: <span title=\"SPA={2} Base1={3} Base2={4} Max={5} Calc={6}\">{1}</span><br/>", i + 1, InsertRefLinks(spell.Slots[i].Desc), spell.Slots[i].SPA, spell.Slots[i].Base1, spell.Slots[i].Base2, spell.Slots[i].Max, spell.Slots[i].Calc);
 
                 html.Append("</td>");
 
@@ -363,11 +371,10 @@ namespace winparser
                 html.AppendLine();
             }
 
-
             html.Append("</table>");
         }
 
-        private string InsertSpellRefLinks(string text)
+        private string InsertRefLinks(string text)
         {
             text = Spell.SpellRefExpr.Replace(text, m =>
             {
@@ -385,8 +392,12 @@ namespace winparser
 
             text = Spell.ItemRefExpr.Replace(text, m =>
             {
-                //return String.Format("<a href='http://lucy.allakhazam.com/item.html?id={0}' class='ext' target='_top'>Item {0}</a>", m.Groups[1].Value);
-                return String.Format("<a href='http://everquest.allakhazam.com/db/item.html?item={0};source=lucy' class='ext' target='_top'>Item {0}</a>", m.Groups[1].Value);
+                int id = Int32.Parse(m.Groups[1].Value);
+                string name = m.Groups[0].Value;
+                if (Enum.IsDefined(typeof(SpellReagent), id))
+                    name = ((SpellReagent)id).ToString().Replace('_', ' ');
+                //return String.Format("<a href='http://everquest.allakhazam.com/db/item.html?item={0};source=lucy' class='ext' target='_top'>{1}</a>", id, name);
+                return String.Format("<a href='http://lucy.allakhazam.com/item.html?id={0}' class='ext' target='_top'>{1}</a>", id, name);
             });
 
             return text;
@@ -487,8 +498,8 @@ namespace winparser
             }
 
             // these functions generates the comparison text for each spell
-            Func<Spell, string> getOldText = x => x.ToString() + "\n" + oldVer.Cache.InsertSpellNames(String.Join("\n", x.Details())) + "\n\n";
-            Func<Spell, string> getNewText = x => x.ToString() + "\n" + newVer.Cache.InsertSpellNames(String.Join("\n", x.Details())) + "\n\n";
+            Func<Spell, string> getOldText = x => x.ToString() + "\n" + oldVer.Cache.InsertRefNames(String.Join("\n", x.Details())) + "\n\n";
+            Func<Spell, string> getNewText = x => x.ToString() + "\n" + newVer.Cache.InsertRefNames(String.Join("\n", x.Details())) + "\n\n";
             var diffs = Compare(oldVer.Results, newVer.Results, getOldText, getNewText);
 
             var html = InitHtml();
