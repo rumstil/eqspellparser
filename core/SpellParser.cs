@@ -11,7 +11,7 @@ namespace EQSpellParser
 {
     public static class SpellParser
     {
-        public const int MAX_LEVEL = 105;
+        public const int MAX_LEVEL = 110;
 
         /// <summary>
         /// Load all spells from spells_us.txt.

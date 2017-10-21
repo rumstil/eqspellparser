@@ -1462,8 +1462,8 @@ namespace EQSpellParser
                     return String.Format("Limit Caster Class: {0}", (SpellClassesMask)(base1 >> 1));
                 case 486:
                     if (base1 == 0)
-                        return "Limit Caster: Exclude Same";
-                    return "Limit Caster: Same";
+                        return "Limit Caster: Exclude Self";
+                    return "Limit Caster: Self";
                 case 487:
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Skill Cap with Recipes", base1);
                 case 488:
