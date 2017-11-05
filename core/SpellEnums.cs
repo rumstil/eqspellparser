@@ -1181,5 +1181,12 @@ namespace EQSpellParser
         Axe_of_the_Demolisher = 99780,
     }
 
+    [Flags]
+    enum SpellInhibitType
+    {
+        Buff = 1,
+        Worn = 2,
+        AA = 4
+    }
 
 }

@@ -1175,7 +1175,9 @@ namespace EQSpellParser
                 case 381:
                     return String.Format("Fling to Self ({0}' away)", base1) + varmax;
                 case 382:
-                    return String.Format("Inhibit Effect: {0}", Spell.FormatEnum((SpellEffect)base2), base2);
+                    if (base1 != 0)
+                        return String.Format("Inhibit Effect: {0} ({1})", Spell.FormatEnum((SpellEffect)base2), (SpellInhibitType)base1);
+                    return String.Format("Inhibit Effect: {0}", Spell.FormatEnum((SpellEffect)base2));
                 case 383:
                     // chance % modified by the cast time of the spell cast that triggers the proc, whereas 339 is not
                     // according to Beimeith:
