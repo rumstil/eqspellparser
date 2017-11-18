@@ -315,6 +315,8 @@ namespace EQSpellParser
                 case 56:
                     return "True North";
                 case 57:
+                    if (base2 == 1)
+                        return "Levitate While Running";
                     return "Levitate";
                 case 58:
                     value = (base1 << 16) + base2;
@@ -466,7 +468,7 @@ namespace EQSpellParser
                     return "Screech";
                 case 124:
                     // crits for DoTs, but not DDs.
-                    return Spell.FormatPercentRange("Spell Damage", base1, base2) + " (Before DoT Crit)";
+                    return Spell.FormatPercentRange("Spell Damage", base1, base2) + " (Before DoT Crit, After Nuke Crit)";
                 case 125:
                     return Spell.FormatPercentRange("Healing", base1, base2) + " (Before Crit)";
                 case 126:
@@ -619,7 +621,7 @@ namespace EQSpellParser
                         return Spell.FormatPercent("Chance to Hit with " + Spell.FormatEnum((SpellSkill)base2), value);
                     return Spell.FormatPercent("Chance to Hit", value);
                 case 185:
-                    return Spell.FormatPercent(Spell.FormatEnum((SpellSkill)base2) + " Damage", value);
+                    return Spell.FormatPercent(Spell.FormatEnum((SpellSkill)base2) + " Damage", base1);
                 case 186:
                     return Spell.FormatPercent("Min " + Spell.FormatEnum((SpellSkill)base2) + " Damage", value); // only DI1?
                 case 187:
@@ -819,7 +821,8 @@ namespace EQSpellParser
                     return String.Format("No Fizzle up to level {0}", base1);
                 case 266:
                     // only works when first attack is successful?
-                    return Spell.FormatPercent("Chance of Additional 2H Attack", base1);
+                    // base2 may be the the number of attacks?
+                    return Spell.FormatPercent("Chance of Additional 2H Attack", base1) + String.Format(" ({0})", base2);
                 case 267:
                     // 2 = /pet attack
                     // 3 = /pet qattack
@@ -942,7 +945,7 @@ namespace EQSpellParser
                 case 310:
                     return String.Format("Reduce Timer by {0}", FormatTime(base1 / 1000f));
                 case 311:
-                    // filter based on field 168 
+                    // filter based on field 108: IS_SKILL 
                     return String.Format("Limit Type: {0} Combat Skills", base1 == 1 ? "Include" : "Exclude");
                 case 312:
                     return "Sanctuary";
@@ -1088,6 +1091,7 @@ namespace EQSpellParser
                     //if (ID == 49679) aura = 49737;
                     //if (ID == 49680) aura = 49738;
                     
+                    // old aura names
                     if (Extra.StartsWith("IOQuicksandTrap85")) aura = 22655;
                     if (Extra.StartsWith("IOAuraCantataRk")) aura = 19713 + Rank;
                     if (Extra.StartsWith("IORogTrapAggro92Rk")) aura = 26111 + Rank;
@@ -1102,7 +1106,6 @@ namespace EQSpellParser
                     if (Extra.StartsWith("PCIObEncS19L095EchoCastProcRk")) aura = 30179 + Rank;
                     if (Extra.StartsWith("PCIObEncS20L100EchoCastProcRk")) aura = 36227 + Rank;
                     if (Extra.StartsWith("PCIObEncS21L105EchoCastProcRk")) aura = 45018 + Rank;
-
 
                     return String.Format("Aura Effect: [Spell {0}] ({1})", aura, Extra);
                 case 353:
@@ -1136,8 +1139,7 @@ namespace EQSpellParser
                 case 370:
                     return Spell.FormatCount("Corruption Resist", value);
                 case 371:
-                    // only used on slows - this lowers haste by a relative amount unlike other slows 
-                    // which cancel haste effects and use 100 - slow amount as the new attack speed
+                    // this lowers haste by a relative amount unlike other slows which cancel haste effects and use 100 - slow amount as the new attack speed
                     return Spell.FormatPercent("Melee Haste v4", -value) + " (Incremental)";
                 case 372:
                     return Spell.FormatCount("Forage Skill Cap", base1);
@@ -1321,14 +1323,14 @@ namespace EQSpellParser
                     // Weapon skills: Weapon * Haste
                     // Skill attacks: Hasted delay of the button
                     // SPA 193: 30 second delay is assumed
-                    return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus v2", base1);
+                    return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus v2 (Delay Normalized)", base1);
                 case 434:
                     // similar to 220 except the values get lowered with faster weapons 
-                    return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus v3", base1);
+                    return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus v3 (Delay Normalized)", base1);
                 case 435:
                     return String.Format("Fragile Defense ({0})", base1);
                 case 436:
-                    return "Beneficial Countdown Hold";
+                    return "Freeze Beneficial Countdown";
                 case 437:
                     return "Teleport to your " + FormatEnum((SpellTeleport)base1);
                 case 438:
@@ -1388,6 +1390,7 @@ namespace EQSpellParser
                     return "Limit Type: Include Non-Focusable";
                 case 461:
                     // Crits for DoTs and DDs. Calculated AFTER 413 BEFORE 124, 302. - Beimeith 
+                    // Ngreth is under the impression that this is applied After Crit
                     return Spell.FormatPercentRange("Spell Damage v2", base1, base2) + " (Before Crit)";
                 case 462:
                     // SPA 462 appears to be the equivalent of SPA286 and added for stacking purposes. - Beimeith 
@@ -1491,6 +1494,38 @@ namespace EQSpellParser
                 case 496:
                     // description calls this "non-cumulative" but it would probably be better described as "non-stacking"
                     return Spell.FormatPercent("Critical " + Spell.FormatEnum((SpellSkill)base2) + " Damage", base1) + " of Base Damage (Non Stacking)";
+                //case 497:
+                    // Modified the focus effects on all versions of Brell's Shawl items and augments so that their benefits will no longer be activated by triggered spells. -Patch Message
+                    // what does "triggered" mean?
+                    // 1 = exclude? maybe this is a mask of invocation types?
+                    //return String.Format("Limit: {0} Cast Spells", base1 == 1 ? "Include" : "Exclude");
+                case 498:
+                    // silimar to 266?
+                    // base2 may be the the number of attacks?
+                    return Spell.FormatPercent("Chance of Additional Primary 1H Attack", base1) + String.Format(" ({0})", base2);
+                case 499:
+                    return Spell.FormatPercent("Chance of Additional Secondary 1H Attack", base1) + String.Format(" ({0})", base2);
+                case 501:
+                    // applied after 127 spell haste focus?
+                    return String.Format("Decrease Casting Times by {0:0.##}s", base1 / 1000f);
+                case 502:
+                    // fear with the duration on the effect like stuns rather than the spell
+                    // what is base2 used for?
+                    return String.Format("Fear for {0}s", base1 / 1000f) + varmax;
+                case 503:
+                    // similar to 185 but with rear arc? stacking?
+                    // base2 is used but not for weapon type
+                    return Spell.FormatPercent("Rear Arc Melee Damage", base1);
+                case 507:
+                    // Effectively Fc_Damage_%2. I know 461 is supposedly "Fc_Damage_%2," but for whatever reason it works nothing like SPA 124. 
+                    // SPA 507 appears to work just like 124, except it appears to be applied after 461. - Sancus
+                    return Spell.FormatPercentRange("Spell Damage v4", base1, base2) + " (Before DoT Crit, After Nuke Crit)";
+                case 509:
+                    // for wording comparison, the closest description to this is 401, 402
+                    return String.Format("{0} Current HP by {1}% of Caster Current HP ({2}% Life Burn)", base2 < 0 ? "Decrease" : "Increase", Math.Abs(base2) / 10f, base1 / 10f);
+                    //return String.Format("Decrease Caster Current HP by {0}%  And Return {1}% to Target", base1 / 10f, base2 / 10f);
+                case 510:
+                    return Spell.FormatCount("Incoming Resist Modifier", base1);
 
             }
 

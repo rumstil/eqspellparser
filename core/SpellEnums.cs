@@ -139,7 +139,7 @@ namespace EQSpellParser
         Cancel_All_Aggro = 194,
         Stun_Resist_Chance = 195,
         Taunt = 199,
-        Proc_Rate = 200,
+        Worn_Proc_Rate = 200,
         Rampage = 205,
         AE_Taunt = 206,
         AE_Attack = 211,
@@ -687,6 +687,8 @@ namespace EQSpellParser
         Not_In_Two_Handed_Stance = 2010,
         Not_In_Dual_Wield_Handed_Stance = 2011,
         Not_In_Shield_Stance = 2012,
+
+        No_Illusions_of_Grandeur_Buff = 12519,
 
         No_Shroud_of_Prayer_Buff = 32339,
 
