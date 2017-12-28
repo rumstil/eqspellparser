@@ -107,7 +107,7 @@ AFFECTNUMBER AFFECTNAME
 97 Max Mana
 98 Bard Haste
 99 Root
-100 DOT Heals
+100 HP Duration Only
 101 Complete Heal (Residual Buff)
 102 Pet No Fear
 103 Summon Pet
@@ -117,7 +117,7 @@ AFFECTNUMBER AFFECTNAME
 107 Alter Pet Level
 108 Familiar
 109 CreateItemInBag
-110 Ranger Archery Accuracy %
+110 Removed (Archery RNG Acc%)
 111 Resistances
 112 Adjust Casting Skill (Fizzles)
 113 SummonMount
@@ -134,7 +134,7 @@ AFFECTNUMBER AFFECTNAME
 124 Fc_Damage_%
 125 Fc_HealMod
 126 Fc_ResistMod
-127 Fc_CastTimeMod
+127 Fc_CastTimeMod1
 128 Fc_DurationMod
 129 Fc_RangeMod
 130 Fc_HateMod
@@ -163,7 +163,7 @@ AFFECTNUMBER AFFECTNAME
 153 Damage Balance
 154 Cancel Negative
 155 PoP Resurrect
-156 Mirror
+156 Mirror Form
 157 Feedback
 158 Reflect
 159 Mod all Stats
@@ -171,9 +171,9 @@ AFFECTNUMBER AFFECTNAME
 161 Spell Guard
 162 Melee Guard
 163 Absorb Hit
-164 Object - Sense Trap
-165 Object - Disarm Trap
-166 Object - Picklock
+164 Object Sense Trap
+165 Object Disarm Trap
+166 Object Picklock
 167 Fc_Pet
 168 Defensive
 169 Critical Melee (PC Only)
@@ -190,7 +190,7 @@ AFFECTNUMBER AFFECTNAME
 180 Sanctification
 181 Fearless
 182 Hundred Hands
-183 UNUSED - Skill Increase Chance
+183 UNUSED Skill Increase Chance
 184 Accuracy %
 185 Skill Damage Mod 1
 186 Min Damage Done Mod
@@ -226,7 +226,7 @@ AFFECTNUMBER AFFECTNAME
 216 Melee Accuracy Amt
 217 Headshot
 218 Pet Crit Melee Chance (Owner)
-219 SlayUndead
+219 Slay Undead
 220 Skill Min_Damage Amt 1
 221 ReduceWeight
 222 BlockBehind
@@ -264,7 +264,7 @@ AFFECTNUMBER AFFECTNAME
 254 NoSpell
 255 Shielding Duration Mod
 256 Shroud of Stealth
-257 DEPRECATED - GivePetHold
+257 DEPRECATED GivePetHold
 258 Triple Backstab
 259 ACLimitMod
 260 AddInstrumentMod
@@ -273,7 +273,7 @@ AFFECTNUMBER AFFECTNAME
 263 TradeskillMasteries
 264 ReduceAATimer
 265 NoFizzle
-266 AddExtraAttackChance (2h)
+266 AddExtraAttack% (2h)
 267 AddPetCommands
 268 AlcFailRate
 269 Bandage Max HP Limit %
@@ -296,7 +296,7 @@ AFFECTNUMBER AFFECTNAME
 286 Fc_Damage_Amt
 287 Fc_DurationMod (static)
 288 Add Proc Hit (AA)
-289 Doom Effect
+289 Doom Duration
 290 Increase Movement Cap
 291 Purify
 292 Strikethrough
@@ -340,7 +340,7 @@ AFFECTNUMBER AFFECTNAME
 330 Critical Melee Damage Mod
 331 Alchemy Item Recovery
 332 Summon to Corpse
-333 Doom Rune Effect
+333 Doom Rune Consumed
 334 HP No Move
 335 Fc_Immunity_Focus
 336 Illusionary Target
@@ -384,7 +384,7 @@ AFFECTNUMBER AFFECTNAME
 374 Trigger Spell
 375 Critical DoT Damage Mod %
 376 Fling
-377 Doom Entity
+377 Removed (Doom Entity)
 378 Resist Other SPA
 379 Directional Shadowstep
 380 Knockback Explosive (PC Only)
@@ -394,7 +394,7 @@ AFFECTNUMBER AFFECTNAME
 384 Fling Caster to Target
 385 Ff_WhichSpellGroup
 386 Doom Dispeller
-387 Doom Dispellee
+387 Doom Dispelled
 388 Summon All Corpses
 389 Fc_Timer_Refresh
 390 Fc_Timer_Lockout
@@ -449,7 +449,7 @@ AFFECTNUMBER AFFECTNAME
 439 Assassinate Chance / DMG
 440 FinishingBlowMax
 441 Distance Removal
-442 Doom Req Target
+442 Doom Req Bearer
 443 Doom Req Caster
 444 Improved Taunt
 445 Add Merc Slot
@@ -462,14 +462,14 @@ AFFECTNUMBER AFFECTNAME
 452 Spell Threshold Guard
 453 Doom Melee Threshold
 454 Doom Spell Threshold
-455 Add Hate %
+455 Add Hate % (On Land)
 456 Add Hate Over Time %
 457 Resource Tap
 458 Faction Mod %
 459 Skill Damage Mod 2
 460 Ff_Override_NotFocusable
-461 Fc_Damage_%2
-462 Fc_Damage_Amt2
+461 Fc_Damage_%_Crit 2
+462 Fc_Damage_Amt 2
 463 Shield Target
 464 PC Pet Rampage
 465 PC Pet AE Rampage
@@ -503,3 +503,19 @@ AFFECTNUMBER AFFECTNAME
 493 Ff_Endurance_Max
 494 Pet Add Atk
 495 Ff_DurationMax
+496 Critical Melee Damage Mod Max
+497 Ff_FocusCastProcNoBypass
+498 AddExtraAttack% (1h-Primary)
+499 AddExtraAttack% (1h-Secondary)
+500 Fc_CastTimeMod2
+501 Fc_CastTimeAmt
+502 Fearstun
+503 Melee Damage Position Mod
+504 Melee Damage Position Amt
+505 Damage Taken Position Mod
+506 Damage Taken Position Amt
+507 Fc_Amplify_Mod
+508 Fc_Amplify_Amt
+509 Health Transfer
+510 Fc_ResistIncoming
+

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -274,7 +274,7 @@ namespace EQSpellParser
                 case 32:
                     // calc 100 = summon a stack? (based on item stack size) Pouch of Quellious, Quiver of Marr
                     //return String.Format("Summon: [Item {0}] x {1} {2} {3}", base1, calc, max, base2);
-                    return String.Format("Summon: [Item {0}]", base1);
+                    return String.Format("Summon: [Item {0}] x {1}" , base1, calc);
                 case 33:
                     return String.Format("Summon Pet: {0}", Extra);
                 case 35:
@@ -437,7 +437,7 @@ namespace EQSpellParser
                         return String.Format("Summon Familiar: {0} (Ignore Auto Leave)", Extra);
                     return String.Format("Summon Familiar: {0}", Extra);
                 case 109:
-                    return String.Format("Summon: [Item {0}]", base1);
+                    return String.Format("Summon into Bag: [Item {0}] x {1}", base1, calc);
                 case 111:
                     return Spell.FormatCount("All Resists", value);
                 case 112:
@@ -454,7 +454,7 @@ namespace EQSpellParser
                     // fear me now wil o wisps
                     return "Make Weapon Magical";
                 case 118:
-                    return Spell.FormatCount("Singing Skill", value);
+                    return Spell.FormatPercent("Singing Amplification", value);
                 case 119:
                     return Spell.FormatPercent("Melee Haste v3", value);
                 case 120:
@@ -861,7 +861,7 @@ namespace EQSpellParser
                 case 277:
                     return Spell.FormatPercent("Chance to Trigger Divine Intervention", base1);
                 case 278:
-                    return String.Format("Add Finishing Blow Proc ({0}% Chance) with up to {1} Damage", base1 / 10, base2);
+                    return String.Format("Add Finishing Blow Proc with up to {1} Damage ({0}% Chance)", base1 / 10, base2);
                 case 279:
                     return Spell.FormatPercent("Chance to Flurry", value);
                 case 280:
@@ -1090,8 +1090,16 @@ namespace EQSpellParser
                     //if (ID == 49678) aura = 49736;
                     //if (ID == 49679) aura = 49737;
                     //if (ID == 49680) aura = 49738;
+
+                    if (Extra.StartsWith("PCIObMagS17L085TrapPetAug")) aura = 22655;
+                    if (Extra.StartsWith("PCIObBrdS17L082AuraRegenRk")) aura = 19713 + Rank;
+                    if (Extra.StartsWith("PCIObRogS19L092TrapAggroRk")) aura = 26111 + Rank;
+                    if (Extra.StartsWith("PCIObEncS19L095EchoCastProcRk")) aura = 30179 + Rank;
+                    if (Extra.StartsWith("PCIObEncS20L100EchoCastProcRk")) aura = 36227 + Rank;
+                    if (Extra.StartsWith("PCIObEncS21L105EchoCastProcRk")) aura = 45018 + Rank;
+                    if (Extra.StartsWith("PCIObEncS22L110EchoCastProcRk")) aura = 57276 + Rank;
                     
-                    // old aura names
+                    // old aura names (2017-4-19 patch renamed auras)
                     if (Extra.StartsWith("IOQuicksandTrap85")) aura = 22655;
                     if (Extra.StartsWith("IOAuraCantataRk")) aura = 19713 + Rank;
                     if (Extra.StartsWith("IORogTrapAggro92Rk")) aura = 26111 + Rank;
@@ -1099,13 +1107,6 @@ namespace EQSpellParser
                     if (Extra.StartsWith("IOEncEchoProc100Rk")) aura = 36227 + Rank;
                     if (Extra.StartsWith("IOEncEchoProc105Rk")) aura = 45018 + Rank;
 
-                    // 2017-4-19 patch renamed auras
-                    if (Extra.StartsWith("PCIObMagS17L085TrapPetAug")) aura = 22655;
-                    if (Extra.StartsWith("PCIObBrdS17L082AuraRegenRk")) aura = 19713 + Rank;
-                    if (Extra.StartsWith("PCIObRogS19L092TrapAggroRk")) aura = 26111 + Rank;
-                    if (Extra.StartsWith("PCIObEncS19L095EchoCastProcRk")) aura = 30179 + Rank;
-                    if (Extra.StartsWith("PCIObEncS20L100EchoCastProcRk")) aura = 36227 + Rank;
-                    if (Extra.StartsWith("PCIObEncS21L105EchoCastProcRk")) aura = 45018 + Rank;
 
                     return String.Format("Aura Effect: [Spell {0}] ({1})", aura, Extra);
                 case 353:
@@ -1159,6 +1160,7 @@ namespace EQSpellParser
                 case 376:
                     return "Fling";
                 case 377:
+                    // no longer used - all spells converted to 289
                     return String.Format("Cast: [Spell {0}] if Not Cured", base1);
                 case 378:
                     return Spell.FormatPercent("Chance to Resist " + Spell.FormatEnum((SpellEffect)base2) + " Effects", base1);
@@ -1495,6 +1497,7 @@ namespace EQSpellParser
                     // description calls this "non-cumulative" but it would probably be better described as "non-stacking"
                     return Spell.FormatPercent("Critical " + Spell.FormatEnum((SpellSkill)base2) + " Damage", base1) + " of Base Damage (Non Stacking)";
                 //case 497:
+                    // Ff_FocusCastProcNoBypass
                     // Modified the focus effects on all versions of Brell's Shawl items and augments so that their benefits will no longer be activated by triggered spells. -Patch Message
                     // what does "triggered" mean?
                     // 1 = exclude? maybe this is a mask of invocation types?
@@ -1505,17 +1508,24 @@ namespace EQSpellParser
                     return Spell.FormatPercent("Chance of Additional Primary 1H Attack", base1) + String.Format(" ({0})", base2);
                 case 499:
                     return Spell.FormatPercent("Chance of Additional Secondary 1H Attack", base1) + String.Format(" ({0})", base2);
+                case 500:
+                    return Spell.FormatPercent("Spell Haste v2", base1);
                 case 501:
-                    // applied after 127 spell haste focus?
+                    // applied after 127/500 spell haste focus?
                     return String.Format("Decrease Casting Times by {0:0.##}s", base1 / 1000f);
                 case 502:
-                    // fear with the duration on the effect like stuns rather than the spell
                     // what is base2 used for?
-                    return String.Format("Fear for {0}s", base1 / 1000f) + varmax;
+                    return String.Format("Stun and Fear for {0}s", base1 / 1000f) + varmax;
                 case 503:
                     // similar to 185 but with rear arc? stacking?
-                    // base2 is used but not for weapon type
-                    return Spell.FormatPercent("Rear Arc Melee Damage", base1);
+                    // base2 might be arc type. e.g. 0 = back
+                    return Spell.FormatPercent("Rear Arc Melee Damage", base1 / 10f);
+                case 504:
+                    return Spell.FormatCount("Rear Arc Melee Damage", base1);
+                case 505:
+                    return Spell.FormatPercent("Rear Arc Melee Damage Taken", base1 / 10f);
+                case 506:
+                    return Spell.FormatCount("Rear Arc Melee Damage Taken", base1);
                 case 507:
                     // Effectively Fc_Damage_%2. I know 461 is supposedly "Fc_Damage_%2," but for whatever reason it works nothing like SPA 124. 
                     // SPA 507 appears to work just like 124, except it appears to be applied after 461. - Sancus
@@ -1588,13 +1598,13 @@ namespace EQSpellParser
                         value = 1;
                     break;
                 case 13:
-                    value = level * 3 + 10;
+                    value = level * 4 + 10;
                     break;
                 case 14:
-                    value = (level + 2) * 5;
+                    value = level * 5 + 10;
                     break;
                 case 15:
-                    value = (level + 10) * 10;
+                    value = (level * 5 + 50) * 2;
                     break;
                 case 50:
                     value = 72000;

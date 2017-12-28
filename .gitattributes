@@ -1,0 +1,12 @@
+# http://adaptivepatchwork.com/2012/03/01/mind-the-end-of-your-line/
+# "-text" will force git to keep the CRLF format in each file type
+# "diff" will force a text diff 
+
+*.config -text
+*.cs     -text
+*.txt    -text
+*.bat    -text
+*.md     -text
+
+
+

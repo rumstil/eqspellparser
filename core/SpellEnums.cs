@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 
 namespace EQSpellParser
@@ -92,7 +92,7 @@ namespace EQSpellParser
         Hate = 92,
         Silence = 96,
         Max_Mana = 97,
-        Melee_Haste_v2 = 98,
+        Melee_Haste_v2 = 98,        
         Root = 99,
         Current_HP_Repeating = 100,
         Donals_Heal = 101,
@@ -101,6 +101,7 @@ namespace EQSpellParser
         Summon_Mount = 113,
         Hate_Mod = 114,
         Curse_Counter = 116,
+        Singing_Amplification = 118,
         Melee_Haste_v3 = 119,
         Spell_Damage_Focus = 124,
         Healing_Focus = 125,
@@ -1114,6 +1115,7 @@ namespace EQSpellParser
         Jasper = 10020,
         Rose_Quartz = 10021,
         Amber = 10022,
+        Jade = 10023,
         Pearl = 10024,
         Topaz = 10025,
         Cats_Eye_Agate = 10026,
@@ -1122,6 +1124,7 @@ namespace EQSpellParser
         Opal = 10030,
         Fire_Opal = 10031,
         Star_Ruby = 10032,
+        Fire_Emerald = 10033,
         Sapphire = 10034,
         Ruby = 10035,
         Black_Sapphire = 10036,
@@ -1147,9 +1150,11 @@ namespace EQSpellParser
         Platinum_Bar = 16503,
         Poison_Vial = 16965,
         Jade_Inlaid_Coffin = 17355,
+        Velium_Bar = 22098,
         Blue_Diamond = 22503,
         Black_Ceremonial_Coffin = 28880,
         Axe_of_the_Annihilator = 52673,
+        Axe_of_the_Decimator = 52708,
         Axe_of_the_Eradicator = 52816,
         Axe_of_the_Savage = 57263,
         Lesser_Scrying_Stone = 59654,
