@@ -74,6 +74,7 @@ namespace EQSpellParser
     public class LaunchpadManifest
     {
         public const string SPELL_FILE = "spells_us.txt";
+        public const string SPELLSTR_FILE = "spells_us_str.txt";
         public const string SPELLDESC_FILE = "dbstr_us.txt";
         public const string SPELLSTACK_FILE = "SpellStackingGroups.txt";
 

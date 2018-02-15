@@ -48,6 +48,9 @@ namespace winparser
             ListViewItem item = null;
             foreach (var f in files)
             {
+                // ignore the spell_us_str file since it also matches
+                if (f.Name.StartsWith("spells_us_str"))
+                    continue;
                 item = new ListViewItem(f.Name);
                 item.SubItems.Add(f.Length.ToString("#,#"));
                 item.SubItems.Add(CountFields(f.Name).ToString());
@@ -107,13 +110,27 @@ namespace winparser
             // the desc file can sometimes be older than the spell file. we need to save it with the spell file timestamp 
             // so that there is always a corresponding copy
             var desc = manifest.FindFile(LaunchpadManifest.SPELLDESC_FILE);
-            desc.Name = desc.Name.Replace(".txt", "-" + spell.LastModified.ToString("yyyy-MM-dd") + server + ".txt");
-            LaunchpadPatcher.DownloadFile(desc.Url, desc.Name);
+            if (desc != null)
+            {
+                desc.Name = desc.Name.Replace(".txt", "-" + spell.LastModified.ToString("yyyy-MM-dd") + server + ".txt");
+                LaunchpadPatcher.DownloadFile(desc.Url, desc.Name);
+            }
+
+            // same for the spell string file
+            var spellstr = manifest.FindFile(LaunchpadManifest.SPELLSTR_FILE);
+            if (spellstr != null)
+            {
+                spellstr.Name = spellstr.Name.Replace(".txt", "-" + spell.LastModified.ToString("yyyy-MM-dd") + server + ".txt");
+                LaunchpadPatcher.DownloadFile(spellstr.Url, spellstr.Name);
+            }
 
             // same for the stacking file
             var stack = manifest.FindFile(LaunchpadManifest.SPELLSTACK_FILE);
-            stack.Name = stack.Name.Replace(".txt", "-" + spell.LastModified.ToString("yyyy-MM-dd") + server + ".txt");
-            LaunchpadPatcher.DownloadFile(stack.Url, stack.Name);
+            if (stack != null)
+            {
+                stack.Name = stack.Name.Replace(".txt", "-" + spell.LastModified.ToString("yyyy-MM-dd") + server + ".txt");
+                LaunchpadPatcher.DownloadFile(stack.Url, stack.Name);
+            }
             
             Status.Text = String.Format("Downloaded {0} {1}", spell.Name, spell.LastModified.ToString());
 

@@ -153,12 +153,17 @@ namespace parser
             var spell = manifest.FindFile(LaunchpadManifest.SPELL_FILE);
             LaunchpadPatcher.DownloadFile(spell.Url, spell.Name);
 
+            var spellstr = manifest.FindFile(LaunchpadManifest.SPELLSTR_FILE);
+            if (spellstr != null)
+                LaunchpadPatcher.DownloadFile(spellstr.Url, spellstr.Name);
+
             var desc = manifest.FindFile(LaunchpadManifest.SPELLDESC_FILE);
-            LaunchpadPatcher.DownloadFile(desc.Url, desc.Name);
+            if (desc != null)
+                LaunchpadPatcher.DownloadFile(desc.Url, desc.Name);
 
             var stack = manifest.FindFile(LaunchpadManifest.SPELLSTACK_FILE);
-            LaunchpadPatcher.DownloadFile(stack.Url, stack.Name);
-
+            if (stack != null)
+                LaunchpadPatcher.DownloadFile(stack.Url, stack.Name);
         }
 
     }
