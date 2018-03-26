@@ -60,11 +60,15 @@ namespace winparser
             this.SearchBrowser = new System.Windows.Forms.WebBrowser();
             this.AutoSearch = new System.Windows.Forms.Timer(this.components);
             this.ToolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.IncludeRk1 = new System.Windows.Forms.CheckBox();
+            this.IncludeRk0 = new System.Windows.Forms.CheckBox();
             this.SearchFilters.SuspendLayout();
             this.SuspendLayout();
             // 
             // SearchFilters
             // 
+            this.SearchFilters.Controls.Add(this.IncludeRk0);
+            this.SearchFilters.Controls.Add(this.IncludeRk1);
             this.SearchFilters.Controls.Add(this.IncludeRk3);
             this.SearchFilters.Controls.Add(this.IncludeRk2);
             this.SearchFilters.Controls.Add(this.ResetBtn);
@@ -102,7 +106,7 @@ namespace winparser
             this.IncludeRk3.AutoSize = true;
             this.IncludeRk3.Checked = true;
             this.IncludeRk3.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.IncludeRk3.Location = new System.Drawing.Point(13, 163);
+            this.IncludeRk3.Location = new System.Drawing.Point(12, 220);
             this.IncludeRk3.Name = "IncludeRk3";
             this.IncludeRk3.Size = new System.Drawing.Size(123, 19);
             this.IncludeRk3.TabIndex = 24;
@@ -114,7 +118,7 @@ namespace winparser
             this.IncludeRk2.AutoSize = true;
             this.IncludeRk2.Checked = true;
             this.IncludeRk2.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.IncludeRk2.Location = new System.Drawing.Point(13, 137);
+            this.IncludeRk2.Location = new System.Drawing.Point(12, 195);
             this.IncludeRk2.Name = "IncludeRk2";
             this.IncludeRk2.Size = new System.Drawing.Size(123, 19);
             this.IncludeRk2.TabIndex = 23;
@@ -140,7 +144,7 @@ namespace winparser
             this.SearchEffectSlot3.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
             this.SearchEffectSlot3.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
             this.SearchEffectSlot3.FormattingEnabled = true;
-            this.SearchEffectSlot3.Location = new System.Drawing.Point(159, 288);
+            this.SearchEffectSlot3.Location = new System.Drawing.Point(160, 343);
             this.SearchEffectSlot3.Name = "SearchEffectSlot3";
             this.SearchEffectSlot3.Size = new System.Drawing.Size(75, 23);
             this.SearchEffectSlot3.TabIndex = 13;
@@ -152,7 +156,7 @@ namespace winparser
             this.SearchEffectSlot2.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
             this.SearchEffectSlot2.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
             this.SearchEffectSlot2.FormattingEnabled = true;
-            this.SearchEffectSlot2.Location = new System.Drawing.Point(159, 254);
+            this.SearchEffectSlot2.Location = new System.Drawing.Point(160, 309);
             this.SearchEffectSlot2.Name = "SearchEffectSlot2";
             this.SearchEffectSlot2.Size = new System.Drawing.Size(75, 23);
             this.SearchEffectSlot2.TabIndex = 11;
@@ -164,7 +168,7 @@ namespace winparser
             this.SearchEffect3.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
             this.SearchEffect3.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
             this.SearchEffect3.FormattingEnabled = true;
-            this.SearchEffect3.Location = new System.Drawing.Point(13, 288);
+            this.SearchEffect3.Location = new System.Drawing.Point(14, 343);
             this.SearchEffect3.Name = "SearchEffect3";
             this.SearchEffect3.Size = new System.Drawing.Size(141, 23);
             this.SearchEffect3.Sorted = true;
@@ -178,7 +182,7 @@ namespace winparser
             this.SearchEffect2.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
             this.SearchEffect2.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
             this.SearchEffect2.FormattingEnabled = true;
-            this.SearchEffect2.Location = new System.Drawing.Point(13, 254);
+            this.SearchEffect2.Location = new System.Drawing.Point(14, 309);
             this.SearchEffect2.Name = "SearchEffect2";
             this.SearchEffect2.Size = new System.Drawing.Size(141, 23);
             this.SearchEffect2.Sorted = true;
@@ -192,7 +196,7 @@ namespace winparser
             this.IncludeRelated.AutoSize = true;
             this.IncludeRelated.Checked = true;
             this.IncludeRelated.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.IncludeRelated.Location = new System.Drawing.Point(13, 410);
+            this.IncludeRelated.Location = new System.Drawing.Point(14, 465);
             this.IncludeRelated.Name = "IncludeRelated";
             this.IncludeRelated.Size = new System.Drawing.Size(136, 19);
             this.IncludeRelated.TabIndex = 16;
@@ -206,7 +210,7 @@ namespace winparser
             this.SearchEffectSlot1.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
             this.SearchEffectSlot1.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
             this.SearchEffectSlot1.FormattingEnabled = true;
-            this.SearchEffectSlot1.Location = new System.Drawing.Point(159, 220);
+            this.SearchEffectSlot1.Location = new System.Drawing.Point(160, 275);
             this.SearchEffectSlot1.Name = "SearchEffectSlot1";
             this.SearchEffectSlot1.Size = new System.Drawing.Size(75, 23);
             this.SearchEffectSlot1.TabIndex = 9;
@@ -216,7 +220,7 @@ namespace winparser
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(156, 187);
+            this.label7.Location = new System.Drawing.Point(157, 242);
             this.label7.Name = "label7";
             this.label7.Padding = new System.Windows.Forms.Padding(0, 10, 0, 0);
             this.label7.Size = new System.Drawing.Size(40, 25);
@@ -228,7 +232,7 @@ namespace winparser
             this.SearchCategory.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
             this.SearchCategory.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
             this.SearchCategory.FormattingEnabled = true;
-            this.SearchCategory.Location = new System.Drawing.Point(13, 361);
+            this.SearchCategory.Location = new System.Drawing.Point(14, 416);
             this.SearchCategory.Name = "SearchCategory";
             this.SearchCategory.Size = new System.Drawing.Size(222, 23);
             this.SearchCategory.Sorted = true;
@@ -238,7 +242,7 @@ namespace winparser
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(9, 328);
+            this.label6.Location = new System.Drawing.Point(10, 383);
             this.label6.Name = "label6";
             this.label6.Padding = new System.Windows.Forms.Padding(0, 10, 0, 0);
             this.label6.Size = new System.Drawing.Size(55, 25);
@@ -269,7 +273,7 @@ namespace winparser
             // 
             // CompareBtn
             // 
-            this.CompareBtn.Location = new System.Drawing.Point(12, 573);
+            this.CompareBtn.Location = new System.Drawing.Point(13, 628);
             this.CompareBtn.Name = "CompareBtn";
             this.CompareBtn.Size = new System.Drawing.Size(91, 27);
             this.CompareBtn.TabIndex = 21;
@@ -281,7 +285,7 @@ namespace winparser
             // DisplayText
             // 
             this.DisplayText.AutoSize = true;
-            this.DisplayText.Location = new System.Drawing.Point(11, 468);
+            this.DisplayText.Location = new System.Drawing.Point(12, 523);
             this.DisplayText.Name = "DisplayText";
             this.DisplayText.Size = new System.Drawing.Size(60, 19);
             this.DisplayText.TabIndex = 18;
@@ -293,7 +297,7 @@ namespace winparser
             // 
             this.DisplayTable.AutoSize = true;
             this.DisplayTable.Checked = true;
-            this.DisplayTable.Location = new System.Drawing.Point(11, 498);
+            this.DisplayTable.Location = new System.Drawing.Point(12, 553);
             this.DisplayTable.Name = "DisplayTable";
             this.DisplayTable.Size = new System.Drawing.Size(53, 19);
             this.DisplayTable.TabIndex = 19;
@@ -305,7 +309,7 @@ namespace winparser
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(8, 432);
+            this.label4.Location = new System.Drawing.Point(9, 487);
             this.label4.Margin = new System.Windows.Forms.Padding(3, 0, 3, 3);
             this.label4.Name = "label4";
             this.label4.Padding = new System.Windows.Forms.Padding(0, 10, 0, 0);
@@ -316,7 +320,7 @@ namespace winparser
             // SearchNotes
             // 
             this.SearchNotes.AutoSize = true;
-            this.SearchNotes.Location = new System.Drawing.Point(109, 550);
+            this.SearchNotes.Location = new System.Drawing.Point(110, 605);
             this.SearchNotes.Name = "SearchNotes";
             this.SearchNotes.Size = new System.Drawing.Size(16, 15);
             this.SearchNotes.TabIndex = 20;
@@ -327,7 +331,7 @@ namespace winparser
             this.SearchEffect1.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
             this.SearchEffect1.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
             this.SearchEffect1.FormattingEnabled = true;
-            this.SearchEffect1.Location = new System.Drawing.Point(12, 220);
+            this.SearchEffect1.Location = new System.Drawing.Point(13, 275);
             this.SearchEffect1.Name = "SearchEffect1";
             this.SearchEffect1.Size = new System.Drawing.Size(141, 23);
             this.SearchEffect1.Sorted = true;
@@ -339,7 +343,7 @@ namespace winparser
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(9, 187);
+            this.label3.Location = new System.Drawing.Point(10, 242);
             this.label3.Name = "label3";
             this.label3.Padding = new System.Windows.Forms.Padding(0, 10, 0, 0);
             this.label3.Size = new System.Drawing.Size(60, 25);
@@ -348,7 +352,7 @@ namespace winparser
             // 
             // SearchBtn
             // 
-            this.SearchBtn.Location = new System.Drawing.Point(12, 547);
+            this.SearchBtn.Location = new System.Drawing.Point(13, 602);
             this.SearchBtn.Name = "SearchBtn";
             this.SearchBtn.Size = new System.Drawing.Size(91, 27);
             this.SearchBtn.TabIndex = 20;
@@ -383,7 +387,7 @@ namespace winparser
             this.label1.Location = new System.Drawing.Point(9, 8);
             this.label1.Name = "label1";
             this.label1.Padding = new System.Windows.Forms.Padding(0, 10, 0, 0);
-            this.label1.Size = new System.Drawing.Size(57, 25);
+            this.label1.Size = new System.Drawing.Size(56, 25);
             this.label1.TabIndex = 0;
             this.label1.Text = "Text or ID";
             // 
@@ -411,6 +415,26 @@ namespace winparser
             // 
             this.AutoSearch.Interval = 500;
             this.AutoSearch.Tick += new System.EventHandler(this.SearchBtn_Click);
+            // 
+            // IncludeRk1
+            // 
+            this.IncludeRk1.AutoSize = true;
+            this.IncludeRk1.Location = new System.Drawing.Point(12, 170);
+            this.IncludeRk1.Name = "IncludeRk1";
+            this.IncludeRk1.Size = new System.Drawing.Size(123, 19);
+            this.IncludeRk1.TabIndex = 25;
+            this.IncludeRk1.Text = "Include Rk 1 Spells";
+            this.IncludeRk1.UseVisualStyleBackColor = true;
+            // 
+            // IncludeRk0
+            // 
+            this.IncludeRk0.AutoSize = true;
+            this.IncludeRk0.Location = new System.Drawing.Point(12, 145);
+            this.IncludeRk0.Name = "IncludeRk0";
+            this.IncludeRk0.Size = new System.Drawing.Size(152, 19);
+            this.IncludeRk0.TabIndex = 26;
+            this.IncludeRk0.Text = "Include Unranked Spells";
+            this.IncludeRk0.UseVisualStyleBackColor = true;
             // 
             // MainForm
             // 
@@ -465,6 +489,8 @@ namespace winparser
         private System.Windows.Forms.LinkLabel ResetBtn;
         private System.Windows.Forms.CheckBox IncludeRk3;
         private System.Windows.Forms.CheckBox IncludeRk2;
+        private System.Windows.Forms.CheckBox IncludeRk0;
+        private System.Windows.Forms.CheckBox IncludeRk1;
     }
 }
 

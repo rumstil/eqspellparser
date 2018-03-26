@@ -168,7 +168,7 @@ namespace winparser
         }
 
         /// <summary>
-        /// Search spells and save to [Results] 
+        /// Search spells and save to [Results]
         /// </summary>
         public void Search()
         {
@@ -187,6 +187,20 @@ namespace winparser
             //        Results.RemoveAll(x => x.Rank == 2 || x.Rank == 3);
             //}
 
+
+            // optionally add back refs
+            if (filter.AddBackRefs)
+                Cache.AddBackRefs(Results);
+
+
+            // The add back refs Adds back some of the ranks of spells that were removed.  Remove them after
+            // optionally adding back the references.
+            if (!IncludeRk0.Checked)
+                Results.RemoveAll(x => x.Rank == 0);
+
+            if (!IncludeRk1.Checked)
+                Results.RemoveAll(x => x.Rank == 1);
+
             if (!IncludeRk2.Checked)
                 Results.RemoveAll(x => x.Rank == 2);
 
@@ -194,9 +208,6 @@ namespace winparser
                 Results.RemoveAll(x => x.Rank == 3);
 
 
-            // optionally add back refs
-            if (filter.AddBackRefs)
-                Cache.AddBackRefs(Results);
 
             // hide anything that isn't in the results yet. additional spells will only be shown when a link is clicked
             VisibleResults = new HashSet<int>(Results.Select(x => x.ID));
@@ -269,7 +280,7 @@ namespace winparser
             foreach (var spell in list)
             {
                 html.AppendFormat("<p id='spell{0}' class='spell group{1} {3}'><strong>{2}</strong><br/>", spell.ID, spell.GroupID, spell.ToString(), visible(spell) ? "" : "hidden");
-                
+
                 foreach (var line in spell.Details())
                 {
                     var slot = Regex.Replace(line, @"(\d+): .*", m =>
@@ -349,7 +360,7 @@ namespace winparser
                 for (int i = 0; i < spell.ConsumeItemID.Length; i++)
                     if (spell.ConsumeItemID[i] > 0)
                         html.AppendFormat("Consumes: {0} x {1}<br/>", InsertRefLinks(String.Format("[Item {0}]", spell.ConsumeItemID[i])), spell.ConsumeItemCount[i]);
-                
+
                 if (spell.HateOverride != 0)
                     html.AppendFormat("Hate: {0}<br/>", spell.HateOverride);
 
@@ -455,7 +466,7 @@ namespace winparser
         {
             // start external links in an external window
             // internal links will all be "about:blank"
-            // using a target other than target=_top seems to force IE rather than the default browser on one of my computers 
+            // using a target other than target=_top seems to force IE rather than the default browser on one of my computers
             if (e.Url.Scheme.StartsWith("http") || !String.IsNullOrEmpty(e.TargetFrameName))
             {
                 e.Cancel = true;
@@ -613,7 +624,7 @@ namespace winparser
             int cls = SpellParser.ParseClass(SearchClass.Text) - 1;
             SearchLevel.Enabled = (cls >= 0);
 
-            SearchText_TextChanged(sender, e); 
+            SearchText_TextChanged(sender, e);
         }
 
         private void SearchText_TextChanged(object sender, EventArgs e)
