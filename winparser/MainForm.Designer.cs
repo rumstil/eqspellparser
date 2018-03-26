@@ -419,6 +419,8 @@ namespace winparser
             // IncludeRk1
             // 
             this.IncludeRk1.AutoSize = true;
+            this.IncludeRk1.Checked = true;
+            this.IncludeRk1.CheckState = System.Windows.Forms.CheckState.Checked;
             this.IncludeRk1.Location = new System.Drawing.Point(12, 170);
             this.IncludeRk1.Name = "IncludeRk1";
             this.IncludeRk1.Size = new System.Drawing.Size(123, 19);
@@ -429,6 +431,8 @@ namespace winparser
             // IncludeRk0
             // 
             this.IncludeRk0.AutoSize = true;
+            this.IncludeRk0.Checked = true;
+            this.IncludeRk0.CheckState = System.Windows.Forms.CheckState.Checked;
             this.IncludeRk0.Location = new System.Drawing.Point(12, 145);
             this.IncludeRk0.Name = "IncludeRk0";
             this.IncludeRk0.Size = new System.Drawing.Size(152, 19);
