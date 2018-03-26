@@ -31,6 +31,8 @@ namespace winparser
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.SearchFilters = new System.Windows.Forms.Panel();
+            this.IncludeRk0 = new System.Windows.Forms.CheckBox();
+            this.IncludeRk1 = new System.Windows.Forms.CheckBox();
             this.IncludeRk3 = new System.Windows.Forms.CheckBox();
             this.IncludeRk2 = new System.Windows.Forms.CheckBox();
             this.ResetBtn = new System.Windows.Forms.LinkLabel();
@@ -60,8 +62,6 @@ namespace winparser
             this.SearchBrowser = new System.Windows.Forms.WebBrowser();
             this.AutoSearch = new System.Windows.Forms.Timer(this.components);
             this.ToolTip = new System.Windows.Forms.ToolTip(this.components);
-            this.IncludeRk1 = new System.Windows.Forms.CheckBox();
-            this.IncludeRk0 = new System.Windows.Forms.CheckBox();
             this.SearchFilters.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -100,6 +100,30 @@ namespace winparser
             this.SearchFilters.Name = "SearchFilters";
             this.SearchFilters.Size = new System.Drawing.Size(247, 730);
             this.SearchFilters.TabIndex = 0;
+            // 
+            // IncludeRk0
+            // 
+            this.IncludeRk0.AutoSize = true;
+            this.IncludeRk0.Checked = true;
+            this.IncludeRk0.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.IncludeRk0.Location = new System.Drawing.Point(12, 145);
+            this.IncludeRk0.Name = "IncludeRk0";
+            this.IncludeRk0.Size = new System.Drawing.Size(152, 19);
+            this.IncludeRk0.TabIndex = 26;
+            this.IncludeRk0.Text = "Include Unranked Spells";
+            this.IncludeRk0.UseVisualStyleBackColor = true;
+            // 
+            // IncludeRk1
+            // 
+            this.IncludeRk1.AutoSize = true;
+            this.IncludeRk1.Checked = true;
+            this.IncludeRk1.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.IncludeRk1.Location = new System.Drawing.Point(12, 170);
+            this.IncludeRk1.Name = "IncludeRk1";
+            this.IncludeRk1.Size = new System.Drawing.Size(123, 19);
+            this.IncludeRk1.TabIndex = 25;
+            this.IncludeRk1.Text = "Include Rk 1 Spells";
+            this.IncludeRk1.UseVisualStyleBackColor = true;
             // 
             // IncludeRk3
             // 
@@ -415,30 +439,6 @@ namespace winparser
             // 
             this.AutoSearch.Interval = 500;
             this.AutoSearch.Tick += new System.EventHandler(this.SearchBtn_Click);
-            // 
-            // IncludeRk1
-            // 
-            this.IncludeRk1.AutoSize = true;
-            this.IncludeRk1.Checked = true;
-            this.IncludeRk1.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.IncludeRk1.Location = new System.Drawing.Point(12, 170);
-            this.IncludeRk1.Name = "IncludeRk1";
-            this.IncludeRk1.Size = new System.Drawing.Size(123, 19);
-            this.IncludeRk1.TabIndex = 25;
-            this.IncludeRk1.Text = "Include Rk 1 Spells";
-            this.IncludeRk1.UseVisualStyleBackColor = true;
-            // 
-            // IncludeRk0
-            // 
-            this.IncludeRk0.AutoSize = true;
-            this.IncludeRk0.Checked = true;
-            this.IncludeRk0.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.IncludeRk0.Location = new System.Drawing.Point(12, 145);
-            this.IncludeRk0.Name = "IncludeRk0";
-            this.IncludeRk0.Size = new System.Drawing.Size(152, 19);
-            this.IncludeRk0.TabIndex = 26;
-            this.IncludeRk0.Text = "Include Unranked Spells";
-            this.IncludeRk0.UseVisualStyleBackColor = true;
             // 
             // MainForm
             // 

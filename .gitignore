@@ -16,3 +16,6 @@ SpellStackingGroups*.txt*
 manifest.dat
 *.zip
 *.gz
+/.vs/eqspellparser/v15/Server/sqlite3
+/parser
+/winparser/lzma.dll
