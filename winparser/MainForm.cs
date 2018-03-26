@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -186,6 +186,13 @@ namespace winparser
             //    if (filter.Rank == 1)
             //        Results.RemoveAll(x => x.Rank == 2 || x.Rank == 3);
             //}
+
+            if (!IncludeRk2.Checked)
+                Results.RemoveAll(x => x.Rank == 2);
+
+            if (!IncludeRk3.Checked)
+                Results.RemoveAll(x => x.Rank == 3);
+
 
             // optionally add back refs
             if (filter.AddBackRefs)
