@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -168,7 +168,7 @@ namespace winparser
         }
 
         /// <summary>
-        /// Search spells and save to [Results] 
+        /// Search spells and save to [Results]
         /// </summary>
         public void Search()
         {
@@ -177,6 +177,7 @@ namespace winparser
             var filter = GetFilter();
 
             Results = Cache.Search(filter).ToList();
+            int cls = SpellParser.ParseClass(SearchClass.Text) - 1;
 
             // filter ranks
             //if (filter.Rank != 0)
@@ -190,6 +191,25 @@ namespace winparser
             // optionally add back refs
             if (filter.AddBackRefs)
                 Cache.AddBackRefs(Results);
+            else
+                Results.RemoveAll(x => x.Levels[cls] == 0);
+
+
+            // The add back refs Adds back some of the ranks of spells that were removed.  Remove them after
+            // optionally adding back the references.
+            if (!IncludeRk0.Checked)
+                Results.RemoveAll(x => x.Rank == 0);
+
+            if (!IncludeRk1.Checked)
+                Results.RemoveAll(x => x.Rank == 1);
+
+            if (!IncludeRk2.Checked)
+                Results.RemoveAll(x => x.Rank == 2);
+
+            if (!IncludeRk3.Checked)
+                Results.RemoveAll(x => x.Rank == 3);
+
+
 
             // hide anything that isn't in the results yet. additional spells will only be shown when a link is clicked
             VisibleResults = new HashSet<int>(Results.Select(x => x.ID));
@@ -278,7 +298,7 @@ namespace winparser
         {
             // start external links in an external window
             // internal links will all be "about:blank"
-            // using a target other than target=_top seems to force IE rather than the default browser on one of my computers 
+            // using a target other than target=_top seems to force IE rather than the default browser on one of my computers
             if (e.Url.Scheme.StartsWith("http") || !String.IsNullOrEmpty(e.TargetFrameName))
             {
                 e.Cancel = true;
@@ -430,7 +450,7 @@ namespace winparser
             int cls = SpellParser.ParseClass(SearchClass.Text) - 1;
             SearchLevel.Enabled = (cls >= 0);
 
-            SearchText_TextChanged(sender, e); 
+            SearchText_TextChanged(sender, e);
         }
 
         private void SearchText_TextChanged(object sender, EventArgs e)
