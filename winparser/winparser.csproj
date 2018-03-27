@@ -102,6 +102,7 @@
     <Compile Include="FileOpenForm.Designer.cs">
       <DependentUpon>FileOpenForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Html.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>

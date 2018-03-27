@@ -101,14 +101,14 @@ namespace winparser
 
             Cursor.Current = Cursors.Default;
 
-            var html = InitHtml();
+            var html = HtmlBuilder.InitTemplate();
             html.AppendFormat("<p>Loaded <strong>{0}</strong> spells from {1}.</p></html>", Cache.SpellList.Count(), SpellPath);
             html.Append("<p>Use the search button to perform a search on this spell file based on the filters on the left.");
             html.Append("<p>Use the compare button to compare two different spell files and show the differences. e.g. test server vs live server spells.");
             html.AppendFormat("<p>This parser is an open source application. Visit <a href='{0}' class='ext' target='_top'>{0}</a> to download updates.", "https://github.com/rumstil/eqspellparser");
             //html.Append("<p>Nov 8 2017 - Some spells will now show as 'Mostly Unresistable'. This means they are unresistable by standard resists and can only be resisted by Sanctification/Mystical Shielding AA or SPA 180 spells.");
 
-            ShowHtml(html);
+            ShowHtml(html.ToString());
         }
 
         public SpellSearchFilter GetFilter()
@@ -211,42 +211,34 @@ namespace winparser
         {
             SearchNotes.Text = String.Format("{0} results", VisibleResults.Count);
 
-            var html = InitHtml();
+            var html = new HtmlBuilder(Cache);
 
             if (Results.Count == 0)
             {
-                html.Append("<p><strong>Sorry, no matching spells were found.</strong></p><p>You may have made the filters too restrictive (including levels), accidentally defined conflicting filters, or left one of the filters filled in from a previous search. Try filtering by just one or two filters.</p>");
+                html.Html.Append("<p><strong>Sorry, no matching spells were found.</strong></p><p>You may have made the filters too restrictive (including levels), accidentally defined conflicting filters, or left one of the filters filled in from a previous search. Try filtering by just one or two filters.</p>");
             }
             else
             {
                 if (Results.Count > MAX_RESULTS)
-                    html.Append(String.Format("<p>Too many results -- only the first {0} will be shown.</p>", MAX_RESULTS));
+                {
+                    html.Html.Append(String.Format("<p>Too many results -- only the first {0} will be shown.</p>", MAX_RESULTS));
+                    Results.RemoveRange(MAX_RESULTS, Results.Count - MAX_RESULTS);
+                }
 
-                //Func<Spell, bool> visible = spell => IncludeRelated.Checked || VisibleResults.Contains(spell.ID);
                 Func<Spell, bool> visible = spell => VisibleResults.Contains(spell.ID);
 
-
                 if (DisplayText.Checked)
-                    ShowAsText(Results.Take(MAX_RESULTS), visible, html);
+                    html.ShowAsText(Results, visible);
                 else
-                    ShowAsTable(Results.Take(MAX_RESULTS), visible, html);
+                    html.ShowAsTable(Results, visible);
             }
 
-            html.Append("</html>");
-            ShowHtml(html);
+            ShowHtml(html.ToString());
         }
 
-        private StringBuilder InitHtml()
+        private void ShowHtml(string html)
         {
-            var html = new StringBuilder(1200000);
-            html.AppendLine(winparser.Properties.Resources.HtmlTemplate);
-
-            return html;
-        }
-
-        private void ShowHtml(StringBuilder html)
-        {
-            SearchBrowser.DocumentText = html.ToString();
+            SearchBrowser.DocumentText = html;
 
             //SearchBrowser.DocumentText = "";
             //SearchBrowser.Document.Write(html.ToString());
@@ -255,152 +247,6 @@ namespace winparser
             //var path = Directory.GetCurrentDirectory() + "\\results.htm";
             //File.WriteAllText(path, html.ToString());
             //SearchBrowser.Navigate("file:///" + path);
-        }
-
-        private void ShowAsText(IEnumerable<Spell> list, Func<Spell, bool> visible, StringBuilder html)
-        {
-            foreach (var spell in list)
-            {
-                html.AppendFormat("<p id='spell{0}' class='spell group{1} {3}'><strong>{2}</strong><br/>", spell.ID, spell.GroupID, spell.ToString(), visible(spell) ? "" : "hidden");
-                
-                foreach (var line in spell.Details())
-                {
-                    var slot = Regex.Replace(line, @"(\d+): .*", m =>
-                    {
-                        int i = Int32.Parse(m.Groups[1].Value) - 1;
-                        if (i < 0 || i >= spell.Slots.Count || spell.Slots[i] == null)
-                            return "Unknown Index " + i;
-                        return String.Format("{0}: <span title=\"SPA={2} Base1={3} Base2={4} Max={5} Calc={6}\">{1}</span>", i + 1, spell.Slots[i].Desc, spell.Slots[i].SPA, spell.Slots[i].Base1, spell.Slots[i].Base2, spell.Slots[i].Max, spell.Slots[i].Calc);
-                    });
-
-                    html.Append(InsertRefLinks(slot));
-                    html.Append("<br/>");
-                }
-
-                if (spell.Desc != null)
-                    html.Append(spell.Desc);
-
-                html.Append("</p>");
-            }
-        }
-
-        private void ShowAsTable(IEnumerable<Spell> list, Func<Spell, bool> visible, StringBuilder html)
-        {
-            html.Append("<table style='table-layout: fixed;'>");
-            html.Append("<thead><tr>");
-            html.Append("<th style='width: 4em;'>ID</th>");
-            html.Append("<th style='width: 18em;'>Name</th>");
-            html.Append("<th style='width: 10em;'>Level</th>");
-            html.Append("<th style='width: 4em;'>Mana</th>");
-            html.Append("<th style='width: 4em;'>Cast</th>");
-            html.Append("<th style='width: 4em;'>Recast</th>");
-            html.Append("<th style='width: 4em;'>Duration</th>");
-            html.Append("<th style='width: 6em;'>Resist</th>");
-            html.Append("<th style='width: 5em;'>Target</th>");
-            html.Append("<th style='min-width: 30em;'>Effects</th>");
-            html.Append("</tr></thead>");
-
-            foreach (var spell in list)
-            {
-                html.AppendFormat("<tr id='spell{0}' class='spell group{1} {2}'><td>{0}</td>", spell.ID, spell.GroupID, visible(spell) ? "" : "hidden");
-                //html.AppendFormat("<tr id='spell{0}' class='group{1}'><td>{0}{2}</td>", spell.ID, spell.GroupID, spell.GroupID > 0 ? " / " + spell.GroupID : "");
-
-                html.AppendFormat("<td>{0}</td>", spell.Name);
-
-                html.AppendFormat("<td style='max-width: 12em'>{0}</td>", spell.ClassesLevels);
-
-                if (spell.Endurance == 0 && spell.EnduranceUpkeep > 0)
-                    html.AppendFormat("<td class='end'>{0}/tick</td>", spell.EnduranceUpkeep);
-                else if (spell.Endurance > 0 && spell.EnduranceUpkeep > 0)
-                    html.AppendFormat("<td class='end'>{0} + {1}/tick</td>", spell.Endurance, spell.EnduranceUpkeep);
-                else if (spell.Endurance > 0)
-                    html.AppendFormat("<td class='end'>{0}</td>", spell.Endurance);
-                else
-                    html.AppendFormat("<td class='mana'>{0}</td>", spell.Mana);
-
-                html.AppendFormat("<td>{0}s</td>", spell.CastingTime);
-
-                html.AppendFormat("<td>{0} {1}</td>", Spell.FormatTime(spell.RecastTime), spell.RecastTime > 0 && spell.TimerID > 0 ? " T" + spell.TimerID : "");
-
-                html.AppendFormat("<td>{0}{1}</td>", Spell.FormatTime(spell.DurationTicks * 6), spell.DurationTicks > 0 && spell.Focusable ? "+" : "");
-
-                if (!spell.Beneficial)
-                    html.AppendFormat("<td>{0} {1}</td>", Spell.FormatEnum(spell.ResistType), spell.ResistMod != 0 ? spell.ResistMod.ToString() : "");
-                else
-                    html.Append("<td class='note'>n/a</td>");
-
-                html.AppendFormat("<td>{0} {1} {2}</td>", FormatEnum(spell.Target), spell.MaxTargets > 0 ? " (" + spell.MaxTargets + ")" : "", spell.ViralRange > 0 ? " + Viral" : "");
-
-                html.Append("<td>");
-
-                if (spell.Stacking != null && spell.Stacking.Count > 0)
-                    html.AppendFormat("Stacking: {0}<br/>", String.Join(", ", spell.Stacking.ToArray()));
-
-                if (spell.MaxHits > 0)
-                    html.AppendFormat("Max Hits: {0} {1}<br/>", spell.MaxHits, FormatEnum(spell.MaxHitsType));
-
-                for (int i = 0; i < spell.ConsumeItemID.Length; i++)
-                    if (spell.ConsumeItemID[i] > 0)
-                        html.AppendFormat("Consumes: {0} x {1}<br/>", InsertRefLinks(String.Format("[Item {0}]", spell.ConsumeItemID[i])), spell.ConsumeItemCount[i]);
-                
-                if (spell.HateOverride != 0)
-                    html.AppendFormat("Hate: {0}<br/>", spell.HateOverride);
-
-                if (spell.HateMod != 0)
-                    html.AppendFormat("Hate Mod: {0:+#;-#;0}<br/>", spell.HateMod);
-
-                if (spell.PushBack != 0)
-                    html.AppendFormat("Push: {0}<br/>", spell.PushBack);
-
-                if (spell.RestTime > 1.5)
-                    html.AppendFormat("Rest: {0}s<br/>", spell.RestTime.ToString());
-
-                if (spell.RecourseID != 0)
-                    html.AppendFormat("Recourse: {0}<br/>", InsertRefLinks(String.Format("[Spell {0}]", spell.RecourseID)));
-
-                if (spell.AEDuration >= 2500)
-                    html.AppendFormat("AE Waves: {0}<br/>", spell.AEDuration / 2500);
-
-                for (int i = 0; i < spell.Slots.Count; i++)
-                    if (spell.Slots[i] != null)
-                        html.AppendFormat("{0}: <span title=\"SPA={2} Base1={3} Base2={4} Max={5} Calc={6}\">{1}</span><br/>", i + 1, InsertRefLinks(spell.Slots[i].Desc), spell.Slots[i].SPA, spell.Slots[i].Base1, spell.Slots[i].Base2, spell.Slots[i].Max, spell.Slots[i].Calc);
-
-                html.Append("</td>");
-
-                html.Append("</tr>");
-                html.AppendLine();
-            }
-
-            html.Append("</table>");
-        }
-
-        private string InsertRefLinks(string text)
-        {
-            text = Spell.SpellRefExpr.Replace(text, m =>
-            {
-                int id = Int32.Parse(m.Groups[1].Value);
-                string name = Cache.GetSpellName(id) ?? String.Format("[Spell {0}]", id);
-                return String.Format("<a href='#spell{0}' onclick='showSpell({0}, this); return false;'>{1}</a>", id, name);
-            });
-
-            text = Spell.GroupRefExpr.Replace(text, m =>
-            {
-                int id = Int32.Parse(m.Groups[1].Value);
-                string name = Cache.GetSpellGroupName(id) ?? String.Format("[Group {0}]", id);
-                return String.Format("<a href='#group{0}' onclick='showGroup({0}, this); return false;'>{1}</a>", id, name);
-            });
-
-            text = Spell.ItemRefExpr.Replace(text, m =>
-            {
-                int id = Int32.Parse(m.Groups[1].Value);
-                string name = m.Groups[0].Value;
-                if (Enum.IsDefined(typeof(SpellReagent), id))
-                    name = ((SpellReagent)id).ToString().Replace('_', ' ');
-                //return String.Format("<a href='http://everquest.allakhazam.com/db/item.html?item={0};source=lucy' class='ext' target='_top'>{1}</a>", id, name);
-                return String.Format("<a href='http://lucy.allakhazam.com/item.html?id={0}' class='ext' target='_top'>{1}</a>", id, name);
-            });
-
-            return text;
         }
 
         private void ParseRange(string text, out int min, out int max)
@@ -426,22 +272,6 @@ namespace winparser
                     min = 1;
                 max = min;
             }
-        }
-
-        private string HtmlEncode(string text)
-        {
-            // i don't think .net has a html encoder outside of the system.web assembly
-            return text.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
-        }
-
-        private string FormatEnum(object o)
-        {
-            string type = o.ToString().Replace("_", " ").Trim();
-            if (Regex.IsMatch(type, @"^-?\d+$"))
-                type = "Type " + type; // undefined numeric enum
-            else
-                type = Regex.Replace(type, @"\d+$", ""); // remove numeric suffix on duplicate enums undead3/summoned3/etc
-            return type;
         }
 
         private void SearchBrowser_Navigating(object sender, WebBrowserNavigatingEventArgs e)
@@ -502,7 +332,7 @@ namespace winparser
             Func<Spell, string> getNewText = x => x.ToString() + "\n" + newVer.Cache.InsertRefNames(String.Join("\n", x.Details())) + "\n\n";
             var diffs = Compare(oldVer.Results, newVer.Results, getOldText, getNewText);
 
-            var html = InitHtml();
+            var html = HtmlBuilder.InitTemplate();
 
             if (diffs.Count == 0)
                 html.AppendFormat("<p>No differences were found between {0} and {1} based on the search filters.</p>", oldVer.SpellPath, newVer.SpellPath);
@@ -512,13 +342,7 @@ namespace winparser
                 html.Append(diff_match_patch.diff_prettyHtml(diffs));
             }
 
-            html.Append("</html>");
-
-            SearchBrowser.DocumentText = html.ToString();
-
-            //html = InitHtml();
-            //html.AppendFormat("<p>See other window for comparison.</p></html>");
-            //other.SearchBrowser.DocumentText = html.ToString();
+            ShowHtml(html.ToString());
         }
 
         private static List<Diff> Compare(IEnumerable<Spell> setA, IEnumerable<Spell> setB, Func<Spell, string> getTextA, Func<Spell, string> getTextB)
@@ -623,8 +447,6 @@ namespace winparser
             SetFilter(DefaultFilter);
             AutoSearch.Enabled = false;
         }
-
-
 
     }
 }
