@@ -18,7 +18,7 @@ namespace EQSpellParser
         public int ClassMinLevel { get; set; }
         public int ClassMaxLevel { get; set; }
         public string Category { get; set; }
-        public int Rank { get; set; }
+        public string Ranks { get; set; }
 
         // these are for post search processing:
         //public bool AddForwardRefs { get; set; }
@@ -231,7 +231,7 @@ namespace EQSpellParser
             */
         }
 
-        public IEnumerable<Spell> Search(SpellSearchFilter filter)
+        public List<Spell> Search(SpellSearchFilter filter)
         {
             //return filter.Apply(SpellList);
             if (filter.ClassMaxLevel == 0)
@@ -244,7 +244,7 @@ namespace EQSpellParser
             // if the spell text filter is an integer then just do a quick search by ID and ignore the other filters
             int id;
             if (Int32.TryParse(filter.Text, out id))
-                return query.Where(x => x.ID == id || x.GroupID == id);
+                return query.Where(x => x.ID == id || x.GroupID == id).ToList();
 
             //  spell name and description are checked for literal text    
             if (!String.IsNullOrEmpty(filter.Text))
@@ -302,7 +302,22 @@ namespace EQSpellParser
                     }
                 }
 
-            return query;
+            //if (filter.Ranks == "Unranked")
+            //    query = query.Where(x => x.Rank == 0);
+            //if (filter.Ranks == "Rank 1")
+            //    query = query.Where(x => x.Rank == 1);
+            //if (filter.Ranks == "Rank 2")
+            //    query = query.Where(x => x.Rank == 2);
+            //if (filter.Ranks == "Rank 3")
+            //    query = query.Where(x => x.Rank == 3);
+            //if (filter.Ranks == "Unranked + Rank 1")
+            //    query = query.Where(x => x.Rank == 0 || x.Rank == 1);
+            //if (filter.Ranks == "Unranked + Rank 2")
+            //    query = query.Where(x => x.Rank == 0 || x.Rank == 2);
+            //if (filter.Ranks == "Unranked + Rank 3")
+            //    query = query.Where(x => x.Rank == 0 || x.Rank == 3);
+
+            return query.ToList();
         }
 
         public Spell GetSpell(int id)
@@ -490,6 +505,7 @@ namespace EQSpellParser
             // do not include back refs for spells that are heavily referenced. 
             // e.g. complete heal is referenced by hundreds of focus spells (we wouldn't want to add those focus spells to the results)
             var ignore = list.Where(x => x.RefCount > 10).Select(x => x.ID).ToList();
+
             foreach (var spell in SpellList)
             {
                 foreach (int id in spell.LinksTo)

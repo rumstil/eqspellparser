@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Configuration;
 using System.Data;
 using System.Drawing;
 using System.IO;
@@ -81,6 +82,14 @@ namespace winparser
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
+            // save current filter
+            //var config = ConfigurationManager.OpenExeConfiguration(Application.ExecutablePath);
+            //var filter = GetFilter();
+            //var props = filter.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            //foreach (var p in props)
+            //    config.AppSettings.Settings.Add(p.Name, p.GetValue(filter, null).ToString());
+            //config.Save(ConfigurationSaveMode.Modified);
+
             // quit if no other windows are open (+1 for FileOpenForm which is hidden)
             if (Application.OpenForms.Count <= 2)
                 Application.Exit();
@@ -111,9 +120,11 @@ namespace winparser
             ShowHtml(html.ToString());
         }
 
+        /// <summary>
+        /// Save current filter settings into filter object. This is useful when comparing spell lists on a second form.
+        /// </summary>
         public SpellSearchFilter GetFilter()
         {
-
             var filter = new SpellSearchFilter();
             filter.Text = SearchText.Text.Trim();
             filter.Effect[0] = SearchEffect1.Text.Trim();
@@ -134,11 +145,15 @@ namespace winparser
             filter.ClassMinLevel = min;
             filter.ClassMaxLevel = max;
             //filter.AppendForwardRefs = true;
+            filter.Ranks = SearchRanks.Text.Trim();
             filter.AddBackRefs = IncludeRelated.Checked;
 
             return filter;
         }
 
+        /// <summary>
+        /// Load filter from another form when doing a comparison.
+        /// </summary>
         public void SetFilter(SpellSearchFilter filter)
         {
             SearchText.Text = filter.Text;
@@ -157,6 +172,7 @@ namespace winparser
             else if (filter.ClassMaxLevel > 0)
                 SearchLevel.Text = filter.ClassMaxLevel.ToString();
             IncludeRelated.Checked = filter.AddBackRefs;
+            SearchRanks.Text = filter.Ranks;
         }
 
         private void SearchBtn_Click(object sender, EventArgs e)
@@ -168,7 +184,7 @@ namespace winparser
         }
 
         /// <summary>
-        /// Search spells and save to [Results] 
+        /// Search spells and save to [Results]
         /// </summary>
         public void Search()
         {
@@ -176,20 +192,27 @@ namespace winparser
 
             var filter = GetFilter();
 
-            Results = Cache.Search(filter).ToList();
-
-            // filter ranks
-            //if (filter.Rank != 0)
-            //{
-            //    // there is no 'rk. 1' suffix so when filtering ranks we need to make sure a spell has a rank 2/3 version
-            //    var names = new HashSet<string>(Results.Select(x => x.Name));
-            //    if (filter.Rank == 1)
-            //        Results.RemoveAll(x => x.Rank == 2 || x.Rank == 3);
-            //}
+            Results = Cache.Search(filter);
 
             // optionally add back refs
             if (filter.AddBackRefs)
                 Cache.AddBackRefs(Results);
+
+            // remove excluded ranks (this should be done after back refs are added)
+            if (filter.Ranks == "Unranked")
+                Results.RemoveAll(x => x.Rank != 0);
+            if (filter.Ranks == "Rank 1")
+                Results.RemoveAll(x => x.Rank != 1);
+            if (filter.Ranks == "Rank 2")
+                Results.RemoveAll(x => x.Rank != 2);
+            if (filter.Ranks == "Rank 3")
+                Results.RemoveAll(x => x.Rank != 3);
+            if (filter.Ranks == "Unranked + Rank 1")
+                Results.RemoveAll(x => x.Rank != 0 && x.Rank != 1);
+            if (filter.Ranks == "Unranked + Rank 2")
+                Results.RemoveAll(x => x.Rank != 0 && x.Rank != 2);
+            if (filter.Ranks == "Unranked + Rank 3")
+                Results.RemoveAll(x => x.Rank != 0 && x.Rank != 3);
 
             // hide anything that isn't in the results yet. additional spells will only be shown when a link is clicked
             VisibleResults = new HashSet<int>(Results.Select(x => x.ID));
@@ -278,7 +301,7 @@ namespace winparser
         {
             // start external links in an external window
             // internal links will all be "about:blank"
-            // using a target other than target=_top seems to force IE rather than the default browser on one of my computers 
+            // using a target other than target=_top seems to force IE rather than the default browser on one of my computers
             if (e.Url.Scheme.StartsWith("http") || !String.IsNullOrEmpty(e.TargetFrameName))
             {
                 e.Cancel = true;
@@ -316,8 +339,8 @@ namespace winparser
         {
             // perform the same search on both spell files
             var filter = GetFilter();
-            Results = Cache.Search(filter).ToList();
-            other.Results = other.Cache.Search(filter).ToList();
+            Results = Cache.Search(filter);
+            other.Results = other.Cache.Search(filter);
 
             MainForm oldVer = this;
             MainForm newVer = other;
@@ -430,7 +453,7 @@ namespace winparser
             int cls = SpellParser.ParseClass(SearchClass.Text) - 1;
             SearchLevel.Enabled = (cls >= 0);
 
-            SearchText_TextChanged(sender, e); 
+            SearchText_TextChanged(sender, e);
         }
 
         private void SearchText_TextChanged(object sender, EventArgs e)

@@ -363,10 +363,6 @@ namespace EQSpellParser
             spell.GroupID = ParseInt(fields[138]);
             // 139 SPELL_GROUP_RANK
             spell.Rank = ParseInt(fields[139]); // rank 1/5/10. a few auras do not have this set properly
-            if (spell.Rank == 5 || spell.Name.EndsWith("II") || spell.Name.EndsWith("02"))
-                spell.Rank = 2;
-            if (spell.Rank == 10 || spell.Name.EndsWith("III") || spell.Name.EndsWith("03"))
-                spell.Rank = 3;
             // 140 NO_RESIST - ignore SPA 180 resist
             spell.NoSanctification = ParseBool(fields[140]);
             // 141 ALLOW_SPELLSCRIBE
@@ -644,10 +640,6 @@ namespace EQSpellParser
             spell.GroupID = ParseInt(fields[143]);
             // 144 SPELL_GROUP_RANK
             spell.Rank = ParseInt(fields[144]); // rank 1/5/10. a few auras do not have this set properly
-            if (spell.Rank == 5 || spell.Name.EndsWith("II") || spell.Name.EndsWith("02"))
-                spell.Rank = 2;
-            if (spell.Rank == 10 || spell.Name.EndsWith("III") || spell.Name.EndsWith("03"))
-                spell.Rank = 3;
             // 145 NO_RESIST - ignore SPA 180 resist
             spell.NoSanctification = ParseBool(fields[145]);
             // 146 ALLOW_SPELLSCRIBE
@@ -929,10 +921,6 @@ namespace EQSpellParser
             spell.GroupID = ParseInt(fields[147]);
             // 148 SPELL_GROUP_RANK
             spell.Rank = ParseInt(fields[148]); // rank 1/5/10. a few auras do not have this set properly
-            if (spell.Rank == 5 || spell.Name.EndsWith("II") || spell.Name.EndsWith("02"))
-                spell.Rank = 2;
-            if (spell.Rank == 10 || spell.Name.EndsWith("III") || spell.Name.EndsWith("03"))
-                spell.Rank = 3;
             // 149 NO_RESIST - ignore SPA 180 resist
             spell.NoSanctification = ParseBool(fields[149]);
             // 150 ALLOW_SPELLSCRIBE
@@ -1219,10 +1207,6 @@ namespace EQSpellParser
             spell.GroupID = ParseInt(fields[207]);
             // 208 SPELL_GROUP_RANK
             spell.Rank = ParseInt(fields[208]); // rank 1/5/10. a few auras do not have this set properly
-            if (spell.Rank == 5 || spell.Name.EndsWith("II") || spell.Name.EndsWith("02"))
-                spell.Rank = 2;
-            if (spell.Rank == 10 || spell.Name.EndsWith("III") || spell.Name.EndsWith("03"))
-                spell.Rank = 3;
             // 209 NO_RESIST - ignore SPA 180 resist?
             spell.NoSanctification = ParseBool(fields[209]);
             // 210 ALLOW_SPELLSCRIBE

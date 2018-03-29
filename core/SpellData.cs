@@ -2094,6 +2094,14 @@ namespace EQSpellParser
                 RangeModCloseDist = RangeModFarDist = 0;
                 RangeModCloseMult = RangeModFarMult = 0;
             }
+
+            // innate spell ranks are tagged 1/5/10 instead of 1/2/3
+            if (Name.EndsWith("Rk. II"))
+                Rank = 2;
+            if (Name.EndsWith("Rk. III"))
+                Rank = 3;
+            if (Rank > 3)
+                Rank = 0;
         }
 
         /// <summary>
