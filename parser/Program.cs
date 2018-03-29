@@ -35,7 +35,8 @@ namespace parser
 
                 if (args[0] == "update")
                 {
-                    DownloadPatchFiles(args.Length >= 2 ? args[1] : null);
+                    var server = args.Length >= 2 ? args[1] : null;
+                    LaunchpadPatcher.DownloadSpellFiles(server);
                     return;
                 }
 
@@ -46,7 +47,7 @@ namespace parser
                 }
 
                 if (!File.Exists(path))
-                    DownloadPatchFiles(null);
+                    LaunchpadPatcher.DownloadSpellFiles();
 
                 Console.Error.Write("Loading {0}... ", path);
                 cache = new SpellCache();
@@ -140,31 +141,5 @@ namespace parser
                 Console.WriteLine();
             }
         }
-
-        /// <summary>
-        /// Download spell files from the patch server.
-        /// </summary>
-        /// <param name="server">Null for the live server.</param>
-        static void DownloadPatchFiles(string server)
-        {
-            LaunchpadPatcher.DownloadManifest(server, "manifest.dat");
-            var manifest = new LaunchpadManifest(File.OpenRead("manifest.dat"));
-
-            var spell = manifest.FindFile(LaunchpadManifest.SPELL_FILE);
-            LaunchpadPatcher.DownloadFile(spell.Url, spell.Name);
-
-            var spellstr = manifest.FindFile(LaunchpadManifest.SPELLSTR_FILE);
-            if (spellstr != null)
-                LaunchpadPatcher.DownloadFile(spellstr.Url, spellstr.Name);
-
-            var desc = manifest.FindFile(LaunchpadManifest.SPELLDESC_FILE);
-            if (desc != null)
-                LaunchpadPatcher.DownloadFile(desc.Url, desc.Name);
-
-            var stack = manifest.FindFile(LaunchpadManifest.SPELLSTACK_FILE);
-            if (stack != null)
-                LaunchpadPatcher.DownloadFile(stack.Url, stack.Name);
-        }
-
     }
 }

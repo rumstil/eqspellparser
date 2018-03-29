@@ -99,55 +99,24 @@ namespace winparser
         private void Download(string server)
         {
             Cursor.Current = Cursors.WaitCursor;
+            var path = LaunchpadPatcher.DownloadSpellFilesWithVersioning(server);
+            Cursor.Current = Cursors.Default;
+          
+            Status.Text = String.Format("Downloaded {0}", path);
 
-            LaunchpadPatcher.DownloadManifest(server, "manifest.dat");
-            var manifest = new LaunchpadManifest(new MemoryStream(File.ReadAllBytes("manifest.dat")));
-
-            var spell = manifest.FindFile(LaunchpadManifest.SPELL_FILE);
-            spell.Name = spell.Name.Replace(".txt", "-" + spell.LastModified.ToString("yyyy-MM-dd") + server + ".txt");
-            LaunchpadPatcher.DownloadFile(spell.Url, spell.Name);
-
-            // the desc file can sometimes be older than the spell file. we need to save it with the spell file timestamp 
-            // so that there is always a corresponding copy
-            var desc = manifest.FindFile(LaunchpadManifest.SPELLDESC_FILE);
-            if (desc != null)
-            {
-                desc.Name = desc.Name.Replace(".txt", "-" + spell.LastModified.ToString("yyyy-MM-dd") + server + ".txt");
-                LaunchpadPatcher.DownloadFile(desc.Url, desc.Name);
-            }
-
-            // same for the spell string file
-            var spellstr = manifest.FindFile(LaunchpadManifest.SPELLSTR_FILE);
-            if (spellstr != null)
-            {
-                spellstr.Name = spellstr.Name.Replace(".txt", "-" + spell.LastModified.ToString("yyyy-MM-dd") + server + ".txt");
-                LaunchpadPatcher.DownloadFile(spellstr.Url, spellstr.Name);
-            }
-
-            // same for the stacking file
-            var stack = manifest.FindFile(LaunchpadManifest.SPELLSTACK_FILE);
-            if (stack != null)
-            {
-                stack.Name = stack.Name.Replace(".txt", "-" + spell.LastModified.ToString("yyyy-MM-dd") + server + ".txt");
-                LaunchpadPatcher.DownloadFile(stack.Url, stack.Name);
-            }
-            
-            Status.Text = String.Format("Downloaded {0} {1}", spell.Name, spell.LastModified.ToString());
-
-            var item = listView1.FindItemWithText(spell.Name);
+            var item = listView1.FindItemWithText(path);
             if (item == null)
             {
-                item = new ListViewItem(spell.Name);
-                item.SubItems.Add(spell.UncompressedSize.ToString("#,#"));
-                item.SubItems.Add(CountFields(spell.Name).ToString());
+                var info = new FileInfo(path);
+                item = new ListViewItem(path);
+                item.SubItems.Add(info.Length.ToString("#,#"));
+                item.SubItems.Add(CountFields(path).ToString());
                 listView1.Items.Add(item);                
             }
             listView1.MultiSelect = false;
             item.EnsureVisible();
             item.Selected = true;
             listView1.MultiSelect = true;
-
-            Cursor.Current = Cursors.Default;
         }
 
         public void SetStatus(string text)

@@ -11,8 +11,95 @@ using System.Globalization;
 
 namespace EQSpellParser
 {
-    public class LaunchpadPatcher
+    public static class LaunchpadPatcher
     {
+        /// <summary>
+        /// Download all spell files from the patch server and include version info in filenames.
+        /// </summary>
+        /// <param name="server">null for the live servers. "-test" for test server.</param>
+        public static string DownloadSpellFilesWithVersioning(string server = null, string path = null)
+        {
+            // Path.Combine doesn't like null paths
+            if (path == null)
+                path = "";
+
+            DownloadManifest(server, "manifest.dat");
+            var manifest = new LaunchpadManifest(new MemoryStream(File.ReadAllBytes("manifest.dat")));
+
+            var spell = manifest.FindFile(LaunchpadManifest.SPELL_FILE);
+            if (spell == null)
+                throw new InvalidOperationException("Could not locate main spell file in manifest.dat.");
+
+            var version = "-" + spell.LastModified.ToString("yyyy-MM-dd") + server;
+
+            spell.Name = spell.Name.Replace(".txt", version + ".txt");
+            DownloadFile(spell.Url, Path.Combine(path, spell.Name));
+
+            // the other files can sometimes be older than the spell file so we always save them with the main files date
+            var desc = manifest.FindFile(LaunchpadManifest.SPELLDESC_FILE);
+            if (desc != null)
+            {
+                desc.Name = desc.Name.Replace(".txt", version + ".txt");
+                DownloadFile(desc.Url, Path.Combine(path, desc.Name));
+            }
+
+            var spellstr = manifest.FindFile(LaunchpadManifest.SPELLSTR_FILE);
+            if (spellstr != null)
+            {
+                spellstr.Name = spellstr.Name.Replace(".txt", version + ".txt");
+                DownloadFile(spellstr.Url, Path.Combine(path, spellstr.Name));
+            }
+
+            var stack = manifest.FindFile(LaunchpadManifest.SPELLSTACK_FILE);
+            if (stack != null)
+            {
+                stack.Name = stack.Name.Replace(".txt", version + ".txt");
+                DownloadFile(stack.Url, Path.Combine(path, stack.Name));
+
+            }
+
+            return Path.Combine(path, spell.Name);
+        }
+
+        /// <summary>
+        /// Download all spell files from the patch server. 
+        /// </summary>
+        public static string DownloadSpellFiles(string server = null, string path = null)
+        {
+            // Path.Combine doesn't like null paths
+            if (path == null)
+                path = "";
+
+            DownloadManifest(server, "manifest.dat");
+            var manifest = new LaunchpadManifest(new MemoryStream(File.ReadAllBytes("manifest.dat")));
+
+            var spell = manifest.FindFile(LaunchpadManifest.SPELL_FILE);
+            if (spell == null)
+                throw new InvalidOperationException("Could not locate main spell file in manifest.dat.");
+
+            DownloadFile(spell.Url, Path.Combine(path, spell.Name));
+
+            var desc = manifest.FindFile(LaunchpadManifest.SPELLDESC_FILE);
+            if (desc != null)
+            {
+                DownloadFile(desc.Url, Path.Combine(path, desc.Name));
+            }
+
+            var spellstr = manifest.FindFile(LaunchpadManifest.SPELLSTR_FILE);
+            if (spellstr != null)
+            {
+                DownloadFile(spellstr.Url, Path.Combine(path, spellstr.Name));
+            }
+
+            var stack = manifest.FindFile(LaunchpadManifest.SPELLSTACK_FILE);
+            if (stack != null)
+            {
+                DownloadFile(stack.Url, Path.Combine(path, stack.Name));
+            }
+
+            return spell.Name;
+        }
+
         /// <param name="server">null for the live servers. "-test" for test server.</param>
         public static void DownloadManifest(string server, string saveToPath)
         {
