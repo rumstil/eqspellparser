@@ -33,6 +33,7 @@ namespace EQSpellParser
             CommonEffects.Add("Heal", @"^Increase Current HP by ([1-9]\d+)(?!.*(?:per tick))"); // 1-9 to exclude spells with "Increase Current HP by 0" 
             CommonEffects.Add("HoT", @"^Increase Current HP by (\d+) per tick|\sHoT\s");
             CommonEffects.Add("Nuke", @"^Decrease Current HP by (\d+)(?!.*(?:per tick))");
+            CommonEffects.Add("DD", @"^Decrease Current HP by (\d+)(?!.*(?:per tick))");
             CommonEffects.Add("DoT", @"^Decrease Current HP by (\d+) per tick|\sDoT\s");
             CommonEffects.Add("Haste", @"^Increase Melee Haste (?:v3 )?by (\d+)");
             CommonEffects.Add("Slow", @"^(?:Decrease Melee Haste)|(?:Increase Melee Delay) by (\d+)");

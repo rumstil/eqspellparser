@@ -7,7 +7,7 @@ Bin/
 Obj/
 Debug/
 Release/
-
+.vs/
 
 
 spells_us*.txt*
