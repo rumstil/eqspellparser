@@ -108,7 +108,7 @@ namespace EQSpellParser
         public bool AllowFastRegen;
         public bool BetaOnly;
         public bool CannotRemove;
-        public int CritOverride; // when set the spell has this max % crit chance and mod 
+        public int CritOverride; // when set the spell has this max % crit chance and mod
         public bool CombatSkill;
         public int ResistPerLevel;
         public int ResistCap;
@@ -282,7 +282,7 @@ namespace EQSpellParser
                 case 36:
                     return Spell.FormatCount("Poison Counter", value);
                 case 39:
-                    // this doesn't actually block twincast by itself. 
+                    // this doesn't actually block twincast by itself.
                     // twincast excludes spells that have this marker
                     return "Stacking: Twincast Blocker";
                 case 40:
@@ -712,8 +712,8 @@ namespace EQSpellParser
                     return Spell.FormatPercent("Pet Chance to Critical Hit", value);
                 case 219:
                     // Gives [Base1 <= 10000] chance to do (damage * [Base2/100]) to undead targets
-                    // [Properties: 3, 8, 12] on a critical hit. For stacking, Base1 is cumulative while Base2 
-                    // takes the highest value between spells or AAs. If successful, earlies out of the crit 
+                    // [Properties: 3, 8, 12] on a critical hit. For stacking, Base1 is cumulative while Base2
+                    // takes the highest value between spells or AAs. If successful, earlies out of the crit
                     // melee function before SPA 330 or 170 are considered. - Dzarn
                     return Spell.FormatPercent("Chance to Slay Undead", base1 / 100f) + String.Format(" with {0} Damage Mod", base2);
                 case 220:
@@ -782,7 +782,7 @@ namespace EQSpellParser
                     // 1-Handed weapon - Secondary Hand: [Primary Hand Formula * Base1 of Sinister Strike SPA]
                     return Spell.FormatPercent("Offhand Weapon Damage Bonus", base1);
                 case 250:
-                    // increase chance of spa 85 
+                    // increase chance of spa 85
                     // compare with 200 which increase worn proc rate
                     return Spell.FormatPercent("Melee Proc Rate", base1);
                 case 251:
@@ -888,7 +888,7 @@ namespace EQSpellParser
                     return String.Format("Add " + Spell.FormatEnum((SpellSkill)base2) + " Proc ({1}% Chance)", base2, base1 / 10f);
                 case 289:
                     // this only triggers if the spell times out. compare with 373
-                    // 2017-04-19 set max=2 on some spells (e.g. Chill of the Visionary) 
+                    // 2017-04-19 set max=2 on some spells (e.g. Chill of the Visionary)
                     return String.Format("Cast: [Spell {0}] on Duration Fade", base1);
                 case 290:
                     return Spell.FormatCount("Movement Speed Cap", value);
@@ -901,13 +901,13 @@ namespace EQSpellParser
                     // melee stun only, from any angle
                     return Spell.FormatPercent("Chance to Resist Melee Stun", base1);
                 case 294:
-                    // the base2 nuke damage increase only appears on 4 spells after the 2015-7-22 patch 
+                    // the base2 nuke damage increase only appears on 4 spells after the 2015-7-22 patch
                     if (base2 > 0)
                         return Spell.FormatPercent("Chance to Critical Nuke", base1) + " and " + Spell.FormatPercent("Critical Nuke Damage v2", base2) + " of Base Damage";
                     else
                         return Spell.FormatPercent("Chance to Critical Nuke", base1);
                 case 296:
-                    // incoming damage % SPAs 296 and 483 multiply against what is essentially (spell-data's base value * spa 413) 
+                    // incoming damage % SPAs 296 and 483 multiply against what is essentially (spell-data's base value * spa 413)
                     // rather than the focused value - Dzarn
                     return Spell.FormatPercentRange("Spell Damage Taken", base1, base2) + " (Before Crit)";
                 case 297:
@@ -945,7 +945,7 @@ namespace EQSpellParser
                 case 310:
                     return String.Format("Reduce Timer by {0}", FormatTime(base1 / 1000f));
                 case 311:
-                    // filter based on field 108: IS_SKILL 
+                    // filter based on field 108: IS_SKILL
                     return String.Format("Limit Type: {0} Combat Skills", base1 == 1 ? "Include" : "Exclude");
                 case 312:
                     return "Sanctuary";
@@ -1098,7 +1098,7 @@ namespace EQSpellParser
                     if (Extra.StartsWith("PCIObEncS20L100EchoCastProcRk")) aura = 36227 + Rank;
                     if (Extra.StartsWith("PCIObEncS21L105EchoCastProcRk")) aura = 45018 + Rank;
                     if (Extra.StartsWith("PCIObEncS22L110EchoCastProcRk")) aura = 57276 + Rank;
-                    
+
                     // old aura names (2017-4-19 patch renamed auras)
                     if (Extra.StartsWith("IOQuicksandTrap85")) aura = 22655;
                     if (Extra.StartsWith("IOAuraCantataRk")) aura = 19713 + Rank;
@@ -1244,7 +1244,7 @@ namespace EQSpellParser
                 case 405:
                     return Spell.FormatPercent("Staff Block Chance", base1);
                 case 406:
-                    // 2017-04-19 set max=1 on some spells (e.g. Bosquestalker's Alliance) 
+                    // 2017-04-19 set max=1 on some spells (e.g. Bosquestalker's Alliance)
                     // perhaps this affects if the target or the caster is credited with the spell?
                     return String.Format("Cast: [Spell {0}] if Max Hits Used", base1);
                 case 407:
@@ -1320,14 +1320,14 @@ namespace EQSpellParser
                 case 432:
                     return Spell.FormatCount("Trophy Slots", base1);
                 case 433:
-                    // similar to 220 except the values get lowered with faster weapons 
+                    // similar to 220 except the values get lowered with faster weapons
                     // Dzarn: When calculating the delay associated to SPA 433:
                     // Weapon skills: Weapon * Haste
                     // Skill attacks: Hasted delay of the button
                     // SPA 193: 30 second delay is assumed
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus v2 (Delay Normalized)", base1);
                 case 434:
-                    // similar to 220 except the values get lowered with faster weapons 
+                    // similar to 220 except the values get lowered with faster weapons
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus v3 (Delay Normalized)", base1);
                 case 435:
                     return String.Format("Fragile Defense ({0})", base1);
@@ -1391,11 +1391,11 @@ namespace EQSpellParser
                     // some spells are tagged as non focusable - this overrides that
                     return "Limit Type: Include Non-Focusable";
                 case 461:
-                    // Crits for DoTs and DDs. Calculated AFTER 413 BEFORE 124, 302. - Beimeith 
+                    // Crits for DoTs and DDs. Calculated AFTER 413 BEFORE 124, 302. - Beimeith
                     // Ngreth is under the impression that this is applied After Crit
                     return Spell.FormatPercentRange("Spell Damage v2", base1, base2) + " (Before Crit)";
                 case 462:
-                    // SPA 462 appears to be the equivalent of SPA286 and added for stacking purposes. - Beimeith 
+                    // SPA 462 appears to be the equivalent of SPA286 and added for stacking purposes. - Beimeith
                     return Spell.FormatCount("Spell Damage v2", base1) + " (After Crit)";
                 case 463:
                     // same as /shield command?
@@ -1456,7 +1456,7 @@ namespace EQSpellParser
                 case 482:
                     return Spell.FormatPercent("Base " + Spell.FormatEnum((SpellSkill)base2) + " Damage", base1);
                 case 483:
-                    // incoming damage % SPAs 296 and 483 multiply against what is essentially (spell-data's base value * spa 413) 
+                    // incoming damage % SPAs 296 and 483 multiply against what is essentially (spell-data's base value * spa 413)
                     // rather than the focused value - Dzarn
                     return Spell.FormatPercentRange("Spell Damage Taken", base1, base2) + " (After Crit)";
                 case 484:
@@ -1527,7 +1527,7 @@ namespace EQSpellParser
                 case 506:
                     return Spell.FormatCount("Rear Arc Melee Damage Taken", base1);
                 case 507:
-                    // Effectively Fc_Damage_%2. I know 461 is supposedly "Fc_Damage_%2," but for whatever reason it works nothing like SPA 124. 
+                    // Effectively Fc_Damage_%2. I know 461 is supposedly "Fc_Damage_%2," but for whatever reason it works nothing like SPA 124.
                     // SPA 507 appears to work just like 124, except it appears to be applied after 461. - Sancus
                     return Spell.FormatPercentRange("Spell Damage v4", base1, base2) + " (Before DoT Crit, After Nuke Crit)";
                 case 509:
@@ -1958,7 +1958,7 @@ namespace EQSpellParser
                     + (SongWindow ? " Song" : "")
                     //+ (Beneficial && ClassesMask != SpellClassesMask.BRD ? ", Extendable: " + (Focusable ? "Yes" : "No") : "") // already indicated by "+" symbol above and "focusable" line
                     + ", Dispelable: " + (Dispelable ? "Yes" : "No")
-                    //+ (!Beneficial && DurationTicks > 10 ? ", Allow Fast Regen: " + (AllowFastRegen ? "Yes" : "No") : "")  // it applies on <10 ticks, but there really is no need to show it for short term debuffs 
+                    //+ (!Beneficial && DurationTicks > 10 ? ", Allow Fast Regen: " + (AllowFastRegen ? "Yes" : "No") : "")  // it applies on <10 ticks, but there really is no need to show it for short term debuffs
                     + (PersistAfterDeath ? ", Persist After Death" : "")); // pretty rare, so only shown when it's used
             else if (AEDuration >= 2500)
                 result.Add("AE Waves: " + AEDuration / 2500);
@@ -2025,7 +2025,7 @@ namespace EQSpellParser
                     if (slot.Desc != null)
                         slot.Desc = String.Format("SPA {0} Base1={1} Base2={2} Max={3} Calc={4} --- ", slot.SPA, slot.Base1, slot.Base2, slot.Max, slot.Calc) + slot.Desc;
 #endif
-                    // clear slots that weren't parsed (this will mostly be SPA 10) 
+                    // clear slots that weren't parsed (this will mostly be SPA 10)
                     if (slot.Desc == null)
                         Slots[i] = null;
                 }
@@ -2096,9 +2096,9 @@ namespace EQSpellParser
             }
 
             // innate spell ranks are tagged 1/5/10 instead of 1/2/3
-            if (Name.EndsWith("Rk. II"))
+            if (Name.EndsWith(" II"))  //some rank II effects do not have the letters Rk. in it
                 Rank = 2;
-            if (Name.EndsWith("Rk. III"))
+            if (Name.EndsWith(" III"))  //some rank III effects do not have the letters Rk. in it
                 Rank = 3;
             if (Rank > 3)
                 Rank = 0;
@@ -2239,7 +2239,7 @@ namespace EQSpellParser
                     max = min;
             }
 
-            // some effects like 'increase mana conservation' use negated wording 'decrease mana cost' 
+            // some effects like 'increase mana conservation' use negated wording 'decrease mana cost'
             if (negate)
             {
                 min = -min;

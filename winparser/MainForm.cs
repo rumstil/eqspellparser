@@ -193,10 +193,13 @@ namespace winparser
             var filter = GetFilter();
 
             Results = Cache.Search(filter);
+            int cls = SpellParser.ParseClass(SearchClass.Text) - 1;
 
             // optionally add back refs
             if (filter.AddBackRefs)
                 Cache.AddBackRefs(Results);
+            else
+                Results.RemoveAll(x => x.Levels[cls] == 0);     //removes references to spells with level 0 which are effects of other spells.
 
             // remove excluded ranks (this should be done after back refs are added)
             if (filter.Ranks == "Unranked")
