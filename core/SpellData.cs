@@ -20,12 +20,14 @@ namespace EQSpellParser
 
         public override string ToString()
         {
-            return Desc;
+            return String.Format("SPA {0} Base1={1} Base2={2} Max={3} Calc={4}", SPA, Base1, Base2, Max, Calc);
         }
     }
 
     public sealed class Spell
     {
+        public const int MAX_LEVEL = 110;
+
         public int ID;
         public int GroupID;
         public string Name;
@@ -151,7 +153,7 @@ namespace EQSpellParser
 
         public string Recourse { get { if (RecourseID != 0) return String.Format("[Spell {0}]", RecourseID); return null; } }
 
-        public string ParseEffect(SpellSlot slot, int level)
+        public string ParseEffect(SpellSlot slot, int level = MAX_LEVEL)
         {
             return ParseEffect(slot.SPA, slot.Base1, slot.Base2, slot.Max, slot.Calc, level);
         }
@@ -160,7 +162,7 @@ namespace EQSpellParser
         /// Each spell can have a number of slots for variable spell effects. The game developers call these "SPAs".
         /// TODO: this should be a static function but it makes references to spell attributes like ID, Skill, Extra, DurationTicks and in a few cases even modifies the Mana attribute.
         /// </summary>
-        public string ParseEffect(int spa, int base1, int base2, int max, int calc, int level)
+        public string ParseEffect(int spa, int base1, int base2, int max, int calc, int level = MAX_LEVEL)
         {
             // type 254 indicates end of slots (i.e. if there are any others they will also be 254)
             if (spa == 254)
@@ -520,11 +522,13 @@ namespace EQSpellParser
                     //return String.Format("Increase Current HP by {1} Max: {0}% ", value, max);
                     return FormatPercent("Current HP", value) + String.Format(" up to {0}", max);
                 case 148:
-                    //if (max > 1000) max -= 1000;
-                    return String.Format("Stacking: Block new spell if slot {0} is '{1}' and < {2}", calc % 100, Spell.FormatEnum((SpellEffect)base1), max);
+                    //if (Version != 0 && Version < 20180508)
+                    //    return String.Format("Stacking: Block new spell if slot {0} is '{1}' and < {2}", calc % 100, Spell.FormatEnum((SpellEffect)base1), max);
+                    return String.Format("Stacking: Block new spell if slot {0} is '{1}' and < {2}", base2 > 0 ? base2 : calc % 100, Spell.FormatEnum((SpellEffect)base1), max);
                 case 149:
-                    //if (max > 1000) max -= 1000;
-                    return String.Format("Stacking: Overwrite existing spell if slot {0} is '{1}' and < {2}", calc % 100, Spell.FormatEnum((SpellEffect)base1), max);
+                    //if (Version != 0 && Version < 20180508)
+                    //    return String.Format("Stacking: Overwrite existing spell if slot {0} is '{1}' and < {2}", calc % 100, Spell.FormatEnum((SpellEffect)base1), max);
+                    return String.Format("Stacking: Overwrite existing spell if slot {0} is '{1}' and < {2}", base2 > 0 ? base2 : calc % 100, Spell.FormatEnum((SpellEffect)base1), max);
                 case 150:
                     return String.Format("Divine Intervention with {0} Heal", max);
                 case 151:
@@ -1546,7 +1550,7 @@ namespace EQSpellParser
         /// Calculate a duration.
         /// </summary>
         /// <returns>Numbers of ticks (6 second units)</returns>
-        public static int CalcDuration(int calc, int max, int level)
+        public static int CalcDuration(int calc, int max, int level = MAX_LEVEL)
         {
             int value = 0;
 
@@ -1626,7 +1630,7 @@ namespace EQSpellParser
         /// <summary>
         /// Calculate a level/tick scaled value.
         /// </summary>
-        public static int CalcValue(int calc, int base1, int max, int tick, int level)
+        public static int CalcValue(int calc, int base1, int max, int tick, int level = MAX_LEVEL)
         {
             if (calc == 0)
                 return base1;
@@ -1775,8 +1779,13 @@ namespace EQSpellParser
                         change = tick * (calc - 1000) * -1;
 
                     // 2000..2999 variable by level
-                    if (calc >= 2000)
+                    if (calc >= 2000 && calc < 3000)
                         change = level * (calc - 2000);
+
+                    // 4000..4999 variable by tick (negative)
+                    if (calc >= 4000 && calc < 5000)
+                        change = -tick * (calc - 4000);
+
                     break;
             }
 
@@ -1794,7 +1803,7 @@ namespace EQSpellParser
         /// <summary>
         /// Calculate the min/max values for a scaled value.
         /// </summary>
-        public static string CalcValueRange(int calc, int base1, int max, int duration, int level)
+        public static string CalcValueRange(int calc, int base1, int max, int duration, int level = MAX_LEVEL)
         {
             int start = CalcValue(calc, base1, max, 1, level);
             int finish = Math.Abs(CalcValue(calc, base1, max, duration, level));
@@ -1818,6 +1827,9 @@ namespace EQSpellParser
 
             if (calc > 1000 && calc < 2000)
                 return String.Format(" ({0} to {1} @ {2}/tick)", type, finish, calc - 1000);
+
+            if (calc > 4000 && calc < 5000)
+                return String.Format(" ({0} to {1} @ {2}/tick)", type, finish, calc - 4000);
 
             return null;
         }
@@ -2020,10 +2032,10 @@ namespace EQSpellParser
                 if (Slots[i] != null)
                 {
                     var slot = Slots[i];
-                    slot.Desc = ParseEffect(slot, 105);
+                    slot.Desc = ParseEffect(slot);
 #if DEBUG
                     if (slot.Desc != null)
-                        slot.Desc = String.Format("SPA {0} Base1={1} Base2={2} Max={3} Calc={4} --- ", slot.SPA, slot.Base1, slot.Base2, slot.Max, slot.Calc) + slot.Desc;
+                        slot.Desc = slot.ToString() + " --- " + slot.Desc;
 #endif
                     // clear slots that weren't parsed (this will mostly be SPA 10)
                     if (slot.Desc == null)
