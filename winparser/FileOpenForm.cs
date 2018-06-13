@@ -44,7 +44,7 @@ namespace winparser
             listView1.Items.Clear();
 
             var dir = new DirectoryInfo(".");
-            var files = dir.GetFiles("spells_us*.txt");
+            var files = dir.GetFiles("spells_us*.txt*");
             ListViewItem item = null;
             foreach (var f in files)
             {
@@ -53,7 +53,7 @@ namespace winparser
                     continue;
                 item = new ListViewItem(f.Name);
                 item.SubItems.Add(f.Length.ToString("#,#"));
-                item.SubItems.Add(CountFields(f.Name).ToString());
+                item.SubItems.Add(SpellParser.CountFields(f.Name).ToString());
                 listView1.Items.Add(item);
             }
 
@@ -110,7 +110,7 @@ namespace winparser
                 var info = new FileInfo(path);
                 item = new ListViewItem(path);
                 item.SubItems.Add(info.Length.ToString("#,#"));
-                item.SubItems.Add(CountFields(path).ToString());
+                item.SubItems.Add(SpellParser.CountFields(path).ToString());
                 listView1.Items.Add(item);                
             }
             listView1.MultiSelect = false;
@@ -122,12 +122,6 @@ namespace winparser
         public void SetStatus(string text)
         {
             Status.Text = text;
-        }
-
-        private int CountFields(string path)
-        {
-            var f = File.OpenText(path);
-            return f.ReadLine().Split('^').Length;
         }
 
         private void listView1_DoubleClick(object sender, EventArgs e)

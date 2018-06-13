@@ -30,9 +30,10 @@ namespace EQSpellParser
             // load description strings file
             var desc = new Dictionary<string, string>(60000);
             var descPath = spellPath.Replace("spells_us", "dbstr_us");
-            foreach (var fields in LoadFields(descPath))
+            foreach (var fields in LoadAllLines(descPath))
             {
-                desc[fields[1] + "/" + fields[0]] = fields[2].Trim();
+                if (fields.Length == 3)
+                    desc[fields[1] + "/" + fields[0]] = fields[2].Trim();
                 // 0 = id within type
                 // 1 = type
                 // 2 = description
@@ -49,7 +50,7 @@ namespace EQSpellParser
             }
 
             // load spell definition file
-            foreach (var fields in LoadFields(spellPath))
+            foreach (var fields in LoadAllLines(spellPath))
             {
                 // file format has changed over time - pick the best parser
                 Func<string[], int, Spell> parser = ParseSpell;
@@ -104,7 +105,7 @@ namespace EQSpellParser
             // load spell string file (starting 2018-2-14)
             // *SPELLINDEX^CASTERMETXT^CASTEROTHERTXT^CASTEDMETXT^CASTEDOTHERTXT^SPELLGONE^
             var strPath = spellPath.Replace("spells_us", "spells_us_str");
-            foreach (var fields in LoadFields(strPath))
+            foreach (var fields in LoadAllLines(strPath))
             {
                 var id = ParseInt(fields[0]);
                 var landself = fields[3];
@@ -121,7 +122,7 @@ namespace EQSpellParser
             // load spell stacking file
             // my guess is that this was made a separate file because a single spell can be part of multiple spell stacking groups
             var stackPath = spellPath.Replace("spells_us", "SpellStackingGroups");
-            foreach (var fields in LoadFields(stackPath))
+            foreach (var fields in LoadAllLines(stackPath))
             {
                 var id = ParseInt(fields[0]);
                 var group = fields[1];
@@ -146,41 +147,6 @@ namespace EQSpellParser
 
 
             return list;
-        }
-
-        /// <summary>
-        /// Return file date as an integer. e.g. Feb 1, 2016 -> 20160201
-        /// </summary>
-        static int GetFileVersion(string path)
-        {
-            // use the file timestamp as the version string (this is not perfect because file timestamps can be accidentally changed)
-            var version = File.GetLastWriteTime(path).ToString("yyyyMMdd");
-
-            // also check the filename for a date version string. e.g. spells_us-2016-01-01.txt
-            var versionInName = Regex.Match(Path.GetFileName(path), @"\d\d\d\d-\d\d-\d\d");
-            if (versionInName.Success)
-                version = versionInName.Groups[0].Value.Replace("-", "");
-
-            return Int32.Parse(version);
-        }
-
-        /// <summary>
-        /// Load fields from a delimited text file.
-        /// </summary>
-        static IEnumerable<string[]> LoadFields(string path)
-        {
-            if (File.Exists(path))
-                using (var text = PossiblyCompressedFile.OpenText(path))
-                    while (!text.EndOfStream)
-                    {
-                        var line = text.ReadLine();
-                        if (line.StartsWith("#"))
-                            continue;
-                        var fields = line.Split('^');
-                        if (fields.Length < 2 || line.StartsWith("#"))
-                            continue;
-                        yield return fields;
-                    }
         }
 
         /// <summary>
@@ -1892,25 +1858,70 @@ namespace EQSpellParser
             return Array.IndexOf(roman, num.ToUpper()) + 1;
         }
 
-    }
-
-    /// <summary>
-    /// Provides transparent gzip decompression on files that may compressed.
-    /// The game doesn't ever store spells files in gzip format but I added this in case someone wants to keep lots of versioned spell files around and save space.
-    /// </summary>
-    public static class PossiblyCompressedFile
-    {
-        public static StreamReader OpenText(string path)
+        /// <summary>
+        /// Open a spell file and perform gzip decompression if needed.
+        /// The game doesn't ever store spells files in gzip format but I added this in case someone wants to keep lots of versioned spell files around and save space.
+        /// </summary>
+        public static StreamReader OpenFileReader(string path)
         {
+            var f = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+
             if (path.EndsWith(".gz"))
             {
                 // todo: should I buffer the uncompressed stream?
-                var stream = new GZipStream(File.OpenRead(path), CompressionMode.Decompress);
-                return new StreamReader(stream);
+                var gzip = new GZipStream(f, CompressionMode.Decompress);
+                return new StreamReader(gzip);
             }
 
-            return File.OpenText(path);
+            return new StreamReader(f);
         }
+
+        /// <summary>
+        /// Load all lines from a delimited spell data file and split each up into individual fields.
+        /// </summary>
+        public static IEnumerable<string[]> LoadAllLines(string path)
+        {
+            if (File.Exists(path))
+                using (var text = OpenFileReader(path))
+                    while (!text.EndOfStream)
+                    {
+                        var line = text.ReadLine();
+                        if (line.StartsWith("#"))
+                            continue;
+                        var fields = line.Split('^');
+                        if (fields.Length < 2 || line.StartsWith("#"))
+                            continue;
+                        yield return fields;
+                    }
+        }
+
+        public static int CountFields(string path)
+        {
+            if (path.EndsWith(".gz"))
+                return 0;
+
+            using (var f = File.OpenText(path))
+            {
+                return f.ReadLine().Split('^').Length;
+            }
+        }
+
+        /// <summary>
+        /// Return file date as an integer. e.g. Feb 1, 2016 -> 20160201
+        /// </summary>
+        public static int GetFileVersion(string path)
+        {
+            // use the file timestamp as the version string (this is not perfect because file timestamps can be accidentally changed)
+            var version = File.GetLastWriteTime(path).ToString("yyyyMMdd");
+
+            // also check the filename for a date version string. e.g. spells_us-2016-01-01.txt
+            var versionInName = Regex.Match(Path.GetFileName(path), @"\d\d\d\d-\d\d-\d\d");
+            if (versionInName.Success)
+                version = versionInName.Groups[0].Value.Replace("-", "");
+
+            return Int32.Parse(version);
+        }
+
     }
 
 }
