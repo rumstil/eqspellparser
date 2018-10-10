@@ -29,7 +29,8 @@ namespace EQSpellParser
         TDS,
         TBM,
         EoK,
-        RoS
+        RoS,
+        TBL
     }
 
     public enum AAExpansionLong
@@ -58,6 +59,7 @@ namespace EQSpellParser
         The_Darkened_Sea,
         The_Broken_Mirror,
         Empires_of_Kunark,
-        Ring_of_Scale
+        Ring_of_Scale,
+        The_Burning_Lands
     }
 }

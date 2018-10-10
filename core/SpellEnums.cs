@@ -1152,6 +1152,7 @@ namespace EQSpellParser
         Platinum_Bar = 16503,
         Poison_Vial = 16965,
         Jade_Inlaid_Coffin = 17355,
+        Grandmasters_Satchel = 17900,
         Velium_Bar = 22098,
         Blue_Diamond = 22503,
         Black_Ceremonial_Coffin = 28880,
@@ -1186,7 +1187,9 @@ namespace EQSpellParser
         Battlerage_Axe = 69022,
         Deathfury_Axe = 69023,
         Axe_of_the_Brute = 76500,
+        Dreadstone = 83440,
         Alluring_Flute_of_the_Piper = 87020,
+        Axe_of_the_Mangler = 93700,
         Axe_of_the_Demolisher = 99780,
     }
 

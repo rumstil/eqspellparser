@@ -518,4 +518,13 @@ AFFECTNUMBER AFFECTNAME
 508 Fc_Amplify_Amt
 509 Health Transfer
 510 Fc_ResistIncoming
-
+511 Ff_FocusTimerMin
+512 Proc Timer Modifier
+513 Mana Max Percent
+514 Endurance Max Percent
+515 AC Avoidance Max Percent
+516 AC Mitigation Max Percent
+517 Attack Offense Max Percent
+518 Attack Accuracy Max Percent
+519 Luck Amount
+520 Luck Percent
