@@ -1424,8 +1424,8 @@ namespace EQSpellParser
                     // cast highest rank of a spell group - if you don't have any in your spellbook, nothing will be cast
                     // is the chance on this independant of other chance SPAs (i.e. each one has it's own chance to cast)?
                     if (base1 < 100)
-                        return String.Format("Cast: [Group {0}] (Highest Rank) ({1}% Chance)", base2, base1);
-                    return String.Format("Cast: [Group {0}] (Highest Rank) ", base2);
+                        return String.Format("Cast: Highest Rank of [Group {0}] ({1}% Chance)", base2, base1);
+                    return String.Format("Cast: Highest Rank of [Group {0}]", base2);
                 case 471:
                     // add an extra melee round. i.e. main attack, double attack, triple
                     // this is sort of like 211 AE attack except it was added to nerf DPS by only affecting the current target
@@ -1540,6 +1540,31 @@ namespace EQSpellParser
                     //return String.Format("Decrease Caster Current HP by {0}%  And Return {1}% to Target", base1 / 10f, base2 / 10f);
                 case 510:
                     return Spell.FormatCount("Incoming Resist Modifier", base1);
+                case 511:
+                    // minimum n second delay between activations
+                    // what's base1?
+                    return String.Format("Limit Min Recast Delay: {0:0.##}s", base2 / 1000f);
+                case 512:
+                    return String.Format("Proc Timer: {0:0.##}s", base2 / 1000f);
+                case 513:
+                    return Spell.FormatPercent("Max Mana", base1 / 100f);
+                case 514:
+                    return Spell.FormatPercent("Max End", base1 / 100f);
+                case 515:
+                    return Spell.FormatPercent("Base Avoidance AC", base1 / 100f);
+                case 516:
+                    return Spell.FormatPercent("Base Mitigation AC", base1 / 100f);
+                case 517:
+                    // divide by 10 or 100?
+                    return Spell.FormatPercent("ATK Offense", base1 / 100f);
+                case 518:
+                    // divide by 10 or 100?
+                    return Spell.FormatPercent("ATK Accuracy", base1 / 100f);
+                case 519:
+                    return Spell.FormatCount("Luck", base1);
+                case 520:
+                    // divide by 10 or 100?
+                    return Spell.FormatPercent("Luck", base1 / 10f);
 
             }
 
