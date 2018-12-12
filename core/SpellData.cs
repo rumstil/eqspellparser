@@ -138,6 +138,7 @@ namespace EQSpellParser
         public static readonly Regex GroupRefExpr = new Regex(@"\[Group\s(\d+)\]");
         public static readonly Regex ItemRefExpr = new Regex(@"\[Item\s(\d+)\]");
         public static readonly Regex AARefExpr = new Regex(@"\[AA\s(\d+)\]");
+        public static readonly Regex FactionRefExpr = new Regex(@"\[Faction\s(\d+)\]");
 
         public Spell()
         {
@@ -1138,7 +1139,7 @@ namespace EQSpellParser
                 case 367:
                     return String.Format("Transform Body Type to {0}", FormatEnum((SpellBodyType)base1));
                 case 368:
-                    return Spell.FormatCount("Faction with " + FormatEnum((SpellFaction)base1), base2);
+                    return Spell.FormatCount("Faction with [Faction " + base1 + "]", base2);
                 case 369:
                     return Spell.FormatCount("Corruption Counter", value);
                 case 370:

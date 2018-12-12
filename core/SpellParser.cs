@@ -25,14 +25,15 @@ namespace EQSpellParser
             var version = GetFileVersion(spellPath);
 
             var list = new List<Spell>(60000);
-            var listById = new Dictionary<int, Spell>(60000);
+            var listById = new Dictionary<int, Spell>(list.Capacity);
 
             // load description strings file
-            var desc = new Dictionary<string, string>(60000);
+            var desc = new Dictionary<string, string>(80000);
             var descPath = spellPath.Replace("spells_us", "dbstr_us");
             foreach (var fields in LoadAllLines(descPath))
             {
-                if (fields.Length == 3)
+                // currently 4 fields - older files are 3 fields
+                if (fields.Length >= 3)
                     desc[fields[1] + "/" + fields[0]] = fields[2].Trim();
                 // 0 = id within type
                 // 1 = type
@@ -47,6 +48,7 @@ namespace EQSpellParser
                 // type 16 = aug slot desc
                 // type 18 = currency
                 // type 40 = spell stacking group
+                // type 45 = faction 
             }
 
             // load spell definition file
@@ -71,6 +73,21 @@ namespace EQSpellParser
                 list.Add(spell);
                 listById[spell.ID] = spell;
 
+                // update faction references with actual names
+                for (int i = 0; i < spell.Slots.Count; i++)
+                    if (spell.Slots[i] != null)
+                    {
+                        var slot = spell.Slots[i];
+
+                        slot.Desc = Spell.FactionRefExpr.Replace(slot.Desc, m => {
+                            string fname = null;
+                            if (desc.TryGetValue("45/" + m.Groups[1].Value, out fname))
+                                return fname;
+                            return m.Groups[0].Value;
+                        });
+                    }
+
+                // update description
                 if (!desc.TryGetValue("6/" + spell.DescID, out spell.Desc))
                     spell.Desc = null;
 
@@ -99,6 +116,7 @@ namespace EQSpellParser
                 if (spell.TimerID > 0)
                     cat.Add("Timer " + spell.TimerID.ToString("D2"));
                 spell.Categories = cat.ToArray();
+
 #endif
             }
 

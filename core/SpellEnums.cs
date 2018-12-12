@@ -1054,13 +1054,14 @@ namespace EQSpellParser
         Drolvarg = 843,
     }
 
-    public enum SpellFaction
-    {
-        SoF_SHIP_Workshop = 1178,
-        SoD_Kithicor_Good = 1204, // army of light
-        SoD_Kithicor_Evil = 1205, // army of obliteration
-        SoD_Ancient_Iksar = 1229
-    }
+    // these are found as type 45 in the dbstr file
+    //public enum SpellFaction
+    //{
+    //    SoF_SHIP_Workshop = 1178,
+    //    SoD_Kithicor_Good = 1204, // army of light
+    //    SoD_Kithicor_Evil = 1205, // army of obliteration
+    //    SoD_Ancient_Iksar = 1229
+    //}
 
     public enum SpellMaxHits
     {
