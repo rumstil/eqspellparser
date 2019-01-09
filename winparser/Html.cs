@@ -172,8 +172,8 @@ namespace winparser
                 string name = m.Groups[0].Value;
                 if (Enum.IsDefined(typeof(SpellReagent), id))
                     name = ((SpellReagent)id).ToString().Replace('_', ' ');
-                //return String.Format("<a href='http://everquest.allakhazam.com/db/item.Html?item={0};source=lucy' class='ext' target='_top'>{1}</a>", id, name);
-                return String.Format("<a href='http://lucy.allakhazam.com/item.Html?id={0}' class='ext' target='_top'>{1}</a>", id, name);
+                //return String.Format("<a href='http://everquest.allakhazam.com/db/item.html?item={0};source=lucy' class='ext' target='_top'>{1}</a>", id, name);
+                return String.Format("<a href='http://lucy.allakhazam.com/item.html?id={0}' class='ext' target='_top'>{1}</a>", id, name);
             });
 
             return text;
