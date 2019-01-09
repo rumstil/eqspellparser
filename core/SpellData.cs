@@ -276,8 +276,9 @@ namespace EQSpellParser
                     return "Mesmerize" + absmax;
                 case 32:
                     // calc 100 = summon a stack? (based on item stack size) Pouch of Quellious, Quiver of Marr
-                    //return String.Format("Summon: [Item {0}] x {1} {2} {3}", base1, calc, max, base2);
-                    return String.Format("Summon: [Item {0}] x {1}" , base1, calc);
+                    if (Version != 0 && Version < 20190108)
+                        return String.Format("Summon: [Item {0}] x {1}" , base1, calc);
+                    return String.Format("Summon: [Item {0}] x {1}" , base1, base2);
                 case 33:
                     return String.Format("Summon Pet: {0}", Extra);
                 case 35:
@@ -440,7 +441,9 @@ namespace EQSpellParser
                         return String.Format("Summon Familiar: {0} (Ignore Auto Leave)", Extra);
                     return String.Format("Summon Familiar: {0}", Extra);
                 case 109:
-                    return String.Format("Summon into Bag: [Item {0}] x {1}", base1, calc);
+                    if (Version != 0 && Version < 20190108)
+                        return String.Format("Summon into Bag: [Item {0}] x {1}", base1, calc);
+                    return String.Format("Summon into Bag: [Item {0}] x {1}", base1, base2);
                 case 111:
                     return Spell.FormatCount("All Resists", value);
                 case 112:
@@ -877,7 +880,8 @@ namespace EQSpellParser
                     return Spell.FormatPercent("Bandage Amount", base1);
                 case 283:
                     // only special monks attack skills?
-                    return Spell.FormatPercent("Chance to Double Special Attack", base1);
+                    // https://forums.daybreakgames.com/eq/index.php?threads/technique-of-master-wu-bugged.251203/
+                    return Spell.FormatPercent("Chance to Gain Special Attack", base1);
                 case 285:
                     return Spell.FormatPercent("Chance to Evade", base1);
                 case 286:
