@@ -55,7 +55,7 @@ namespace EQSpellParser
             foreach (var fields in LoadAllLines(spellPath))
             {
                 // debug
-                for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
+                //for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
 
                 // file format has changed over time - pick the best parser
                 Func<string[], int, Spell> parser = ParseSpell;
