@@ -33,7 +33,7 @@ The easiest way to use the parser is via the web version here:
 http://www.raidloot.com/Spells.aspx
 
 
-# Downloadable Version #
+# Windows Version #
 
 If you want to parse historical, test or beta server spell data you will need to download the parser and run it on your own computer.
 
@@ -48,9 +48,19 @@ You will also need to have Microsoft .NET Framework 3.5 installed to run the par
 http://www.microsoft.com/downloads/details.aspx?FamilyId=333325FD-AE52-4E35-B531-508D977D32A6&displaylang=en
 
 
+# Data Version #
+
+To export spells in CSV format for use in your own database you will need to run the command-line version of the parser:
+
+```
+parser update
+parser all csv > parsed-spells.txt
+```
+
+
 # How To Help #
 
-You can help improve this parser even if you're not a programmer.
+You can help improve this parser even if you're not a programmer. 
 
 This parser is an attempt to gather the collected knowledge of players into a formal set of rules. If you discover spell descriptions that you think are incorrect or incomplete please send me an email at raidloot@gmail.com.
 

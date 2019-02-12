@@ -434,10 +434,6 @@ namespace EQSpellParser
                 };
             }
 
-            // debug stuff
-            //if (fields[198] != "0") Console.WriteLine("\n\n===\n{0} {1}", fields[198], String.Join("\n", spell.Details()));
-
-            //if (spell.ID == 19035)
             spell.Prepare();
             return spell;
         }
@@ -705,11 +701,6 @@ namespace EQSpellParser
                 };
             }
 
-            // debug stuff
-            //if (spell.ID == 3) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
-            //if (fields[198] != "0") Console.WriteLine("\n\n===\n{0} {1}", fields[198], String.Join("\n", spell.Details()));
-
-            //if (spell.ID == 19035)
             spell.Prepare();
             return spell;
         }
@@ -976,10 +967,6 @@ namespace EQSpellParser
                     Calc = calc,
                 };
             }
-
-            // debug stuff
-            //if (spell.ID == 3) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
-            //if (fields[198] != "0") Console.WriteLine("\n\n===\n{0} {1}", fields[198], String.Join("\n", spell.Details()));
 
             spell.Prepare();
             return spell;
@@ -1248,10 +1235,6 @@ namespace EQSpellParser
                     Calc = calc,
                 };
             }
-
-            // debug stuff
-            //if (spell.ID == 49149) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
-            //if (fields[198] != "0") Console.WriteLine("\n\n===\n{0} {1}", fields[198], String.Join("\n", spell.Details()));
 
             spell.Prepare();
             return spell;
@@ -1525,10 +1508,6 @@ namespace EQSpellParser
                     Calc = calc,
                 };
             }
-
-            // debug stuff
-            //if (spell.ID == 49149) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
-            //if (fields[198] != "0") Console.WriteLine("\n\n===\n{0} {1}", fields[198], String.Join("\n", spell.Details()));
 
             spell.Prepare();
             return spell;
@@ -1807,10 +1786,6 @@ namespace EQSpellParser
                     Calc = calc,
                 };
             }
-
-            // debug stuff
-            //if (spell.ID == 21683) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
-            //if (fields[198] != "0") Console.WriteLine("\n\n===\n{0} {1}", fields[198], String.Join("\n", spell.Details()));
 
             spell.Prepare();
             return spell;
@@ -2091,10 +2066,6 @@ namespace EQSpellParser
                     Calc = calc,
                 });
             }
-
-            // debug stuff
-            //if (spell.ID == 21683) for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
-            //if (fields[198] != "0") Console.WriteLine("\n\n===\n{0} {1}", fields[198], String.Join("\n", spell.Details()));
 
             spell.Prepare();
             return spell;
