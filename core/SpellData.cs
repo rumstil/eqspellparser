@@ -460,7 +460,9 @@ namespace EQSpellParser
                     // fear me now wil o wisps
                     return "Make Weapon Magical";
                 case 118:
-                    return Spell.FormatPercent("Singing Amplification", value);
+                    // but the value is actually used as a value / 10.0f multiplier. So, as an example, 
+                    // Harmonize has a value of 9, it ends up being a multiplier of 0.9 or +90% to the singing mod. - Nniki
+                    return Spell.FormatPercent("Singing Amplification", value * 10);
                 case 119:
                     return Spell.FormatPercent("Melee Haste v3", value);
                 case 120:
@@ -815,7 +817,7 @@ namespace EQSpellParser
                     // combat stability AA
                     return Spell.FormatPercent("AC Soft Cap", base1);
                 case 260:
-                    return String.Format("Instrument Modifier: {0} {1}", Spell.FormatEnum((SpellSkill)base2), value);
+                    return String.Format("Instrument Modifier: {0} {1}", Spell.FormatEnum((SpellInstrument)base2), value);
                 case 262:
                     // affects worn cap
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkillCap)base2) + " Cap", value);

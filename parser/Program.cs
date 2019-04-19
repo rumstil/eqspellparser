@@ -92,8 +92,8 @@ namespace parser
 
                     if (format == "csv")
                     {
-                        //DataDump(results, fields => String.Join(",", fields.Select(x => '"' + x.ToString() + '"').ToArray())); // csv
-                        DataDump(results, fields => String.Join("^", fields.Select(x => x.ToString()).ToArray())); // eq format
+                        DataDump(results, fields => String.Join(",", fields.Select(x => '"' + x.ToString() + '"').ToArray())); // csv
+                        //DataDump(results, fields => String.Join("^", fields.Select(x => x.ToString()).ToArray())); // eq format
                     }
                     else
                     {

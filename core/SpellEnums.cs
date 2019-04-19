@@ -161,6 +161,7 @@ namespace EQSpellParser
         Shroud_Of_Stealth = 256,
         Triple_Backstab_Chance = 258,
         Combat_Stability = 259, // ac soft cap. AA and a few shaman spells
+        Instrument_Mod = 260,
         No_Fizzle = 265,
         Song_Range = 270,
         Innate_Movement_Speed = 271, // AA
@@ -364,6 +365,17 @@ namespace EQSpellParser
         Inspect_Chest = 114,
         Open_Chest = 115,
         Reveal_Trap_Chest = 116
+    }
+
+    // These are actually itemtypes
+    public enum SpellInstrument
+    {
+        Woodwind = 23,
+        Strings = 24,
+        Brass = 25,
+        Percussion = 26,
+        Singing = 50,
+        All = 51
     }
 
     public enum SpellSkillCap
