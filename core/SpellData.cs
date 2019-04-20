@@ -817,7 +817,7 @@ namespace EQSpellParser
                     // combat stability AA
                     return Spell.FormatPercent("AC Soft Cap", base1);
                 case 260:
-                    return String.Format("Instrument Modifier: {0} {1}", Spell.FormatEnum((SpellInstrument)base2), value);
+                    return Spell.FormatPercent(Spell.FormatEnum((SpellInstrument)base2) + " Bonus", value * 10);
                 case 262:
                     // affects worn cap
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkillCap)base2) + " Cap", value);
