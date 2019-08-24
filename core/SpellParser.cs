@@ -308,7 +308,6 @@ namespace EQSpellParser
             // 106 PVP_RESIST_MOD
             // 107 PVP_RESIST_PER_LEVEL
             // 108 PVP_RESIST_CAP
-            // 109 GLOBAL_GROUP (removed)
             // 109 PVP_DURATION
             // 110 PVP_DURATION_CAP
             // 111 PCNPC_ONLY_FLAG

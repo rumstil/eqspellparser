@@ -165,6 +165,9 @@ namespace EQSpellParser
         /// </summary>
         public string ParseEffect(int spa, int base1, int base2, int max, int calc, int level = MAX_LEVEL)
         {
+            if (level < 1 || level > MAX_LEVEL)
+                level = MAX_LEVEL;
+
             // type 254 indicates end of slots (i.e. if there are any others they will also be 254)
             if (spa == 254)
                 return null;
@@ -1507,10 +1510,10 @@ namespace EQSpellParser
                 case 496:
                     // description calls this "non-cumulative" but it would probably be better described as "non-stacking"
                     return Spell.FormatPercent("Critical " + Spell.FormatEnum((SpellSkill)base2) + " Damage", base1) + " of Base Damage (Non Stacking)";
-                //case 497:
+                    //case 497:
                     // Ff_FocusCastProcNoBypass
-                    // Modified the focus effects on all versions of Brell's Shawl items and augments so that their benefits will no longer be activated by triggered spells. -Patch Message
-                    // what does "triggered" mean?
+                    // Modified the focus effects on all versions of Brell's Shawl items and augments so that their benefits 
+                    // will no longer be activated by triggered spells. -Patch Message
                     // 1 = exclude? maybe this is a mask of invocation types?
                     //return String.Format("Limit: {0} Cast Spells", base1 == 1 ? "Include" : "Exclude");
                 case 498:

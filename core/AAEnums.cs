@@ -46,7 +46,7 @@ namespace EQSpellParser
         Omens_of_War,
         Dragons_of_Norrath,
         Depths_of_Darkhollow,
-        Prochecy_of_Ro,
+        Prophecy_of_Ro,
         The_Serpents_Spine,
         The_Buried_Sea,
         Secrets_of_Faydwer,
