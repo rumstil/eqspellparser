@@ -1005,7 +1005,9 @@ namespace EQSpellParser
                 case 328:
                     return Spell.FormatCount("Max Negative HP", value);
                 case 329:
-                    return String.Format("Absorb Damage using Mana: {0}%", value);
+                    if (Version != 0 && Version < 20190910)
+                        return String.Format("Absorb Damage using Mana: {0}%", base1);
+                    return String.Format("Absorb Damage using Mana: {0}%", base1 / 100);
                 case 330:
                     // additive with innate crit multiplier
                     return Spell.FormatPercent("Critical " + Spell.FormatEnum((SpellSkill)base2) + " Damage", base1) + " of Base Damage";
