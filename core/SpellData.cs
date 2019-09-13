@@ -1007,7 +1007,7 @@ namespace EQSpellParser
                 case 329:
                     if (Version != 0 && Version < 20190910)
                         return String.Format("Absorb Damage using Mana: {0}%", base1);
-                    return String.Format("Absorb Damage using Mana: {0}%", base1 / 100);
+                    return String.Format("Absorb Damage using Mana: {0}%", base1 / 100) + (base2 != 10000 ? String.Format("({0:F} Mana per 1 HP)", base2 / 10000) : "") + (max > 0 ? String.Format(", Max Per Hit: {0}", max) : "");
                 case 330:
                     // additive with innate crit multiplier
                     return Spell.FormatPercent("Critical " + Spell.FormatEnum((SpellSkill)base2) + " Damage", base1) + " of Base Damage";
@@ -1577,6 +1577,8 @@ namespace EQSpellParser
                 case 520:
                     // divide by 10 or 100?
                     return Spell.FormatPercent("Luck", base1 / 10f);
+                case 521:
+                    return String.Format("Absorb Damage using End: {0}%", base1 / 100) + (base2 != 10000 ? String.Format("({0:F} End per 1 HP)", base2 / 10000) : "") + (max > 0 ? String.Format(", Max Per Hit: {0}", max) : "");
 
             }
 
