@@ -128,6 +128,7 @@ namespace EQSpellParser
                 // this timestamp may be different than what was reported in the manifest
                 DateTime lastMod;
                 if (DateTime.TryParse(web.ResponseHeaders["Last-Modified"], CultureInfo.InvariantCulture, DateTimeStyles.None, out lastMod))
+                    File.SetCreationTime(saveToPath, lastMod);
                     File.SetLastWriteTimeUtc(saveToPath, lastMod);
             }
         }

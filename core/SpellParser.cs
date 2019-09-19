@@ -2174,7 +2174,8 @@ namespace EQSpellParser
         /// </summary>
         public static int GetFileVersion(string path)
         {
-            // use the file timestamp as the version string (this is not perfect because file timestamps can be accidentally changed)
+            // use the file timestamp as the version string 
+            // (this is not perfect because file timestamps can be accidentally changed)
             var version = File.GetCreationTime(path).ToString("yyyyMMdd");
 
             // also check the filename for a date version string. e.g. spells_us-2016-01-01.txt
