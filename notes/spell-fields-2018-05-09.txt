@@ -1,0 +1,11 @@
+
+spells_us.txt Field List (168 fields)
+===============================================================================
+
+This format became obsolete with the 2018-5-9 test server patch.
+
+0 SPELLINDEX
+1 SPELLNAME
+...
+
+TODO

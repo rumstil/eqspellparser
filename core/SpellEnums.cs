@@ -154,6 +154,7 @@ namespace EQSpellParser
         Double_Attack_Skill = 225,
         Persistent_Casting_AA = 229, // cast through stun
         Divine_Intervention = 232,
+        Food_Consumption = 233,
         Reclaim_Pet_v2 = 241,
         Lung_Capacity = 246,
         Frontal_Backstab_Chance = 252,

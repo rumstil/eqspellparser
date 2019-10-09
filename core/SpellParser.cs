@@ -59,15 +59,15 @@ namespace EQSpellParser
 
                 // file format has changed over time - pick the best parser
                 Func<string[], int, Spell> parser = ParseSpell;
-                if (fields.Length == 167)
+                if (fields.Length == 167 && version < 20191008)
                     parser = ParseSpell20190108;
-                if (fields.Length == 168)
+                if (fields.Length == 168 && version < 20180509)
                     parser = ParseSpell20180509;
-                if (fields.Length == 169)
+                if (fields.Length == 169 && version < 20180410)
                     parser = ParseSpell20180410;
-                if (fields.Length == 174)
+                if (fields.Length == 174 && version < 20180204)
                     parser = ParseSpell20180214;
-                if (fields.Length == 179)
+                if (fields.Length == 179 && version < 20160413)
                     parser = ParseSpell20160413;
                 if (fields.Length > 220)
                     parser = ParseSpell20160210;
@@ -175,7 +175,7 @@ namespace EQSpellParser
         /// <summary>
         /// Load a single spell from the spells file.
         /// This handles the current file format.
-        /// This format has 166 fields.
+        /// This format has 166 or 168 fields.
         /// </summary>
         static Spell ParseSpell(string[] fields, int version)
         {
@@ -396,8 +396,9 @@ namespace EQSpellParser
             spell.BetaOnly = ParseBool(fields[162]);
             // 163 SPELL_SUBGROUP
             // 164 NO_OVERWRITE
-            // 165 SPA_SLOTS
-            var slotlist = fields[165].Split('$').Select(x => x.Split('|'));
+            // 165 SPA_SLOTS (to 2019-09-13)
+            // 167 SPA_SLOTS (from 2019-10-08)
+            var slotlist = fields[fields.Length - 1].Split('$').Select(x => x.Split('|'));
             foreach (var slotfields in slotlist)
             {
                 // SPELL_SLOT|EFFECT_ID|BASE_EFFECT_1|BASE_EFFECT_2|LEVEL_EFFECT_MOD|EFFECT_CAP

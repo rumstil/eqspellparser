@@ -1,6 +1,8 @@
 
-spells_us.txt Field List (168 fields)
+spells_us.txt Field List (166 fields)
 ===============================================================================
+
+This format became obsolete with the 2019-10-8 test server patch.
 
 0 SPELLINDEX
 1 SPELLNAME
@@ -167,8 +169,6 @@ spells_us.txt Field List (168 fields)
 162 IS_BETA_ONLY
 163 SPELL_SUBGROUP
 164 NO_OVERWRITE
-165 ???
-166 ???
-167 SPELL_EFFECTS
+165 SPELL_EFFECTS
 
 
