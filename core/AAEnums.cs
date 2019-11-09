@@ -30,7 +30,8 @@ namespace EQSpellParser
         TBM,
         EoK,
         RoS,
-        TBL
+        TBL,
+        ToV,
     }
 
     public enum AAExpansionLong
@@ -60,6 +61,7 @@ namespace EQSpellParser
         The_Broken_Mirror,
         Empires_of_Kunark,
         Ring_of_Scale,
-        The_Burning_Lands
+        The_Burning_Lands,
+        Tormet_of_Velious,
     }
 }

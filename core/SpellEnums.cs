@@ -275,7 +275,12 @@ namespace EQSpellParser
         Hit_Damage_v2 = 459,
         Repeat_Melee_Round_Chance = 471,
         Pet_Crit_Hit_Damage = 474,
-        Crit_Hit_Damage_NonStacking = 496
+        Crit_Hit_Damage_NonStacking = 496,
+        Current_Mana_Percent = 522,
+        Current_End_Percent = 524,
+        Current_HP_Percent_Tick = 525,
+        Current_Mana_Percent_Tick = 526,
+        Current_End_Percent_Tick = 527,
     }
 
     public enum SpellSkill
