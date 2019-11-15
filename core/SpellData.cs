@@ -1580,16 +1580,16 @@ namespace EQSpellParser
                 case 521:
                     return String.Format("Absorb Damage using End: {0}%", base1 / 100) + (base2 != 10000 ? String.Format(" ({0:F} End per 1 HP)", base2 / 10000) : "") + (max > 0 ? String.Format(", Max Per Hit: {0}", max) : "");
                 case 522:
-                    return Spell.FormatPercent("Mana", base1 / 100) + String.Format(" up to {0}", max);
+                    return Spell.FormatPercent("Current Mana", base1 / 100) + String.Format(" up to {0}", max);
                 case 523:
-                    return Spell.FormatPercent("End", base1 / 100) + String.Format(" up to {0}", max);
+                    return Spell.FormatPercent("Current End", base1 / 100) + String.Format(" up to {0}", max);
                 case 524:
                     // like 147 but repeating, and like 147 this seems to be just base1 instead of base1 / 100
-                    return Spell.FormatPercent("HP", base1) + String.Format(" up to {0}", max) + repeating;
+                    return Spell.FormatPercent("Current HP", base1) + String.Format(" up to {0}", max) + repeating;
                 case 525:
-                    return Spell.FormatPercent("Mana", base1 / 100) + String.Format(" up to {0}", max) + repeating;
+                    return Spell.FormatPercent("Current Mana", base1 / 100) + String.Format(" up to {0}", max) + repeating;
                 case 526:
-                    return Spell.FormatPercent("End", base1 / 100) + String.Format(" up to {0}", max) + repeating;
+                    return Spell.FormatPercent("Current End", base1 / 100) + String.Format(" up to {0}", max) + repeating;
 
             }
 
