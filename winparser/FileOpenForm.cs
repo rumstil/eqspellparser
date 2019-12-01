@@ -99,24 +99,31 @@ namespace winparser
         private void Download(string server)
         {
             Cursor.Current = Cursors.WaitCursor;
-            var path = LaunchpadPatcher.DownloadSpellFilesWithVersioning(server);
-            Cursor.Current = Cursors.Default;
-          
-            Status.Text = String.Format("Downloaded {0}", path);
-
-            var item = listView1.FindItemWithText(path);
-            if (item == null)
+            try
             {
-                var info = new FileInfo(path);
-                item = new ListViewItem(path);
-                item.SubItems.Add(info.Length.ToString("#,#"));
-                item.SubItems.Add(SpellParser.CountFields(path).ToString());
-                listView1.Items.Add(item);                
+                var path = LaunchpadPatcher.DownloadSpellFilesWithVersioning(server);
+                Status.Text = String.Format("Downloaded {0}", path);
+
+                var item = listView1.FindItemWithText(path);
+                if (item == null)
+                {
+                    var info = new FileInfo(path);
+                    item = new ListViewItem(path);
+                    item.SubItems.Add(info.Length.ToString("#,#"));
+                    item.SubItems.Add(SpellParser.CountFields(path).ToString());
+                    listView1.Items.Add(item);                
+                }
+                listView1.MultiSelect = false;
+                item.EnsureVisible();
+                item.Selected = true;
+                listView1.MultiSelect = true;
+
             }
-            listView1.MultiSelect = false;
-            item.EnsureVisible();
-            item.Selected = true;
-            listView1.MultiSelect = true;
+            catch (Exception ex)
+            {
+                Status.Text = "ERROR: " + ex.Message;
+            }
+            Cursor.Current = Cursors.Default;
         }
 
         public void SetStatus(string text)

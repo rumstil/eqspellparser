@@ -511,7 +511,9 @@ namespace EQSpellParser
         Target_Ring_AE = 45,
         Targets_Target = 46,
         Pet_Owner = 47,
-        Target_AE_No_Players_Pets = 50 // blanket of forgetfullness. beneficial, AE mem blur, with max targets
+        Target_AE_No_Players_Pets = 50, // blanket of forgetfullness. beneficial, AE mem blur, with max targets
+        Single_Ally_AutoCorrect = 52, // splashes your allied target or enemy's target in a deluge of healing waters
+
     }
 
     // these are found as type 39 in the dbstr file

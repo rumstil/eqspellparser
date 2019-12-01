@@ -26,7 +26,7 @@ namespace EQSpellParser
 
     public sealed class Spell
     {
-        public const int MAX_LEVEL = 110;
+        public const int MAX_LEVEL = 115;
 
         public int ID;
         public int GroupID;
@@ -38,7 +38,7 @@ namespace EQSpellParser
         public int DurationTicks;
         public bool Focusable;
         public List<SpellSlot> Slots;
-        //public byte Level;
+        public byte Level; // max level any class can cast (for categorizing by expansion)
         public byte[] Levels; // casting level for each of the 16 classes
         public byte[] ExtLevels; // similar to levels but assigns levels for side effect spells that don't have levels defined (e.g. a proc effect will get the level of it's proc buff)
         public string ClassesLevels;
@@ -1066,6 +1066,8 @@ namespace EQSpellParser
                     // the actual aura spell effect reference doesn't seem to be stored in the spell file so we have to handle this SPA
                     // with guesses and some hardcoding. most of the time the effect is placed right after the aura in the spell file
                     int aura = (Rank >= 1) || Extra.Contains("Rk") ? ID + 3 : ID + 1;
+                    if (base2 > 0)
+                        aura = base2;
                     // hardcoded fixes for failed guesses
                     if (ID == 8629) aura = 8628;
                     if (ID == 8921) aura = 8935;
@@ -1099,6 +1101,7 @@ namespace EQSpellParser
                     if (ID == 32271) aura = 32257;
                     if (ID == 22510) aura = 22574;
                     if (ID == 22511) aura = 22575;
+
                     // these 3 auras have different effects on normal and swarm pets
                     if (ID == 49678) aura = 49700;
                     if (ID == 49679) aura = 49701;
@@ -1122,7 +1125,6 @@ namespace EQSpellParser
                     if (Extra.StartsWith("IOEncEchoProc95Rk")) aura = 30179 + Rank;
                     if (Extra.StartsWith("IOEncEchoProc100Rk")) aura = 36227 + Rank;
                     if (Extra.StartsWith("IOEncEchoProc105Rk")) aura = 45018 + Rank;
-
 
                     return String.Format("Aura Effect: [Spell {0}] ({1})", aura, Extra);
                 case 353:
@@ -2095,6 +2097,7 @@ namespace EQSpellParser
             // build a string of classes that can use this spell
             ClassesLevels = String.Empty;
             ClassesMask = 0;
+            Level = 0;
 
             bool All254 = true;
             for (int i = 0; i < Levels.Length; i++)
@@ -2107,6 +2110,8 @@ namespace EQSpellParser
                 {
                     ClassesMask |= (SpellClassesMask)(1 << i);
                     ClassesLevels += " " + (SpellClasses)(i + 1) + "/" + Levels[i];
+                    if (Level < Levels[i])
+                        Level = Levels[i];
                 }
             }
             Array.Copy(Levels, ExtLevels, Levels.Length);
