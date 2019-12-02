@@ -2000,7 +2000,13 @@ namespace EQSpellParser
                 // only nukes and DoT can trigger spell damage shields
                 // no point showing it for NPC spells since NPCs will never take significant damage from nuking players
                 if (HasEffect("Decrease Current HP", 0) && ClassesMask != 0)
+                {
                     result.Add("Trigger Spell DS: " + (Feedbackable ? "Yes" : "No"));
+                    // We have the ability to flag direct damage spells not to break root by setting the casting skill to 200. - Dzarn
+                    // maybe I should only show this for spells that don't break root since the overwhelming majority do
+                    if (DurationTicks == 0)
+                        result.Add("Can Break Root: " + ((int)Skill != 200 ? "Yes" : "No"));
+                }
             }
 
             if (Stacking.Count > 0)

@@ -370,7 +370,7 @@ namespace EQSpellParser
         Slam = 111,
         Inspect_Chest = 114,
         Open_Chest = 115,
-        Reveal_Trap_Chest = 116
+        Reveal_Trap_Chest = 116,
     }
 
     // These are actually itemtypes
@@ -567,9 +567,10 @@ namespace EQSpellParser
         Berserker = 146,
         Not_Raid_Boss = 190,
         Raid_Boss = 191,
+        HP_Less_Than_5_Percent = 199, // duple of 501
         HP_Above_75_Percent = 201,
         HP_Less_Than_20_Percent = 203, // dupe of 504
-        HP_Less_Than_50_Percent = 204,
+        HP_Less_Than_50_Percent = 204, // duple of 510
         HP_Less_Than_75_Percent = 205,
         Not_In_Combat = 216,
         At_Least_1_Pet_On_Hatelist = 221,
