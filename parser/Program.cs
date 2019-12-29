@@ -92,12 +92,11 @@ namespace parser
 
                     if (format == "csv")
                     {
-                        DataDump(results, fields => String.Join(",", fields.Select(x => '"' + x.ToString() + '"').ToArray())); // csv
-                        //DataDump(results, fields => String.Join("^", fields.Select(x => x.ToString()).ToArray())); // eq format
+                        SpellFormatter.ToCsv(results, s => Console.Out.WriteLine(cache.InsertRefNames(s))); 
                     }
                     else
                     {
-                        TextDump(results);
+                        SpellFormatter.ToText(results, Console.Out.WriteLine);
                     }
                 }
 
@@ -159,97 +158,6 @@ namespace parser
             return results.ToList();
         }
 
-        /// <summary>
-        /// Print spells in text format.
-        /// </summary>
-        static void TextDump(IEnumerable<Spell> list)
-        {
-            foreach (var spell in list)
-            {
-                Console.WriteLine(spell);
-                foreach (string s in spell.Details())
-                    Console.WriteLine(cache.InsertRefNames(s));
-                if (!String.IsNullOrEmpty(spell.Desc))
-                    Console.WriteLine(spell.Desc);
-                Console.WriteLine();
-            }
-        }
 
-        /// <summary>
-        /// Print spells in delimited data format.
-        /// This doesn't include all fields but it easy enough to add whatever else you need in here.
-        /// </summary>
-        static void DataDump(IEnumerable<Spell> list, Func<List<object>, string> pack)
-        {
-            // write header
-            var fields = new List<object>();
-            fields.Add("id");
-            fields.Add("group");
-            fields.Add("icon");
-            fields.Add("name");
-            fields.Add("skill");
-            fields.Add("mana");
-            fields.Add("end");
-            fields.Add("end_upkeep");
-            fields.Add("cast_time");
-            fields.Add("recast_time");
-            fields.Add("target");
-            fields.Add("resist_type");
-            fields.Add("resist_mod");
-            fields.Add("range");
-            fields.Add("ae_range");
-            fields.Add("duration");
-            fields.Add("hate_mod");
-            fields.Add("hate_given");
-            fields.Add("push");
-            fields.Add("classes");
-            // war, clr, pal, rng, shd, dru, mnk, brd, rog, shm, nec, wiz, mag, enc, bst, ber
-            for (var i = 1; i <= 16; i++)
-                fields.Add(((SpellClasses)i).ToString().ToLower());
-            fields.Add("slots");
-
-            Console.WriteLine(pack(fields));
-
-            foreach (var spell in list)
-            {
-                fields = new List<object>();
-                fields.Add(spell.ID);
-                fields.Add(spell.GroupID);
-                fields.Add(spell.Icon);
-                fields.Add(spell.Name);
-                fields.Add(spell.Skill.ToString().Replace('_', ' '));
-                fields.Add(spell.Mana);
-                fields.Add(spell.Endurance);
-                fields.Add(spell.EnduranceUpkeep);
-                fields.Add(spell.CastingTime.ToString("F2"));
-                fields.Add(spell.RecastTime.ToString("F2"));
-                fields.Add(spell.Target);
-                fields.Add(spell.ResistType);
-                fields.Add(spell.ResistMod);
-                fields.Add(spell.Range);
-                fields.Add(spell.AERange);
-                fields.Add(spell.DurationTicks);
-                fields.Add(spell.HateMod);
-                fields.Add(spell.HateOverride);
-                fields.Add(spell.PushBack);
-                fields.Add(spell.ClassesLevels);
-
-                // levels for each class (16 fields)
-                for (var i = 0; i < spell.Levels.Length; i++)
-                    fields.Add(spell.Levels[i]);
-
-                // encode slots as variable length "|" delimited list
-                var slots = new List<string>();
-                if (spell.Recourse != null)
-                    slots.Add("Recourse: Cast " + spell.Recourse);
-                for (int i = 0; i < spell.Slots.Count; i++)
-                    if (spell.Slots[i] != null)
-                        slots.Add(String.Format("{0}: {1}", i + 1, spell.Slots[i].Desc));
-                fields.Add(String.Join("|", slots.ToArray()));
-
-                Console.WriteLine(pack(fields));
-            }
-
-        }
     }
 }

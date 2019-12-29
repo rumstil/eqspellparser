@@ -49,6 +49,7 @@
     <Compile Include="SpellCache.cs" />
     <Compile Include="SpellData.cs" />
     <Compile Include="SpellEnums.cs" />
+    <Compile Include="SpellFormatter.cs" />
     <Compile Include="SpellParser.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
