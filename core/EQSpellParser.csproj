@@ -51,6 +51,12 @@
     <Compile Include="SpellEnums.cs" />
     <Compile Include="SpellFormatter.cs" />
     <Compile Include="SpellParser.cs" />
+    <Compile Include="SpellParser20160210.cs" />
+    <Compile Include="SpellParser20160413.cs" />
+    <Compile Include="SpellParser20180214.cs" />
+    <Compile Include="SpellParser20180410.cs" />
+    <Compile Include="SpellParser20180509.cs" />
+    <Compile Include="SpellParser20190108.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

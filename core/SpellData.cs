@@ -1514,12 +1514,13 @@ namespace EQSpellParser
                 case 496:
                     // description calls this "non-cumulative" but it would probably be better described as "non-stacking"
                     return Spell.FormatPercent("Critical " + Spell.FormatEnum((SpellSkill)base2) + " Damage", base1) + " of Base Damage (Non Stacking)";
-                    //case 497:
+                case 497:
                     // Ff_FocusCastProcNoBypass
                     // Modified the focus effects on all versions of Brell's Shawl items and augments so that their benefits 
                     // will no longer be activated by triggered spells. -Patch Message
                     // 1 = exclude? maybe this is a mask of invocation types?
                     //return String.Format("Limit: {0} Cast Spells", base1 == 1 ? "Include" : "Exclude");
+                    return "Limit: No Triggered Spells";
                 case 498:
                     // silimar to 266?
                     // base2 may be the the number of attacks?
@@ -2196,7 +2197,7 @@ namespace EQSpellParser
         /// <summary>
         /// Search all effect slots using a text match.
         /// </summary>
-        /// <param name="desc">Effect to search for. Can be text or a integer representing an SPA.</param>
+        /// <param name="text">Effect to search for. Can be text or a integer representing an SPA.</param>
         /// <param name="slot">0 to check all slots, or a non zero value to check a specific slot.</param>
         public bool HasEffect(string text, int slot)
         {
