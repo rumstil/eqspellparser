@@ -24,7 +24,7 @@ namespace EQSpellParser
                 path = "";
 
             DownloadManifest(server, "manifest.dat");
-            var manifest = new LaunchpadManifest(new MemoryStream(File.ReadAllBytes("manifest.dat")));
+            var manifest = new LaunchpadManifest(File.ReadAllBytes("manifest.dat"));
 
             var spell = manifest.FindFile(LaunchpadManifest.SPELL_FILE);
             if (spell == null)
@@ -71,7 +71,7 @@ namespace EQSpellParser
                 path = "";
 
             DownloadManifest(server, "manifest.dat");
-            var manifest = new LaunchpadManifest(new MemoryStream(File.ReadAllBytes("manifest.dat")));
+            var manifest = new LaunchpadManifest(File.ReadAllBytes("manifest.dat"));
 
             var spell = manifest.FindFile(LaunchpadManifest.SPELL_FILE);
             if (spell == null)
@@ -117,6 +117,7 @@ namespace EQSpellParser
                 web.Proxy = null;
                 byte[] data = web.DownloadData(url);
                 Stream inStream = new MemoryStream(data);
+                File.Delete(saveToPath);
                 using (FileStream outStream = new FileStream(saveToPath, FileMode.Create))
                 {
                     // Launchpad files are LZMA compressed
@@ -128,8 +129,10 @@ namespace EQSpellParser
                 // this timestamp may be different than what was reported in the manifest
                 DateTime lastMod;
                 if (DateTime.TryParse(web.ResponseHeaders["Last-Modified"], CultureInfo.InvariantCulture, DateTimeStyles.None, out lastMod))
+                {
                     File.SetCreationTime(saveToPath, lastMod);
                     File.SetLastWriteTimeUtc(saveToPath, lastMod);
+                }
             }
         }
 
@@ -181,8 +184,17 @@ namespace EQSpellParser
             }
         }
 
+        // keep 2 refernces to the manifest byte stream
+        // binary for reading
         private Stream data;
+        // string for searching
         private string text;
+
+        public LaunchpadManifest(byte[] buffer)
+        {
+            data = new MemoryStream(buffer);
+            text = Encoding.ASCII.GetString(buffer);
+        }
 
         public LaunchpadManifest(Stream stream)
         {
