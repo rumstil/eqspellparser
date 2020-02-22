@@ -478,8 +478,8 @@ namespace EQSpellParser
                 case 123:
                     return "Screech";
                 case 124:
-                    // crits for DoTs, but not DDs.
-                    return Spell.FormatPercentRange("Spell Damage", base1, base2) + " (Before DoT Crit, After Nuke Crit)";
+                    // this is used on most traditional focus items. crits for DoTs, but not DDs.
+                    return Spell.FormatPercentRange("Spell Damage", base1, base2) + " (v124, Before DoT Crit, After Nuke Crit)";
                 case 125:
                     return Spell.FormatPercentRange("Healing", base1, base2) + " (Before Crit)";
                 case 126:
@@ -893,7 +893,7 @@ namespace EQSpellParser
                     // is added after all other multipliers (focus, crit, etc..)
                     // for DoTs it adds base1/ticks to each tick.
                     // SPA 286 and 303 work the same way but 286 does not crit and 303 does. - Beimeith
-                    return Spell.FormatCount("Spell Damage", base1) + " (After Crit)";
+                    return Spell.FormatCount("Spell Damage", base1) + " (v286, After Crit)";
                 case 287:
                     return String.Format("Increase Duration by {0}s", base1 * 6);
                 case 288:
@@ -923,10 +923,10 @@ namespace EQSpellParser
                 case 296:
                     // incoming damage % SPAs 296 and 483 multiply against what is essentially (spell-data's base value * spa 413)
                     // rather than the focused value - Dzarn
-                    return Spell.FormatPercentRange("Spell Damage Taken", base1, base2) + " (Before Crit)";
+                    return Spell.FormatPercentRange("Spell Damage Taken", base1, base2) + " (v296, Before Crit)";
                 case 297:
                     // doesn't use focused value
-                    return Spell.FormatCount("Spell Damage Taken", base1) + " (Before Crit)";
+                    return Spell.FormatCount("Spell Damage Taken", base1) + " (v297, Before Crit)";
                 case 298:
                     return Spell.FormatPercent("Pet Size", value - 100);
                 case 299:
@@ -937,12 +937,12 @@ namespace EQSpellParser
                     return Spell.FormatPercent("Archery Damage", base1);
                 case 302:
                     // see also 124. only used on a few AA (like chromatic haze)
-                    return Spell.FormatPercentRange("Spell Damage", base1, base2) + " (Before Crit)";
+                    return Spell.FormatPercentRange("Spell Damage", base1, base2) + " (v302, Before Crit)";
                 case 303:
                     // is added before crit multipliers, but after SPA 296 and 302 (and maybe 124)?
                     // for DoTs it adds base1/ticks to each tick.
                     // SPA 286 and 303 work the same way but 286 does not crit and 303 does. - Beimeith
-                    return Spell.FormatCount("Spell Damage", base1) + " (Before Crit)";
+                    return Spell.FormatCount("Spell Damage", base1) + " (v303, Before Crit)";
                 case 304:
                     // this may just be chance to avoid offhand riposte
                     return Spell.FormatPercent("Chance to Avoid Offhand Riposte", -base1);
@@ -1411,10 +1411,10 @@ namespace EQSpellParser
                 case 461:
                     // Crits for DoTs and DDs. Calculated AFTER 413 BEFORE 124, 302. - Beimeith
                     // Ngreth is under the impression that this is applied After Crit
-                    return Spell.FormatPercentRange("Spell Damage v2", base1, base2) + " (Before Crit)";
+                    return Spell.FormatPercentRange("Spell Damage", base1, base2) + " (v461, Before Crit)";
                 case 462:
                     // SPA 462 appears to be the equivalent of SPA286 and added for stacking purposes. - Beimeith
-                    return Spell.FormatCount("Spell Damage v2", base1) + " (After Crit)";
+                    return Spell.FormatCount("Spell Damage", base1) + " (v462, After Crit)";
                 case 463:
                     // same as /shield command?
                     return Spell.FormatPercent("Melee Shielding: {0}%", base1);
@@ -1476,11 +1476,11 @@ namespace EQSpellParser
                 case 483:
                     // incoming damage % SPAs 296 and 483 multiply against what is essentially (spell-data's base value * spa 413)
                     // rather than the focused value - Dzarn
-                    return Spell.FormatPercentRange("Spell Damage Taken", base1, base2) + " (After Crit)";
+                    return Spell.FormatPercentRange("Spell Damage Taken", base1, base2) + " (v483, After Crit)";
                 case 484:
                     // Modifies incoming spell damage by Base1 points. Applies post-crit for both instant damage and DoTs.
                     // Differs from 297 which applies pre-crit to both instant damage and DoTs. - Dzarn
-                    return Spell.FormatCount("Spell Damage Taken", base1) + " (After Crit)";
+                    return Spell.FormatCount("Spell Damage Taken", base1) + " (v484, After Crit)";
                 case 485:
                     // this is used on incoming focuses to limit by the caster's class
                     // 411 is used on outgoing focuses
@@ -1548,7 +1548,7 @@ namespace EQSpellParser
                 case 507:
                     // Effectively Fc_Damage_%2. I know 461 is supposedly "Fc_Damage_%2," but for whatever reason it works nothing like SPA 124.
                     // SPA 507 appears to work just like 124, except it appears to be applied after 461. - Sancus
-                    return Spell.FormatPercentRange("Spell Damage v4", base1, base2) + " (Before DoT Crit, After Nuke Crit)";
+                    return Spell.FormatPercentRange("Spell Damage", base1 / 10, base2 / 10) + " (v507, Before DoT Crit, After Nuke Crit)";
                 case 509:
                     // for wording comparison, the closest description to this is 401, 402
                     return String.Format("{0} Current HP by {1}% of Caster Current HP ({2}% Life Burn)", base2 < 0 ? "Decrease" : "Increase", Math.Abs(base2) / 10f, base1 / 10f);
