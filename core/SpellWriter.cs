@@ -6,7 +6,7 @@ using System.Text;
 
 namespace EQSpellParser
 {
-    static public class SpellFormatter
+    static public class SpellWriter
     {
         /// <summary>
         /// Print spells in text format.

@@ -68,11 +68,18 @@ namespace EQSpellParser
 
     }
 
+    public interface ISpellCache
+    {
+        string GetSpellName(int id);
+        string GetSpellGroupName(int id);
+        string InsertRefNames(string text);
+    }
+
     /// <summary>
     /// A spell and AA container with some search and cross referencing helpers.
     /// You don't need to use this class if all you want to do is to parse the spell data and dump it to console or a file.
     /// </summary>
-    public class SpellCache
+    public class SpellCache : ISpellCache
     {
         public string SpellPath { get; set; }
 

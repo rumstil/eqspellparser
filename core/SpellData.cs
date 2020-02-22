@@ -418,7 +418,7 @@ namespace EQSpellParser
                     return Spell.FormatCount("Max Mana", value);
                 case 98:
                     // yet another super turbo haste. only on 3 bard songs
-                    return Spell.FormatPercent("Melee Haste v2", value - 100);
+                    return Spell.FormatPercent("Melee Haste", value - 100) + " (v98)";
                 case 99:
                     return "Root";
                 case 100:
@@ -467,7 +467,7 @@ namespace EQSpellParser
                     // Harmonize has a value of 9, it ends up being a multiplier of 0.9 or +90% to the singing mod. - Nniki
                     return Spell.FormatPercent("Singing Amplification", value * 10);
                 case 119:
-                    return Spell.FormatPercent("Melee Haste v3", value);
+                    return Spell.FormatPercent("Melee Haste", value) + " (v119)";
                 case 120:
                     return Spell.FormatPercent("Healing Taken", base1) + " (Before Crit)"; // no min/max range
                 case 121:
@@ -634,7 +634,7 @@ namespace EQSpellParser
                         return Spell.FormatPercent("Chance to Hit with " + Spell.FormatEnum((SpellSkill)base2), value);
                     return Spell.FormatPercent("Chance to Hit", value);
                 case 185:
-                    return Spell.FormatPercent(Spell.FormatEnum((SpellSkill)base2) + " Damage", base1);
+                    return Spell.FormatPercent(Spell.FormatEnum((SpellSkill)base2) + " Damage", base1) + " (v185)";
                 case 186:
                     return Spell.FormatPercent("Min " + Spell.FormatEnum((SpellSkill)base2) + " Damage", value); // only DI1?
                 case 187:
@@ -1158,12 +1158,14 @@ namespace EQSpellParser
                 case 370:
                     return Spell.FormatCount("Corruption Resist", value);
                 case 371:
-                    // this lowers haste by a relative amount unlike other slows which cancel haste effects and use 100 - slow amount as the new attack speed
-                    return Spell.FormatPercent("Melee Haste v4", -value) + " (Incremental)";
+                    // this lowers haste by a relative amount unlike other slows which cancel haste effects and 
+                    // use 100 - slow amount as the new attack speed
+                    return Spell.FormatPercent("Melee Haste", -value) + " (v371, Incremental)";
                 case 372:
                     return Spell.FormatCount("Forage Skill Cap", base1);
                 case 373:
-                    // this appears to be used when a spell is removed via any method: times out, cured, rune depleted, max hits, mez break, etc...
+                    // this appears to be used when a spell is removed via any method: 
+                    // times out, cured, rune depleted, max hits, mez break, etc...
                     // devs call this a "doom" effect
                     return String.Format("Cast: [Spell {0}] on Fade", base1);
                 case 374:
@@ -1298,7 +1300,7 @@ namespace EQSpellParser
                     return Spell.FormatCount("Current Mana v2", value) + repeating + range;
                 case 418:
                     // same as 220 and used for stacking
-                    return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus v2", base1);
+                    return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", base1) + " (v418)";
                 case 419:
                     // this is used for potions. how is it different than 85? maybe proc rate?
                     if (base2 != 0)
@@ -1343,10 +1345,10 @@ namespace EQSpellParser
                     // Weapon skills: Weapon * Haste
                     // Skill attacks: Hasted delay of the button
                     // SPA 193: 30 second delay is assumed
-                    return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus v2 (Delay Normalized)", base1);
+                    return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", base1) + " (v433, Delay Mod)";
                 case 434:
                     // similar to 220 except the values get lowered with faster weapons
-                    return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus v3 (Delay Normalized)", base1);
+                    return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", base1) + " (v434, Delay Mod)";
                 case 435:
                     return String.Format("Fragile Defense ({0})", base1);
                 case 436:
@@ -1404,7 +1406,7 @@ namespace EQSpellParser
                     return Spell.FormatPercent("Faction Hit", base1);
                 case 459:
                     // same as 185, created to stack
-                    return Spell.FormatPercent(Spell.FormatEnum((SpellSkill)base2) + " Damage v2", base1);
+                    return Spell.FormatPercent(Spell.FormatEnum((SpellSkill)base2) + " Damage", base1) + " (v459)";
                 case 460:
                     // some spells are tagged as non focusable - this overrides that
                     return "Limit Type: Include Non-Focusable";
@@ -2253,12 +2255,12 @@ namespace EQSpellParser
         {
             string type = e.ToString().Replace("_", " ").Trim();
 
-
+            // prefix undefined numeric enum with "Type "
             if (Regex.IsMatch(type, @"^-?\d+$"))
-                type = "Type " + type; // undefined numeric enum
+                return "Type " + type; 
 
-            // remove numeric suffix on duplicate enums undead3/summoned3/etc
-            else if (e is SpellTargetRestrict)
+            // remove numeric suffix on duplicate target restriction enums undead3/summoned3/etc
+            if (e is SpellTargetRestrict)
                 type = Regex.Replace(type, @"(?<!\d)\d$", "");
 
             return type;

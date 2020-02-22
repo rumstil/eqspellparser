@@ -49,7 +49,7 @@
     <Compile Include="SpellCache.cs" />
     <Compile Include="SpellData.cs" />
     <Compile Include="SpellEnums.cs" />
-    <Compile Include="SpellFormatter.cs" />
+    <Compile Include="SpellWriter.cs" />
     <Compile Include="SpellParser.cs" />
     <Compile Include="SpellParser20160210.cs" />
     <Compile Include="SpellParser20160413.cs" />

@@ -92,11 +92,11 @@ namespace parser
 
                     if (format == "csv")
                     {
-                        SpellFormatter.ToCsv(results, s => Console.Out.WriteLine(cache.InsertRefNames(s))); 
+                        SpellWriter.ToCsv(results, s => Console.Out.WriteLine(cache.InsertRefNames(s))); 
                     }
                     else
                     {
-                        SpellFormatter.ToText(results, Console.Out.WriteLine);
+                        SpellWriter.ToText(results, Console.Out.WriteLine);
                     }
                 }
 

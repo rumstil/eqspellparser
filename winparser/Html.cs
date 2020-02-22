@@ -38,18 +38,22 @@ namespace winparser
             foreach (var spell in list)
             {
                 Html.AppendFormat("<p id='spell{0}' class='spell group{1} {3}'><strong>{2}</strong><br/>", spell.ID, spell.GroupID, spell.ToString(), visible(spell) ? "" : "hidden");
-                
+
                 foreach (var line in spell.Details())
                 {
-                    var slot = Regex.Replace(line, @"(\d+): .*", m =>
+                    var temp = InsertRefLinks(line);
+
+                    // is this line a spell slot?
+                    temp = Regex.Replace(temp, @"(\d+): .*", m =>
                     {
+                        // add a mouse hover hint with raw values
                         int i = Int32.Parse(m.Groups[1].Value) - 1;
                         if (i < 0 || i >= spell.Slots.Count || spell.Slots[i] == null)
                             return "Unknown Index " + i;
-                        return String.Format("{0}: <span title=\"SPA={2} Base1={3} Base2={4} Max={5} Calc={6}\">{1}</span>", i + 1, spell.Slots[i].Desc, spell.Slots[i].SPA, spell.Slots[i].Base1, spell.Slots[i].Base2, spell.Slots[i].Max, spell.Slots[i].Calc);
+                        return String.Format("<span title=\"{1}\">{0}</span>", m.Groups[0].Value, spell.Slots[i].ToString());
                     });
 
-                    Html.Append(InsertRefLinks(slot));
+                    Html.Append(temp);
                     Html.Append("<br/>");
                 }
 
@@ -139,7 +143,7 @@ namespace winparser
 
                 for (int i = 0; i < spell.Slots.Count; i++)
                     if (spell.Slots[i] != null)
-                        Html.AppendFormat("{0}: <span title=\"SPA={2} Base1={3} Base2={4} Max={5} Calc={6}\">{1}</span><br/>", i + 1, InsertRefLinks(spell.Slots[i].Desc), spell.Slots[i].SPA, spell.Slots[i].Base1, spell.Slots[i].Base2, spell.Slots[i].Max, spell.Slots[i].Calc);
+                        Html.AppendFormat("{0}: <span title=\"{2}\">{1}</span><br/>", i + 1, InsertRefLinks(spell.Slots[i].Desc), spell.Slots[i].ToString());
 
                 Html.Append("</td>");
 
@@ -174,6 +178,12 @@ namespace winparser
                     name = ((SpellReagent)id).ToString().Replace('_', ' ');
                 //return String.Format("<a href='http://everquest.allakhazam.com/db/item.html?item={0};source=lucy' class='ext' target='_top'>{1}</a>", id, name);
                 return String.Format("<a href='http://lucy.allakhazam.com/item.html?id={0}' class='ext' target='_top'>{1}</a>", id, name);
+            });
+
+            // put version notes into a smaller font
+            text = Regex.Replace(text, @"(\(v\d.+?\))$", m =>
+            {
+                return "<small>" + m.Groups[1].Value + "</small>";
             });
 
             return text;
