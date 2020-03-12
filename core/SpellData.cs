@@ -469,7 +469,7 @@ namespace EQSpellParser
                 case 119:
                     return Spell.FormatPercent("Melee Haste", value) + " (v119)";
                 case 120:
-                    return Spell.FormatPercent("Healing Taken", base1) + " (Before Crit)"; // no min/max range
+                    return Spell.FormatPercent("Healing Taken", base1) + " (v120, Before Crit)"; // no min/max range
                 case 121:
                     // damages the target whenever it hits something
                     return Spell.FormatCount("Reverse Damage Shield", -value);
@@ -481,7 +481,7 @@ namespace EQSpellParser
                     // this is used on most traditional focus items. crits for DoTs, but not DDs.
                     return Spell.FormatPercentRange("Spell Damage", base1, base2) + " (v124, Before DoT Crit, After Nuke Crit)";
                 case 125:
-                    return Spell.FormatPercentRange("Healing", base1, base2) + " (Before Crit)";
+                    return Spell.FormatPercentRange("Healing", base1, base2) + " (v125, Before Crit)";
                 case 126:
                     return Spell.FormatPercentRange("Spell Resist Rate", base1, base2, true);
                 case 127:
@@ -707,7 +707,7 @@ namespace EQSpellParser
                     // % chance applies individually to each mob in radius
                     return Spell.FormatPercent("Chance to AE Attack", base1) + (base2 != 100 ? String.Format(" with {0}% Damage", base2) : "");
                 case 212:
-                    return Spell.FormatPercent("Chance to Critical Nuke", base1) + " and " + Spell.FormatPercent("Spell Mana Cost v2", base2);
+                    return Spell.FormatPercent("Chance to Critical Nuke", base1) + " and " + Spell.FormatPercent("Spell Mana Cost", base2);
                 case 213:
                     return Spell.FormatPercent("Pet Max HP", base1);
                 case 214:
@@ -917,7 +917,7 @@ namespace EQSpellParser
                 case 294:
                     // the base2 nuke damage increase only appears on 4 spells after the 2015-7-22 patch
                     if (base2 > 0)
-                        return Spell.FormatPercent("Chance to Critical Nuke", base1) + " and " + Spell.FormatPercent("Critical Nuke Damage v2", base2) + " of Base Damage";
+                        return Spell.FormatPercent("Chance to Critical Nuke", base1) + " and " + Spell.FormatPercent("Critical Nuke Damage", base2) + " of Base Damage";
                     else
                         return Spell.FormatPercent("Chance to Critical Nuke", base1);
                 case 296:
@@ -1228,18 +1228,18 @@ namespace EQSpellParser
                     return String.Format("Limit Max Mana Cost: {0}", base1);
                 case 392:
                     // 392 is the nocrit version and 396 is the crit version. - Beimeith
-                    return Spell.FormatCount("Healing", base1) + " (After Crit)";
+                    return Spell.FormatCount("Healing", base1) + " (v392, After Crit)";
                 case 393:
                     // mostly used on war/pal self discs
                     // like 120 which is before crit - maybe this is after crit?
-                    return Spell.FormatPercentRange("Healing Taken", base1, base2);
+                    return Spell.FormatPercentRange("Healing Taken", base1, base2) + " (v393)";
                 case 394:
-                    return Spell.FormatCount("Healing Taken", base1) + " (Before Crit)";
+                    return Spell.FormatCount("Healing Taken", base1) + " (v394, Before Crit)";
                 case 395:
-                    return Spell.FormatPercentRange("Healing", base1, base2) + " (Before Crit)";
+                    return Spell.FormatPercentRange("Healing", base1, base2) + " (v395, Before Crit)";
                 case 396:
                     // 392 is the nocrit version and 396 is the crit version. - Beimeith
-                    return Spell.FormatCount("Healing", base1) + " (Before Crit)";
+                    return Spell.FormatCount("Healing", base1) + " (v396, Before Crit)";
                 case 397:
                     // will use the player AC formula for comparison with buffs but maybe they aren't comparable?
                     return Spell.FormatCount("Pet AC", (int)(value / (10f / 3f)));
@@ -1256,7 +1256,7 @@ namespace EQSpellParser
                 case 401:
                     return String.Format("Decrease Current HP by up to {0} ({1} HP per 1 Target Mana)", Math.Floor(base1 * base2 / -10f), base2 / -10f);
                 case 402:
-                    return String.Format("Decrease Current HP by up to {0} ({1} HP per 1 Target End)", Math.Floor(base1 * base2 / -10f), base2 / -10f);
+                    return String.Format("Decrease Current HP by up to {0} ({1} HP per 1 Target Endurance)", Math.Floor(base1 * base2 / -10f), base2 / -10f);
                 case 403:
                     return String.Format("Limit Spell Class: {0}{1}", base1 >= 0 ? "" : "Exclude ", Spell.FormatEnum((SpellCategory)Math.Abs(base1)));
                 case 404:
@@ -1294,10 +1294,10 @@ namespace EQSpellParser
                     return String.Format("Limit Casting Skill: {0}", Spell.FormatEnum((SpellSkill)base1));
                 case 416:
                     // SPA 416 functions exactly like SPA 1, it was added so that we could avoid stacking conflicts with only 12 spell slots. - Dzarn
-                    return Spell.FormatCount("AC v2", (int)(value / (10f / 3f)));
+                    return Spell.FormatCount("AC", (int)(value / (10f / 3f))) + " (v416)";
                 case 417:
                     // same as 15 and used for stacking
-                    return Spell.FormatCount("Current Mana v2", value) + repeating + range;
+                    return Spell.FormatCount("Current Mana", value) + repeating + range + " (v417)";
                 case 418:
                     // same as 220 and used for stacking
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", base1) + " (v418)";
@@ -1530,7 +1530,7 @@ namespace EQSpellParser
                 case 499:
                     return Spell.FormatPercent("Chance of Additional Secondary 1H Attack", base1) + String.Format(" ({0})", base2);
                 case 500:
-                    return Spell.FormatPercent("Spell Haste v2", base1);
+                    return Spell.FormatPercent("Spell Haste", base1) + " (v500)"; ;
                 case 501:
                     // applied after 127/500 spell haste focus?
                     return String.Format("Decrease Casting Times by {0:0.##}s", base1 / 1000f);
@@ -1566,7 +1566,7 @@ namespace EQSpellParser
                 case 513:
                     return Spell.FormatPercent("Max Mana", base1 / 100f);
                 case 514:
-                    return Spell.FormatPercent("Max End", base1 / 100f);
+                    return Spell.FormatPercent("Max Endurance", base1 / 100f);
                 case 515:
                     return Spell.FormatPercent("Base Avoidance AC", base1 / 100f);
                 case 516:
@@ -1583,18 +1583,18 @@ namespace EQSpellParser
                     // divide by 10 or 100?
                     return Spell.FormatPercent("Luck", base1 / 10f);
                 case 521:
-                    return String.Format("Absorb Damage using End: {0}%", base1 / 100) + (base2 != 10000 ? String.Format(" ({0:F} End per 1 HP)", base2 / 10000) : "") + (max > 0 ? String.Format(", Max Per Hit: {0}", max) : "");
+                    return String.Format("Absorb Damage using Endurance: {0}%", base1 / 100) + (base2 != 10000 ? String.Format(" ({0:F} End per 1 HP)", base2 / 10000) : "") + (max > 0 ? String.Format(", Max Per Hit: {0}", max) : "");
                 case 522:
                     return Spell.FormatPercent("Current Mana", base1 / 100) + String.Format(" up to {0}", max);
                 case 523:
-                    return Spell.FormatPercent("Current End", base1 / 100) + String.Format(" up to {0}", max);
+                    return Spell.FormatPercent("Current Endurance", base1 / 100) + String.Format(" up to {0}", max);
                 case 524:
                     // like 147 but repeating, and like 147 this seems to be just base1 instead of base1 / 100
                     return Spell.FormatPercent("Current HP", base1) + String.Format(" up to {0}", max) + repeating;
                 case 525:
                     return Spell.FormatPercent("Current Mana", base1 / 100) + String.Format(" up to {0}", max) + repeating;
                 case 526:
-                    return Spell.FormatPercent("Current End", base1 / 100) + String.Format(" up to {0}", max) + repeating;
+                    return Spell.FormatPercent("Current Endurance", base1 / 100) + String.Format(" up to {0}", max) + repeating;
 
             }
 

@@ -1220,6 +1220,7 @@ namespace EQSpellParser
         Alluring_Flute_of_the_Piper = 87020,
         Axe_of_the_Mangler = 93700,
         Axe_of_the_Demolisher = 99780,
+        Axe_of_the_Vindicator = 150401,
     }
 
     [Flags]
