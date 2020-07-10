@@ -163,6 +163,7 @@ namespace EQSpellParser
         Triple_Backstab_Chance = 258,
         Combat_Stability = 259, // ac soft cap. AA and a few shaman spells
         Instrument_Mod = 260,
+        Worn_Attrib_Cap = 262,
         No_Fizzle = 265,
         Song_Range = 270,
         Innate_Movement_Speed = 271, // AA
@@ -193,6 +194,7 @@ namespace EQSpellParser
         Defensive_Proc = 323,
         Blood_Magic = 324,
         Critical_Hit_Damage = 330,
+        Salvage_Components_Chance = 331,
         Summon_To_Corpse = 332,
         Block_Matching_Spell = 335,
         XP_Gain_Mod = 337,
@@ -391,7 +393,7 @@ namespace EQSpellParser
         All = 51
     }
 
-    public enum SpellSkillCap
+    public enum SpellWornAttribCap
     {
         Base_Stats = -1,
         STR = 0,
@@ -519,7 +521,7 @@ namespace EQSpellParser
         Targets_Target = 46,
         Pet_Owner = 47,
         Target_AE_No_Players_Pets = 50, // blanket of forgetfullness. beneficial, AE mem blur, with max targets
-        Single_Ally_AutoCorrect = 52, // splashes your allied target or enemy's target in a deluge of healing waters
+        Single_Ally_or_TT = 52, // splashes your allied target or enemy's target in a deluge of healing waters
 
     }
 

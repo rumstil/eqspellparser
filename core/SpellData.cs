@@ -161,14 +161,15 @@ namespace EQSpellParser
 
         /// <summary>
         /// Each spell can have a number of slots for variable spell effects. The game developers call these "SPAs".
-        /// TODO: this should be a static function but it makes references to spell attributes like ID, Skill, Extra, DurationTicks and in a few cases even modifies the Mana attribute.
+        /// TODO: this should be a static function but it makes references to spell attributes like ID, Skill, Extra, 
+        /// DurationTicks and in a few cases even modifies the Mana attribute.
         /// </summary>
         public string ParseEffect(int spa, int base1, int base2, int max, int calc, int level = MAX_LEVEL)
         {
             if (level < 1 || level > MAX_LEVEL)
                 level = MAX_LEVEL;
 
-            // type 254 indicates end of slots (i.e. if there are any others they will also be 254)
+            // type 254 indicates the slots is unused
             if (spa == 254)
                 return null;
 
@@ -178,11 +179,15 @@ namespace EQSpellParser
             //Func<int> base1_or_value = delegate() { Debug.WriteLineIf(base1 != value, "SPA " + spa + " value uncertain"); return base1; };
 
             // some hp/mana/end/hate effects repeat for each tick of the duration
+            // this will be appended to the description for some effects below
             string repeating = (DurationTicks > 0) ? " per tick" : null;
 
             // some effects are capped at a max level
+            // this will be appended to the description for some effects below
             string absmax = (max > 0) ? String.Format(" up to level {0}", max) : null;
 
+            // some effects are capped at a max level relative to the caster's level
+            // this will be appended to the description for some effects below
             string varmax = null;
             if (Version != 0 && Version < 20170912)
                 varmax = absmax;
@@ -280,8 +285,8 @@ namespace EQSpellParser
                 case 32:
                     // calc 100 = summon a stack? (based on item stack size) Pouch of Quellious, Quiver of Marr
                     if (Version != 0 && Version < 20190108)
-                        return String.Format("Summon: [Item {0}] x {1}" , base1, calc);
-                    return String.Format("Summon: [Item {0}] x {1}" , base1, base2);
+                        return String.Format("Summon: [Item {0}] x {1}", base1, calc);
+                    return String.Format("Summon: [Item {0}] x {1}", base1, base2);
                 case 33:
                     return String.Format("Summon Pet: {0}", Extra);
                 case 35:
@@ -323,7 +328,7 @@ namespace EQSpellParser
                     return "True North";
                 case 57:
                     if (base2 == 1)
-                        return "Levitate While Running";
+                        return "Levitate While Moving";
                     return "Levitate";
                 case 58:
                     value = (base1 << 16) + base2;
@@ -823,7 +828,7 @@ namespace EQSpellParser
                     return Spell.FormatPercent(Spell.FormatEnum((SpellInstrument)base2) + " Bonus", value * 10);
                 case 262:
                     // affects worn cap
-                    return Spell.FormatCount(Spell.FormatEnum((SpellSkillCap)base2) + " Cap", value);
+                    return Spell.FormatCount(Spell.FormatEnum((SpellWornAttribCap)base2) + " Cap", value);
                 case 263:
                     // ability to train tradeskills over 200 is limited to 1 by default
                     return Spell.FormatCount("Ability to Specialize Tradeskills", base1);
@@ -1359,7 +1364,7 @@ namespace EQSpellParser
                     return "Teleport to their " + FormatEnum((SpellTeleport)base1);
                 case 439:
                     return String.Format("Add Assasinate Proc with up to {0} Damage", base2);
-                    //return String.Format("Add Assasinate Proc ({0}% Chance) with up to {1} Damage", base1 / 10f, base2);
+                //return String.Format("Add Assasinate Proc ({0}% Chance) with up to {1} Damage", base1 / 10f, base2);
                 case 440:
                     // base2 / 10 is max mob health
                     return String.Format("Limit Finishing Blow Level: {0}", base1);
@@ -1554,7 +1559,7 @@ namespace EQSpellParser
                 case 509:
                     // for wording comparison, the closest description to this is 401, 402
                     return String.Format("{0} Current HP by {1}% of Caster Current HP ({2}% Life Burn)", base2 < 0 ? "Decrease" : "Increase", Math.Abs(base2) / 10f, base1 / 10f);
-                    //return String.Format("Decrease Caster Current HP by {0}%  And Return {1}% to Target", base1 / 10f, base2 / 10f);
+                //return String.Format("Decrease Caster Current HP by {0}%  And Return {1}% to Target", base1 / 10f, base2 / 10f);
                 case 510:
                     return Spell.FormatCount("Incoming Resist Modifier", base1);
                 case 511:
@@ -1838,8 +1843,8 @@ namespace EQSpellParser
                         change = level * (calc - 2000);
 
                     // 4000..4999 variable by tick (negative)
-                    if (calc >= 4000 && calc < 5000)
-                        change = -tick * (calc - 4000);
+                    //if (calc >= 4000 && calc < 5000)
+                    //    change = -tick * (calc - 4000);
 
                     break;
             }
@@ -1883,8 +1888,8 @@ namespace EQSpellParser
             if (calc > 1000 && calc < 2000)
                 return String.Format(" ({0} to {1} @ {2}/tick)", type, finish, calc - 1000);
 
-            if (calc > 4000 && calc < 5000)
-                return String.Format(" ({0} to {1} @ {2}/tick)", type, finish, calc - 4000);
+            //if (calc > 4000 && calc < 5000)
+            //    return String.Format(" ({0} to {1} @ {2}/tick)", type, finish, calc - 4000);
 
             return null;
         }
@@ -2257,7 +2262,7 @@ namespace EQSpellParser
 
             // prefix undefined numeric enum with "Type "
             if (Regex.IsMatch(type, @"^-?\d+$"))
-                return "Type " + type; 
+                return "Type " + type;
 
             // remove numeric suffix on duplicate target restriction enums undead3/summoned3/etc
             if (e is SpellTargetRestrict)

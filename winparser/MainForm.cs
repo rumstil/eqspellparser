@@ -194,10 +194,15 @@ namespace winparser
 
             Results = Cache.Search(filter);
 
+            // an empty search filter will return all spells and lag out the UI
+            if (Results.Count > 50000)
+                Results.Clear();
+
             // optionally add back refs
             if (filter.AddBackRefs)
                 Cache.AddBackRefs(Results);
-            else {
+            else
+            {
                 //removes references to spells with level 0 which are effects of other spells.
                 int cls = SpellParser.ParseClass(SearchClass.Text) - 1;
                 if (cls >= 0)
@@ -248,6 +253,7 @@ namespace winparser
             }
             else
             {
+
                 if (Results.Count > MAX_RESULTS)
                 {
                     html.Html.Append(String.Format("<p>Too many results -- only the first {0} will be shown.</p>", MAX_RESULTS));

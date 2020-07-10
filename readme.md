@@ -52,7 +52,7 @@ http://www.microsoft.com/downloads/details.aspx?FamilyId=333325FD-AE52-4E35-B531
 
 A mostly up to date CSV file can be found here:
 
-http://www.raidloot.com/parsed-spells.csv.gz
+https://s3.amazonaws.com/raidloot/spells.csv.gz
 
 To generate this file yourself, you will need to run the command-line version of the parser:
 
