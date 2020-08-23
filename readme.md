@@ -30,7 +30,7 @@ Text: The power of the forest surges through your muscles.
 
 The easiest way to use the parser is via the web version here:
 
-http://www.raidloot.com/Spells.aspx
+http://www.raidloot.com/spells
 
 
 # Windows Version #
@@ -58,7 +58,7 @@ To generate this file yourself, you will need to run the command-line version of
 
 ```
 parser update
-parser all csv > parsed-spells.csv
+parser all csv > spells.csv
 ```
 
 

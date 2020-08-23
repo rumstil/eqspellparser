@@ -237,7 +237,7 @@ namespace EQSpellParser
                     return Spell.FormatPercent("Melee Haste", value - 100);
                 case 12:
                     if (base1 > 1)
-                        return String.Format("Invisibility (Enhanced {0})", base1);
+                        return String.Format("Invisibility (Unstable) (Enhanced {0})", base1);
                     return "Invisibility (Unstable)";
                 case 13:
                     if (base1 > 1)
@@ -971,10 +971,16 @@ namespace EQSpellParser
                 case 313:
                     return Spell.FormatPercent("Chance to Double Forage", base1);
                 case 314:
+                    if (base1 > 1)
+                        return String.Format("Invisibility (Enhanced {0})", base1);
                     return "Invisibility";
                 case 315:
+                    if (base1 > 1)
+                        return String.Format("Invisibility to Undead (Enhanced {0})", base1);
                     return "Invisibility to Undead";
                 case 316:
+                    if (base1 > 1)
+                        return String.Format("Invisibility to Animals (Enhanced {0})", base1);
                     return "Invisibility to Animals";
                 case 317:
                     return Spell.FormatCount("HP Regen Cap", base1);
@@ -1208,6 +1214,7 @@ namespace EQSpellParser
                         return String.Format("Inhibit Effect: {0} ({1})", Spell.FormatEnum((SpellEffect)base2), (SpellInhibitType)base1);
                     return String.Format("Inhibit Effect: {0}", Spell.FormatEnum((SpellEffect)base2));
                 case 383:
+                    // sympathetic procs like this are often cast at a specific level by an item
                     // chance % modified by the cast time of the spell cast that triggers the proc, whereas 339 is not
                     // according to Beimeith:
                     // Cast Time < 2.5 then multiplier = 0.25

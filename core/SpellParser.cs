@@ -61,23 +61,8 @@ namespace EQSpellParser
                 // debug
                 //for (int i = 0; i < fields.Length; i++) Console.WriteLine("{0}: {1}", i, fields[i]);
 
-                // file format has changed over time - pick the best parser
-                Func<string[], int, Spell> parser = ParseSpell;
-                if (fields.Length == 167 && version < 20191008)
-                    parser = ParseSpell20190108;
-                if (fields.Length == 168 && version < 20180509)
-                    parser = ParseSpell20180509;
-                if (fields.Length == 169 && version < 20180410)
-                    parser = ParseSpell20180410;
-                if (fields.Length == 174 && version < 20180204)
-                    parser = ParseSpell20180214;
-                if (fields.Length == 179 && version < 20160413)
-                    parser = ParseSpell20160413;
-                if (fields.Length > 220)
-                    parser = ParseSpell20160210;
-
                 // parser the spell
-                var spell = parser(fields, version);
+                var spell = ParseSpell(fields, version);
 
                 list.Add(spell);
                 listById[spell.ID] = spell;
@@ -88,7 +73,8 @@ namespace EQSpellParser
                     {
                         var slot = spell.Slots[i];
 
-                        slot.Desc = Spell.FactionRefExpr.Replace(slot.Desc, m => {
+                        slot.Desc = Spell.FactionRefExpr.Replace(slot.Desc, m =>
+                        {
                             string fname = null;
                             if (desc.TryGetValue("45/" + m.Groups[1].Value, out fname))
                                 return fname;
@@ -148,28 +134,42 @@ namespace EQSpellParser
 
             // load spell stacking file
             // my guess is that this was made a separate file because a single spell can be part of multiple spell stacking groups
+            // #*SPELL_ID^SPELL_STACKING_GROUP^STACKING_RANK^SPELL_STACKING_TYPE^
             var stackPath = spellPath.Replace("spells_us", "SpellStackingGroups");
+            var stackGroups = new Dictionary<int, string>();
             foreach (var fields in LoadAllLines(stackPath))
             {
                 var id = ParseInt(fields[0]);
-                var group = fields[1];
+                var group = ParseInt(fields[1]);
                 var rank = fields[2];
                 var type = fields[3];
+                string stacking = group.ToString();
 
                 Spell spell = null;
                 if (!listById.TryGetValue(id, out spell))
                     continue;
 
                 if (desc.ContainsKey("40/" + group))
-                    group = desc["40/" + group];
+                {
+                    // most stacking groups reference a description in dbstr
+                    stacking = desc["40/" + group];
+                }
+                else
+                {
+                    // however some stacking groups are missing from dbstr
+                    // in these cases we should use the name of the first spell that references the stacking group
+                    stackGroups.TryGetValue(group, out stacking);
+                    if (String.IsNullOrEmpty(stacking))
+                        stackGroups[group] = stacking = spell.Name;
+                }
 
-                group += " " + rank;
+                stacking += " " + rank;
 
                 // type 6 = non-override stacking group; only one can be active at a time and new procs won't overwrite old ones that are still active
                 if (type == "6")
-                    group += " (Non-Overide)";
+                    stacking += " (Non-Overide)";
 
-                spell.Stacking.Add(group);
+                spell.Stacking.Add(stacking);
             }
 
 
@@ -178,10 +178,35 @@ namespace EQSpellParser
 
         /// <summary>
         /// Load a single spell from the spells file.
+        /// This will automatically pick the best parser for the file format (which has changed over time)
+        /// </summary>
+        static Spell ParseSpell(string[] fields, int version)
+        {
+            Func<string[], int, Spell> parser = ParseSpellCurrent;
+
+            // file format has changed over time - pick the best parser
+            if (fields.Length == 167 && version < 20191008)
+                parser = ParseSpell20190108;
+            if (fields.Length == 168 && version < 20180509)
+                parser = ParseSpell20180509;
+            if (fields.Length == 169 && version < 20180410)
+                parser = ParseSpell20180410;
+            if (fields.Length == 174 && version < 20180204)
+                parser = ParseSpell20180214;
+            if (fields.Length == 179 && version < 20160413)
+                parser = ParseSpell20160413;
+            if (fields.Length > 220)
+                parser = ParseSpell20160210;
+
+            return parser(fields, version);
+        }
+
+        /// <summary>
+        /// Load a single spell from the spells file.
         /// This handles the current file format.
         /// This format has 166 or 168 fields.
         /// </summary>
-        static Spell ParseSpell(string[] fields, int version)
+        static Spell ParseSpellCurrent(string[] fields, int version)
         {
             var spell = new Spell();
             spell.Version = version;
