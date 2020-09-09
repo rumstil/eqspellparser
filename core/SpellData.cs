@@ -175,7 +175,7 @@ namespace EQSpellParser
 
             // many SPAs use a scaled value based on either current tick or caster level
             var value = CalcValue(calc, base1, max, 1, level);
-            var range = CalcValueRange(calc, base1, max, DurationTicks, level);
+            var range = CalcValueRange(calc, base1, max, spa, DurationTicks, level);
             //Func<int> base1_or_value = delegate() { Debug.WriteLineIf(base1 != value, "SPA " + spa + " value uncertain"); return base1; };
 
             // some hp/mana/end/hate effects repeat for each tick of the duration
@@ -1850,8 +1850,8 @@ namespace EQSpellParser
                         change = level * (calc - 2000);
 
                     // 4000..4999 variable by tick (negative)
-                    //if (calc >= 4000 && calc < 5000)
-                    //    change = -tick * (calc - 4000);
+                    if (calc >= 4000 && calc < 5000)
+                        change = -tick * (calc - 4000);
 
                     break;
             }
@@ -1870,7 +1870,7 @@ namespace EQSpellParser
         /// <summary>
         /// Calculate the min/max values for a scaled value.
         /// </summary>
-        public static string CalcValueRange(int calc, int base1, int max, int duration, int level = MAX_LEVEL)
+        public static string CalcValueRange(int calc, int base1, int max, int spa, int duration, int level = MAX_LEVEL)
         {
             int start = CalcValue(calc, base1, max, 1, level);
             int finish = Math.Abs(CalcValue(calc, base1, max, duration, level));
@@ -1895,8 +1895,20 @@ namespace EQSpellParser
             if (calc > 1000 && calc < 2000)
                 return String.Format(" ({0} to {1} @ {2}/tick)", type, finish, calc - 1000);
 
-            //if (calc > 4000 && calc < 5000)
-            //    return String.Format(" ({0} to {1} @ {2}/tick)", type, finish, calc - 4000);
+            if (calc >= 3000 && calc < 4000)
+            {
+                if (calc - 3000 == spa)
+                {
+                    return String.Format(" (Scales, Base Level: 100)");
+                }
+                if (calc - 3500 == spa)
+                {
+                    return String.Format(" (Scales, Base Level: 105)");
+                }
+            }
+
+            if (calc > 4000 && calc < 5000)
+                return String.Format(" ({0} to {1} @ {2}/tick)", type, finish, calc - 4000);
 
             return null;
         }
