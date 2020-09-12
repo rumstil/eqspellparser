@@ -1229,8 +1229,8 @@ namespace EQSpellParser
                     // Cast Time < 2.5 then multiplier = 0.25
                     // Cast Time > 2.5 and < 7 then multiplier = 0.167 * (Cast Time - 1)
                     // Cast Time > 7 then multiplier = 1 * Cast Time / 7
-                    string sample383 = String.Format(" e.g. Cast Time 2s={0}% 3s={1:F1}% 4s={2:F1}% 5s={3:F1}%", 0.25 * (base1 / 10), 0.334 * (base1 / 10), 0.5 * (base1 / 10), 0.668 * (base1 / 10));
-                    return String.Format("Cast: [Spell {0}] on Spell Use (Base1={1})", base2, base1 / 10) + sample383;
+                    string sample383 = String.Format(" e.g. Cast Time 2s={0}% 3s={1}% 4s={2}% 5s={3}%", Math.Min(0.25 * base1, 100), Math.Min(0.334 * base1, 100), Math.Min(0.5 * base1, 100), Math.Min(0.668 * base1, 100));
+                    return String.Format("Cast: [Spell {0}] on Spell Use (Base1={1})", base2, base1) + sample383;
                 case 384:
                     return "Fling to Target";
                 case 385:
