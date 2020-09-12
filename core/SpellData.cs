@@ -205,7 +205,7 @@ namespace EQSpellParser
                         return Spell.FormatCount("Current HP", value) + repeating + range + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
                     return Spell.FormatCount("Current HP", value) + repeating + range;
                 case 1:
-                    return Spell.FormatCount("AC", (int)(value / (10f / 3f)));
+                    return Spell.FormatCountRange("AC", value, (int)Math.Abs(Math.Round((value / 4) * 0.265)), (int)Math.Abs(Math.Round((value / 4) * 0.35))) + ", Based on Class";
                 case 2:
                     return Spell.FormatCount("ATK", value) + range;
                 case 3:
@@ -616,9 +616,8 @@ namespace EQSpellParser
                     if (Version != 0 && Version < 20160816)
                         return String.Format("Lifetap from Weapon Damage: {0}%", base1);
 
-                    return String.Format("Lifetap from Weapon Damage: {0}%", base1 / 10f);
-                // this has been renamed to resource tap. how does it differ from 457?
-                //return string.Format("Return {0}% of Damage as {1}", base1 / 10f, new[] { "HP", "Mana", "Endurance" }[base2 % 3]);
+                    return string.Format("Return {0}% of Melee Damage as {1}", base1 / 10f, new[] { "HP", "Mana", "Endurance" }[base2 % 3]) + (max > 0 ? String.Format(", Max Per Hit: {0}", max) : "");
+                // this has been renamed to resource tap. This is to Melee + Skill Attacks (kick/bash/etc) that 457 is to Spells
                 case 179:
                     return String.Format("Instrument Modifier: {0} {1}", Skill, value);
                 case 180:
@@ -1081,13 +1080,13 @@ namespace EQSpellParser
                         aura = base2;
                     // hardcoded fixes for failed guesses
                     if (ID == 8629) aura = 8628;
+                    if (ID == 8654) aura = 8649;
                     if (ID == 8921) aura = 8935;
                     if (ID == 8922) aura = 8936;
                     if (ID == 8923) aura = 8937;
                     if (ID == 8924) aura = 8959;
                     if (ID == 8925) aura = 8938;
                     if (ID == 8926) aura = 8939;
-                    if (ID == 8654) aura = 8649;
                     if (ID == 8928) aura = 8940;
                     if (ID == 8929) aura = 8943;
                     if (ID == 8930) aura = 8945;
@@ -1108,21 +1107,13 @@ namespace EQSpellParser
                     if (ID == 11521) aura = 11551;
                     if (ID == 11523) aura = 11540;
                     if (ID == 21827) aura = 21848;
-                    if (ID == 32007) aura = 31993;
-                    if (ID == 32271) aura = 32257;
                     if (ID == 22510) aura = 22574;
                     if (ID == 22511) aura = 22575;
+                    if (ID == 32007) aura = 31993;
+                    if (ID == 32271) aura = 32257;
 
-                    // these 3 auras have different effects on normal and swarm pets
-                    if (ID == 49678) aura = 49700;
-                    if (ID == 49679) aura = 49701;
-                    if (ID == 49680) aura = 49702;
-                    //if (ID == 49678) aura = 49736;
-                    //if (ID == 49679) aura = 49737;
-                    //if (ID == 49680) aura = 49738;
-
-                    if (Extra.StartsWith("PCIObMagS17L085TrapPetAug")) aura = 22655;
                     if (Extra.StartsWith("PCIObBrdS17L082AuraRegenRk")) aura = 19713 + Rank;
+                    if (Extra.StartsWith("PCIObMagS17L085TrapPetAug")) aura = 22655;
                     if (Extra.StartsWith("PCIObRogS19L092TrapAggroRk")) aura = 26111 + Rank;
                     if (Extra.StartsWith("PCIObEncS19L095EchoCastProcRk")) aura = 30179 + Rank;
                     if (Extra.StartsWith("PCIObEncS20L100EchoCastProcRk")) aura = 36227 + Rank;
@@ -1130,14 +1121,32 @@ namespace EQSpellParser
                     if (Extra.StartsWith("PCIObEncS22L110EchoCastProcRk")) aura = 57276 + Rank;
 
                     // old aura names (2017-4-19 patch renamed auras)
-                    if (Extra.StartsWith("IOQuicksandTrap85")) aura = 22655;
                     if (Extra.StartsWith("IOAuraCantataRk")) aura = 19713 + Rank;
+                    if (Extra.StartsWith("IOQuicksandTrap85")) aura = 22655;
                     if (Extra.StartsWith("IORogTrapAggro92Rk")) aura = 26111 + Rank;
                     if (Extra.StartsWith("IOEncEchoProc95Rk")) aura = 30179 + Rank;
                     if (Extra.StartsWith("IOEncEchoProc100Rk")) aura = 36227 + Rank;
                     if (Extra.StartsWith("IOEncEchoProc105Rk")) aura = 45018 + Rank;
 
-                    return String.Format("Aura Effect: [Spell {0}] ({1})", aura, Extra);
+                    //if (base2 != 0 && max != 0 && max != 60)
+                    //{
+                        //if (Target == SpellTarget.Pet)
+                        //{
+                            //return String.Format("Aura Effect: [Spell {0}] (Pet) - [Spell {1}] (Swarm Pet) ({2})", max, base2, Extra);
+                        //}
+                        //else if (Target == SpellTarget.Self)
+                        //{
+                            //return String.Format("Aura Effect: [Spell {0}] (Self) - [Spell {1}] (Group) ({2})", max, base2, Extra);
+                        //}
+                        //else
+                        //{
+                            //return String.Format("Aura Effect: [Spell {0}] (UNKNOWN) - [Spell {1}] (UNKNOWN) ({2})", max, base2, Extra);
+                        //}
+                    //}
+                    //else
+                    //{
+                        return String.Format("Aura Effect: [Spell {0}] ({1})", aura, Extra);
+                    //}
                 case 353:
                     return Spell.FormatCount("Aura Slots", base1);
                 case 357:
@@ -1220,8 +1229,8 @@ namespace EQSpellParser
                     // Cast Time < 2.5 then multiplier = 0.25
                     // Cast Time > 2.5 and < 7 then multiplier = 0.167 * (Cast Time - 1)
                     // Cast Time > 7 then multiplier = 1 * Cast Time / 7
-                    string sample383 = String.Format(" e.g. Cast Time 2s={0}% 3s={1:F1}% 4s={2:F1}% 5s={3:F1}%", 0.25 * (base1 / 10), 0.334 * (base1 / 10), 0.5 * (base1 / 10), 0.668 * (base1 / 10));
-                    return String.Format("Cast: [Spell {0}] on Spell Use (Base1={1})", base2, base1 / 10) + sample383;
+                    string sample383 = String.Format(" e.g. Cast Time 2s={0}% 3s={1}% 4s={2}% 5s={3}%", Math.Min(0.25 * base1, 100), Math.Min(0.334 * base1, 100), Math.Min(0.5 * base1, 100), Math.Min(0.668 * base1, 100));
+                    return String.Format("Cast: [Spell {0}] on Spell Use (Base1={1})", base2, base1) + sample383;
                 case 384:
                     return "Fling to Target";
                 case 385:
@@ -1306,7 +1315,7 @@ namespace EQSpellParser
                     return String.Format("Limit Casting Skill: {0}", Spell.FormatEnum((SpellSkill)base1));
                 case 416:
                     // SPA 416 functions exactly like SPA 1, it was added so that we could avoid stacking conflicts with only 12 spell slots. - Dzarn
-                    return Spell.FormatCount("AC", (int)(value / (10f / 3f))) + " (v416)";
+                    return Spell.FormatCountRange("AC", value, (int)Math.Abs(Math.Round((value / 4) * 0.265)), (int)Math.Abs(Math.Round((value / 4) * 0.35))) + ", Based on Class (v416)";
                 case 417:
                     // same as 15 and used for stacking
                     return Spell.FormatCount("Current Mana", value) + repeating + range + " (v417)";
@@ -1412,7 +1421,7 @@ namespace EQSpellParser
                     return Spell.FormatPercent("Current Hate", base1) + " per tick";
                 case 457:
                     // offical name is "Resource Tap"
-                    return string.Format("Return {0}% of Damage as {1}", base1 / 10f, new[] { "HP", "Mana", "Endurance" }[base2 % 3]) + (max > 0 ? String.Format(", Max Per Hit: {0}", max) : "");
+                    return string.Format("Return {0}% of Spell Damage as {1}", base1 / 10f, new[] { "HP", "Mana", "Endurance" }[base2 % 3]) + (max > 0 ? String.Format(", Max Per Hit: {0}", max) : "");
                 case 458:
                     // -100 = no faction hit, 100 = double faction
                     return Spell.FormatPercent("Faction Hit", base1);
@@ -2306,6 +2315,11 @@ namespace EQSpellParser
         private static string FormatCount(string name, int value)
         {
             return String.Format("{0} {1} by {2}", value < 0 ? "Decrease" : "Increase", name, Math.Abs(value));
+        }
+
+        private static string FormatCountRange(string name, int value, int startValue, int endValue)
+        {
+            return String.Format("{0} {1} by {2} to {3}", value < 0 ? "Decrease" : "Increase", name, startValue, endValue);
         }
 
         private static string FormatPercent(string name, float value)
