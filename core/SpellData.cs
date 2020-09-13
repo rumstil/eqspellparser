@@ -207,7 +207,9 @@ namespace EQSpellParser
                 case 1:
                     // showing post softcap AC (for Pre-Softcap Values, it should be - Int users: Value/3, all others: Value/4)
                     // Devs suggest anyone in any relevant gear Velious+ was hitting Soft Caps, which is like 95% of the expansions/game - Riou
-                    return Spell.FormatCountRange("AC", value, (int)Math.Abs(Math.Round((value / 4) * 0.265)), (int)Math.Abs(Math.Round((value / 4) * 0.35))) + ", Based on Class";
+                    //return Spell.FormatCountRange("AC", value, (int)Math.Abs(Math.Round((value / 4) * 0.265)), (int)Math.Abs(Math.Round((value / 4) * 0.35))) + ", Based on Class";
+                    // or we could just show an average between druid at 0.25 and warrior at 0.35
+                    return Spell.FormatCount("AC", (int)Math.Round(value / 4 * 0.3)) + " (Raw=" + value + ")";
                 case 2:
                     return Spell.FormatCount("ATK", value) + range;
                 case 3:
@@ -1322,7 +1324,9 @@ namespace EQSpellParser
                     return String.Format("Limit Casting Skill: {0}", Spell.FormatEnum((SpellSkill)base1));
                 case 416:
                     // SPA 416 functions exactly like SPA 1, it was added so that we could avoid stacking conflicts with only 12 spell slots. - Dzarn
-                    return Spell.FormatCountRange("AC", value, (int)Math.Abs(Math.Round((value / 4) * 0.265)), (int)Math.Abs(Math.Round((value / 4) * 0.35))) + ", Based on Class (v416)";
+                    //return Spell.FormatCountRange("AC", value, (int)Math.Abs(Math.Round((value / 4) * 0.265)), (int)Math.Abs(Math.Round((value / 4) * 0.35))) + ", Based on Class (v416)";
+                    // or we could just show an average between druid at 0.25 and warrior at 0.35
+                    return Spell.FormatCount("AC", (int)Math.Round(value / 4 * 0.3)) + " (Raw=" + value + ") (v416)";
                 case 417:
                     // same as 15 and used for stacking
                     return Spell.FormatCount("Current Mana", value) + repeating + range + " (v417)";
