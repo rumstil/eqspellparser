@@ -30,7 +30,7 @@ Text: The power of the forest surges through your muscles.
 
 The easiest way to use the parser is via the web version here:
 
-http://www.raidloot.com/spells
+https://www.raidloot.com/spells
 
 
 # Windows Version #
@@ -45,7 +45,7 @@ On Windows 8 or newer, the first time you run the parser will you get a "Windows
 
 You will also need to have Microsoft .NET Framework 3.5 installed to run the parser. This is a windows add-on that you may be missing if you have an older version of windows. If you run the parser and it doesn't work for you, download the required windows update from here:
 
-http://www.microsoft.com/downloads/details.aspx?FamilyId=333325FD-AE52-4E35-B531-508D977D32A6&displaylang=en
+https://www.microsoft.com/downloads/details.aspx?FamilyId=333325FD-AE52-4E35-B531-508D977D32A6&displaylang=en
 
 
 # Data Version #

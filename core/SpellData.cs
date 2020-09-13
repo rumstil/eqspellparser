@@ -205,6 +205,8 @@ namespace EQSpellParser
                         return Spell.FormatCount("Current HP", value) + repeating + range + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
                     return Spell.FormatCount("Current HP", value) + repeating + range;
                 case 1:
+                    // showing post softcap AC (for Pre-Softcap Values, it should be - Int users: Value/3, all others: Value/4)
+                    // Devs suggest anyone in any relevant gear Velious+ was hitting Soft Caps, which is like 95% of the expansions/game - Riou
                     return Spell.FormatCountRange("AC", value, (int)Math.Abs(Math.Round((value / 4) * 0.265)), (int)Math.Abs(Math.Round((value / 4) * 0.35))) + ", Based on Class";
                 case 2:
                     return Spell.FormatCount("ATK", value) + range;
@@ -615,9 +617,8 @@ namespace EQSpellParser
                 case 178:
                     if (Version != 0 && Version < 20160816)
                         return String.Format("Lifetap from Weapon Damage: {0}%", base1);
-
+                    // this is to Melee + Skill Attacks (kick/bash/etc) that 457 is to Spells
                     return string.Format("Return {0}% of Melee Damage as {1}", base1 / 10f, new[] { "HP", "Mana", "Endurance" }[base2 % 3]) + (max > 0 ? String.Format(", Max Per Hit: {0}", max) : "");
-                // this has been renamed to resource tap. This is to Melee + Skill Attacks (kick/bash/etc) that 457 is to Spells
                 case 179:
                     return String.Format("Instrument Modifier: {0} {1}", Skill, value);
                 case 180:
@@ -1128,25 +1129,30 @@ namespace EQSpellParser
                     if (Extra.StartsWith("IOEncEchoProc100Rk")) aura = 36227 + Rank;
                     if (Extra.StartsWith("IOEncEchoProc105Rk")) aura = 45018 + Rank;
 
-                    //if (base2 != 0 && max != 0 && max != 60)
-                    //{
-                        //if (Target == SpellTarget.Pet)
-                        //{
-                            //return String.Format("Aura Effect: [Spell {0}] (Pet) - [Spell {1}] (Swarm Pet) ({2})", max, base2, Extra);
-                        //}
-                        //else if (Target == SpellTarget.Self)
-                        //{
-                            //return String.Format("Aura Effect: [Spell {0}] (Self) - [Spell {1}] (Group) ({2})", max, base2, Extra);
-                        //}
-                        //else
-                        //{
-                            //return String.Format("Aura Effect: [Spell {0}] (UNKNOWN) - [Spell {1}] (UNKNOWN) ({2})", max, base2, Extra);
-                        //}
-                    //}
-                    //else
-                    //{
-                        return String.Format("Aura Effect: [Spell {0}] ({1})", aura, Extra);
-                    //}
+                    // these 3 auras have different effects on normal and swarm pets
+                    //if (ID == 49678) aura = 49700;
+                    //if (ID == 49679) aura = 49701;
+                    //if (ID == 49680) aura = 49702;
+                    //if (ID == 49678) aura = 49736;
+                    //if (ID == 49679) aura = 49737;
+                    //if (ID == 49680) aura = 49738;
+
+                    if (base2 > 0 && max > 1000)
+                    {
+                        if (Target == SpellTarget.Pet)
+                        {
+                            return String.Format("Aura Effect: [Spell {0}] (Pet) - [Spell {1}] (Swarm Pet) ({2})", max, base2, Extra);
+                        }
+                        else if (Target == SpellTarget.Self)
+                        {
+                            return String.Format("Aura Effect: [Spell {0}] (Self) - [Spell {1}] (Group) ({2})", max, base2, Extra);
+                        }
+                        else
+                        {
+                            return String.Format("Aura Effect: [Spell {0}] (UNKNOWN) - [Spell {1}] (UNKNOWN) ({2})", max, base2, Extra);
+                        }
+                    }
+                    return String.Format("Aura Effect: [Spell {0}] ({1})", aura, Extra);
                 case 353:
                     return Spell.FormatCount("Aura Slots", base1);
                 case 357:
@@ -1223,12 +1229,13 @@ namespace EQSpellParser
                         return String.Format("Inhibit Effect: {0} ({1})", Spell.FormatEnum((SpellEffect)base2), (SpellInhibitType)base1);
                     return String.Format("Inhibit Effect: {0}", Spell.FormatEnum((SpellEffect)base2));
                 case 383:
-                    // sympathetic procs like this are often cast at a specific level by an item
+                    // sympathetic procs like this are often cast at a specific level by an item (see focuslevel item attrib)
                     // chance % modified by the cast time of the spell cast that triggers the proc, whereas 339 is not
                     // according to Beimeith:
                     // Cast Time < 2.5 then multiplier = 0.25
                     // Cast Time > 2.5 and < 7 then multiplier = 0.167 * (Cast Time - 1)
                     // Cast Time > 7 then multiplier = 1 * Cast Time / 7
+                    // https://forums.daybreakgames.com/eq/index.php?threads/wizard-dps-web-app.239137/page-4#post-3520103
                     string sample383 = String.Format(" e.g. Cast Time 2s={0}% 3s={1}% 4s={2}% 5s={3}%", Math.Min(0.25 * base1, 100), Math.Min(0.334 * base1, 100), Math.Min(0.5 * base1, 100), Math.Min(0.668 * base1, 100));
                     return String.Format("Cast: [Spell {0}] on Spell Use (Base1={1})", base2, base1) + sample383;
                 case 384:
@@ -1904,6 +1911,9 @@ namespace EQSpellParser
             if (calc > 1000 && calc < 2000)
                 return String.Format(" ({0} to {1} @ {2}/tick)", type, finish, calc - 1000);
 
+            // 2020-7-15 patch
+            // Heroic adventures from Call of the Forsaken, The Darkened Sea, The Broken Mirror, and Empires of Kunark 
+            // have been reverted to use the spell scaling data from when those expansions launched.
             if (calc >= 3000 && calc < 4000)
             {
                 if (calc - 3000 == spa)

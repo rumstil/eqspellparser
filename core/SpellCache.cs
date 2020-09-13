@@ -109,29 +109,37 @@ namespace EQSpellParser
             {
                 var linked = new List<int>(10);
 
-                // add recourse link
+                // add link for recourse spell
                 if (spell.RecourseID != 0)
                     linked.Add(spell.RecourseID);
 
-                // add spell slot links
+                // add links for spells reference in any slots
                 foreach (var s in spell.Slots)
                     if (s != null)
                     {
                         bool exclude = s.Desc.Contains("Exclude");
 
-                        // match spell refs
-                        var match = Spell.SpellRefExpr.Match(s.Desc);
-                        if (match.Success)
+                        // match spell refs (works for a single ref)
+                        //var match = Spell.SpellRefExpr.Match(s.Desc);
+                        //if (match.Success)
+                        //{
+                        //    int id = Int32.Parse(match.Groups[1].Value);
+                        //    linked.Add(exclude ? -id : id);
+                        //}
+
+                        // match spell refs (works for multiple refs on a single slot e.g. auras)
+                        var matches = Spell.SpellRefExpr.Matches(s.Desc);
+                        foreach (Match match in matches)
                         {
                             int id = Int32.Parse(match.Groups[1].Value);
-                            linked.Add(exclude ? -id : id);
+                            linked.Add(exclude ? -id : id);                            
                         }
 
                         // match spell group refs
-                        match = Spell.GroupRefExpr.Match(s.Desc);
-                        if (match.Success)
+                        var gmatch = Spell.GroupRefExpr.Match(s.Desc);
+                        if (gmatch.Success)
                         {
-                            int id = Int32.Parse(match.Groups[1].Value);
+                            int id = Int32.Parse(gmatch.Groups[1].Value);
                             linked.AddRange(SpellsByGroup[id].Select(x => exclude ? -x.ID : x.ID));
                         }
                     }
