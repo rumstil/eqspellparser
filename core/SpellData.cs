@@ -567,9 +567,7 @@ namespace EQSpellParser
                 case 157:
                     return Spell.FormatCount("Spell Damage Shield", -value);
                 case 158:
-                    if (max != 0)
-                        return Spell.FormatPercent("Chance to Reflect Spell", base1) + String.Format(" with up to {0}% Damage", max);
-                    return Spell.FormatPercent("Chance to Reflect Spell", base1);
+                    return Spell.FormatPercent("Chance to Reflect Spell", base1) + (max != 0 ? String.Format(" with up to {0}% Base Damage", max) : "") + (base2 > 0 ? String.Format(" and {0} Improved Resist Mod", base2) : "") + (base2 < 0 ? String.Format(" and {0} Reduced Resist Mod", base2) : "");
                 case 159:
                     return Spell.FormatCount("Base Stats", value);
                 case 160:
