@@ -992,7 +992,7 @@ namespace EQSpellParser
         Spectre = 485,
         Banshee = 487,
         Banshee2 = 488,
-        Ayr_Dal_Mother = 489,
+        Elddar = 489,
         Bone_Golem = 491,
         Scrykin = 495,
         Treant = 496, // or izon
