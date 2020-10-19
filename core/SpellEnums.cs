@@ -408,7 +408,8 @@ namespace EQSpellParser
         Cold_Resist = 8,
         Fire_Resist = 9,
         Poison_Resist = 10,
-        Disease_Resist = 11
+        Disease_Resist = 11,
+        Corruption_Resist = 13
     }
 
     public enum SpellResist
@@ -503,7 +504,7 @@ namespace EQSpellParser
         Old_Giants = 17,
         Old_Dragons = 18,
         Target_AE_Lifetap = 20,
-        Target_AE_Undead = 24,
+        Target_AE_Undead = 21,
         Target_AE_Summoned = 25,
         Hatelist = 32,
         Hatelist2 = 33,
@@ -516,14 +517,14 @@ namespace EQSpellParser
         Caster_AE_Players = 40, // bard AE hits all players
         Target_Group = 41,
         Directional_AE = 42,
-        Frontal_AE = 44,
         Single_In_Group = 43,
+        Frontal_AE = 44,
         Target_Ring_AE = 45,
         Targets_Target = 46,
         Pet_Owner = 47,
         Target_AE_No_Players_Pets = 50, // blanket of forgetfullness. beneficial, AE mem blur, with max targets
+        Single_Ally_or_Self = 51, // target player or self if target is a mob
         Single_Ally_or_TT = 52, // splashes your allied target or enemy's target in a deluge of healing waters
-
     }
 
     // these are found as type 39 in the dbstr file
@@ -575,6 +576,7 @@ namespace EQSpellParser
         Enchanter = 144,
         Beastlord = 145,
         Berserker = 146,
+        Not_Warrior_Paladin_or_ShadowKnight = 148,
         Not_Raid_Boss = 190,
         Raid_Boss = 191,
         HP_Less_Than_5_Percent = 199, // duple of 501
@@ -689,14 +691,12 @@ namespace EQSpellParser
         End_Below_29_Percent = 827,
         Regular_Server = 836,
         Progression_Server = 837,
-
+        GoD_Unlocked = 839,
         Humanoid_Level_84_Max = 842,
         Humanoid_Level_86_Max = 843,
         Humanoid_Level_88_Max = 844,
-
         Has_Crystallized_Flame_Buff = 845,
-        Has_Incendiary_Ooze_Buff = 846,
-
+        Has_Incendiary_Ooze_Buff = 847,
         Level_90_Max = 860,
         Level_92_Max = 861,
         Level_94_Max = 862,
@@ -706,39 +706,50 @@ namespace EQSpellParser
         Level_100_Max = 869,
         Level_102_Max = 870,
         Level_104_Max = 871,
-
+        Level_105_Max = 872,
+        Level_107_Max = 873,
+        Level_109_Max = 874,
+        Level_110_Max = 875,
+        Level_112_Max = 876,
+        Level_114_Max = 877,
+        Has_TBL_Esianti_Access = 997,
+        Has_Item_Clockwork_Scraps = 999,
         Between_Level_1_and_75 = 1000,
         Between_Level_76_and_85 = 1001,
         Between_Level_86_and_95 = 1002,
         Between_Level_96_and_105 = 1003,
         HP_Less_Than_80_Percent = 1004,
-
         Level_Above_34 = 1474,
-
         In_Two_Handed_Stance = 2000,
         In_Dual_Wield_Handed_Stance = 2001,
         In_Shield_Stance = 2002,
         Not_In_Two_Handed_Stance = 2010,
         Not_In_Dual_Wield_Handed_Stance = 2011,
         Not_In_Shield_Stance = 2012,
-
+        Level_46_Max = 2761,
+        No_Mana_Burn_Buff = 8450,
+        Male_Toon_Plate_User = 11044,
+        Male_Toon_Druid_Enchanter_Magician_Necromancer_Shaman_or_Wizard = 11090,
+        Male_Toon_Beastlord_Berserker_Monk_Ranger_or_Rogue = 11209,
+        Female_Toon_Plate_User = 11210,
+        Female_Toon_Druid_Enchanter_Magician_Necromancer_Shaman_or_Wizard = 11211,
+        Female_Toon_Beastlord_Berserker_Monk_Ranger_or_Rogue = 11248,
         No_Illusions_of_Grandeur_Buff = 12519,
-
+        HP_Above_50_Percent = 16010,
+        HP_Under_50_Percent = 16031,
         No_Shroud_of_Prayer_Buff = 32339,
-
         Mana_Below_20_Percent = 38311,
         Mana_Above_50_Percent = 38312,
-
         Completed_Achievement_Legendary_Answerer = 39281,
         Missing_Achievement_Legendary_Answerer = 42280,
-
+        Summoned_or_Undead = 49326,
         Caster_Priest_Classes = 49529,
-
-        No_Furious_Rampage_Buff = 49612,
         // melee classes must be below 30% endurance and classes that use mana must be below 30% mana
         Melee_Class_End_Below_30_Percent_or_Mana_Class_Mana_Below_30_Percent = 49573,
+        Bard_Class = 49574,
+        Not_Bard_Class = 49575,
+        No_Furious_Rampage_Buff = 49612,
         Mana_Below_30_Percent = 49809,
-
         No_Harmonious_Precision_Buff = 50003,
         No_Harmonious_Expanse_Buff = 50009
     }
@@ -1141,7 +1152,8 @@ namespace EQSpellParser
         // Type 14 (which these buffs have been updated to use) will only consume charges when the attacker's melee attack 
         // matches the skill that is improved by the buff. This should correct the issue where special attacks are consuming 
         // limited use counters on buffs that improve the standard 7 weapon skills.
-        Outgoing_Hits_Affected_By_Buff = 14
+        Outgoing_Hits_Affected_By_Buff = 14,
+        Tradeskill_Combines = 15
     }
 
     public enum SpellTeleport
