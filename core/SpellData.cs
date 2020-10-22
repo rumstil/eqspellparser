@@ -1970,7 +1970,7 @@ namespace EQSpellParser
                 result.Add("Mana: " + Mana);
 
             if (EnduranceUpkeep > 0)
-                result.Add("Endurance: " + Endurance + ", Upkeep: " + EnduranceUpkeep + " per tick");
+                result.Add("Endurance: " + Endurance + ", Upkeep: " + EnduranceUpkeep + " per second");
             else if (Endurance > 0)
                 result.Add("Endurance: " + Endurance);
 

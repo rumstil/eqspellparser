@@ -71,7 +71,7 @@ namespace winparser
             Html.Append("<th style='width: 4em;'>ID</th>");
             Html.Append("<th style='width: 18em;'>Name</th>");
             Html.Append("<th style='width: 10em;'>Level</th>");
-            Html.Append("<th style='width: 4em;'>Mana</th>");
+            Html.Append("<th style='width: 4em;'>Mana/End</th>");
             Html.Append("<th style='width: 4em;'>Cast</th>");
             Html.Append("<th style='width: 4em;'>Recast</th>");
             Html.Append("<th style='width: 4em;'>Duration</th>");
@@ -90,9 +90,9 @@ namespace winparser
                 Html.AppendFormat("<td style='max-width: 12em'>{0}</td>", spell.ClassesLevels);
 
                 if (spell.Endurance == 0 && spell.EnduranceUpkeep > 0)
-                    Html.AppendFormat("<td class='end'>{0}/tick</td>", spell.EnduranceUpkeep);
+                    Html.AppendFormat("<td class='end'>{0}/second</td>", spell.EnduranceUpkeep);
                 else if (spell.Endurance > 0 && spell.EnduranceUpkeep > 0)
-                    Html.AppendFormat("<td class='end'>{0} + {1}/tick</td>", spell.Endurance, spell.EnduranceUpkeep);
+                    Html.AppendFormat("<td class='end'>{0} + {1}/second</td>", spell.Endurance, spell.EnduranceUpkeep);
                 else if (spell.Endurance > 0)
                     Html.AppendFormat("<td class='end'>{0}</td>", spell.Endurance);
                 else
