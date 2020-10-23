@@ -335,7 +335,7 @@ namespace EQSpellParser
                         return "Levitate While Moving";
                     return "Levitate";
                 case 58:
-                    value = (base1 << 16) + base2;
+                    value = (base1 << 16) + base2 + (max * 1000);
                     if (Enum.IsDefined(typeof(SpellIllusion), value))
                         return String.Format("Illusion: {0}", Spell.FormatEnum((SpellIllusion)value));
                     if (base2 > 0)
@@ -1970,7 +1970,7 @@ namespace EQSpellParser
                 result.Add("Mana: " + Mana);
 
             if (EnduranceUpkeep > 0)
-                result.Add("Endurance: " + Endurance + ", Upkeep: " + EnduranceUpkeep + " per tick");
+                result.Add("Endurance: " + Endurance + ", Upkeep: " + EnduranceUpkeep + " per second");
             else if (Endurance > 0)
                 result.Add("Endurance: " + Endurance);
 
