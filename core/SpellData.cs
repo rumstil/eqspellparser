@@ -930,7 +930,7 @@ namespace EQSpellParser
                     // this may just be chance to avoid offhand riposte
                     return Spell.FormatPercent("Chance to Avoid Offhand Riposte", -base1);
                 case 305:
-                    return Spell.FormatPercent("Offhand Damage Shield Taken", base1);
+                    return Spell.FormatCount("Offhand Damage Shield Taken", base1) + (max == 0 ? "%" : "");
                 case 306:
                     return String.Format("Wake the Dead: {0} x {1} for {2}s", Extra, base1, max);
                 case 307:
