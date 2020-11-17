@@ -201,9 +201,9 @@ namespace EQSpellParser
             switch (spa)
             {
                 case 0:
-                    if (base2 > 0)
-                        return Spell.FormatCount("Current HP", value) + repeating + range + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
-                    return Spell.FormatCount("Current HP", value) + repeating + range;
+                    if (calc == 2060 || calc == 2070 || calc == 2090 || calc == 2100)
+                        return Spell.FormatCount("Current HP", base1) + " + (" + (calc - 2000) + " x Item/Player Level)" + repeating + range + (base2 > 0 ? " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")" : "");
+                    return Spell.FormatCount("Current HP", value) + repeating + range + (base2 > 0 ? " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")" : "");
                 case 1:
                     // showing post softcap AC (for Pre-Softcap Values, it should be - Int users: Value/3, all others: Value/4)
                     // Devs suggest anyone in any relevant gear Velious+ was hitting Soft Caps, which is like 95% of the expansions/game - Riou
@@ -258,13 +258,11 @@ namespace EQSpellParser
                 case 20:
                     return "Blind";
                 case 21:
-                    //if (base2 != base1 && base2 != 0)
-                    //    return String.Format("Stun for {0:0.##}s ({1:0.##}s in PvP)", base1 / 1000f, base2 / 1000f) + maxlevel;
+                    if (base2 != base1 && base2 != 0)
+                        return String.Format("Stun for {0:0.##}s ({1:0.##}s in PvP)", base1 / 1000f, base2 / 1000f) + absmax;
                     return String.Format("Stun for {0:0.##}s", base1 / 1000f) + absmax;
                 case 22:
-                    if (base2 > 0)
-                        return "Charm" + absmax + String.Format(" with {0}% Chance of Memory Blur", base2);
-                    return "Charm" + absmax;
+                    return "Charm" + absmax + (base2 > 0 ? String.Format(" with {0}% Chance of Memory Blur", base2) : "");
                 case 23:
                     return "Fear" + absmax;
                 case 24:
@@ -272,9 +270,7 @@ namespace EQSpellParser
                 case 25:
                     return "Bind";
                 case 26:
-                    if (base2 > 1)
-                        return "Gate to Secondary Bind";
-                    return "Gate";
+                    return "Gate" + (base2 > 1 ? " to Secondary Bind" : "");
                 case 27:
                     return String.Format("Dispel ({0})", value);
                 case 28:
@@ -327,20 +323,18 @@ namespace EQSpellParser
                 case 54:
                     return "Sense Animal";
                 case 55:
+                    if (calc == 2200)
+                        return String.Format("Absorb Damage: 100%, Total: {0}", base1) + " + (" + (calc - 2000) + " x Item/Player Level)";
                     return String.Format("Absorb Damage: 100%, Total: {0}", value);
                 case 56:
                     return "True North";
                 case 57:
-                    if (base2 == 1)
-                        return "Levitate While Moving";
-                    return "Levitate";
+                    return "Levitate" + (base2 == 1 ? " While Moving" : "");
                 case 58:
                     value = (base1 << 16) + base2 + (max * 1000);
                     if (Enum.IsDefined(typeof(SpellIllusion), value))
                         return String.Format("Illusion: {0}", Spell.FormatEnum((SpellIllusion)value));
-                    if (base2 > 0)
-                        return String.Format("Illusion: {0} ({1})", Spell.FormatEnum((SpellIllusion)base1), base2);
-                    return String.Format("Illusion: {0}", Spell.FormatEnum((SpellIllusion)base1));
+                    return String.Format("Illusion: {0}", Spell.FormatEnum((SpellIllusion)base1)) + (base2 > 0 ? String.Format("({0})", base2) : "");
                 case 59:
                     return Spell.FormatCount("Damage Shield", -value);
                 case 61:
@@ -368,9 +362,7 @@ namespace EQSpellParser
                 case 73:
                     return "Bind Sight";
                 case 74:
-                    if (value < 100)
-                        return String.Format("Feign Death ({0}% Chance)", value);
-                    return "Feign Death";
+                    return "Feign Death" + (value < 100 ? String.Format(" ({0}% Chance)", value) : "");
                 case 75:
                     return "Project Voice";
                 case 76:
@@ -381,9 +373,7 @@ namespace EQSpellParser
                     return String.Format("Absorb Spell Damage: 100%, Total: {0}", value);
                 case 79:
                     // delta hp for heal/nuke, non repeating
-                    if (base2 > 0)
-                        return Spell.FormatCount("Current HP", value) + range + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
-                    return Spell.FormatCount("Current HP", value) + range;
+                    return Spell.FormatCount("Current HP", value) + range + (base2 > 0 ? " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")" : "");
                 case 81:
                     return String.Format("Resurrect with {0}% XP", value);
                 case 82:
@@ -394,9 +384,7 @@ namespace EQSpellParser
                 case 84:
                     return "Gravity Flux";
                 case 85:
-                    if (base2 != 0)
-                        return String.Format("Add Melee Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
-                    return String.Format("Add Melee Proc: [Spell {0}]", base1);
+                    return String.Format("Add Melee Proc: [Spell {0}]", base1) + (base2 != 0 ? String.Format(" with {0}% Rate Mod", base2) : "");
                 case 86:
                     return String.Format("Decrease Social Radius to {0}", value) + absmax;
                 case 87:
@@ -413,6 +401,8 @@ namespace EQSpellParser
                 case 92:
                     // calming strike spells are all capped at 100. so base1 would be more appropriate for those
                     // but most other hate spells seem to imply scaled value is used
+                    if (calc == 2400 || calc == 2800)
+                        return Spell.FormatCount("Hate", base1) + " + (" + (calc - 2000) + " x Item/Player Level)";
                     return Spell.FormatCount("Hate", value);
                 case 93:
                     return "Stop Rain";
@@ -432,9 +422,7 @@ namespace EQSpellParser
                     return "Root";
                 case 100:
                     // heal over time
-                    if (base2 > 0)
-                        return Spell.FormatCount("Current HP", value) + repeating + range + " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")";
-                    return Spell.FormatCount("Current HP", value) + repeating + range;
+                    return Spell.FormatCount("Current HP", value) + repeating + range + (base2 > 0 ? " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")" : "");
                 case 101:
                     // only castable via Donal's BP. creates a buf that blocks recasting
                     return "Increase Current HP by 7500";
@@ -449,9 +437,7 @@ namespace EQSpellParser
                 case 106:
                     return String.Format("Summon Warder: {0}", Extra);
                 case 108:
-                    if (base2 > 0)
-                        return String.Format("Summon Familiar: {0} (Ignore Auto Leave)", Extra);
-                    return String.Format("Summon Familiar: {0}", Extra);
+                    return String.Format("Summon Familiar: {0}", Extra) + (base2 > 0 ? " (Ignore Auto Leave)" : "");
                 case 109:
                     if (Version != 0 && Version < 20190108)
                         return String.Format("Summon into Bag: [Item {0}] x {1}", base1, calc);
@@ -507,9 +493,8 @@ namespace EQSpellParser
                 case 132:
                     return Spell.FormatPercentRange("Spell Mana Cost", base1, base2, true);
                 case 134:
-                    if (base2 == 0)
-                        base2 = 100; // just to make it obvious that 0 means the focus stops functioning
-                    return String.Format("Limit Max Level: {0} (lose {1}% per level)", base1, base2);
+                    // 100 just to make it obvious that the focus stops functioning
+                    return String.Format("Limit Max Level: {0} (lose {1}% per level)", base1, base2 == 0 ? 100 : base2);
                 case 135:
                     return String.Format("Limit Resist: {1}{0}", (SpellResist)Math.Abs(base1), base1 >= 0 ? "" : "Exclude ");
                 case 136:
@@ -550,9 +535,7 @@ namespace EQSpellParser
                 case 150:
                     return String.Format("Divine Intervention with {0} Heal", max);
                 case 151:
-                    if (base1 == 1)
-                        return "Suspend Pet with Buffs";
-                    return "Suspend Pet";
+                    return "Suspend Pet" + (base1 == 1 ? " with Buffs" : "");
                 case 152:
                     return String.Format("Summon Pet: {0} x {1} for {2}s", Extra, base1, max);
                 case 153:
@@ -592,9 +575,7 @@ namespace EQSpellParser
                     // maybe it only mitigates the DI portion of the hit?
                     return Spell.FormatPercent("Melee Mitigation", -value);
                 case 169:
-                    if ((SpellSkill)base2 != SpellSkill.Hit)
-                        return Spell.FormatPercent("Chance to Critical Hit with " + Spell.FormatEnum((SpellSkill)base2), value);
-                    return Spell.FormatPercent("Chance to Critical Hit", value);
+                    return Spell.FormatPercent("Chance to Critical Hit" + ((SpellSkill)base2 != SpellSkill.Hit ? " with " + Spell.FormatEnum((SpellSkill)base2) : ""), value);
                 case 170:
                     // stacks with itself in other slots
                     return Spell.FormatPercent("Critical Nuke Damage", base1) + " of Base Damage";
@@ -753,7 +734,7 @@ namespace EQSpellParser
                     // allows bash while weilding a 2h weapon
                     return "Add Two-Handed Bash Ability";
                 case 227:
-                    return String.Format("Decrease {0} Timer by {1}", Spell.FormatEnum((SpellSkill)base2), FormatTime(base1));
+                    return String.Format("Decrease {0} Timer by {1} (Before Haste)", Spell.FormatEnum((SpellSkill)base2), FormatTime(base1));
                 case 228:
                     return Spell.FormatPercent("Falling Damage", -base1);
                 case 229:
@@ -840,7 +821,7 @@ namespace EQSpellParser
                 case 266:
                     // only works when first attack is successful?
                     // base2 may be the the number of attacks?
-                    return Spell.FormatPercent("Chance of Additional 2H Attack", base1) + String.Format(" ({0})", base2);
+                    return Spell.FormatPercent("Chance of " + base2 + " Additional 2H Attacks", base1);
                 case 267:
                     // 2 = /pet attack
                     // 3 = /pet qattack
@@ -921,10 +902,7 @@ namespace EQSpellParser
                     return Spell.FormatPercent("Chance to Resist Melee Stun", base1);
                 case 294:
                     // the base2 nuke damage increase only appears on 4 spells after the 2015-7-22 patch
-                    if (base2 > 0)
-                        return Spell.FormatPercent("Chance to Critical Nuke", base1) + " and " + Spell.FormatPercent("Critical Nuke Damage", base2) + " of Base Damage";
-                    else
-                        return Spell.FormatPercent("Chance to Critical Nuke", base1);
+                    return Spell.FormatPercent("Chance to Critical Nuke", base1) + (base2 > 0 ? " and " + Spell.FormatPercent("Critical Nuke Damage", base2) + " of Base Damage" : "");
                 case 296:
                     // incoming damage % SPAs 296 and 483 multiply against what is essentially (spell-data's base value * spa 413)
                     // rather than the focused value - Dzarn
@@ -971,27 +949,17 @@ namespace EQSpellParser
                 case 313:
                     return Spell.FormatPercent("Chance to Double Forage", base1);
                 case 314:
-                    if (base1 > 1)
-                        return String.Format("Invisibility (Enhanced {0})", base1);
-                    return "Invisibility";
+                    return "Invisibility" + (base1 > 1 ? String.Format(" (Enhanced {0})", base1) : "");
                 case 315:
-                    if (base1 > 1)
-                        return String.Format("Invisibility to Undead (Enhanced {0})", base1);
-                    return "Invisibility to Undead";
+                    return "Invisibility to Undead" + (base1 > 1 ? String.Format(" (Enhanced {0})", base1) : "");
                 case 316:
-                    if (base1 > 1)
-                        return String.Format("Invisibility to Animals (Enhanced {0})", base1);
-                    return "Invisibility to Animals";
+                    return "Invisibility to Animals" + (base1 > 1 ? String.Format(" (Enhanced {0})", base1) : "");
                 case 317:
                     return Spell.FormatCount("HP Regen Cap", base1);
                 case 318:
                     return Spell.FormatCount("Mana Regen Cap", base1);
                 case 319:
-                    if (base2 == 0)
-                        base2 = 100;
-                    if (max > 0)
-                        absmax += String.Format(" (lose {0}% per level)", base2);
-                    return Spell.FormatPercent("Chance to Critical HoT", base1) + absmax;
+                    return Spell.FormatPercent("Chance to Critical HoT", base1) + absmax + (max > 0 ? String.Format(" (lose {0}% per level)", base2 == 0 ? 100 : base2) : "");
                 case 320:
                     // % chance to block incoming melee attacks with your shield
                     return Spell.FormatPercent("Shield Block Chance", base1);
@@ -1033,9 +1001,7 @@ namespace EQSpellParser
                     return Spell.FormatCount("Current HP", value) + repeating + range + " (If Target Not Moving)";
                 case 335:
                     // block next spell that matches limits
-                    if (base1 < 100)
-                        return String.Format("Block Next Spell ({0}% Chance)", base1);
-                    return "Block Next Spell";
+                    return "Block Next Spell" + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "");
                 case 337:
                     return Spell.FormatPercent("Experience Gain", value);
                 case 338:
@@ -1045,17 +1011,13 @@ namespace EQSpellParser
                     return String.Format("Cast: [Spell {0}] on Spell Use ({1}% Chance)", base2, base1);
                 case 340:
                     // when a spell has multiple 340 slots, only one has a chance to cast
-                    if (base1 < 100)
-                        return String.Format("Cast: [Spell {0}] ({1}% Chance)", base2, base1);
-                    return String.Format("Cast: [Spell {0}]", base2);
+                    return String.Format("Cast: [Spell {0}]", base2) + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "");
                 case 341:
                     return Spell.FormatCount("ATK Cap", base1);
                 case 342:
                     return "Inhibit Low Health Fleeing";
                 case 343:
-                    if (base1 < 100)
-                        return String.Format("Interrupt Casting ({0}% Chance)", base1);
-                    return "Interrupt Casting";
+                    return "Interrupt Casting" + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "");
                 case 344:
                     return Spell.FormatPercent("Chance to Channel Item Procs", base1);
                 case 345:
@@ -1068,7 +1030,7 @@ namespace EQSpellParser
                     return String.Format("Limit Min Mana Cost: {0}", base1);
                 case 349:
                     // increases weapon damage when a shield is equiped
-                    return Spell.FormatPercent("Damage When Shield Equiped", base1);
+                    return Spell.FormatPercent("Damage When Shield Equipped", base1);
                 case 350:
                     if (base1 > Mana)
                         Mana = base1; // hack
@@ -1197,9 +1159,7 @@ namespace EQSpellParser
                 case 374:
                     // when a spell has multiple 374 slots, each one has a chance to cast
                     // very few spells have base1 < 100
-                    if (base1 < 100)
-                        return String.Format("Cast: [Spell {0}] ({1}% Chance)", base2, base1);
-                    return String.Format("Cast: [Spell {0}]", base2);
+                    return String.Format("Cast: [Spell {0}]", base2) + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "");
                 case 375:
                     // additive with innate crit multiplier and same effect in other slots
                     return Spell.FormatPercent("Critical DoT Damage", base1) + " of Base Damage";
@@ -1225,9 +1185,7 @@ namespace EQSpellParser
                 case 381:
                     return String.Format("Fling to Self ({0}' away)", base1) + varmax;
                 case 382:
-                    if (base1 != 0)
-                        return String.Format("Inhibit Effect: {0} ({1})", Spell.FormatEnum((SpellEffect)base2), (SpellInhibitType)base1);
-                    return String.Format("Inhibit Effect: {0}", Spell.FormatEnum((SpellEffect)base2));
+                    return String.Format("Inhibit Effect: {0}", Spell.FormatEnum((SpellEffect)base2)) + (base1 != 0 ? String.Format(" ({0})", (SpellInhibitType)base1) : "");
                 case 383:
                     // sympathetic procs like this are often cast at a specific level by an item (see focuslevel item attrib)
                     // chance % modified by the cast time of the spell cast that triggers the proc, whereas 339 is not
@@ -1270,7 +1228,7 @@ namespace EQSpellParser
                     return Spell.FormatCount("Healing", base1) + " (v396, Before Crit)";
                 case 397:
                     // will use the player AC formula for comparison with buffs but maybe they aren't comparable?
-                    return Spell.FormatCount("Pet AC", (int)(value / (10f / 3f)));
+                    return Spell.FormatCount("Pet AC", value);
                 case 398:
                     return String.Format("Increase Pet Duration by {0}s", base1 / 1000);
                 case 399:
@@ -1280,11 +1238,11 @@ namespace EQSpellParser
                     // this effect doesn't cause hate - it was added to divine arb as a non-aggro heal
                     Mana = base1; // a bit misleading since the spell will cast with 0 mana and scale the heal
                     Target = SpellTarget.Caster_Group; // total hack but makes sense for current spells
-                    return String.Format("Increase Current HP by up to {0} ({1} HP per 1 Mana)", Math.Floor(base1 * base2 / 10f), base2 / 10f);
+                    return String.Format("Increase Current HP by up to {0} ({1} HP per 1 Mana)", Math.Abs(Math.Floor(base1 * base2 / 10f)), Math.Abs(base2 / 10f));
                 case 401:
-                    return String.Format("Decrease Current HP by up to {0} ({1} HP per 1 Target Mana)", Math.Floor(base1 * base2 / -10f), base2 / -10f);
+                    return String.Format("Decrease Current HP by up to {0} ({1} HP per 1 Target Mana)", Math.Abs(Math.Floor(base1 * base2 / 10f)), Math.Abs(base2 / 10f));
                 case 402:
-                    return String.Format("Decrease Current HP by up to {0} ({1} HP per 1 Target Endurance)", Math.Floor(base1 * base2 / -10f), base2 / -10f);
+                    return String.Format("Decrease Current HP by up to {0} ({1} HP per 1 Target Endurance)", Math.Abs(Math.Floor(base1 * base2 / 10f)), Math.Abs(base2 / 10f));
                 case 403:
                     return String.Format("Limit Spell Class: {0}{1}", base1 >= 0 ? "" : "Exclude ", Spell.FormatEnum((SpellCategory)Math.Abs(base1)));
                 case 404:
@@ -1300,17 +1258,11 @@ namespace EQSpellParser
                     return String.Format("Cast: [Spell {0}] if Hit By Spell", base1);
                 case 408:
                     // target will still have normal max HP but cannot be regen/heal past the cap
-                    if (base2 > 0)
-                        return String.Format("Cap HP at lowest of {0}% or {1}", base1, base2);
-                    return String.Format("Cap HP at {0}%", base1);
+                    return String.Format("Cap HP at ") + (base2 > 0 ? String.Format("lowest of {0}% or {1}", base1, base2) : String.Format("{0}%", base1));
                 case 409:
-                    if (base2 > 0)
-                        return String.Format("Cap Mana at lowest of {0}% or {1}", base1, base2);
-                    return String.Format("Cap Mana at {0}%", base1);
+                    return String.Format("Cap Mana at ") + (base2 > 0 ? String.Format("lowest of {0}% or {1}", base1, base2) : String.Format("{0}%", base1));
                 case 410:
-                    if (base2 > 0)
-                        return String.Format("Cap Endurance at lowest of {0}% or {1}", base1, base2);
-                    return String.Format("Cap Endurance at {0}%", base1);
+                    return String.Format("Cap Endurance at ") + (base2 > 0 ? String.Format("lowest of {0}% or {1}", base1, base2) : String.Format("{0}%", base1));
                 case 411:
                     return String.Format("Limit Class: {0}", (SpellClassesMask)(base1 >> 1));
                 case 412:
@@ -1333,9 +1285,7 @@ namespace EQSpellParser
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Damage Bonus", base1) + " (v418)";
                 case 419:
                     // this is used for potions. how is it different than 85? maybe proc rate?
-                    if (base2 != 0)
-                        return String.Format("Add Melee Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
-                    return String.Format("Add Melee Proc: [Spell {0}]", base1);
+                    return String.Format("Add Melee Proc: [Spell {0}]", base1) + (base2 != 0 ? String.Format(" with {0}% Rate Mod", base2) : "");
                 case 421:
                     return Spell.FormatCount("Max Hits Counter", base1);
                 case 422:
@@ -1356,9 +1306,7 @@ namespace EQSpellParser
                 case 428:
                     return String.Format("Limit Skill: {0}", Spell.FormatEnum((SpellSkill)base1));
                 case 429:
-                    if (base2 != 0)
-                        return String.Format("Add Skill Proc: [Spell {0}] with {1}% Rate Mod", base1, base2);
-                    return String.Format("Add Skill Proc: [Spell {0}]", base1);
+                    return String.Format("Add Skill Proc: [Spell {0}]", base1) + (base2 != 0 ? String.Format(" with {0}% Rate Mod", base2) : "");
                 case 430:
                     return String.Format("Alter Vision: Base1={0} Base2={1} Max={2}", base1, base2, max);
                 case 431:
@@ -1382,7 +1330,7 @@ namespace EQSpellParser
                 case 435:
                     return String.Format("Fragile Defense ({0})", base1);
                 case 436:
-                    return "Freeze Beneficial Countdown";
+                    return "Toggle: Freeze Buffs";
                 case 437:
                     return "Teleport to your " + FormatEnum((SpellTeleport)base1);
                 case 438:
@@ -1451,33 +1399,28 @@ namespace EQSpellParser
                     // same as /shield command?
                     return Spell.FormatPercent("Melee Shielding: {0}%", base1);
                 case 464:
-                    return Spell.FormatPercent("Pet Chance to Rampage", base1);
+                    return Spell.FormatPercent("Pet Chance to Rampage", base1) + String.Format(" with {0}% Damage", base2);
                 case 465:
                     return Spell.FormatPercent("Pet Chance to AE Rampage", base1);
                 case 466:
                     // this chance is additive with the owner's passive pet flurry chance AA abilities.
-                    // how does this differ from 280?
-                    return Spell.FormatPercent("Pet Chance to Flurry", base1);
+                    // allows pet to flurry on double attack instead of normal triple like 280
+                    return Spell.FormatPercent("Pet Chance to Flurry on Double Attack", base1);
                 case 467:
                     return Spell.FormatCount("Damage Shield Taken", base1);
                 case 468:
                     return Spell.FormatPercent("Damage Shield Taken", base1);
                 case 469:
                     // 469/470 seem to be similar to spa 340/374 except the cast a spell by group ID rather than spell ID
-                    // is the chance on this shared with other chance SPAs (i.e. only 1 can be cast)?
-                    return String.Format("Cast: [Group {0}] ({1}% Chance)", base2, base1);
+                    // 469 is a chance, 470 is guaranteed
+                    return String.Format("Cast: Highest Rank of [Group {0}] ({1}% Chance)", base2, base1);
                 case 470:
                     // cast highest rank of a spell group - if you don't have any in your spellbook, nothing will be cast
-                    // is the chance on this independant of other chance SPAs (i.e. each one has it's own chance to cast)?
-                    if (base1 < 100)
-                        return String.Format("Cast: Highest Rank of [Group {0}] ({1}% Chance)", base2, base1);
                     return String.Format("Cast: Highest Rank of [Group {0}]", base2);
                 case 471:
                     // add an extra melee round. i.e. main attack, double attack, triple
                     // this is sort of like 211 AE attack except it was added to nerf DPS by only affecting the current target
-                    if (base2 != 100)
-                        return Spell.FormatPercent("Chance to Repeat Primary Hand Round", base1) + String.Format(" with {0}% Damage", base2);
-                    return Spell.FormatPercent("Chance to Repeat Primary Hand Round", base1);
+                    return Spell.FormatPercent("Chance to Repeat Primary Hand Round", base1) + (base2 != 100 ? String.Format(" with {0}% Damage", base2) : "");
                 case 472:
                     return String.Format("Buy AA Rank ({0})", base1);
                 case 473:
@@ -1491,18 +1434,16 @@ namespace EQSpellParser
                 case 476:
                     return String.Format("Weapon Stance: [Spell {0}] ({1})", base2, base1);
                 case 477:
-                    return String.Format("Move to Top of Hatelist ({0}% Chance)", base1);
+                    return String.Format("Move to Top of Rampage List ({0}% Chance)", base1);
                 case 478:
-                    return String.Format("Move to Bottom of Hatelist ({0}% Chance)", base1);
+                    return String.Format("Move to Bottom of Rampage List ({0}% Chance)", base1);
                 case 479:
                     return String.Format("Limit Effect: {0} greater than {1}", Spell.FormatEnum((SpellEffect)base2), base1);
                 case 480:
                     return String.Format("Limit Effect: {0} less than {1}", Spell.FormatEnum((SpellEffect)base2), base1);
                 case 481:
                     // similar to 407 except maybe it checks limits?
-                    if (base1 < 100)
-                        return String.Format("Cast: [Spell {0}] if Hit By Spell ({1}% Chance)", base2, base1);
-                    return String.Format("Cast: [Spell {0}] if Hit By Spell", base2);
+                    return String.Format("Cast: [Spell {0}] if Hit By Spell", base2) + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "");
                 case 482:
                     return Spell.FormatPercent("Base " + Spell.FormatEnum((SpellSkill)base2) + " Damage", base1);
                 case 483:
@@ -1518,9 +1459,7 @@ namespace EQSpellParser
                     // 411 is used on outgoing focuses
                     return String.Format("Limit Caster Class: {0}", (SpellClassesMask)(base1 >> 1));
                 case 486:
-                    if (base1 == 0)
-                        return "Limit Caster: Exclude Self";
-                    return "Limit Caster: Self";
+                    return "Limit Caster: " + (base1 == 0 ? "Exclude " : "") + "Self";
                 case 487:
                     return Spell.FormatCount(Spell.FormatEnum((SpellSkill)base2) + " Skill Cap with Recipes", base1);
                 case 488:
@@ -1563,20 +1502,23 @@ namespace EQSpellParser
                     return Spell.FormatPercent("Spell Haste", base1) + " (v500)"; ;
                 case 501:
                     // applied after 127/500 spell haste focus?
-                    return String.Format("Decrease Casting Times by {0:0.##}s", base1 / 1000f);
+                    return String.Format((base1 < 0 ? "Increase" : "Decrease") + " Casting Times by {0:0.##}s", Math.Abs(base1 / 1000f));
                 case 502:
-                    // what is base2 used for?
-                    return String.Format("Stun and Fear for {0}s", base1 / 1000f) + varmax;
+                    // mostly the same as SPA 21, but uses Fear for Immunity check instead of Stun
+                    // and allows for Level Relative Caps i.e. Level + 3
+                    if (base2 != base1 && base2 != 0)
+                        return String.Format("Stun and Fear for {0:0.##}s ({1:0.##}s in PvP)", base1 / 1000f, base2 / 1000f) + varmax;
+                    return String.Format("Stun and Fear for {0:0.##}s", base1 / 1000f) + varmax;
                 case 503:
                     // similar to 185 but with rear arc? stacking?
                     // base2 might be arc type. e.g. 0 = back
-                    return Spell.FormatPercent("Rear Arc Melee Damage", base1 / 10f);
+                    return Spell.FormatPercent((base2 == 0 ? "Rear" : "Frontal") + " Arc Melee Damage", base1 / 10f);
                 case 504:
-                    return Spell.FormatCount("Rear Arc Melee Damage", base1);
+                    return Spell.FormatCount((base2 == 0 ? "Rear" : "Frontal") + " Arc Melee Damage", base1);
                 case 505:
-                    return Spell.FormatPercent("Rear Arc Melee Damage Taken", base1 / 10f);
+                    return Spell.FormatPercent((base2 == 0 ? "Rear" : "Frontal") + " Arc Melee Damage Taken", base1 / 10f);
                 case 506:
-                    return Spell.FormatCount("Rear Arc Melee Damage Taken", base1);
+                    return Spell.FormatCount((base2 == 0 ? "Rear" : "Frontal") + " Arc Melee Damage Taken", base1);
                 case 507:
                     // Effectively Fc_Damage_%2. I know 461 is supposedly "Fc_Damage_%2," but for whatever reason it works nothing like SPA 124.
                     // SPA 507 appears to work just like 124, except it appears to be applied after 461. - Sancus
@@ -1613,7 +1555,7 @@ namespace EQSpellParser
                     // divide by 10 or 100?
                     return Spell.FormatPercent("Luck", base1 / 10f);
                 case 521:
-                    return String.Format("Absorb Damage using Endurance: {0}%", base1 / 100) + (base2 != 10000 ? String.Format(" ({0:F} End per 1 HP)", base2 / 10000) : "") + (max > 0 ? String.Format(", Max Per Hit: {0}", max) : "");
+                    return String.Format("Absorb Damage using Endurance: {0}%", base1 / 100) + (base2 != 10000 ? String.Format(" ({0} End per 1 HP)", base2 / 10000f) : "") + (max > 0 ? String.Format(", Max Per Hit: {0}", max) : "");
                 case 522:
                     return Spell.FormatPercent("Current Mana", base1 / 100) + String.Format(" up to {0}", max);
                 case 523:
