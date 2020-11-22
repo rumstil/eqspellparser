@@ -1412,11 +1412,10 @@ namespace EQSpellParser
                     return Spell.FormatPercent("Damage Shield Taken", base1);
                 case 469:
                     // 469/470 seem to be similar to spa 340/374 except the cast a spell by group ID rather than spell ID
-                    // 469 is a chance, 470 is guaranteed
-                    return String.Format("Cast: Highest Rank of [Group {0}] ({1}% Chance)", base2, base1);
+                    return String.Format("Cast: Highest Rank of [Group {0}]", base2) + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "");
                 case 470:
                     // cast highest rank of a spell group - if you don't have any in your spellbook, nothing will be cast
-                    return String.Format("Cast: Highest Rank of [Group {0}]", base2);
+                    return String.Format("Cast: Highest Rank of [Group {0}]", base2) + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "");
                 case 471:
                     // add an extra melee round. i.e. main attack, double attack, triple
                     // this is sort of like 211 AE attack except it was added to nerf DPS by only affecting the current target
