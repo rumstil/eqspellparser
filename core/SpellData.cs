@@ -201,8 +201,8 @@ namespace EQSpellParser
             switch (spa)
             {
                 case 0:
-                    if ((calc == 2060 || calc == 2070 || calc == 2090 || calc == 2100) && level == MAX_LEVEL)
-                        return Spell.FormatCount("Current HP", base1) + " + (" + (calc - 2000) + " x Item/Player Level)" + repeating + range + (base2 > 0 ? " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")" : "");
+                    if (calc == 2060 || calc == 2070 || calc == 2090 || calc == 2100)
+                        return Spell.FormatCount("Current HP", base1) + " (Scales to Item/PC Level)" + repeating + range + (base2 > 0 ? " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")" : "");
                     return Spell.FormatCount("Current HP", value) + repeating + range + (base2 > 0 ? " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")" : "");
                 case 1:
                     // showing post softcap AC (for Pre-Softcap Values, it should be - Int users: Value/3, all others: Value/4)
@@ -323,15 +323,15 @@ namespace EQSpellParser
                 case 54:
                     return "Sense Animal";
                 case 55:
-                    if (calc == 2200 && level == MAX_LEVEL)
-                        return String.Format("Absorb Damage: 100%, Total: {0}", base1) + " + (" + (calc - 2000) + " x Item/Player Level)";
+                    if (calc == 2200)
+                        return String.Format("Absorb Damage: 100%, Total: {0}", base1) + " (Scales to Item/PC Level)";
                     return String.Format("Absorb Damage: 100%, Total: {0}", value);
                 case 56:
                     return "True North";
                 case 57:
                     return "Levitate" + (base2 == 1 ? " While Moving" : "");
                 case 58:
-                    value = (base1 << 16) + base2;
+                    value = (base1 << 16) + base2 + (max * 1000);
                     if (Enum.IsDefined(typeof(SpellIllusion), value))
                         return String.Format("Illusion: {0}", Spell.FormatEnum((SpellIllusion)value));
                     return String.Format("Illusion: {0}", Spell.FormatEnum((SpellIllusion)base1)) + (base2 > 0 ? String.Format(" ({0})", base2) : "");
@@ -401,8 +401,8 @@ namespace EQSpellParser
                 case 92:
                     // calming strike spells are all capped at 100. so base1 would be more appropriate for those
                     // but most other hate spells seem to imply scaled value is used
-                    if ((calc == 2400 || calc == 2800) && level == MAX_LEVEL)
-                        return Spell.FormatCount("Hate", base1) + " + (" + (calc - 2000) + " x Item/Player Level)";
+                    if (calc == 2400 || calc == 2800)
+                        return Spell.FormatCount("Hate", base1) + " (Scales to Item/PC Level)";
                     return Spell.FormatCount("Hate", value);
                 case 93:
                     return "Stop Rain";
@@ -1412,10 +1412,11 @@ namespace EQSpellParser
                     return Spell.FormatPercent("Damage Shield Taken", base1);
                 case 469:
                     // 469/470 seem to be similar to spa 340/374 except the cast a spell by group ID rather than spell ID
-                    // is the chance on this shared with other chance SPAs (i.e. only 1 can be cast)?
+                    // only 1 proc of this SPA per spell
                     return String.Format("Cast: Highest Rank of [Group {0}]", base2) + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "");
                 case 470:
                     // is the chance on this independent of other chance SPAs (i.e. each one has it's own chance to cast)?
+                    // can proc all of this SPA per spell
                     return String.Format("Cast: Highest Rank of [Group {0}]", base2) + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "");
                 case 471:
                     // add an extra melee round. i.e. main attack, double attack, triple
