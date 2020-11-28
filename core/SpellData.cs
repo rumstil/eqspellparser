@@ -1011,7 +1011,7 @@ namespace EQSpellParser
                     return String.Format("Cast: [Spell {0}] on Spell Use ({1}% Chance)", base2, base1);
                 case 340:
                     // when a spell has multiple 340 slots, only one has a chance to cast
-                    return String.Format("Cast: [Spell {0}]", base2) + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "");
+                    return String.Format("Cast: [Spell {0}]", base2) + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "") + " (v340)";
                 case 341:
                     return Spell.FormatCount("ATK Cap", base1);
                 case 342:
@@ -1159,7 +1159,7 @@ namespace EQSpellParser
                 case 374:
                     // when a spell has multiple 374 slots, each one has a chance to cast
                     // very few spells have base1 < 100
-                    return String.Format("Cast: [Spell {0}]", base2) + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "");
+                    return String.Format("Cast: [Spell {0}]", base2) + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "") + " (v374)";
                 case 375:
                     // additive with innate crit multiplier and same effect in other slots
                     return Spell.FormatPercent("Critical DoT Damage", base1) + " of Base Damage";
@@ -1413,11 +1413,11 @@ namespace EQSpellParser
                 case 469:
                     // 469/470 seem to be similar to spa 340/374 except the cast a spell by group ID rather than spell ID
                     // only 1 proc of this SPA per spell
-                    return String.Format("Cast: Highest Rank of [Group {0}]", base2) + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "");
+                    return String.Format("Cast: Highest Rank of [Group {0}]", base2) + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "") + " (v469)";
                 case 470:
                     // is the chance on this independent of other chance SPAs (i.e. each one has it's own chance to cast)?
                     // can proc all of this SPA per spell
-                    return String.Format("Cast: Highest Rank of [Group {0}]", base2) + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "");
+                    return String.Format("Cast: Highest Rank of [Group {0}]", base2) + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "") + " (v470)";
                 case 471:
                     // add an extra melee round. i.e. main attack, double attack, triple
                     // this is sort of like 211 AE attack except it was added to nerf DPS by only affecting the current target
