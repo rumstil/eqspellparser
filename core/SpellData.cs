@@ -201,8 +201,8 @@ namespace EQSpellParser
             switch (spa)
             {
                 case 0:
-                    if ((calc == 2060 || calc == 2070 || calc == 2090 || calc == 2100) && level == MAX_LEVEL)
-                        return Spell.FormatCount("Current HP", base1) + " + (" + (calc - 2000) + " x Item/Player Level)" + repeating + range + (base2 > 0 ? " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")" : "");
+                    if (calc == 2060 || calc == 2070 || calc == 2090 || calc == 2100)
+                        return Spell.FormatCount("Current HP", base1) + " (Scales to Item/PC Level)" + repeating + range + (base2 > 0 ? " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")" : "");
                     return Spell.FormatCount("Current HP", value) + repeating + range + (base2 > 0 ? " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")" : "");
                 case 1:
                     // showing post softcap AC (for Pre-Softcap Values, it should be - Int users: Value/3, all others: Value/4)
@@ -323,15 +323,15 @@ namespace EQSpellParser
                 case 54:
                     return "Sense Animal";
                 case 55:
-                    if (calc == 2200 && level == MAX_LEVEL)
-                        return String.Format("Absorb Damage: 100%, Total: {0}", base1) + " + (" + (calc - 2000) + " x Item/Player Level)";
+                    if (calc == 2200)
+                        return String.Format("Absorb Damage: 100%, Total: {0}", base1) + " (Scales to Item/PC Level)";
                     return String.Format("Absorb Damage: 100%, Total: {0}", value);
                 case 56:
                     return "True North";
                 case 57:
                     return "Levitate" + (base2 == 1 ? " While Moving" : "");
                 case 58:
-                    value = (base1 << 16) + base2;
+                    value = (base1 << 16) + base2 + (max * 1000);
                     if (Enum.IsDefined(typeof(SpellIllusion), value))
                         return String.Format("Illusion: {0}", Spell.FormatEnum((SpellIllusion)value));
                     return String.Format("Illusion: {0}", Spell.FormatEnum((SpellIllusion)base1)) + (base2 > 0 ? String.Format(" ({0})", base2) : "");
@@ -401,8 +401,8 @@ namespace EQSpellParser
                 case 92:
                     // calming strike spells are all capped at 100. so base1 would be more appropriate for those
                     // but most other hate spells seem to imply scaled value is used
-                    if ((calc == 2400 || calc == 2800) && level == MAX_LEVEL)
-                        return Spell.FormatCount("Hate", base1) + " + (" + (calc - 2000) + " x Item/Player Level)";
+                    if (calc == 2400 || calc == 2800)
+                        return Spell.FormatCount("Hate", base1) + " (Scales to Item/PC Level)";
                     return Spell.FormatCount("Hate", value);
                 case 93:
                     return "Stop Rain";
@@ -1011,7 +1011,7 @@ namespace EQSpellParser
                     return String.Format("Cast: [Spell {0}] on Spell Use ({1}% Chance)", base2, base1);
                 case 340:
                     // when a spell has multiple 340 slots, only one has a chance to cast
-                    return String.Format("Cast: [Spell {0}]", base2) + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "");
+                    return String.Format("Cast: [Spell {0}]", base2) + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "") + " (v340)";
                 case 341:
                     return Spell.FormatCount("ATK Cap", base1);
                 case 342:
@@ -1159,7 +1159,7 @@ namespace EQSpellParser
                 case 374:
                     // when a spell has multiple 374 slots, each one has a chance to cast
                     // very few spells have base1 < 100
-                    return String.Format("Cast: [Spell {0}]", base2) + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "");
+                    return String.Format("Cast: [Spell {0}]", base2) + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "") + " (v374)";
                 case 375:
                     // additive with innate crit multiplier and same effect in other slots
                     return Spell.FormatPercent("Critical DoT Damage", base1) + " of Base Damage";
@@ -1412,11 +1412,12 @@ namespace EQSpellParser
                     return Spell.FormatPercent("Damage Shield Taken", base1);
                 case 469:
                     // 469/470 seem to be similar to spa 340/374 except the cast a spell by group ID rather than spell ID
-                    // is the chance on this shared with other chance SPAs (i.e. only 1 can be cast)?
-                    return String.Format("Cast: Highest Rank of [Group {0}]", base2) + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "");
+                    // only 1 proc of this SPA per spell
+                    return String.Format("Cast: Highest Rank of [Group {0}]", base2) + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "") + " (v469)";
                 case 470:
                     // is the chance on this independent of other chance SPAs (i.e. each one has it's own chance to cast)?
-                    return String.Format("Cast: Highest Rank of [Group {0}]", base2) + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "");
+                    // can proc all of this SPA per spell
+                    return String.Format("Cast: Highest Rank of [Group {0}]", base2) + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "") + " (v470)";
                 case 471:
                     // add an extra melee round. i.e. main attack, double attack, triple
                     // this is sort of like 211 AE attack except it was added to nerf DPS by only affecting the current target
