@@ -202,7 +202,7 @@ namespace EQSpellParser
             {
                 case 0:
                     if (calc == 2060 || calc == 2070 || calc == 2090 || calc == 2100)
-                        return Spell.FormatCount("Current HP", base1) + " (Scales to Item/PC Level)" + repeating + range + (base2 > 0 ? " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")" : "");
+                        return Spell.FormatCount("Current HP", value) + " (Scales to Item/PC Level)" + repeating + range + (base2 > 0 ? " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")" : "");
                     return Spell.FormatCount("Current HP", value) + repeating + range + (base2 > 0 ? " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")" : "");
                 case 1:
                     // showing post softcap AC (for Pre-Softcap Values, it should be - Int users: Value/3, all others: Value/4)
@@ -324,7 +324,7 @@ namespace EQSpellParser
                     return "Sense Animal";
                 case 55:
                     if (calc == 2200)
-                        return String.Format("Absorb Damage: 100%, Total: {0}", base1) + " (Scales to Item/PC Level)";
+                        return String.Format("Absorb Damage: 100%, Total: {0}", value) + " (Scales to Item/PC Level)";
                     return String.Format("Absorb Damage: 100%, Total: {0}", value);
                 case 56:
                     return "True North";
@@ -402,7 +402,7 @@ namespace EQSpellParser
                     // calming strike spells are all capped at 100. so base1 would be more appropriate for those
                     // but most other hate spells seem to imply scaled value is used
                     if (calc == 2400 || calc == 2800)
-                        return Spell.FormatCount("Hate", base1) + " (Scales to Item/PC Level)";
+                        return Spell.FormatCount("Hate", value) + " (Scales to Item/PC Level)";
                     return Spell.FormatCount("Hate", value);
                 case 93:
                     return "Stop Rain";

@@ -90,9 +90,9 @@ namespace winparser
                 Html.AppendFormat("<td style='max-width: 12em'>{0}</td>", spell.ClassesLevels);
 
                 if (spell.Endurance == 0 && spell.EnduranceUpkeep > 0)
-                    Html.AppendFormat("<td class='end'>{0}/second</td>", spell.EnduranceUpkeep);
+                    Html.AppendFormat("<td class='end'>{0}/sec</td>", spell.EnduranceUpkeep);
                 else if (spell.Endurance > 0 && spell.EnduranceUpkeep > 0)
-                    Html.AppendFormat("<td class='end'>{0} + {1}/second</td>", spell.Endurance, spell.EnduranceUpkeep);
+                    Html.AppendFormat("<td class='end'>{0} + {1}/sec</td>", spell.Endurance, spell.EnduranceUpkeep);
                 else if (spell.Endurance > 0)
                     Html.AppendFormat("<td class='end'>{0}</td>", spell.Endurance);
                 else

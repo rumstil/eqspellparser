@@ -740,8 +740,8 @@ namespace EQSpellParser
         No_Shroud_of_Prayer_Buff = 32339,
         Mana_Below_20_Percent = 38311,
         Mana_Above_50_Percent = 38312,
-        Completed_Achievement_Legendary_Answerer = 39281,
-        Missing_Achievement_Legendary_Answerer = 42280,
+        Missing_Achievement_Legendary_Answerer = 39281,
+        Completed_Achievement_Legendary_Answerer = 42280,
         Summoned_or_Undead = 49326,
         Caster_Priest_Classes = 49529,
         // melee classes must be below 30% endurance and classes that use mana must be below 30% mana
