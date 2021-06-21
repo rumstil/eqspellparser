@@ -1490,9 +1490,10 @@ namespace EQSpellParser
                     // Ff_FocusCastProcNoBypass
                     // Modified the focus effects on all versions of Brell's Shawl items and augments so that their benefits 
                     // will no longer be activated by triggered spells. -Patch Message
+                    // Changed some of the modern Spell Casting Proc items so they won't trigger from other proc effects or twincast.  -Patch
                     // 1 = exclude? maybe this is a mask of invocation types?
                     //return String.Format("Limit: {0} Cast Spells", base1 == 1 ? "Include" : "Exclude");
-                    return "Limit: No Triggered Spells";
+                    return "Limit: No Procs or Twincast";
                 case 498:
                     // silimar to 266?
                     // base2 may be the the number of attacks?
@@ -2267,6 +2268,19 @@ namespace EQSpellParser
             //return new TimeSpan(0, 0, (int)seconds).ToString();
         }
 
+        public static string FormatTimeLong(float seconds)
+        {
+            if (seconds < 120)
+                return seconds.ToString("0.##") + " seconds";
+
+            if (seconds < 7200)
+                return (seconds / 60f).ToString("0.#") + " minutes";
+
+            return (seconds / 3600f).ToString("0.#") + " hours";
+
+            //return new TimeSpan(0, 0, (int)seconds).ToString();
+        }
+
         private static string FormatCount(string name, int value)
         {
             return String.Format("{0} {1} by {2}", value < 0 ? "Decrease" : "Increase", name, Math.Abs(value));
@@ -2320,18 +2334,6 @@ namespace EQSpellParser
 
             return String.Format("{0} {1} by {2:0.#}% to {3:0.#}%", max < 0 ? "Decrease" : "Increase", name, Math.Abs(min), Math.Abs(max));
         }
-
-
-        /*
-        private static string FormatDesc()
-        {
-            // Spell descriptions include references to spell slots. e.g.
-            // #7 = base1 for slot 7
-            // @7 = calc(base1) for slot 7
-            // $7 = base2 for slot 7
-            return null;
-        }
-        */
     }
 
 }
