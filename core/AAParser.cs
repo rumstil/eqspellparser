@@ -9,19 +9,6 @@ using System.Text.RegularExpressions;
 
 namespace EQSpellParser
 {
-    public struct AASlot
-    {
-        public int SPA;
-        public int Base1;
-        public int Base2;
-        public string Desc;
-
-        public override string ToString()
-        {
-            return Desc;
-        }
-    }
-
     public struct AAReq
     {
         public int GroupID;
@@ -49,7 +36,7 @@ namespace EQSpellParser
         public int Tab; // 1=general, 2=archetype, 3=class
         public int Category;
         public int Expansion;
-        public AASlot[] Slots;
+        public List<SpellSlot> Slots;
         public AAReq[] Req;
         public DateTime UpdatedOn;
 
@@ -75,7 +62,7 @@ namespace EQSpellParser
 
         public AA()
         {
-            Slots = new AASlot[0];
+            Slots = new List<SpellSlot>();
             Req = new AAReq[0];
             LinksTo = new int[0];
         }
@@ -90,7 +77,7 @@ namespace EQSpellParser
         /// </summary>
         public bool HasEffect(int spa)
         {
-            for (int i = 0; i < Slots.Length; i++)
+            for (int i = 0; i < Slots.Count; i++)
                 if (Slots[i].SPA == spa)
                     return true;
 
@@ -110,7 +97,7 @@ namespace EQSpellParser
             if (Int32.TryParse(text, out spa))
                 return HasEffect(spa);
 
-            for (int i = 0; i < Slots.Length; i++)
+            for (int i = 0; i < Slots.Count; i++)
                 if (Slots[i].Desc != null && Slots[i].Desc.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) >= 0)
                     return true;
 
@@ -125,7 +112,7 @@ namespace EQSpellParser
         /// </summary>
         public bool HasEffect(Regex re)
         {
-            for (int i = 0; i < Slots.Length; i++)
+            for (int i = 0; i < Slots.Count; i++)
                 if (Slots[i].Desc != null && re.IsMatch(Slots[i].Desc))
                     return true;
 
@@ -137,11 +124,12 @@ namespace EQSpellParser
     }
 
     /// <summary>
-    /// Load AA data from a data file. Unlike the spell data, this file is not distributed with the game - this is just my own adhoc data file format.
+    /// Load AA data from a data file. Unlike the spell data, this file is not distributed with the game - 
+    /// this is just my own adhoc data file format.
     /// </summary>
     public static class AAParser
     {
-        static public List<AA> LoadFromFile(string aaPath, string descPath)
+        static public List<AA> LoadFromFile(string aaPath, string descPath, Dictionary<int, Spell> spells)
         {
             var desc = new Dictionary<string, string>(60000);
             if (File.Exists(descPath))
@@ -192,7 +180,9 @@ namespace EQSpellParser
 
                     // read effect slots (an array of 4-int groups)
                     var slotsArray = fields[17].Split(',');
-                    var slots = new List<AASlot>();
+
+                    // copy data from the AA to a temporary virtual spell so that we can piggyback on 
+                    // the SPA parsing code without duplicating it
                     var spell = new Spell();
                     spell.DurationTicks = 1; // to show regen with "/tick" mode
                     for (int i = 0; i + 3 < slotsArray.Length; i += 4)
@@ -200,15 +190,25 @@ namespace EQSpellParser
                         int spa = ParseInt(slotsArray[i]);
                         int base1 = ParseInt(slotsArray[i + 1]);
                         int base2 = ParseInt(slotsArray[i + 2]);
-                        var slot = new AASlot() { SPA = spa, Base1 = base1, Base2 = base2 };
+                        var slot = new SpellSlot() { SPA = spa, Base1 = base1, Base2 = base2, Max = 0, Calc = 100 };
 
-                        slot.Desc = spell.ParseEffect(spa, base1, base2, 0, 100, aa.ReqLevel);
-#if DEBUG
-                        //spadesc = String.Format("SPA {0} Base1={1} Base2={2} --- {3}", spa, base1, base2, spadesc);
-#endif
-                        slots.Add(slot);
+                        slot.Desc = spell.ParseEffect(slot, aa.ReqLevel);
+
+                        aa.Slots.Add(slot);
+                        spell.Slots.Add(slot);
                     }
-                    aa.Slots = slots.ToArray();
+
+                    if (!String.IsNullOrEmpty(aa.Desc))
+                    {
+                        // AA descriptions use *@ to refer to the activated spell cast by the AA
+                        // since the Spell class doesn't have an attribute for this we will store it in the 
+                        // recourse attribute and rewrite the token to refer to the recourse ID
+                        spell.RecourseID = aa.SpellID;
+                        spell.Desc = Regex.Replace(aa.Desc, @"\*@(?!\d)", "*%R");
+                        spell.PrepareDesc(spells);
+                        aa.Desc = spell.Desc;
+                        //aa.Desc += " --- " + spell.Desc; // for debugging
+                    }
 
                     /*
                     // read prerequisites (an array of 2-int groups)
