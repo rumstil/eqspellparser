@@ -1534,7 +1534,7 @@ namespace EQSpellParser
                 case 511:
                     // minimum n second delay between activations
                     // what's base1?
-                    return String.Format("Limit Min Recast Delay: {0:0.##}s", base2 / 1000f);
+                    return String.Format("Limit Min Delay Between Trigger: {0:0.##}s", base2 / 1000f);
                 case 512:
                     return String.Format("Proc Timer: {0:0.##}s", base2 / 1000f);
                 case 513:
@@ -2167,6 +2167,200 @@ namespace EQSpellParser
                 Rank = 3;
             if (Rank > 3)
                 Rank = 0;
+        }
+
+        /// <summary>
+        /// Update spell description by replacing tokens with actual values.
+        /// This requires a list of all spells since tokens can reference data from other spells.
+        /// </summary>
+        public void PrepareDesc(Dictionary<int, Spell> spells)
+        {
+            // todo: is the asterisk syntax a stack push rather than a spell reference?
+            //Console.WriteLine(Desc);
+
+            // remove the HTML type formatting codes
+            // e.g. <c "#00A000">ENABLED</c>
+            Desc = Regex.Replace(Desc, "<.+?>", x => x.Value == "<br>" ? x.Value : "");
+
+            // some descriptions have spell ID references without using asterisk syntax
+            // e.g. "$13%N" instead of "*$13%N"
+            Desc = Regex.Replace(Desc, @"\s([#\$@]\d+(?:%N|\+G))", x => " *" + x.Groups[1].Value);
+
+            // regex should extract any token starting with *%$@+
+            // there is a negative lookbehind for the % since it can occur in the token
+            // if the token cannot be decoded then display the token expression as is
+            Desc = Regex.Replace(Desc, @"([\*\+\$#@%][^\s\.,\)<>\-s]+(?<!%))", x => DecodeDescToken(x.Groups[1].Value, this, spells) ?? x.Groups[1].Value);
+
+            // replace enums
+            // e.g. "{39}260"
+            Desc = Regex.Replace(Desc, @"\{39\}(\d+)", x => Spell.FormatEnum((SpellTargetRestrict)Int32.Parse(x.Groups[1].Value)));
+            Desc = Regex.Replace(Desc, @"\{44\}(\d+)", x => "[Item " + x.Groups[1].Value + "]");
+        }
+
+        static string DecodeDescToken(string token, Spell spell, Dictionary<int, Spell> spells)
+        {
+            const char DESC_BASE1 = '#';
+            const char DESC_BASE2 = '$';
+            const char DESC_MAX = '@';
+
+            // use of *@ when not followed by a digit:
+            // on AA, *@ refers to the activated spell
+            // on spells, *@ seems to be a self reference (are these just sloppy copies of AA descriptions?)
+            if (Regex.IsMatch(token, @"^\*@\D"))
+            {
+                token = token.Substring(2);
+            }
+
+            // some spells seem to use a spell reference syntax for "+S" skill tokens when they shouldn't
+            // e.g. on 38195 "*#3+S" refers to the current spell
+            if (Regex.IsMatch(token, @"^\*[#\$@]\d+\+S$"))
+            {
+                token = token.Substring(1);
+            }
+
+            // recourse spell reference
+            if (token.StartsWith("*%R"))
+            {
+                var id = spell.RecourseID;
+                if (!spells.ContainsKey(id))
+                    return null;
+                return DecodeDescToken(token.Substring(3), spells[id], spells);
+            }
+
+            // hardcoded spell id reference
+            // todo: on AA (e.g. Blessing of the Devoted) this seems to be an AA reference
+            var m = Regex.Match(token, @"^\*(\d+)");
+            if (m.Success)
+            {
+                var id = Int32.Parse(m.Groups[1].Value);
+                if (!spells.ContainsKey(id))
+                    return null;
+                return DecodeDescToken(token.Substring(m.Length), spells[id], spells);
+            }
+
+            // slot based spell reference
+            m = Regex.Match(token, @"^\*[#\$@](\d+)");
+            if (m.Success)
+            {
+                var i = Int32.Parse(m.Groups[1].Value) - 1;
+                if (i < 0 || i >= spell.Slots.Count || spell.Slots[i] == null)
+                    return null;
+
+                var id = 0;
+                if (token[1] == DESC_BASE1) id = spell.Slots[i].Base1;
+                if (token[1] == DESC_BASE2) id = spell.Slots[i].Base2;
+                if (token[1] == DESC_MAX) id = spell.Slots[i].Max;
+
+                // first spell in group is stored using negative IDs
+                if (token.EndsWith("+G"))
+                    id = -id;
+
+                if (!spells.ContainsKey(id))
+                    return null;
+                return DecodeDescToken(token.Substring(m.Length), spells[id], spells);
+            }
+
+            // get SPA value 
+            m = Regex.Match(token, @"^[#\$@](\d+)");
+            if (m.Success)
+            {
+                var i = Int32.Parse(m.Groups[1].Value) - 1;
+                if (i < 0 || i >= spell.Slots.Count || spell.Slots[i] == null)
+                    return null;
+
+                var value = 0;
+                if (token[0] == DESC_BASE1) value = spell.Slots[i].Base1;
+                if (token[0] == DESC_BASE2) value = spell.Slots[i].Base2;
+                if (token[0] == DESC_MAX) value = spell.Slots[i].Max;
+
+                if (token.EndsWith("+S"))
+                    return Spell.FormatEnum((SpellSkill)value);
+
+                var text = Math.Abs(value).ToString();
+                switch (spell.Slots[i].SPA)
+                {
+                    case 1:
+                        text = Math.Abs(CalcValue(spell.Slots[i].Calc, spell.Slots[i].Base1, spell.Slots[i].Max, 1)).ToString();
+                        break;
+                    case 11:
+                        text = Math.Abs(CalcValue(spell.Slots[i].Calc, spell.Slots[i].Base1, spell.Slots[i].Max, 1) - 100).ToString();
+                        break;
+                    case 63:
+                        text = Math.Abs(value + 40).ToString();
+                        break;
+                    case 21:
+                    case 64:
+                        if (token[0] != DESC_MAX)
+                            text = Math.Abs(value / 1000f).ToString();
+                        break;
+                    case 143:
+                    case 144:
+                    case 310:
+                    case 511:
+                        text = Math.Abs(value / 1000f).ToString();
+                        break;
+                    case 214:
+                    case 513:
+                    case 514:
+                    case 515:
+                    case 516:
+                    case 517:
+                    case 518:
+                    case 522:
+                    case 523:
+                        text = Math.Abs(value / 100f).ToString();
+                        break;
+                    case 440:
+                        if (token[0] == DESC_BASE2)
+                            text = Math.Abs(value / 10f).ToString();
+                        break;
+                    case 278:
+                        if (token[0] == DESC_BASE1)
+                            text = Math.Abs(value / 10f).ToString();
+                        break;
+                    case 457:
+                    case 525:
+                    case 526:
+                        if (token[0] != DESC_MAX)
+                            text = Math.Abs(value / 10f).ToString();
+                        break;
+                    case 178:
+                    case 182:
+                        text = Math.Abs(value / 10f).ToString();
+                        break;
+                    case 118:
+                        text = Math.Abs(value * 10).ToString();
+                        break;
+                    case 210:
+                        text = Math.Abs(value * 12).ToString();
+                        break;
+                    case 287:
+                        text = Math.Abs(value * 6).ToString();
+                        break;
+                    case 271:
+                        text = Math.Abs(value / 0.7f).ToString();
+                        break;
+                }
+
+                return text + token.Substring(m.Length);
+            }
+
+            // get attribute value
+            if (token == "%z") return FormatTimeLong(spell.DurationTicks * 6);
+            if (token == "%Z") return FormatTimeLong(spell.DurationTicks * 6);
+            if (token == "%H") return Math.Abs(spell.HateOverride).ToString();
+            if (token == "%M") return Math.Abs(spell.HateMod).ToString();
+            if (token == "%L") return spell.MaxHits.ToString();
+            if (token == "%N") return spell.Name;
+            if (token == "%O") return spell.CritOverride.ToString();
+            if (token == "%T") return spell.MaxTargets.ToString();
+            if (token == "%J") return spell.Range.ToString();
+            if (token == "+G") return spell.Name;
+            if (token == "%S") return FormatEnum(spell.Skill);
+            if (token == "%Q") return ((int)spell.TargetRestrict).ToString();
+            if (token == "%i") return (spell.AEDuration >= 2500 ? spell.AEDuration / 2500 : 1).ToString();
+
+            return null;
         }
 
         /// <summary>

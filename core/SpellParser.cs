@@ -72,6 +72,10 @@ namespace EQSpellParser
                 list.Add(spell);
                 listById[spell.ID] = spell;
 
+                // store group ID of first spell in a group by using negative IDs to avoid conflicts with spell IDs
+                if (spell.GroupID > 0 && !listById.ContainsKey(-spell.GroupID))
+                    listById[-spell.GroupID] = spell;
+
                 // update faction references with actual names
                 for (int i = 0; i < spell.Slots.Count; i++)
                     if (spell.Slots[i] != null)
@@ -181,74 +185,12 @@ namespace EQSpellParser
             foreach (var spell in list)
             {
                 if (spell.Desc == null)
-                    continue;   
+                    continue;
 
-                // regex should extract any token starting with *%$@ up until a space, period or comma and not ending with %
-                // there is a negative lookbehind for the % since it can occur in the token
-                // if the token cannot be decoded then display the token expression as is
-                spell.Desc = Regex.Replace(spell.Desc, @"([\*\+\$#@%][^\s\.,]+(?<!%))", x => DecodeDescToken(x.Groups[1].Value, spell, listById) ?? x.Groups[1].Value);
+                spell.PrepareDesc(listById);
             }
 
             return list;
-        }
-
-        static string DecodeDescToken(string token, Spell spell, Dictionary<int, Spell> spells)
-        {
-            // *@ seems to be a self reference (as opposed to *@\d)
-            // not sure what the point of this is since it could be ommited 
-            if (Regex.IsMatch(token, @"^\*@\D"))
-            {
-                token = token.Substring(2);
-            }
-
-            // recurse on recourse spell reference
-            if (token.StartsWith("*%R"))
-            {
-                var id = spell.RecourseID;
-                if (!spells.ContainsKey(id))
-                    return null;
-                return DecodeDescToken(token.Substring(3), spells[id], spells);
-            }
-
-            // recurse on slot based spell reference
-            var slot = Regex.Match(token, @"^\*[#\$@](\d+)");
-            if (slot.Success)
-            {
-                var id = 0;
-                var i = Int32.Parse(slot.Groups[1].Value) - 1;
-                if (i >= spell.Slots.Count || spell.Slots[i] == null)
-                    return null;
-                if (token[1] == '#') id = spell.Slots[i].Base1;
-                if (token[1] == '$') id = spell.Slots[i].Base2;
-                if (token[1] == '@') id = spell.Slots[i].Max;
-                if (!spells.ContainsKey(id))
-                    return null;
-                return DecodeDescToken(token.Substring(slot.Length), spells[id], spells);
-            }
-
-            slot = Regex.Match(token, @"^[#\$@](\d+)");
-            if (slot.Success)
-            {
-                var i = Int32.Parse(slot.Groups[1].Value) - 1;
-                if (i >= spell.Slots.Count || spell.Slots[i] == null)
-                    return null;
-                if (token[0] == '#') return Math.Abs(spell.Slots[i].Base1).ToString() + token.Substring(slot.Length);
-                if (token[0] == '$') return Math.Abs(spell.Slots[i].Base2).ToString() + token.Substring(slot.Length);
-                if (token[0] == '@') return Math.Abs(spell.Slots[i].Max).ToString() + token.Substring(slot.Length);
-            }
-
-            if (token == "%z") return Spell.FormatTimeLong(spell.DurationTicks * 6);
-            if (token == "%H") return Math.Abs(spell.HateOverride).ToString();
-            if (token == "%M") return Math.Abs(spell.HateMod).ToString();
-            if (token == "%L") return spell.MaxHits.ToString();
-            if (token == "%N") return spell.Name;
-            if (token == "%O") return spell.CritOverride.ToString();
-            if (token == "%T") return spell.MaxTargets.ToString();
-            if (token == "%J") return spell.Range.ToString();
-            if (token == "+G") return spell.Name;
-            if (token == "%i") return (spell.AEDuration / 2500).ToString();
-
-            return null;
         }
 
         /// <summary>

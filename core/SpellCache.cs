@@ -183,7 +183,7 @@ namespace EQSpellParser
             if (SpellList.Count == 0)
                 throw new Exception("AA must be loaded after spells because they include spell references.");
 
-            AAList = AAParser.LoadFromFile(aaPath, descPath);
+            AAList = AAParser.LoadFromFile(aaPath, descPath, SpellsById);
 
             // fill LinksTo array for each AA - this will be used to include associated spells in search results
             // excluded spell IDs will be negated 
