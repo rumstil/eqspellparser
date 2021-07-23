@@ -142,6 +142,7 @@ namespace EQSpellParser
         Stun_Resist_Chance = 195,
         Taunt = 199,
         Worn_Proc_Rate = 200,
+        Add_Range_Proc = 201,
         Rampage = 205,
         AE_Taunt = 206,
         AE_Attack = 211,
@@ -265,6 +266,8 @@ namespace EQSpellParser
         Limit_Max_Hits_Type = 423,
         Gravitate = 424,
         Fly = 425,
+        Cast_On_Skill_Use = 427,
+        Add_Skill_Proc = 429,
         Teleport_to_Caster_Anchor = 437,
         Teleport_to_Player_Anchor = 438,
         Lock_Aggro = 444,
@@ -414,7 +417,7 @@ namespace EQSpellParser
 
     public enum SpellResist
     {
-        Sanctification = -1, // This doesn't appear in the RESISTTYPE field but spells will be modified to this value if RESISTTYPE=0 and NO_RESIST 
+        None = -1, // beneficial spells        
         Unresistable = 0, // Unresistable except for SPA 180
         Magic = 1,
         Fire = 2,

@@ -120,11 +120,8 @@ namespace EQSpellParser
 
         public int[] LinksTo;
         public int RefCount; // number of spells that link to this
-
-#if !LimitMemoryUse
         public string[] Categories;
         //public string[] RawData;
-#endif
 
         public float Unknown;
 
@@ -838,7 +835,7 @@ namespace EQSpellParser
                     return Spell.FormatCount("Beneficial Song Range", base1);
                 case 271:
                     // each 0.7 points seems to equal 10% normal run speed
-                    return Spell.FormatPercent("Innate Movement Speed", base1 / 0.7f);
+                    return Spell.FormatPercent("Innate Movement Speed", base1);
                 case 272:
                     return Spell.FormatPercent("Song Casting Skill", value);
                 case 273:
@@ -1919,7 +1916,7 @@ namespace EQSpellParser
                 result.Add("Endurance: " + Endurance);
 
             for (int i = 0; i < ConsumeItemID.Length; i++)
-                if (ConsumeItemID[i] > 0)
+                if (ConsumeItemID[i] > 0 && ConsumeItemCount[i] > 0)
                     result.Add("Consumes: [Item " + ConsumeItemID[i] + "] x " + ConsumeItemCount[i]);
 
             for (int i = 0; i < FocusID.Length; i++)
@@ -2195,6 +2192,7 @@ namespace EQSpellParser
             // e.g. "{39}260"
             Desc = Regex.Replace(Desc, @"\{39\}(\d+)", x => Spell.FormatEnum((SpellTargetRestrict)Int32.Parse(x.Groups[1].Value)));
             Desc = Regex.Replace(Desc, @"\{44\}(\d+)", x => "[Item " + x.Groups[1].Value + "]");
+            Desc = Regex.Replace(Desc, @"\{45\}(\d+)", x => "[Faction " + x.Groups[1].Value + "]");
         }
 
         static string DecodeDescToken(string token, Spell spell, Dictionary<int, Spell> spells)
@@ -2337,9 +2335,6 @@ namespace EQSpellParser
                     case 287:
                         text = Math.Abs(value * 6).ToString();
                         break;
-                    case 271:
-                        text = Math.Abs(value / 0.7f).ToString();
-                        break;
                 }
 
                 return text + token.Substring(m.Length);
@@ -2351,11 +2346,13 @@ namespace EQSpellParser
             if (token == "%H") return Math.Abs(spell.HateOverride).ToString();
             if (token == "%M") return Math.Abs(spell.HateMod).ToString();
             if (token == "%L") return spell.MaxHits.ToString();
+            if (token == "%n") return spell.Name;
             if (token == "%N") return spell.Name;
             if (token == "%O") return spell.CritOverride.ToString();
             if (token == "%T") return spell.MaxTargets.ToString();
             if (token == "%J") return spell.Range.ToString();
             if (token == "+G") return spell.Name;
+            if (token == "+S") return FormatEnum(spell.Skill);
             if (token == "%S") return FormatEnum(spell.Skill);
             if (token == "%Q") return ((int)spell.TargetRestrict).ToString();
             if (token == "%i") return (spell.AEDuration >= 2500 ? spell.AEDuration / 2500 : 1).ToString();

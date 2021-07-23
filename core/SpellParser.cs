@@ -62,10 +62,10 @@ namespace EQSpellParser
                 var spell = ParseSpell(fields, version);
 
                 // debug
-                //if (spell.ID == 20)
+                //if (spell.ID == 3)
                 //{
                 //    for (int i = 0; i < fields.Length; i++)
-                //        Console.WriteLine("{0}: {1}", i, fields[i]);
+                //        Console.Error.WriteLine("{0}: {1}", i, fields[i]);
                 //}
 
 
@@ -95,7 +95,6 @@ namespace EQSpellParser
                 if (!desc.TryGetValue("6/" + spell.DescID, out spell.Desc))
                     spell.Desc = null;
 
-#if !LimitMemoryUse
                 // all spells can be grouped into up to 2 categories (type 5 in db_str)
                 // ignore the "timer" categories because they are frequently wrong
                 var cat = new List<string>(3);
@@ -121,7 +120,6 @@ namespace EQSpellParser
                     cat.Add("Timer " + spell.TimerID.ToString("D2"));
                 spell.Categories = cat.ToArray();
 
-#endif
             }
 
             // load spell string file (starting 2018-2-14)
@@ -218,6 +216,8 @@ namespace EQSpellParser
                 parser = ParseSpell20210113;
             if (fields.Length == 168 && version < 20210113)
                 parser = ParseSpell20210113;
+            if (fields.Length == 167 && version < 20210715)
+                parser = ParseSpell20210715;
 
             return parser(fields, version);
         }

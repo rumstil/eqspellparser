@@ -50,6 +50,7 @@
     <Compile Include="SpellData.cs" />
     <Compile Include="SpellEnums.cs" />
     <Compile Include="SpellParser20210113.cs" />
+    <Compile Include="SpellParser20210715.cs" />
     <Compile Include="SpellParserCurrent.cs" />
     <Compile Include="SpellWriter.cs" />
     <Compile Include="SpellParser.cs" />
