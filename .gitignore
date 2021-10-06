@@ -8,6 +8,7 @@ Obj/
 Debug/
 Release/
 .vs/
+packages/
 
 
 spells_us*.txt*
