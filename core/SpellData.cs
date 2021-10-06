@@ -26,7 +26,7 @@ namespace EQSpellParser
 
     public sealed class Spell
     {
-        public const int MAX_LEVEL = 115;
+        public const int MAX_LEVEL = 120;
 
         public int ID;
         public int GroupID;
@@ -169,6 +169,10 @@ namespace EQSpellParser
             // type 254 indicates the slots is unused
             if (spa == 254)
                 return null;
+
+            // sanity check for invalid data on beta server
+            if (base1 == Int32.MinValue || base1 == Int32.MaxValue)
+                return String.Format("Invalid SPA {0} Base1={0}", spa, base1);
 
             // many SPAs use a scaled value based on either current tick or caster level
             var value = CalcValue(calc, base1, max, 1, level);
@@ -1118,7 +1122,7 @@ namespace EQSpellParser
                     // similar to 96, but i think this prevents casting of spells matching limits
                     return "Inhibit Spell Casting";
                 case 358:
-                    return Spell.FormatCount("Current Mana", value) + range;
+                    return Spell.FormatCount("Current Mana", value) + range + " (v358)";
                 case 359:
                     return Spell.FormatPercent("Chance to Sense Trap", base1);
                 case 360:
@@ -1832,6 +1836,7 @@ namespace EQSpellParser
         public static string CalcValueRange(int calc, int base1, int max, int spa, int duration, int level = MAX_LEVEL)
         {
             int start = CalcValue(calc, base1, max, 1, level);
+            var x = CalcValue(calc, base1, max, duration, level);
             int finish = Math.Abs(CalcValue(calc, base1, max, duration, level));
 
             string type = Math.Abs(start) < Math.Abs(finish) ? "Growing" : "Decaying";
@@ -2273,6 +2278,10 @@ namespace EQSpellParser
 
                 if (token.EndsWith("+S"))
                     return Spell.FormatEnum((SpellSkill)value);
+
+                // sanity check for bad data
+                if (value == Int32.MinValue || value == Int32.MaxValue)
+                    value = 0;
 
                 var text = Math.Abs(value).ToString();
                 switch (spell.Slots[i].SPA)
