@@ -32,6 +32,8 @@ namespace EQSpellParser
         RoS,
         TBL,
         ToV,
+        CoV,
+        ToL,
     }
 
     public enum AAExpansionLong
@@ -63,5 +65,7 @@ namespace EQSpellParser
         Ring_of_Scale,
         The_Burning_Lands,
         Tormet_of_Velious,
+        Claws_of_Veeshan,
+        Terror_of_Luclin,
     }
 }
