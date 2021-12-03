@@ -233,7 +233,9 @@ namespace EQSpellParser
         {
             if (s == "" || s == "0" || s[0] == '.')
                 return 0;
-            return (int)Single.Parse(s, CultureInfo.InvariantCulture);
+            // strip decimals. i.e. floor()
+            s = Regex.Replace(s, @"\..+", "");
+            return Int32.Parse(s, CultureInfo.InvariantCulture);
         }
 
         static bool ParseBool(string s)
