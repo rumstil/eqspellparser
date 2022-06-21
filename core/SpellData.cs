@@ -206,11 +206,12 @@ namespace EQSpellParser
                         return Spell.FormatCount("Current HP", value) + " (Scales to Item/PC Level)" + repeating + range + (base2 > 0 ? " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")" : "");
                     return Spell.FormatCount("Current HP", value) + repeating + range + (base2 > 0 ? " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")" : "");
                 case 1:
+                    // https://forums.daybreakgames.com/eq/index.php?threads/ac-vs-acv2.210028/
                     // showing post softcap AC (for Pre-Softcap Values, it should be - Int users: Value/3, all others: Value/4)
                     // Devs suggest anyone in any relevant gear Velious+ was hitting Soft Caps, which is like 95% of the expansions/game - Riou
-                    //return Spell.FormatCountRange("AC", value, (int)Math.Abs(Math.Round((value / 4) * 0.265)), (int)Math.Abs(Math.Round((value / 4) * 0.35))) + ", Based on Class";
+                    return Spell.FormatCountRange("AC", value, (int)Math.Abs(Math.Round((value / 4) * 0.265)), (int)Math.Abs(Math.Round((value / 4) * 0.35))) + ", Based on Class";
                     // or we could just show an average between druid at 0.25 and warrior at 0.35
-                    return Spell.FormatCount("AC", (int)Math.Round(value / 4 * 0.3)) + " (Raw=" + value + ")";
+                    //return Spell.FormatCount("AC", (int)Math.Round(value / 4 * 0.3)) + " (Raw=" + value + ")";
                 case 2:
                     return Spell.FormatCount("ATK", value) + range;
                 case 3:
@@ -259,6 +260,11 @@ namespace EQSpellParser
                 case 20:
                     return "Blind";
                 case 21:
+                    // Values under 1,000 (1s) don't stun but only interrupt. 
+                    // If Max = 0, there is a hardcoded cap of level 52. 
+                    // (Technically in some cases its 55, but in most zones it should be 52).
+                    if (base1 < 1000)
+                        return "Interrupt Casting";
                     if (base2 != base1 && base2 != 0)
                         return String.Format("Stun for {0:0.##}s ({1:0.##}s in PvP)", base1 / 1000f, base2 / 1000f) + absmax;
                     return String.Format("Stun for {0:0.##}s", base1 / 1000f) + absmax;
@@ -271,6 +277,8 @@ namespace EQSpellParser
                 case 25:
                     return "Bind";
                 case 26:
+                    if (base1 < 100)
+                        return String.Format("Gate ({0}% Chance)", base1) + (base2 > 1 ? " to Secondary Bind" : "");
                     return "Gate" + (base2 > 1 ? " to Secondary Bind" : "");
                 case 27:
                     return String.Format("Dispel ({0})", value);
@@ -470,7 +478,7 @@ namespace EQSpellParser
                     // damages the target whenever it hits something
                     return Spell.FormatCount("Reverse Damage Shield", -value);
                 case 122:
-                    return String.Format("Decrease {0} Skill ({1})", Spell.FormatEnum((SpellSkill)base1), calc);
+                    return Spell.FormatPercent(Spell.FormatEnum((SpellSkill)base1) + " Skill", -calc);
                 case 123:
                     return "Screech";
                 case 124:
@@ -1274,10 +1282,11 @@ namespace EQSpellParser
                 case 414:
                     return String.Format("Limit Casting Skill: {0}", Spell.FormatEnum((SpellSkill)base1));
                 case 416:
+                    // https://forums.daybreakgames.com/eq/index.php?threads/ac-vs-acv2.210028/
                     // SPA 416 functions exactly like SPA 1, it was added so that we could avoid stacking conflicts with only 12 spell slots. - Dzarn
-                    //return Spell.FormatCountRange("AC", value, (int)Math.Abs(Math.Round((value / 4) * 0.265)), (int)Math.Abs(Math.Round((value / 4) * 0.35))) + ", Based on Class (v416)";
+                    return Spell.FormatCountRange("AC", value, (int)Math.Abs(Math.Round((value / 4) * 0.265)), (int)Math.Abs(Math.Round((value / 4) * 0.35))) + ", Based on Class (v416)";
                     // or we could just show an average between druid at 0.25 and warrior at 0.35
-                    return Spell.FormatCount("AC", (int)Math.Round(value / 4 * 0.3)) + " (Raw=" + value + ") (v416)";
+                    //return Spell.FormatCount("AC", (int)Math.Round(value / 4 * 0.3)) + " (Raw=" + value + ") (v416)";
                 case 417:
                     // same as 15 and used for stacking
                     return Spell.FormatCount("Current Mana", value) + repeating + range + " (v417)";
@@ -1560,9 +1569,9 @@ namespace EQSpellParser
                 case 521:
                     return String.Format("Absorb Damage using Endurance: {0}%", base1 / 100) + (base2 != 10000 ? String.Format(" ({0} End per 1 HP)", base2 / 10000f) : "") + (max > 0 ? String.Format(", Max Per Hit: {0}", max) : "");
                 case 522:
-                    return Spell.FormatPercent("Current Mana", base1 / 100) + String.Format(" up to {0}", max);
+                    return Spell.FormatPercent("Current Mana", base1 / 100f) + String.Format(" up to {0}", max);
                 case 523:
-                    return Spell.FormatPercent("Current Endurance", base1 / 100) + String.Format(" up to {0}", max);
+                    return Spell.FormatPercent("Current Endurance", base1 / 100f) + String.Format(" up to {0}", max);
                 case 524:
                     // like 147 but repeating, and like 147 this seems to be just base1 instead of base1 / 100
                     return Spell.FormatPercent("Current HP", base1) + String.Format(" up to {0}", max) + repeating;
@@ -1988,19 +1997,20 @@ namespace EQSpellParser
 
                 //if (!NoSanctification)
                 //    result.Add("Resist: Sanctification");
-
-                result.Add("Reflectable: " + (Reflectable ? "Yes" : "No"));
+                
+                if (!Reflectable)
+                    result.Add("Can Reflect: " + (Reflectable ? "Yes" : "No"));
 
                 // only nukes and DoT can trigger spell damage shields
                 // no point showing it for NPC spells since NPCs will never take significant damage from nuking players
-                if (HasEffect("Decrease Current HP", 0) && ClassesMask != 0)
-                {
-                    result.Add("Trigger Spell DS: " + (Feedbackable ? "Yes" : "No"));
-                    // We have the ability to flag direct damage spells not to break root by setting the casting skill to 200. - Dzarn
-                    // maybe I should only show this for spells that don't break root since the overwhelming majority do
-                    if (DurationTicks == 0)
-                        result.Add("Can Break Root: " + ((int)Skill != 200 ? "Yes" : "No"));
-                }
+                if (HasEffect("Decrease Current HP", 0) && ClassesMask != 0 && Feedbackable)
+                    result.Add("Can Trigger Spell DS: " + (Feedbackable ? "Yes" : "No"));
+
+                // "We have the ability to flag direct damage spells not to break root by setting the casting skill to 200." - Dzarn
+                // only show this for spells that don't break root since the overwhelming majority do
+                if (HasEffect("Decrease Current HP", 0) && ClassesMask != 0 && DurationTicks == 0 && (int)Skill != 200)
+                    result.Add("Can Break Root: " + ((int)Skill != 200 ? "Yes" : "No"));
+
             }
 
             if (Stacking.Count > 0)
@@ -2373,7 +2383,7 @@ namespace EQSpellParser
         /// Search all effect slots using a SPA match.
         /// </summary>
         /// <param name="slot">0 to check all slots, or a non zero value to check a specific slot.</param>
-        public bool HasEffect(int spa, int slot)
+        public bool HasEffect(int spa, int slot = 0)
         {
             if (slot > 0)
                 return slot <= Slots.Count && Slots[slot - 1] != null && Slots[slot - 1].SPA == spa;
@@ -2390,8 +2400,17 @@ namespace EQSpellParser
         /// </summary>
         /// <param name="text">Effect to search for. Can be text or a integer representing an SPA.</param>
         /// <param name="slot">0 to check all slots, or a non zero value to check a specific slot.</param>
-        public bool HasEffect(string text, int slot)
+        public bool HasEffect(string text, int slot = 0)
         {
+            if (slot == 0)
+            {
+                if (String.Compare(Target.ToString(), text, true) == 0)
+                    return true;
+
+                if (!Beneficial && String.Compare(ResistType.ToString(), text, true) == 0)
+                    return true;
+            }
+
             int spa;
             if (Int32.TryParse(text, out spa))
                 return HasEffect(spa, slot);
@@ -2410,8 +2429,19 @@ namespace EQSpellParser
         /// Search all effect slots using a regular expression.
         /// </summary>
         /// <param name="slot">0 to check all slots, or a non zero value to check a specific slot.</param>
-        public bool HasEffect(Regex re, int slot)
+        public bool HasEffect(Regex re, int slot = 0)
         {
+            if (slot == 0)
+            {
+                var text = re.ToString();
+
+                if (String.Compare(Target.ToString(), text, true) == 0)
+                    return true;
+
+                if (!Beneficial && String.Compare(ResistType.ToString(), text, true) == 0)
+                    return true;
+            }
+
             if (slot > 0)
                 return slot <= Slots.Count && Slots[slot - 1] != null && re.IsMatch(Slots[slot - 1].Desc);
 

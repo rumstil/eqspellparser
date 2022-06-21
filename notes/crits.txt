@@ -1,0 +1,63 @@
+https://forums.daybreakgames.com/eq/index.php?threads/combat-fury-aa.257059/#post-3780066 
+niente on April 11, 2019
+
+Here's an explanation of how critical hits work:
+
+If it's an NPC
+- NPCs can't crit except for pets
+- Get the leader's SPA 218 (pet crit chance)
+- If we roll within that chance, use default crit mod (170%)
+- Add SPA 474 (pet crit mod), 330 (crit base dmg %), 496 (crit base dmg % - non stacking)
+*** - If the leader has luck, roll for an additional crit mod bonus
+- Add 5 damage
+- Multiply crit mod, damage done
+
+If it's not an NPC
+- if it's a level 12+ WAR/BER, RNG using archery, or ROG using throwing, they can crit
+- get total SPA 169 (crit chance)
+- if it's possible for us to crit (meet above qualifications or have some amount of crit chance SPA), roll:
+- get SPA 219 (Slay Undead)
+- If NPC is undead
+- If PC has a buff or AA with Slay Undead, get crit mod from that spell
+- if we qualify for the Slay Undead roll:
+- add 5 damage, multiply by the SPA 219 mod (from AA or Holy Forge)
+
+- get attacker and defender DEX mod:
+- if DEX > 255 anything higher returns 20% of its value
+- add 45
+if attacker is not in (WAR, BER/ROG not throwing, RNG not using archery)
+- multiply DEX mod by 3, divide by 5
+- multiply DEX mod by total SPA 169
+roll from 1 to 3400 (archery), 1100 (throw), 8900 (everything else)
+
+if roll is less than DEX mod, we crit
+- add 5 damage
+- using default crit mod (170%)
+- add SPA 330, 496
+- roll luck for additional crit mod bonus
+- multiply dmg by mod
+- if victim is an NPC and attacker has SPA 440 (Finishing Blow) and victim is the right level
+- get finishing blow chance, roll
+- using max % HP possible to be done by this rank of Finishing Blow, if NPC is low enough HP, get the DMG from Finishing Blow
+
+- if attacker is a ROG standing behind the victim
+- chance = ROG's level * 12 // ROG have 100% chance to Deadly Strike from behind at lvl 100
+- roll 1000, if it's less than the chance, multiply damage by 2
+
+- get total SPA 171 (Crippling Blow)
+- roll 100, if it's less than SPA 171 we get a Crippling Blow
+- if attacker is a PC using Holy Forge and victim is undead, 20% chance of getting a Crippling Blow
+
+- if attacker is in a berserk frenzy or got a successful Crippling Blow from Holy Forge
+- add 19% damage
+- calculate chance to resist bash
+- if you roll successfully, stun victim 2 seconds
+
+- if it's not a Deadly Strike, set the critical hit flag
+- otherwise, calculate assassinate chance:
+- if we have SPA 345 (Assassinate max level), the victim is humanoid, and the attacker is at least 60
+- get chance to assassinate - (DEX capped at 255)
+- add 5
+- add SPA 349 (Assassinate)
+- roll 1000, if we were successful get dmg from SPA 349 (Assassinate base 2)
+- cap dmg at 6000000 

@@ -1,0 +1,22 @@
+https://forums.daybreakgames.com/eq/index.php?threads/runes-and-priority-order.247444/#post-3634571
+Beimeith
+
+
+No. It goes by spell effect first, then Value, then slot.
+
+SPA 55 = Normal Runes. 100% damage absorption Melee & Spell.
+SPA 78 = Spell Runes. 100% damage absorption Spell only. (This isn't used much).
+SPA 161 = Spell Guard. Variable % damage absorption. Spell only.
+SPA 162 = Melee Guard. Variable % damage absorption. Melee only.
+SPA 450 = DoT Guard. Variable % damage absorption. DoT only.
+SPA 451 = Melee Threshold. Variable % damage absorption over flat amount. Melee only.
+SPA 452 = Spell Threshold. Variable % damage absorption over flat amount. Spell only.
+
+So, for Melee, EQ will check SPA 55 first, then 162, then 451.
+If you have two SPA 55 runes, it will take the higher slot since they are both 100% damage absorption.
+If you have two SPA 162 runes, it will take whichever is the higher percent absorption first. If they are the same %, then it goes by spell slot.
+The same applies to 451.
+
+For Spells, EQ will check SPA 55 first, then 78, then 161, then 452, following the same rules as mentioned.
+
+SPA 450 is the only DoT Rune, and it works the same as 161/162, but for DoTs. The higher number is because it was added much, much later. 

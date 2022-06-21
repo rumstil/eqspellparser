@@ -1,0 +1,38 @@
+https://forums.daybreakgames.com/eq/index.php?threads/ferocity-on-bards.280839/#post-4103779
+niente
+
+
+If you have an item with Ferocity (SPA 177 - Double Attack Chance), but do not have either the Double Attack skill or SPA 225 (Burst of Power - Grant Double Attack), Double Attack won't work.
+
+If you have Burst of Power, you can get a bonus from Ferocity as well.
+Interestingly, the chance to double attack is slightly different if you do not have the skill.
+
+Chance to Double Attack:
+
+    If you do not have the Double Attack skill or SPA 225 (Burst of Power), exit
+    If you have the Double Attack skill, Chance = Skill + Level (PC Level). Otherwise, Chance is 0.
+    Bonus = 500 * SPA 225 / 100
+    Chance += Bonus
+    If you have SPA 177 (Ferocity),
+    Chance += Chance * SPA 177 / 100
+    Roll 1-500. If you roll below your chance, it's a successful Double Attack.
+
+Written more simply: *Only include Skill + Level if Skill > 0
+
+DoubleAttackChance = (Skill + Level)* + 500 * SPA 225 / 100
+DoubleAttackChance += DoubleAttackChance * SPA 177 / 100
+DoubleAttackChance /= 500
+
+For a level 70 Bard in DoN with Ferocity V and Burst of Power 5:
+Skill = 0
+Level = 70
+SPA 225 = 15
+SPA 177 = 15
+Chance = 17.2%
+
+For a level 120 Bard in ToL with Ferocity XIII (or higher) and Burst of Power 62 (from TDS, or higher):
+Skill = 250
+Level = 120
+SPA 225 = 45
+SPA 177 = 21
+Chance = 143.8% 

@@ -1,0 +1,16 @@
+https://forums.daybreakgames.com/eq/index.php?threads/test-update-09-10-2019-patch-notes-and-discussions.259436/page-11#post-3822638
+niente
+
+    “What is the calculation for a miss? (Not taking into account blocks/parry, dodge, or riposte. Just the hit/miss calculation.)”
+
+Start with "Computed Defense" from this https://forums.daybreakgames.com/eq/index.php?threads/ac-vs-acv2.210028/#post-3078126
+- reduce if you're throwing/shooting a target in PVP
+- roll Offense (based on Offense skill + Weapon skill)
+- reduce if inebriated
+- give a bonus if it's a BER
+- EQ math ((+ 10 * 121) / 100)
+- Add SPA 518, 216 (Accuracy)
+- Multiply by SPA 184 (chance to hit)
+- add a small Offense bonus if the attacker is a low level NPC
+- roll avoidance (using Computed Defense)
+- if the Offense roll is higher than the Defense roll, it's a hit, otherwise it's a miss 

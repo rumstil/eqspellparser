@@ -1,0 +1,9 @@
+
+
+
+
+Defensive Proc Nerf  - Feb 2014
+https://forums.daybreakgames.com/eq/index.php?threads/changes-with-the-february-update-alternate-ability-grants-for-gold-members-and-ability-changes.207363/#post-3043104
+
+
+The proc rate for this line of spells will now decrease on targets that are below the level of the spell. Like the similar restriction on the Skin of the Reptile line, this is intended to provide a good boost at the expected levels and a much lesser boost when applied against trivial content.
