@@ -235,7 +235,8 @@ namespace EQSpellParser
                 return 0;
             // strip decimals. i.e. floor()
             s = Regex.Replace(s, @"\..+", "");
-            return Int32.Parse(s, CultureInfo.InvariantCulture);
+            Int32.TryParse(s, out int result);
+            return result;
         }
 
         static bool ParseBool(string s)
