@@ -1579,6 +1579,10 @@ namespace EQSpellParser
                     return Spell.FormatPercent("Current Mana", base1 / 100) + String.Format(" up to {0}", max) + repeating;
                 case 526:
                     return Spell.FormatPercent("Current Endurance", base1 / 100) + String.Format(" up to {0}", max) + repeating;
+                case 527:
+                    // patch says: This has been updated to ignore damage mitigation factors on the pet.
+                    // guessing ignores spell shield and/or runes?
+                    return Spell.FormatCount("Current HP", value) + " (v527, Ignore Mitigation)";
 
             }
 
