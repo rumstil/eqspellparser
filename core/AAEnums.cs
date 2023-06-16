@@ -34,6 +34,7 @@ namespace EQSpellParser
         ToV,
         CoV,
         ToL,
+        //NoS,
     }
 
     public enum AAExpansionLong
@@ -67,5 +68,6 @@ namespace EQSpellParser
         Tormet_of_Velious,
         Claws_of_Veeshan,
         Terror_of_Luclin,
+        //Night_of_Shadows,
     }
 }

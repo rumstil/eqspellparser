@@ -381,7 +381,7 @@ namespace EQSpellParser
                 case 78:
                     return String.Format("Absorb Spell Damage: 100%, Total: {0}", value);
                 case 79:
-                    // delta hp for heal/nuke, non repeating
+                    // delta hp for heal/dd, non repeating
                     return Spell.FormatCount("Current HP", value) + range + (base2 > 0 ? " (If " + Spell.FormatEnum((SpellTargetRestrict)base2) + ")" : "");
                 case 81:
                     return String.Format("Resurrect with {0}% XP", value);
@@ -483,7 +483,7 @@ namespace EQSpellParser
                     return "Screech";
                 case 124:
                     // this is used on most traditional focus items. crits for DoTs, but not DDs.
-                    return Spell.FormatPercentRange("Spell Damage", base1, base2) + " (v124, Before DoT Crit, After Nuke Crit)";
+                    return Spell.FormatPercentRange("Spell Damage", base1, base2) + " (v124, Before DoT Crit, After DD Crit)";
                 case 125:
                     return Spell.FormatPercentRange("Healing", base1, base2) + " (v125, Before Crit)";
                 case 126:
@@ -587,7 +587,7 @@ namespace EQSpellParser
                     return Spell.FormatPercent("Chance to Critical Hit" + ((SpellSkill)base2 != SpellSkill.Hit ? " with " + Spell.FormatEnum((SpellSkill)base2) : ""), value);
                 case 170:
                     // stacks with itself in other slots
-                    return Spell.FormatPercent("Critical Nuke Damage", base1) + " of Base Damage";
+                    return Spell.FormatPercent("Critical DD Damage", base1) + " of Base Damage";
                 case 171:
                     return Spell.FormatPercent("Chance to Crippling Blow", value);
                 case 172:
@@ -603,7 +603,7 @@ namespace EQSpellParser
                     return Spell.FormatPercent("Chance to Dual Wield", value);
                 case 177:
                     // this is multiplicative
-                    return Spell.FormatPercent("Chance to Double Attack", base1);
+                    return Spell.FormatPercent("Chance to Double Attack", value);
                 case 178:
                     if (Version != 0 && Version < 20160816)
                         return String.Format("Lifetap from Weapon Damage: {0}%", base1);
@@ -702,7 +702,7 @@ namespace EQSpellParser
                     // % chance applies individually to each mob in radius
                     return Spell.FormatPercent("Chance to AE Attack", base1) + (base2 != 100 ? String.Format(" with {0}% Damage", base2) : "");
                 case 212:
-                    return Spell.FormatPercent("Chance to Critical Nuke", base1) + " and " + Spell.FormatPercent("Spell Mana Cost", base2);
+                    return Spell.FormatPercent("Chance to Critical DD", base1) + " and " + Spell.FormatPercent("Spell Mana Cost", base2);
                 case 213:
                     return Spell.FormatPercent("Pet Max HP", base1);
                 case 214:
@@ -910,8 +910,8 @@ namespace EQSpellParser
                     // melee stun only, from any angle
                     return Spell.FormatPercent("Chance to Resist Melee Stun", base1);
                 case 294:
-                    // the base2 nuke damage increase only appears on 4 spells after the 2015-7-22 patch
-                    return Spell.FormatPercent("Chance to Critical Nuke", base1) + (base2 > 0 ? " and " + Spell.FormatPercent("Critical Nuke Damage", base2) + " of Base Damage" : "");
+                    // the base2 DD damage increase only appears on 4 spells after the 2015-7-22 patch
+                    return Spell.FormatPercent("Chance to Critical DD", base1) + (base2 > 0 ? " and " + Spell.FormatPercent("Critical DD Damage", base2) + " of Base Damage" : "");
                 case 296:
                     // incoming damage % SPAs 296 and 483 multiply against what is essentially (spell-data's base value * spa 413)
                     // rather than the focused value - Dzarn
@@ -1144,7 +1144,6 @@ namespace EQSpellParser
                 case 364:
                     return Spell.FormatPercent("Chance to Triple Attack", value);
                 case 365:
-                    // included on nukes and triggered when the nuke kills the mob
                     return String.Format("Cast: [Spell {0}] on Killshot ({1}% Chance)", base2, base1);
                 case 367:
                     return String.Format("Transform Body Type to {0}", FormatEnum((SpellBodyType)base1));
@@ -1456,7 +1455,7 @@ namespace EQSpellParser
                     // similar to 407 except maybe it checks limits?
                     return String.Format("Cast: [Spell {0}] if Hit By Spell", base2) + (base1 < 100 ? String.Format(" ({0}% Chance)", base1) : "");
                 case 482:
-                    return Spell.FormatPercent("Base " + Spell.FormatEnum((SpellSkill)base2) + " Damage", base1);
+                    return Spell.FormatPercent("Base " + Spell.FormatEnum((SpellSkill)base2) + " Damage", value);
                 case 483:
                     // incoming damage % SPAs 296 and 483 multiply against what is essentially (spell-data's base value * spa 413)
                     // rather than the focused value - Dzarn
@@ -1534,7 +1533,7 @@ namespace EQSpellParser
                 case 507:
                     // Effectively Fc_Damage_%2. I know 461 is supposedly "Fc_Damage_%2," but for whatever reason it works nothing like SPA 124.
                     // SPA 507 appears to work just like 124, except it appears to be applied after 461. - Sancus
-                    return Spell.FormatPercentRange("Spell Damage", base1 / 10, base2 / 10) + " (v507, Before DoT Crit, After Nuke Crit)";
+                    return Spell.FormatPercentRange("Spell Damage", base1 / 10, base2 / 10) + " (v507, Before DoT Crit, After DD Crit)";
                 case 509:
                     // for wording comparison, the closest description to this is 401, 402
                     return String.Format("{0} Current HP by {1}% of Caster Current HP ({2}% Life Burn)", base2 < 0 ? "Decrease" : "Increase", Math.Abs(base2) / 10f, base1 / 10f);
@@ -1689,6 +1688,10 @@ namespace EQSpellParser
 
             switch (calc)
             {
+                case 1:
+                    if (level > 30) change = 30;
+                    else change = level;
+                    break;
                 case 100:
                     break;
                 case 101:
@@ -2005,7 +2008,7 @@ namespace EQSpellParser
                 if (!Reflectable)
                     result.Add("Can Reflect: " + (Reflectable ? "Yes" : "No"));
 
-                // only nukes and DoT can trigger spell damage shields
+                // only DDs and DoTs can trigger spell damage shields
                 // no point showing it for NPC spells since NPCs will never take significant damage from nuking players
                 if (HasEffect("Decrease Current HP", 0) && ClassesMask != 0 && Feedbackable)
                     result.Add("Can Trigger Spell DS: " + (Feedbackable ? "Yes" : "No"));
