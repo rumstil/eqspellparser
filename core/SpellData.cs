@@ -1689,7 +1689,7 @@ namespace EQSpellParser
             switch (calc)
             {
                 case 1:
-                    if (level > 30) change = 30;
+                    if (level > max) change = max;
                     else change = level;
                     break;
                 case 100:
