@@ -153,7 +153,7 @@ namespace EQSpellParser
 
         public string ParseEffect(SpellSlot slot, int level = MAX_LEVEL)
         {
-            return ParseEffect(slot.SPA, slot.Base1, slot.Base2, slot.Max, slot.Calc, level);
+            return ParseEffect(slot.SPA, slot.Base1, slot.Base2, slot.Max, slot.Calc, ID, level);
         }
 
         /// <summary>
@@ -161,7 +161,7 @@ namespace EQSpellParser
         /// TODO: this should be a static function but it makes references to spell attributes like ID, Skill, Extra, 
         /// DurationTicks and in a few cases even modifies the Mana attribute.
         /// </summary>
-        public string ParseEffect(int spa, int base1, int base2, int max, int calc, int level = MAX_LEVEL)
+        public string ParseEffect(int spa, int base1, int base2, int max, int calc, int ID, int level = MAX_LEVEL)
         {
             if (level < 1 || level > MAX_LEVEL)
                 level = MAX_LEVEL;
@@ -175,8 +175,8 @@ namespace EQSpellParser
                 return String.Format("Invalid SPA {0} Base1={0}", spa, base1);
 
             // many SPAs use a scaled value based on either current tick or caster level
-            var value = CalcValue(calc, base1, max, 1, level);
-            var range = CalcValueRange(calc, base1, max, spa, DurationTicks, level);
+            var value = CalcValue(calc, base1, max, 1, ID, level);
+            var range = CalcValueRange(calc, base1, max, spa, DurationTicks, ID, level);
             //Func<int> base1_or_value = delegate() { Debug.WriteLineIf(base1 != value, "SPA " + spa + " value uncertain"); return base1; };
 
             // some hp/mana/end/hate effects repeat for each tick of the duration
@@ -619,7 +619,7 @@ namespace EQSpellParser
                     return Spell.FormatPercent("Chance to Resist Fear Spell", value);
                 case 182:
                     // hundred hands effect. how is this different than 371?
-                    return Spell.FormatPercent("Weapon Delay", base1 / 10f);
+                    return Spell.FormatPercent("Weapon Delay", value / 10f);
                 case 183:
                     // according to prathun this effect does nothing
                     //return Spell.FormatPercent("Skill Check for " + Spell.FormatEnum((SpellSkill)base2), value);
@@ -1672,7 +1672,7 @@ namespace EQSpellParser
         /// <summary>
         /// Calculate a level/tick scaled value.
         /// </summary>
-        public static int CalcValue(int calc, int base1, int max, int tick, int level = MAX_LEVEL)
+        public static int CalcValue(int calc, int base1, int max, int tick, int ID, int level = MAX_LEVEL)
         {
             if (calc == 0)
                 return base1;
@@ -1686,12 +1686,24 @@ namespace EQSpellParser
 
             int change = 0;
 
+            // Old Banner 4750, New Banner 31738, Current 2 Banners use Banners Level = Floor(Player Level / 10)
+            // Old Banner Caps at 10 (Player Level 100) - New Banner Caps at 20 (Player Level 200)
+            if (ID == 4750 || ID == 31738)
+            {
+                level = level / 10;
+
+                if (ID == 4750)
+                {
+                    level = Math.Min(level, 10);
+                }
+                else
+                {
+                    level = Math.Min(level, 20);
+                }
+            }
+
             switch (calc)
             {
-                case 1:
-                    if (level > max) change = max;
-                    else change = level;
-                    break;
                 case 100:
                     break;
                 case 101:
@@ -1849,10 +1861,10 @@ namespace EQSpellParser
         /// <summary>
         /// Calculate the min/max values for a scaled value.
         /// </summary>
-        public static string CalcValueRange(int calc, int base1, int max, int spa, int duration, int level = MAX_LEVEL)
+        public static string CalcValueRange(int calc, int base1, int max, int spa, int duration, int ID, int level = MAX_LEVEL)
         {
-            int start = CalcValue(calc, base1, max, 1, level);
-            var x = CalcValue(calc, base1, max, duration, level);
+            int start = CalcValue(calc, base1, max, 1, ID, level);
+            var x = CalcValue(calc, base1, max, duration, ID, level);
             int finish = Math.Abs(CalcValue(calc, base1, max, duration, level));
 
             string type = Math.Abs(start) < Math.Abs(finish) ? "Growing" : "Decaying";
@@ -2304,10 +2316,10 @@ namespace EQSpellParser
                 switch (spell.Slots[i].SPA)
                 {
                     case 1:
-                        text = Math.Abs(CalcValue(spell.Slots[i].Calc, spell.Slots[i].Base1, spell.Slots[i].Max, 1)).ToString();
+                        text = Math.Abs(CalcValue(spell.Slots[i].Calc, spell.Slots[i].Base1, spell.Slots[i].Max, 1, spell.ID)).ToString();
                         break;
                     case 11:
-                        text = Math.Abs(CalcValue(spell.Slots[i].Calc, spell.Slots[i].Base1, spell.Slots[i].Max, 1) - 100).ToString();
+                        text = Math.Abs(CalcValue(spell.Slots[i].Calc, spell.Slots[i].Base1, spell.Slots[i].Max, 1, spell.ID) - 100).ToString();
                         break;
                     case 63:
                         text = Math.Abs(value + 40).ToString();
