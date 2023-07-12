@@ -2094,13 +2094,14 @@ namespace EQSpellParser
 
             var level = MAX_LEVEL;
 
-            // Old Banner 4750, New Banner 31738, Current 2 Banners use Banners Level = Floor(Player Level / 10)
+            // Old Banner 4750, New Banner 31738
             // Old Banner Caps at 10 (Player Level 100) - New Banner Caps at 20 (Player Level 200)
-             if (ID == 4750)            
-                level = Math.Min(level / 10 + 1, 10);
+            // Player levels 1-19 use casting level 1, and player levels 20-29 use 2, 30-39 use 3
+            if (ID == 4750)            
+                level = Math.Min(Math.Max(level / 10, 1), 10);
 
             if (ID == 31738)
-                level = Math.Min(level / 10 + 1, 20);
+                level = Math.Min(Math.Max(level / 10, 1), 20);
 
             // parse spell effects
             for (int i = 0; i < Slots.Count; i++)
