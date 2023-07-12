@@ -153,7 +153,7 @@ namespace EQSpellParser
 
         public string ParseEffect(SpellSlot slot, int level = MAX_LEVEL)
         {
-            return ParseEffect(slot.SPA, slot.Base1, slot.Base2, slot.Max, slot.Calc, ID, level);
+            return ParseEffect(slot.SPA, slot.Base1, slot.Base2, slot.Max, slot.Calc, level);
         }
 
         /// <summary>
@@ -161,7 +161,7 @@ namespace EQSpellParser
         /// TODO: this should be a static function but it makes references to spell attributes like ID, Skill, Extra, 
         /// DurationTicks and in a few cases even modifies the Mana attribute.
         /// </summary>
-        public string ParseEffect(int spa, int base1, int base2, int max, int calc, int ID, int level = MAX_LEVEL)
+        public string ParseEffect(int spa, int base1, int base2, int max, int calc, int level = MAX_LEVEL)
         {
             if (level < 1 || level > MAX_LEVEL)
                 level = MAX_LEVEL;
@@ -1686,22 +1686,6 @@ namespace EQSpellParser
 
             int change = 0;
 
-            // Old Banner 4750, New Banner 31738, Current 2 Banners use Banners Level = Floor(Player Level / 10)
-            // Old Banner Caps at 10 (Player Level 100) - New Banner Caps at 20 (Player Level 200)
-            if (ID == 4750 || ID == 31738)
-            {
-                level = level / 10;
-
-                if (ID == 4750)
-                {
-                    level = Math.Min(level, 10);
-                }
-                else
-                {
-                    level = Math.Min(level, 20);
-                }
-            }
-
             switch (calc)
             {
                 case 100:
@@ -2108,12 +2092,22 @@ namespace EQSpellParser
             if (loc.Length > 0)
                 Extra += " " + String.Join(", ", loc);
 
+            var level = MAX_LEVEL;
+
+            // Old Banner 4750, New Banner 31738, Current 2 Banners use Banners Level = Floor(Player Level / 10)
+            // Old Banner Caps at 10 (Player Level 100) - New Banner Caps at 20 (Player Level 200)
+            if (ID == 4750)            
+                level = Math.Min((level + 9) / 10, 10);
+
+            if (ID == 31738)
+                level = Math.Min((level + 9) / 10, 20);
+
             // parse spell effects
             for (int i = 0; i < Slots.Count; i++)
                 if (Slots[i] != null)
                 {
                     var slot = Slots[i];
-                    slot.Desc = ParseEffect(slot);
+                    slot.Desc = ParseEffect(slot, level);
 #if DEBUG
                     if (slot.Desc != null)
                         slot.Desc = slot.ToString() + " --- " + slot.Desc;
@@ -2207,7 +2201,7 @@ namespace EQSpellParser
         public void PrepareDesc(Dictionary<int, Spell> spells)
         {
             // todo: is the asterisk syntax a stack push rather than a spell reference?
-            //Console.WriteLine(Desc);
+            //if (ID == 31738) Console.WriteLine(Desc);
 
             // remove the HTML type formatting codes
             // e.g. <c "#00A000">ENABLED</c>
@@ -2373,6 +2367,8 @@ namespace EQSpellParser
                     case 287:
                         text = Math.Abs(value * 6).ToString();
                         break;
+
+
                 }
 
                 return text + token.Substring(m.Length);
