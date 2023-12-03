@@ -26,7 +26,7 @@ namespace EQSpellParser
 
     public sealed class Spell
     {
-        public const int MAX_LEVEL = 120;
+        public const int MAX_LEVEL = 125;
 
         public int ID;
         public int GroupID;
