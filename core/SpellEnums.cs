@@ -386,7 +386,7 @@ namespace EQSpellParser
         Begging = 67,
         Jewelry_Making = 68,
         Pottery = 69,
-        Percusion = 70,
+        Percussion = 70,
         Intimidation = 71,
         Berserking = 72,
         Taunt = 73,
