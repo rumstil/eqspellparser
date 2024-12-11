@@ -534,4 +534,6 @@ AFFECTNUMBER AFFECTNAME
 524 Duration HP %
 525 Duration Mana %
 526 Duration Endurance % 
+527 Owned Pet HP
+528 Fc_Banestrike
 
