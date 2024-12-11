@@ -303,9 +303,8 @@ namespace EQSpellParser
                 case 36:
                     return Spell.FormatCount("Poison Counter", value);
                 case 39:
-                    // this doesn't actually block twincast by itself.
                     // twincast excludes spells that have this marker
-                    return "Stacking: Twincast Blocker";
+                    return "Limit: No Twincast";
                 case 40:
                     return "Invulnerability";
                 case 41:
@@ -476,7 +475,8 @@ namespace EQSpellParser
                     return Spell.FormatPercent("Healing Taken", base1) + " (v120, Before Crit)"; // no min/max range
                 case 121:
                     // damages the target whenever it hits something
-                    return Spell.FormatCount("Reverse Damage Shield", -value);
+                    // reverse damage shields are inversely scaled by the speed of the weapon being used?
+                    return Spell.FormatCount("Reverse Damage Shield", -value) + " (Delay Mod)";
                 case 122:
                     return Spell.FormatPercent(Spell.FormatEnum((SpellSkill)base1) + " Skill", -calc);
                 case 123:
@@ -502,7 +502,9 @@ namespace EQSpellParser
                 case 132:
                     return Spell.FormatPercentRange("Spell Mana Cost", base1, base2, true);
                 case 134:
-                    // 100 just to make it obvious that the focus stops functioning
+                    //if (base1 == 254 && base2 == 0)
+                    //    return "Limit Max Level: 0 (lose 100% per level)";
+                    // show 0 as 100 to make it obvious that the focus stops functioning
                     return String.Format("Limit Max Level: {0} (lose {1}% per level)", base1, base2 == 0 ? 100 : base2);
                 case 135:
                     return String.Format("Limit Resist: {1}{0}", (SpellResist)Math.Abs(base1), base1 >= 0 ? "" : "Exclude ");
@@ -1575,12 +1577,12 @@ namespace EQSpellParser
                     // like 147 but repeating, and like 147 this seems to be just base1 instead of base1 / 100
                     return Spell.FormatPercent("Current HP", base1) + String.Format(" up to {0}", max) + repeating;
                 case 525:
-                    return Spell.FormatPercent("Current Mana", base1 / 100) + String.Format(" up to {0}", max) + repeating;
+                    return Spell.FormatPercent("Current Mana", base1 / 10) + String.Format(" up to {0}", max) + repeating;
                 case 526:
-                    return Spell.FormatPercent("Current Endurance", base1 / 100) + String.Format(" up to {0}", max) + repeating;
+                    return Spell.FormatPercent("Current Endurance", base1 / 10) + String.Format(" up to {0}", max) + repeating;
                 case 527:
                     // patch says: This has been updated to ignore damage mitigation factors on the pet.
-                    // guessing ignores spell shield and/or runes?
+                    // guessing this ignores spell shield and/or runes?
                     return Spell.FormatCount("Current HP", value) + " (v527, Ignore Mitigation)";
 
             }
