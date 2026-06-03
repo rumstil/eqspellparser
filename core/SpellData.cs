@@ -1592,7 +1592,7 @@ namespace EQSpellParser
                 case 530:
                     return String.Format("Limit Spell Sub Category: {1}{0}", Math.Abs(base1), base1 > 0 ? "" : "Exclude ") + " (v530)";
                 case 531:
-                    return "Use Weapon Graphic" + (base1 > 0 ? ", Primary: IT" + base1 : "") + (base2 > 0 ? ", Secondary: IT" + base2 : "") + (max > 0 ? ", Tint: " + max : "");
+                    return String.Format("Use Graphic{0}{1}{2}", (base1 > 0 ? ", Primary: IT" + base1 : ""), (base2 > 0 ? ", Secondary: IT" + base2 : ""), (max > 0 ? ", Tint: " + max : ""));
                 case 532:
                     // copy of 287 for AA type 3s
                     return String.Format("Increase Duration by {0}s", base1 * 6) + " (v532)";
