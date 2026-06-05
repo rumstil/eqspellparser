@@ -9,7 +9,7 @@ namespace EQSpellParser
     {
         /// <summary>
         /// Load a single spell from the spells file.
-        /// This format has 165 fields
+        /// This format has 166 fields
         /// </summary>
         static Spell ParseSpellCurrent(string[] fields, int version)
         {
@@ -230,7 +230,8 @@ namespace EQSpellParser
             spell.BetaOnly = ParseBool(fields[159]);
             // 160 SPELL_SUBGROUP
             // 161 NO_OVERWRITE
-            // 164 SPA_SLOTS
+            // 164 Spell Line - Added April 2025
+            // 165 SPA_SLOTS
             var slotlist = fields[fields.Length - 1].Split('$').Select(x => x.Split('|'));
             foreach (var slotfields in slotlist)
             {

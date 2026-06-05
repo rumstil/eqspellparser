@@ -892,7 +892,7 @@ namespace EQSpellParser
                     // SPA 286 and 303 work the same way but 286 does not crit and 303 does. - Beimeith
                     return Spell.FormatCount("Spell Damage", base1) + " (v286, After Crit)";
                 case 287:
-                    return String.Format("Increase Duration by {0}s", base1 * 6);
+                    return String.Format("Increase Duration by {0}s", base1 * 6) + " (v287)";
                 case 288:
                     // this procs the spell associated with the AA
                     // the rate on this seems to be an absolute %
@@ -951,7 +951,7 @@ namespace EQSpellParser
                 case 309:
                     return "Teleport to Caster's Bind";
                 case 310:
-                    return String.Format("Reduce Timer by {0}", FormatTime(base1 / 1000f));
+                    return String.Format("Reduce Timer by {0}", FormatTime(base1 / 1000f)) + " (v310)";
                 case 311:
                     // filter based on field 108: IS_SKILL
                     return String.Format("Limit Type: {0} Combat Skills", base1 == 1 ? "Include" : "Exclude");
@@ -1254,9 +1254,9 @@ namespace EQSpellParser
                 case 402:
                     return String.Format("Decrease Current HP by up to {0} ({1} HP per 1 Target Endurance)", Math.Abs(Math.Floor(base1 * base2 / 10f)), Math.Abs(base2 / 10f));
                 case 403:
-                    return String.Format("Limit Spell Class: {0}{1}", base1 >= 0 ? "" : "Exclude ", Spell.FormatEnum((SpellCategory)Math.Abs(base1)));
+                    return String.Format("Limit Spell Category: {0}{1}", base1 >= 0 ? "" : "Exclude ", Spell.FormatEnum((SpellCategory)Math.Abs(base1)));
                 case 404:
-                    return String.Format("Limit Spell Subclass: {0}{1}", base1 >= 0 ? "" : "Exclude ", Math.Abs(base1));
+                    return String.Format("Limit Spell Sub Category: {0}{1}", base1 >= 0 ? "" : "Exclude ", Spell.FormatEnum((SpellSubCategory)Math.Abs(base1))) + " (v404)";
                 case 405:
                     return Spell.FormatPercent("Staff Block Chance", base1);
                 case 406:
@@ -1279,7 +1279,7 @@ namespace EQSpellParser
                     return String.Format("Limit Race: {0}", base1);
                 case 413:
                     // this gets applied before all other additive/multiplicative effects
-                    return Spell.FormatPercent("Base Spell Effectiveness", value);
+                    return Spell.FormatPercent("Base Spell Effectiveness", value) + " (v413)";
                 case 414:
                     return String.Format("Limit Casting Skill: {0}", Spell.FormatEnum((SpellSkill)base1));
                 case 416:
@@ -1512,7 +1512,7 @@ namespace EQSpellParser
                 case 499:
                     return Spell.FormatPercent("Chance of Additional Secondary 1H Attack", base1) + String.Format(" ({0})", base2);
                 case 500:
-                    return Spell.FormatPercent("Spell Haste", base1) + " (v500)"; ;
+                    return Spell.FormatPercent("Spell Haste", base1) + " (v500)";
                 case 501:
                     // applied after 127/500 spell haste focus?
                     return String.Format((base1 < 0 ? "Increase" : "Decrease") + " Casting Times by {0:0.##}s", Math.Abs(base1 / 1000f));
@@ -1577,15 +1577,37 @@ namespace EQSpellParser
                     // like 147 but repeating, and like 147 this seems to be just base1 instead of base1 / 100
                     return Spell.FormatPercent("Current HP", base1) + String.Format(" up to {0}", max) + repeating;
                 case 525:
-                    return Spell.FormatPercent("Current Mana", base1 / 10) + String.Format(" up to {0}", max) + repeating;
+                    return Spell.FormatPercent("Current Mana", base1 / 100f) + String.Format(" up to {0}", max) + repeating;
                 case 526:
-                    return Spell.FormatPercent("Current Endurance", base1 / 10) + String.Format(" up to {0}", max) + repeating;
+                    return Spell.FormatPercent("Current Endurance", base1 / 100f) + String.Format(" up to {0}", max) + repeating;
                 case 527:
                     // patch says: This has been updated to ignore damage mitigation factors on the pet.
                     // guessing this ignores spell shield and/or runes?
                     return Spell.FormatCount("Current HP", value) + " (v527, Ignore Mitigation)";
+                case 528:
+                    // copy of 413
+                    return Spell.FormatPercent("Base Spell Effectiveness", value) + " (v528)";
                 case 529:
-                    return String.Format("Stacking: Block any spell in the {0} line", base1);
+                    return String.Format("Limit Spell Line: {1}{0}", Math.Abs(base1), base1 > 0 ? "" : "Exclude ");
+                case 530:
+                    return String.Format("Limit Spell Sub Category: {1}{0}", Math.Abs(base1), base1 > 0 ? "" : "Exclude ") + " (v530)";
+                case 531:
+                    return String.Format("Use Graphic{0}{1}{2}", (base1 > 0 ? ", Primary: IT" + base1 : ""), (base2 > 0 ? ", Secondary: IT" + base2 : ""), (max > 0 ? ", Tint: " + max : ""));
+                case 532:
+                    // copy of 287 for AA type 3s
+                    return String.Format("Increase Duration by {0}s", base1 * 6) + " (v532)";
+                case 533:
+                    // copy of 310 for AA type 3s
+                    return String.Format("Reduce Timer by {0}", FormatTime(base1 / 1000f)) + " (v533)";
+                case 534:
+                    // copy of 302 for AA type 3s
+                    return Spell.FormatPercentRange("Spell Damage", base1, base2) + " (v534, Before Crit)";
+                case 535:
+                    // copy of 303 for AA type 3s
+                    return Spell.FormatCount("Spell Damage", base1) + " (v535, Before Crit)";
+                case 536:
+                    // copy of 396 for AA type 3s
+                    return Spell.FormatCount("Healing", base1) + " (v536, Before Crit)";
 
             }
 
@@ -2543,7 +2565,7 @@ namespace EQSpellParser
 
         private static string FormatPercent(string name, float value)
         {
-            return String.Format("{0} {1} by {2:0.#}%", value < 0 ? "Decrease" : "Increase", name, Math.Abs(value));
+            return String.Format("{0} {1} by {2:0.##}%", value < 0 ? "Decrease" : "Increase", name, Math.Abs(value));
         }
 
         private static string FormatPercentRange(string name, int min, int max)
